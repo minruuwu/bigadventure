@@ -1,36 +1,36 @@
-u_sn,job_name,job_e_name,required_desc,required_condition,required_job_1,required_job_1_level,required_job_2,required_job_2_level,job_desc
-job01,æˆ°å£«,Warrior,,0,,,,,ç²¾é€šå¤šç¨®æ­¦å™¨ï¼Œæ“…é•·è‚‰æçš„è¿‘æˆ°è·æ¥­ã€‚
-job02,é­”æ³•å¸«,Mage,,0,,,,,æŽŒæ¡å…ƒç´ é­”åŠ›çš„æ–½æ³•è€…ï¼Œå¯ä»¥é€ æˆå¤§é‡å‚·å®³ã€‚
-job03,éŠè•©è€…,Rogue,,0,,,,,æ“…é•·éˆæ´»å‹•ä½œçš„æ©Ÿæœƒä¸»ç¾©è€…ã€‚
-job04,ç‰§å¸«,Priest,,0,,,,,å–„æ–¼æ²»ç™‚ã€è£œåŠ©å¢žç›Šçš„ç¥žè·äººå“¡ã€‚
-job05,éŠé‡‘å£«,Alchemist,,0,,,,,ç²¾é€šéŠé‡‘è¡“ï¼Œæœ‰å¤šç¨®æˆ°é¬¥æ‰‹æ®µçš„å­¸è€…ã€‚
-job06,è§’é¬¥å£«,Gladiator,æˆ°å£«LV.30,1,job01,30,,,
-job07,é­”å°Žå¸«,Archmage,é­”æ³•å¸«LV.30,1,job02,30,,,
-job08,éŠä¿ ,Ranger,éŠè•©è€…LV.30,1,job03,30,,,
-job09,ç¥­å¸é•·,HighPriest,ç‰§å¸«LV.30,1,job04,30,,,
-job10,è³¢è€…,Sage,éŠé‡‘å£«LV.30,1,job05,30,,,
-job11,é­”åŠå£«,Spellsword,æˆ°å£«LV.20+é­”æ³•å¸«LV.20,2,job01,20,job02,20,
-job12,å¤§åŠå¸«,Swordmaster,æˆ°å£«LV.20+éŠè•©è€…LV.20,2,job01,20,job03,20,
-job13,è–é¨Žå£«,Paladin,æˆ°å£«LV.20+ç‰§å¸«LV.20,2,job01,20,job04,20,
-job14,å·¥åŒ ,Craftsman,æˆ°å£«LV.20+éŠé‡‘å£«LV.20,2,job01,20,job05,20,
-job15,åŸéŠè©©äºº,Bard,é­”æ³•å¸«LV.20+éŠè•©è€…LV.20,2,job02,20,job03,20,
-job16,éˆèƒ½ä½¿,Psychic,é­”æ³•å¸«LV.20+ç‰§å¸«LV.20,2,job02,20,job04,20,
-job17,å’’è¡“å¸«,Warlock,é­”æ³•å¸«LV.20+éŠé‡‘å£«LV.20,2,job02,20,job05,20,
-job18,å¯©åˆ¤å®˜,Inquisitor,éŠè•©è€…LV.20+ç‰§å¸«LV.20,2,job03,20,job04,20,
-job19,æš—æ®ºè€…,Assassin,éŠè•©è€…LV.20+éŠé‡‘å£«LV.20,2,job03,20,job05,20,
-job20,å·«é†«,WitchDoctor,ç‰§å¸«LV.20+éŠé‡‘å£«LV.20,2,job04,20,job05,20,
-job21,å† è»å‹‡å£«,Champion,è§’é¬¥å£«LV.50,1,job06,50,,,
-job22,é­”å°Žç²¾éˆä½¿,MagusElementalist,é­”å°Žå¸«LV.50,1,job07,50,,,
-job23,ç‹©é­”çµäºº,Demon Hunter,éŠä¿ LV.50,1,job08,50,,,
-job24,æ¨žæ©Ÿç¥žä½¿,CardinalEmissary,ç¥­å¸é•·LV.50,1,job09,50,,,
-job25,å‰µç”Ÿç§˜è¡“å¸«,GenesisMystic,è³¢è€…LV.50,1,job10,50,,,
-job26,å¥§è¡“é¨Žå£«,ArcaneKnight,é­”åŠå£«LV.50,1,job11,50,,,
-job27,åŠè–,SwordSaint,å¤§åŠå¸«LV.50,1,job12,50,,,
-job28,è–å…‰è»åœ˜é•·,LightCommander,è–é¨Žå£«LV.50,1,job13,50,,,
-job29,ç¬¦æ–‡é›é€ è€…,Runesmith,å·¥åŒ LV.50,1,job14,50,,,
-job30,å‘½é‹ç¹”è€…,Fateweaver,åŸéŠè©©äººLV.50,1,job15,50,,,
-job31,çœŸç†å°Žå¸«,TruthMentor,éˆèƒ½ä½¿LV.50,1,job16,50,,,
-job32,å¦–è¡“é ˜ä¸»,SorcererLord,å’’è¡“å¸«LV.50,1,job17,50,,,
-job33,æ–·ç½ªè£æ±ºå®˜,CondemningArbitrator,å¯©åˆ¤å®˜LV.50,1,job18,50,,,
-job34,æš—åˆƒåˆºå®¢,UmbralStalker,æš—æ®ºè€…LV.50,1,job19,50,,,
-job35,ç¶´å‘½ç¥­ç¥€,SoulstitchRitualist,å·«é†«LV.50,1,job20,50,,,
+u_sn,job_name,job_e_name,required_desc,required_condition,required_job_1,required_job_1_level,required_job_2,required_job_2_level,job_desc,usable_sword,usable_axe,usable_dagger,usable_bow,usable_spear,usable_hammer,usable_staff,usable_book
+job01,¾Ô¤h,Warrior,,0,,,,,ºë³q¦hºØªZ¾¹¡A¾Õªø¦×·iªºªñ¾ÔÂ¾·~¡C,1,1,,,1,1,,
+job02,Å]ªk®v,Mage,,0,,,,,´x´¤¤¸¯ÀÅ]¤Oªº¬IªkªÌ¡A¥i¥H³y¦¨¤j¶q¶Ë®`¡C,,,,,,,1,1
+job03,¹C¿ºªÌ,Rogue,,0,,,,,¾ÕªøÆF¬¡°Ê§@ªº¾÷·|¥D¸qªÌ¡C,,,1,1,1,,,
+job04,ªª®v,Priest,,0,,,,,µ½©óªvÀø¡B¸É§U¼W¯qªº¯«Â¾¤H­û¡C,,,,,,1,1,
+job05,Áåª÷¤h,Alchemist,,0,,,,,ºë³qÁåª÷³N¡A¦³¦hºØ¾Ô°«¤â¬qªº¾ÇªÌ¡C,,,1,,,1,,1
+job06,¨¤°«¤h,Gladiator,¾Ô¤hLV.30,1,job01,30,,,"¦bÄv§Þ³õ¤dÁè¦ÊÁåªº¾Ô¤h,¾Õªø¥¿­±¹ï¨M»PÀ£¨î¼Ä¤H¡C",1,1,1,1,1,1,,
+job07,Å]¾É®v,Archmage,Å]ªk®vLV.30,1,job02,30,,,"±NÅ]¤OÆp¬ã¦Ü²`³Bªº¬IªkªÌ,¯à¬I®i«Â¤OÅå¤Hªº°ª¶¥Å]ªk¡C",,,,,,,1,1
+job08,¹C«L,Ranger,¹C¿ºªÌLV.30,1,job03,30,,,"¦æ°Ê±Ó±¶ªºÂy¤â,¾Õªø§ì¦í¾Ô¾÷¤@À»¨î¼Ä¡C",1,,1,1,1,,,
+job09,²½¥qªø,HighPriest,ªª®vLV.30,1,job04,30,,,"¨ü¤H·q­«ªº¯«Â¾»â³S,¥H±j¤jªºªvÀø»P§ÈÅ@¦uÅ@¶¤¥î¡C",,,,,,1,1,
+job10,½åªÌ,Sage,Áåª÷¤hLV.30,1,job05,30,,,"³q¾åÁåª÷¶ø¸qªº´¼ªÌ,¯à¥H¦h¼Ë°t¤è»P¹D¨ã§áÂà¾Ô§½¡C",,,,,,,1,1
+job11,Å]¼C¤h,Spellsword,¾Ô¤hLV.20+Å]ªk®vLV.20,2,job01,20,job02,20,"¼C»PÅ]ªk­Ý­×,¯à§âÅ]¤O¿Ä¤Jªñ¾Ôªº¾Ô¤h¡C",1,,,,,,1,1
+job12,¤j¼C®v,Swordmaster,¾Ô¤hLV.20+¹C¿ºªÌLV.20,2,job01,20,job03,20,±Mºë©ó¼C¤§¤@¹Dªº±j¤j¾Ô¤h¡A§Ö±¶¦Ó¨³²r¡C,1,,,,,,,
+job13,¸tÃM¤h,Paladin,¾Ô¤hLV.20+ªª®vLV.20,2,job01,20,job04,20,"©Ü¥Ò«ù¬Þªº¯«¸t¾Ô¤h,¥H¦uÅ@¦P¦ñ¬°¤v¥ô¡C",1,,,,1,1,,
+job14,¤u¦K,Craftsman,¾Ô¤hLV.20+Áåª÷¤hLV.20,2,job01,20,job05,20,"µ½¥ÎÁë³y»PÁåª÷ªº¾Ô¤h,¥Hºë¨}¸Ë³Æ»P¹D¨ã§@¾Ô¡C",,,,,1,1,,
+job15,§u¹C¸Ö¤H,Bard,Å]ªk®vLV.20+¹C¿ºªÌLV.20,2,job02,20,job03,20,"¥HºqÁn»P±Û«ß¬I®iÅ]ªk,¹ª»R¶¤¤Í¡B°g´b¼Ä¤H¡C",,,1,1,,,,1
+job16,ÆF¯à¨Ï,Psychic,Å]ªk®vLV.20+ªª®vLV.20,2,job02,20,job04,20,"¥H·N§Ó¤Þ¾ÉÆF¯àªº¬IªkªÌ,­Ý¨ã¿é¥X»P¤ä´©¡C",,,,,,,1,1
+job17,©G³N®v,Warlock,Å]ªk®vLV.20+Áåª÷¤hLV.20,2,job02,20,job05,20,"¾Õªø½Õ©M©G¤å»PÃÄ¾¯,¥H¦UºØ©G³N«d®z¼Ä¤H¡C",,,,,,,1,1
+job18,¼f§P©x,Inquisitor,¹C¿ºªÌLV.20+ªª®vLV.20,2,job03,20,job04,20,¹C¨«¦b¶Â·t¤§¤¤¡A±Mªù°l®·²§ºÝ¥÷¤lªº¨îµôªÌ¡C,,1,1,,,1,,
+job19,·t±þªÌ,Assassin,¹C¿ºªÌLV.20+Áåª÷¤hLV.20,2,job03,20,job05,20,"ºë©ó¬rÃÄ»P·t¾¹,¦æ°Ê®¨µMµLÁnªº­P©R±þ¤â¡C",,,1,1,,,,
+job20,§ÅÂå,WitchDoctor,ªª®vLV.20+Áåª÷¤hLV.20,2,job04,20,job05,20,"¯óÃÄ»P¬èÃ«¨Ã¥ÎªºªvÀøªÌ,¾Õªø¼W¯q»P«ì´_¡C",,,,,,1,1,1
+job21,«a­x«i¤h,Champion,¨¤°«¤hLV.50,1,job06,50,,,"¦bµL¼Æ¾Ô°«¤¤¹Ü±oºaÄ£ªº³»¦y¾Ô¤h,¬O²³¤H¥õ±æªº¼Ð¬ñ¡C",1,1,1,1,1,1,,
+job22,Å]¾ÉºëÆF¨Ï,MagusElementalist,Å]¾É®vLV.50,1,job07,50,,,"»P¤¸¯ÀºëÆF½lµ²«´¬ù,¯à¾r¶¿·´¤Ñ·À¦aªº¤¸¯À¤§¤O¡C",,,,,,,1,1
+job23,¬¼Å]Ây¤H,Demon Hunter,¹C«LLV.50,1,job08,50,,,"±MªùÂy±þ±j¤jÅ]ª«ªºÂy¤H,¾Õªøºë·Ç¦Ó­P©Rªº§ðÀ»¡C",1,,1,1,1,,,
+job24,¼Ï¾÷¯«¨Ï,CardinalEmissary,²½¥qªøLV.50,1,job09,50,,,"¨ü¯«©úª½±µ«ü¤Þªº¯«Â¾ªÌ,¯à­°¤U±j¤jªº¸t¥ú»P¯¬ºÖ¡C",,,,,,1,1,
+job25,³Ð¥Í¯µ³N®v,GenesisMystic,½åªÌLV.50,1,job10,50,,,´x´¤³Ð³y»PÅÜ¤Æ¯µ³NªºÁåª÷¤j®v¡C,,,,,,,1,1
+job26,¶ø³NÃM¤h,ArcaneKnight,Å]¼C¤hLV.50,1,job11,50,,,"¥HÅ]¤O±j¤ÆªZ¾¹»PñZ¥Ò,¼C³N»PÅ]ªk§¹¬ü¿Ä¦XªºÃM¤h¡C",1,,,,,,1,1
+job27,¼C¸t,SwordSaint,¤j¼C®vLV.50,1,job12,50,,,"±N¼C³N­×¦Ü·¥­Pªº©v®v,¤@¼C¤§¶¡Ä­§t¤dÅÜ¸U¤Æ¡C",1,,,,,,,
+job28,¸t¥ú­x¹Îªø,LightCommander,¸tÃM¤hLV.50,1,job13,50,,,"²v»â¸t¥ú­x¹Îªº«ü´§©x,¹ª»R¥þ­x¨Ã¥H¯«¸t¤§¤O¦uÅ@²³¤H¡C",1,,,,1,1,,
+job29,²Å¤åÁë³yªÌ,Runesmith,¤u¦KLV.50,1,job14,50,,,"±N²Å¤å»Ê¨è©óªZ¨ãªºÁë³y¤j®v,¯à½á¤©¸Ë³Æ¤£¤Zªº¤O¶q¡C",,,,,1,1,,
+job30,©R¹BÂ´ªÌ,Fateweaver,§u¹C¸Ö¤HLV.50,1,job15,50,,,"¥HºqÁÁ½sÂ´©R¹Bµ·½uªº§u¹CªÌ,¯à¥ª¥k¾Ô§½ªº¨«¦V¡C",,,1,1,,,,1
+job31,¯u²z¾É®v,TruthMentor,ÆF¯à¨ÏLV.50,1,job16,50,,,"±´´MÆF¯à»P¥@¬É¯u²zªº´¼ªÌ,¥H¬}¹î»P·N§Ó¤Þ¾É¶¤¤Í¡C",,,,,,,1,1
+job32,§¯³N»â¥D,SorcererLord,©G³N®vLV.50,1,job17,50,,,¥H±j¤jªº§¯³N»P¶A©G´x±±¾Ô³õªº¬IªkªÌ¡C,,,,,,,1,1
+job33,Â_¸oµô¨M©x,CondemningArbitrator,¼f§P©xLV.50,1,job18,50,,,¥H¯«¸t¤§¤O»P·t¼v¾W¤b«Å§P¸o´cªº³Ì°ª¼f§PªÌ¡C,,1,1,,,1,,
+job34,·t¤b¨ë«È,UmbralStalker,·t±þªÌLV.50,1,job19,50,,,¼ç¦æ©ó·t¼v¤§¤¤¤@À»¥²±þ¡A³QºÙ¬°¦º¯«ªº¶Ç»¡¡C,,,1,1,,,,
+job35,ºó©R²½ªÁ,SoulstitchRitualist,§ÅÂåLV.50,1,job20,50,,,"¥H²½ªÁ»P¯µÃÄ©µÄò¥Í©Rªº§ÅªÌ,¯à±NÃx¦ºªº¦P¦ñ©Ô¦^¾Ô³õ¡C",,,,,,1,1,1
