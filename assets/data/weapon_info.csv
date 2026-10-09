@@ -1,0 +1,9 @@
+u_sn,weapon_name,weapon_e_name,weapon_desc,p_atk_lv100,m_atk_lv100,auto_stat_1,auto_per_level_1,auto_stat_2,auto_per_level_2,temper_stat_1,temper_per_point_1,temper_stat_2,temper_per_point_2,temper_stat_3,temper_per_point_3,stage_1_name,stage_2_name,stage_3_name,stage_4_name
+weapon01,劍,Sword,均衡可靠的武器,500,,crit_damage_rate,0.50%,,,crit_rate,0.50%,crit_damage_rate,5%,p_damage_rate,1%,精鋼劍,魔晶劍,真魔鋼龍劍,聖劍輝煌之器
+weapon02,斧,Axe,高傷害的重型武器,540,,hp_rate,0.30%,,,p_damage_rate,1.50%,crit_damage_rate,6%,hp_rate,2%,鑄鐵斧,蠻鋼斧,霸者之斧,巨神兵歐貝利斯克
+weapon03,匕,Dagger,擅長弱點攻擊的靈活武器,360,,crit_rate,0.15%,,,crit_rate,0.50%,eva_rate,0.50%,p_damage_rate,1%,短匕,銀牙刃,影月迅刃,冥王之刺
+weapon04,弓,Bow,"出手輕巧,暴擊時特別痛的武器",360,,crit_damage_rate,0.80%,,,crit_damage_rate,5%,p_damage_rate,1%,eva_rate,0.50%,獵弓,翠羽弓,流星魔弓,神弓天慟
+weapon05,槍,Spear,攻守兼備的武器,400,,p_reduce_rate,0.15%,m_reduce_rate,0.15%,p_reduce_rate,1%,m_reduce_rate,1%,p_damage_rate,1%,衛士槍,密銀槍,聖諭之槍,英雄戟凱旋之歌
+weapon06,錘,Hammer,兼顧物理與魔法輸出的武器,300,300,p_damage_rate,0.10%,m_damage_rate,0.10%,p_damage_rate,1%,m_damage_rate,1%,hp_rate,2%,法錘,符文錘,泰坦戰錘,創世之錘
+weapon07,杖,Staff,專門施展魔法的武器,,400,m_damage_rate,0.20%,,,m_damage_rate,1.50%,crit_damage_rate,4%,m_reduce_rate,1%,梣木杖,靈泉之杖,織光法杖,智慧權柄
+weapon08,書,Book,擅長抓準時機引爆魔力的武器,,360,crit_rate,0.20%,,,m_damage_rate,1%,crit_rate,0.50%,crit_damage_rate,4%,學徒手札,祕法禁書,英靈典籍,萬象啟示錄
