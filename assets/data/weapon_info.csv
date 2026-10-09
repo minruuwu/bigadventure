@@ -1,9 +1,9 @@
 u_sn,weapon_name,weapon_e_name,weapon_desc,p_atk_lv100,m_atk_lv100,auto_stat_1,auto_per_level_1,auto_stat_2,auto_per_level_2,temper_stat_1,temper_per_point_1,temper_stat_2,temper_per_point_2,temper_stat_3,temper_per_point_3,stage_1_name,stage_2_name,stage_3_name,stage_4_name
-weapon01,¼C,Sword,§¡¿Å¥i¾aªºªZ¾¹,500,,crit_damage_rate,0.50%,,,crit_rate,0.50%,crit_damage_rate,5%,p_damage_rate,1%,ºë¿û¼C,Å]´¹¼C,¯uÅ]¿ûÀs¼C,¸t¼C½÷·×¤§¾¹
-weapon02,©ò,Axe,°ª¶Ë®`ªº­««¬ªZ¾¹,540,,hp_rate,0.30%,,,p_damage_rate,1.50%,crit_damage_rate,6%,hp_rate,2%,Å±ÅK©ò,ÆZ¿û©ò,ÅQªÌ¤§©ò,¥¨¯«§L¼Ú¨©§Q´µ§J
-weapon03,¤P,Dagger,¾Õªø®zÂI§ğÀ»ªºÆF¬¡ªZ¾¹,360,,crit_rate,0.15%,,,crit_rate,0.50%,eva_rate,0.50%,p_damage_rate,1%,µu¤P,»È¤ú¤b,¼v¤ë¨³¤b,­ß¤ı¤§¨ë
-weapon04,¤},Bow,"¥X¤â»´¥©,¼ÉÀ»®É¯S§OµhªºªZ¾¹",360,,crit_damage_rate,0.80%,,,crit_damage_rate,5%,p_damage_rate,1%,eva_rate,0.50%,Ây¤},»A¦Ğ¤},¬y¬PÅ]¤},¯«¤}¤ÑºE
-weapon05,ºj,Spear,§ğ¦u­İ³ÆªºªZ¾¹,400,,p_reduce_rate,0.15%,m_reduce_rate,0.15%,p_reduce_rate,1%,m_reduce_rate,1%,p_damage_rate,1%,½Ã¤hºj,±K»Èºj,¸t¿Ù¤§ºj,­^¶¯´u³Í±Û¤§ºq
-weapon06,Áè,Hammer,­İÅUª«²z»PÅ]ªk¿é¥XªºªZ¾¹,300,300,p_damage_rate,0.10%,m_damage_rate,0.10%,p_damage_rate,1%,m_damage_rate,1%,hp_rate,2%,ªkÁè,²Å¤åÁè,®õ©Z¾ÔÁè,³Ğ¥@¤§Áè
-weapon07,§ú,Staff,±Mªù¬I®iÅ]ªkªºªZ¾¹,,400,m_damage_rate,0.20%,,,m_damage_rate,1.50%,crit_damage_rate,4%,m_reduce_rate,1%,Õº¤ì§ú,ÆF¬u¤§§ú,Â´¥úªk§ú,´¼¼zÅv¬`
-weapon08,®Ñ,Book,¾Õªø§ì·Ç®É¾÷¤ŞÃzÅ]¤OªºªZ¾¹,,360,crit_rate,0.20%,,,m_damage_rate,1%,crit_rate,0.50%,crit_damage_rate,4%,¾Ç®{¤â¥¾,¯¦ªk¸T®Ñ,­^ÆF¨åÄy,¸U¶H±Ò¥Ü¿ı
+weapon01,åŠ,Sword,å‡è¡¡å¯é çš„æ­¦å™¨,500,,crit_damage_rate,0.50%,,,crit_rate,0.50%,crit_damage_rate,5%,p_damage_rate,1%,ç²¾é‹¼åŠ,é­”æ™¶åŠ,çœŸé­”é‹¼é¾åŠ,è–åŠè¼ç…Œä¹‹å™¨
+weapon02,æ–§,Axe,é«˜å‚·å®³çš„é‡å‹æ­¦å™¨,540,,hp_rate,0.30%,,,p_damage_rate,1.50%,crit_damage_rate,6%,hp_rate,2%,é‘„éµæ–§,è »é‹¼æ–§,éœ¸è€…ä¹‹æ–§,å·¨ç¥å…µæ­è²åˆ©æ–¯å…‹
+weapon03,åŒ•,Dagger,æ“…é•·å¼±é»æ”»æ“Šçš„éˆæ´»æ­¦å™¨,360,,crit_rate,0.15%,,,crit_rate,0.50%,eva_rate,0.50%,p_damage_rate,1%,çŸ­åŒ•,éŠ€ç‰™åˆƒ,å½±æœˆè¿…åˆƒ,å†¥ç‹ä¹‹åˆº
+weapon04,å¼“,Bow,å‡ºæ‰‹è¼•å·§ï¼Œæš´æ“Šæ™‚ç‰¹åˆ¥ç—›çš„æ­¦å™¨,360,,crit_damage_rate,0.80%,,,crit_damage_rate,5%,p_damage_rate,1%,eva_rate,0.50%,çµå¼“,ç¿ ç¾½å¼“,æµæ˜Ÿé­”å¼“,ç¥å¼“å¤©æ…Ÿ
+weapon05,æ§,Spear,æ”»å®ˆå…¼å‚™çš„æ­¦å™¨,400,,p_reduce_rate,0.15%,m_reduce_rate,0.15%,p_reduce_rate,1%,m_reduce_rate,1%,p_damage_rate,1%,è¡›å£«æ§,å¯†éŠ€æ§,è–è«­ä¹‹æ§,è‹±é›„æˆŸå‡±æ—‹ä¹‹æ­Œ
+weapon06,éŒ˜,Hammer,å…¼é¡§ç‰©ç†èˆ‡é­”æ³•è¼¸å‡ºçš„æ­¦å™¨,300,300,p_damage_rate,0.10%,m_damage_rate,0.10%,p_damage_rate,1%,m_damage_rate,1%,hp_rate,2%,æ³•éŒ˜,ç¬¦æ–‡éŒ˜,æ³°å¦æˆ°éŒ˜,å‰µä¸–ä¹‹éŒ˜
+weapon07,æ–,Staff,å°ˆé–€æ–½å±•é­”æ³•çš„æ­¦å™¨,,400,m_damage_rate,0.20%,,,m_damage_rate,1.50%,crit_damage_rate,4%,m_reduce_rate,1%,æ¢£æœ¨æ–,éˆæ³‰ä¹‹æ–,ç¹”å…‰æ³•æ–,æ™ºæ…§æ¬ŠæŸ„
+weapon08,æ›¸,Book,æ“…é•·æŠ“æº–æ™‚æ©Ÿå¼•çˆ†é­”åŠ›çš„æ­¦å™¨,,360,crit_rate,0.20%,,,m_damage_rate,1%,crit_rate,0.50%,crit_damage_rate,4%,å­¸å¾’æ‰‹æœ­,ç¥•æ³•ç¦æ›¸,è‹±éˆå…¸ç±,è¬è±¡å•Ÿç¤ºéŒ„
