@@ -249,9 +249,9 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
       ATTR.forEach(function(a){ if(A[a[0]]) bonus.push([a[1], A[a[0]]]); });
       Object.keys(r).forEach(function(c){ if(c.indexOf('usable_') === 0 && r[c] && wname[c.slice(7)]) allow.push(wname[c.slice(7)]); });
       [1,2].forEach(function(n){ if(r['required_job_' + n]) req.push([r['required_job_' + n], parseInt(r['required_job_' + n + '_level'], 10)]); });
-      return {sn:r.u_sn, name:r.job_name, ename:r.job_e_name, desc:r.job_desc, reqdesc:r.required_desc, req:req, growth:g, bonus:bonus, allow:allow};
+      return {sn:r.u_sn, name:r.job_name, ename:r.job_e_name, desc:r.job_desc, reqdesc:r.required_desc, req:req, growth:g, bonus:bonus, allow:allow, defsn:r.default_weapon || ''};
     });
-    var weapons = WEAPON_ORDER.map(function(n){ var w = wp.filter(function(x){ return x.weapon_name === n; })[0]; return {n:n, t:w ? w.weapon_desc : ''}; });
+    var weapons = WEAPON_ORDER.map(function(n){ var w = wp.filter(function(x){ return x.weapon_name === n; })[0], cu = w ? parseFloat(w.cut) : NaN; return {n:n, t:w ? w.weapon_desc : '', sn:w ? w.u_sn : '', cut:isNaN(cu) ? 1 : cu, offhand:w ? (w.offhand || '') : ''}; });
     return {tree:tree, weapons:weapons};
   }
   Promise.all(['job_info.csv','job_level_up.csv','job_attribute.csv','weapon_info.csv'].map(getCSV)).then(function(R){ start(buildData(R)); }).catch(function(e){
@@ -265,11 +265,15 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   var STATS = [['str','力量'],['int','智力'],['agi','敏捷'],['vit','體質'],['luk','幸運']];
   var WEAPONS = D.weapons;
   var ALLOW = {}; TREE.forEach(function(n){ ALLOW[n.name] = n.allow; });
+  function weaponBySn(sn){ return WEAPONS.filter(function(w){ return w.sn === sn; })[0]; }
+  function weaponByName(n){ return WEAPONS.filter(function(w){ return w.n === n; })[0]; }
+  function defaultWeapon(j){ var w = weaponBySn(j.defsn); return w && ALLOW[j.name].indexOf(w.n) >= 0 ? w.n : ALLOW[j.name][0]; }
   var HAIR = [
     {n:'棕',h:0,s:112,l:11},{n:'紅',h:-13,s:160,l:17},{n:'金',h:37,s:141,l:44},{n:'藍',h:-152,s:190,l:39},
     {n:'綠',h:124,s:198,l:-4},{n:'黑',h:0,s:20,l:-30},{n:'白',h:0,s:0,l:90},{n:'粉',h:-36,s:170,l:54}];
   var LOCKED = {outfit:{label:'外觀',cur:'預設'}};
   var st = {job:0, outfit:null, hair:0, skin:ASSETS.defaults.skin, style:ASSETS.defaults.style, eyes:ASSETS.defaults.eyes, weapon:'劍', name:''};
+  st.weapon = defaultWeapon(JOBS[0]);
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $ = function(id){ return document.getElementById(id); };
   function el(tag, cls, text){ var e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
@@ -514,6 +518,26 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     cx.putImageData(im,0,0);
   }
   paintLight();
+  /* optional art: loaded quietly, a missing file just means nothing is drawn */
+  var quiet = {};
+  function silent(src){
+    if(!(src in quiet)){ quiet[src] = null; var im = new Image(); im.onload = function(){ quiet[src] = im; }; im.onerror = function(){}; im.src = src; }
+    return quiet[src];
+  }
+  var jobBack = [], wsplit = {}, WAX = [5/Math.hypot(5,11), -11/Math.hypot(5,11)], WGRIP = [25,26];
+  function weaponLayers(w){
+    var im = silent('../assets/weapons/' + w.sn + '_1.png'); if(!im) return null;
+    var k = w.sn + '|' + w.cut; if(wsplit[k]) return wsplit[k];
+    var c1 = document.createElement('canvas'), c2 = document.createElement('canvas'); c1.width = c1.height = c2.width = c2.height = 40;
+    var x1 = c1.getContext('2d'), x2 = c2.getContext('2d'); x1.drawImage(im,0,0); x2.drawImage(im,0,0);
+    var d1 = x1.getImageData(0,0,40,40), d2 = x2.getImageData(0,0,40,40), x, y;
+    for(y = 0; y < 40; y++) for(x = 0; x < 40; x++){
+      var over = (x+.5-WGRIP[0])*WAX[0] + (y+.5-WGRIP[1])*WAX[1] >= w.cut;
+      if(over) d1.data[(y*40+x)*4+3] = 0; else d2.data[(y*40+x)*4+3] = 0;
+    }
+    x1.putImageData(d1,0,0); x2.putImageData(d2,0,0);
+    return (wsplit[k] = {under:c1, over:c2});
+  }
   function disp(t){ if(reduce) return 0; var u = t/PERIOD; u -= Math.floor(u); return Math.round(u < 0.5 ? 2*u : 2*(1-u)); }
   function squash(img, d){
     octx.drawImage(img, 0, CUT, 40, 40-CUT, 0, CUT, 40, 40-CUT);
@@ -536,10 +560,16 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     octx.clearRect(0,0,40,40);
     octx.fillStyle = 'rgba(0,0,0,.38)';
     octx.fillRect(14,34,7,1); octx.fillRect(12,35,11,1); octx.fillRect(11,36,13,1); octx.fillRect(10,37,15,1); octx.fillRect(12,38,11,1);
+    var wp = weaponByName(st.weapon), wl = wp ? weaponLayers(wp) : null;
+    /* order: outfit back > weapon (below cut line) > skin > outfit > weapon (above cut line) > eyes > hair > off-hand */
+    if(jobBack[outfitIdx()]) squash(jobBack[outfitIdx()], d);
+    if(wl && wl.under) octx.drawImage(wl.under, 0, d);
     squash(skinImgs[st.skin], d); squash(imgs.jobs[outfitIdx()], d);
+    if(wl && wl.over) octx.drawImage(wl.over, 0, d);
     if(!closed) octx.drawImage(eyeImgs[st.eyes], 0, d);
     octx.drawImage(tinted[st.style][st.hair], 0, d);
-    /* weapon layer: drawn at the same +d offset as the upper body, never squashed (no weapon art yet) */
+    var sh = wp && wp.offhand ? silent('../assets/weapons/' + wp.offhand + '.png') : null;
+    if(sh) octx.drawImage(sh, 0, d);
     ctx.clearRect(0,0,cv.width,cv.height);
     ctx.drawImage(bgc, 0,0,40,40, 0,0,cv.width,cv.height);
     ctx.drawImage(off, 0,0,40,40, 0,0,cv.width,cv.height);
@@ -663,6 +693,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     openSheet('選擇職業', '起始的五種職業，轉職要等之後的冒險。', body, [
       {text:'取消', fn:closeSheet},
       {text:'選擇此職業', main:true, fn:function(){
+        if(pick !== st.job) st.weapon = defaultWeapon(JOBS[pick]);
         st.job = pick;
         if(ALLOW[JOBS[pick].name].indexOf(st.weapon) < 0) st.weapon = ALLOW[JOBS[pick].name][0];
         renderNote(); refreshSlots(); closeSheet();
@@ -671,7 +702,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
 
   /* ================= job-change tree ================= */
   var BASEC = ['#b5452f','#3f6fb5','#8a5aa8','#c9a23a','#4f9a4f']; // 戰 魔 遊 牧 鍊
-  var TIERNAME = {1:'起始職業',2:'一轉（單職業）',3:'一轉（雙職業）',4:'二轉'};
+  var TIERNAME = {1:'起始職業',2:'一轉',3:'一轉',4:'二轉'};
   function treeModel(){
     var by = {}; TREE.forEach(function(n){ by[n.sn] = n; });
     var bi = {}; TREE.slice(0,5).forEach(function(n,i){ bi[n.sn] = i; });
@@ -707,7 +738,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   function framedIcon(n, px){
     var NS = 'http://www.w3.org/2000/svg', N = 13, svg = document.createElementNS(NS,'svg');
     var tier = n.tier || 1, base = iconRoot(n), rows = ICONS[base.sn];
-    var pal = tier === 1 ? PALS.iron : tier === 4 ? PALS.gold : PALS.silver, ipal = tier === 1 ? null : pal;
+    var pal = tier === 1 ? PALS.iron : tier === 4 ? PALS.gold : PALS.silver, ipal = pal;
     svg.setAttribute('viewBox','0 0 '+(N+1)+' '+(N+1)); svg.setAttribute('width',px); svg.setAttribute('height',px); svg.setAttribute('shape-rendering','crispEdges'); svg.style.verticalAlign = 'middle'; svg.style.flex = 'none';
     function tone(x,y){ var f = (x+y)/(2*(N-1)); return f < .27 ? 0 : f < .5 ? 1 : f < .73 ? 2 : 3; }
     function rect(x,y,fill,o){ var r = document.createElementNS(NS,'rect'); r.setAttribute('x',x+o); r.setAttribute('y',y+o); r.setAttribute('width',1); r.setAttribute('height',1); r.setAttribute('fill',fill); svg.appendChild(r); }
@@ -766,7 +797,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
       else { sv('polygon', {points:x+','+y+' '+(x+s)+','+y+' '+x+','+(y+s), fill:c1}, g); sv('polygon', {points:(x+s)+','+y+' '+(x+s)+','+(y+s)+' '+x+','+(y+s), fill:c2}, g); }
       sv('rect', {x:x, y:y, width:s, height:s, fill:'url(#vig)'}, g);
       var f = sv('rect', {x:x-1, y:y-1, width:s+2, height:s+2, fill:'none', stroke:'#2b1a0d', 'stroke-width':2, 'class':'foc'}, g);
-      if(n.depth === 1) drawIcon(g, pos[n.sn][0], pos[n.sn][1], n.name);
+      if(n.depth === 1){ var fi = framedIcon(n, 28); fi.setAttribute('x', pos[n.sn][0] - 14); fi.setAttribute('y', pos[n.sn][1] - 14); fi.setAttribute('width', 28); fi.setAttribute('height', 28); g.appendChild(fi); }
       var hit = sv('rect', {x:x-5, y:y-5, width:s+10, height:s+10, fill:'transparent'}, g);
       g.addEventListener('click', function(){ pick(n.sn); });
       g.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(n.sn); } });
@@ -801,7 +832,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   function thumb(si, hi, ei, oi){
     var c = document.createElement('canvas'); c.width = 24; c.height = 22; c.style.width = '72px'; c.style.height = '66px';
     var x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.fillStyle = '#c9aa72'; x.fillRect(0,0,24,22);
-    [skinImgs[si], imgs.jobs[oi == null ? outfitIdx() : oi], eyeImgs[ei], tinted[hi][st.hair]].forEach(function(im){ x.drawImage(im, 8,0,24,22, 0,0,24,22); });
+    [jobBack[oi == null ? outfitIdx() : oi], skinImgs[si], imgs.jobs[oi == null ? outfitIdx() : oi], eyeImgs[ei], tinted[hi][st.hair]].forEach(function(im){ if(im) x.drawImage(im, 8,0,24,22, 0,0,24,22); });
     return c;
   }
   function pickSheet(title, lead, items, sel, make, onPick){
@@ -1050,7 +1081,8 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     im.onerror = function(){ report('圖片', '載入失敗'); if(--pending === 0) boot(); };
     im.src = src;
   }
-  imgs.jobs = []; ASSETS.jobs.forEach(function(src,i){ load(src, function(im){ imgs.jobs[i] = im; }); });
+  imgs.jobs = []; ASSETS.jobs.forEach(function(src,i){ load(src, function(im){ imgs.jobs[i] = im; }); var b = new Image(); b.onload = function(){ jobBack[i] = b; }; b.onerror = function(){}; b.src = src.replace(/\.png$/, '_b.png'); });
+  WEAPONS.forEach(function(w){ if(w.sn){ silent('../assets/weapons/' + w.sn + '_1.png'); if(w.offhand) silent('../assets/weapons/' + w.offhand + '.png'); } });
   ASSETS.skins.forEach(function(s,i){ load(s.src, function(im){ skinImgs[i] = im; }); });
   ASSETS.styles.forEach(function(s,i){ load(s.src, function(im){ styleImgs[i] = im; }); });
   ASSETS.eyes.forEach(function(s,i){ load(s.src, function(im){ eyeImgs[i] = im; }); });
