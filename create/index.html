@@ -251,7 +251,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
       [1,2].forEach(function(n){ if(r['required_job_' + n]) req.push([r['required_job_' + n], parseInt(r['required_job_' + n + '_level'], 10)]); });
       return {sn:r.u_sn, name:r.job_name, ename:r.job_e_name, desc:r.job_desc, reqdesc:r.required_desc, req:req, growth:g, bonus:bonus, allow:allow, defsn:r.default_weapon || ''};
     });
-    var weapons = WEAPON_ORDER.map(function(n){ var w = wp.filter(function(x){ return x.weapon_name === n; })[0], cu = w ? parseFloat(w.cut) : NaN; return {n:n, t:w ? w.weapon_desc : '', sn:w ? w.u_sn : '', cut:isNaN(cu) ? 1 : cu, offhand:w ? (w.offhand || '') : ''}; });
+    var weapons = WEAPON_ORDER.map(function(n){ var w = wp.filter(function(x){ return x.weapon_name === n; })[0], cu = w ? parseFloat(w.cut) : NaN; return {n:n, t:w ? w.weapon_desc : '', sn:w ? w.u_sn : '', cut:isNaN(cu) ? 1 : cu, ox:w ? (parseInt(w.offset_x,10) || 0) : 0, oy:w ? (parseInt(w.offset_y,10) || 0) : 0, offhand:w ? (w.offhand || '') : ''}; });
     return {tree:tree, weapons:weapons};
   }
   Promise.all(['job_info.csv','job_level_up.csv','job_attribute.csv','weapon_info.csv'].map(getCSV)).then(function(R){ start(buildData(R)); }).catch(function(e){
@@ -525,18 +525,27 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     return quiet[src];
   }
   var jobBack = [], wsplit = {}, WAX = [5/Math.hypot(5,11), -11/Math.hypot(5,11)], WGRIP = [25,26];
+  /* black outline: 1 px ring around the art's opaque pixels (8 neighbours); returns under/over pieces split along the cut line */
+  function outlinedPieces(im, key, cut, split){
+    var k = key + '|' + cut + '|' + split; if(wsplit[k]) return wsplit[k];
+    var c = document.createElement('canvas'); c.width = c.height = 40; var cx = c.getContext('2d', {willReadFrequently:true}); cx.drawImage(im,0,0);
+    var sd = cx.getImageData(0,0,40,40).data, A = new Uint8Array(1600), x, y, dx, dy;
+    for(y = 0; y < 40; y++) for(x = 0; x < 40; x++) if(sd[(y*40+x)*4+3] > 10) A[y*40+x] = 1;
+    var u = document.createElement('canvas'), o = document.createElement('canvas'); u.width = u.height = o.width = o.height = 40;
+    var ux = u.getContext('2d'), ox = o.getContext('2d'), ud = ux.createImageData(40,40), od = ox.createImageData(40,40);
+    for(y = 0; y < 40; y++) for(x = 0; x < 40; x++){
+      var i = y*40+x, tg = ud;
+      if(split && (x+.5-WGRIP[0])*WAX[0] + (y+.5-WGRIP[1])*WAX[1] >= cut) tg = od;
+      if(A[i]){ tg.data[i*4] = sd[i*4]; tg.data[i*4+1] = sd[i*4+1]; tg.data[i*4+2] = sd[i*4+2]; tg.data[i*4+3] = sd[i*4+3]; }
+      else { var ring = false; for(dy = -1; dy <= 1 && !ring; dy++) for(dx = -1; dx <= 1; dx++){ var nx = x+dx, ny = y+dy; if(nx >= 0 && nx < 40 && ny >= 0 && ny < 40 && A[ny*40+nx]){ ring = true; break; } }
+        if(ring){ tg.data[i*4] = 10; tg.data[i*4+1] = 7; tg.data[i*4+2] = 5; tg.data[i*4+3] = 255; } }
+    }
+    ux.putImageData(ud,0,0); ox.putImageData(od,0,0);
+    return (wsplit[k] = {under:u, over:o});
+  }
   function weaponLayers(w){
     var im = silent('../assets/weapons/' + w.sn + '_1.png'); if(!im) return null;
-    var k = w.sn + '|' + w.cut; if(wsplit[k]) return wsplit[k];
-    var c1 = document.createElement('canvas'), c2 = document.createElement('canvas'); c1.width = c1.height = c2.width = c2.height = 40;
-    var x1 = c1.getContext('2d'), x2 = c2.getContext('2d'); x1.drawImage(im,0,0); x2.drawImage(im,0,0);
-    var d1 = x1.getImageData(0,0,40,40), d2 = x2.getImageData(0,0,40,40), x, y;
-    for(y = 0; y < 40; y++) for(x = 0; x < 40; x++){
-      var over = (x+.5-WGRIP[0])*WAX[0] + (y+.5-WGRIP[1])*WAX[1] >= w.cut;
-      if(over) d1.data[(y*40+x)*4+3] = 0; else d2.data[(y*40+x)*4+3] = 0;
-    }
-    x1.putImageData(d1,0,0); x2.putImageData(d2,0,0);
-    return (wsplit[k] = {under:c1, over:c2});
+    return outlinedPieces(im, w.sn, w.cut, true);
   }
   function disp(t){ if(reduce) return 0; var u = t/PERIOD; u -= Math.floor(u); return Math.round(u < 0.5 ? 2*u : 2*(1-u)); }
   function squash(img, d){
@@ -563,13 +572,13 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     var wp = weaponByName(st.weapon), wl = wp ? weaponLayers(wp) : null;
     /* order: outfit back > weapon (below cut line) > skin > outfit > weapon (above cut line) > eyes > hair > off-hand */
     if(jobBack[outfitIdx()]) squash(jobBack[outfitIdx()], d);
-    if(wl && wl.under) octx.drawImage(wl.under, 0, d);
+    if(wl && wl.under) octx.drawImage(wl.under, wp.ox, wp.oy + d);
     squash(skinImgs[st.skin], d); squash(imgs.jobs[outfitIdx()], d);
-    if(wl && wl.over) octx.drawImage(wl.over, 0, d);
+    if(wl && wl.over) octx.drawImage(wl.over, wp.ox, wp.oy + d);
     if(!closed) octx.drawImage(eyeImgs[st.eyes], 0, d);
     octx.drawImage(tinted[st.style][st.hair], 0, d);
     var sh = wp && wp.offhand ? silent('../assets/weapons/' + wp.offhand + '.png') : null;
-    if(sh) octx.drawImage(sh, 0, d);
+    if(sh) octx.drawImage(outlinedPieces(sh, wp.offhand, 0, false).under, 0, d);
     ctx.clearRect(0,0,cv.width,cv.height);
     ctx.drawImage(bgc, 0,0,40,40, 0,0,cv.width,cv.height);
     ctx.drawImage(off, 0,0,40,40, 0,0,cv.width,cv.height);
