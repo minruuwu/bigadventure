@@ -367,6 +367,7 @@ function show(state,data,user){box.textContent='';foot.textContent='';cancelAnim
     wl.appendChild(el('div','hi','歡迎回來，'+data.name+'（'+(JOBN[data.job]||'冒險者')+'）'));box.appendChild(wl);box.appendChild(el('div','state dots','前往營地'));
     Doll.load('assets/','1').then(function(){var s={skin:data.skin|0,style:data.style|0,hair:data.hair|0,eyes:data.eyes==null?5:data.eyes,outfit:data.outfit==null?(data.job|0):data.outfit,weapon:null,shield:null,halo:[]};
       (function lp(t){Doll.draw(c,s,t);RAF=requestAnimationFrame(lp)})(0)})}
+  else if(state==='disabled'){box.appendChild(el('p','motto','這個帳號已停用'));box.appendChild(el('div','state','冒險者公會暫時收回了你的通行證。如果有疑問，請聯絡遊戲管理員。'))}
   else if(state==='error'){box.appendChild(motto());box.appendChild(el('div','err',data||'登入沒有成功，請再試一次。'));box.appendChild(btn('btn2','再試一次',function(){location.reload()}))}
   else if(state==='inapp'){box.appendChild(el('p','motto','請改用瀏覽器開啟'));box.appendChild(el('div','state','LINE、Facebook 裡的瀏覽器不能用 Google 登入。'));
     var ol=el('ol','steps');['點右上角的「⋯」或分享圖示','選「用預設瀏覽器開啟」或「在 Safari / Chrome 開啟」','打開後再按登入'].forEach(function(t){ol.appendChild(el('li',null,t))});box.appendChild(ol);
@@ -376,6 +377,7 @@ function show(state,data,user){box.textContent='';foot.textContent='';cancelAnim
 function route(u){if(!u){show('login');return}
   show('loading','確認你的冒險者身分',u);
   window.FB.getPlayer(u.uid).then(function(p){
+    if(p&&p.disabled){show('disabled',null,u);return}
     if(p){show('back',p,u);setTimeout(function(){location.href='camp/'},2200)}
     else{show('new',null,u);setTimeout(function(){location.href='create/'},1600)}
   }).catch(function(e){show('error','讀取角色資料失敗（'+(e.code||e.message)+'）',u)})}
@@ -389,5 +391,5 @@ var timer=setTimeout(function(){if(!window.FB)show('error','連不上登入服�
 withFB(function(FB){clearTimeout(timer);if(FB.inApp()){show('inapp');return}FB.ready.then(route)});
 })();
 </script>
-<script type="module" src="common/fb.js?v=1"></script>
+<script type="module" src="common/fb.js?v=2"></script>
 </body></html>

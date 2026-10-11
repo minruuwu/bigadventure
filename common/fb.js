@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -30,13 +30,26 @@ const FB = {
   nameKeyOf,
   validName(n) { n = String(n || '').trim(); if (!n) return '請先寫下名字。'; if (Array.from(n).length > 10) return '名字最多 10 個字。'; if (/[\/]/.test(n) || n === '.' || n === '..') return '名字不能包含「/」。'; return ''; },
   async nameTaken(n) { const s = await getDoc(doc(db, 'names', nameKeyOf(n))); return s.exists(); },
+  // {active, max, full}; missing setup docs count as full so nobody slips past the cap
+  async capacity() {
+    const [s, c] = await Promise.all([getDoc(doc(db, 'meta', 'stats')), getDoc(doc(db, 'meta', 'config'))]);
+    const active = s.exists() ? (s.data().active | 0) : 0, max = c.exists() ? (c.data().maxPlayers | 0) : 0;
+    return { active, max, full: !s.exists() || !c.exists() || active >= max };
+  },
   async createPlayer(data) {
     const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const name = String(data.name).trim(), key = nameKeyOf(name);
-    const b = writeBatch(db);
-    b.set(doc(db, 'players', u.uid), Object.assign({}, data, { name, nameKey: key, createdAt: serverTimestamp() }));
-    b.set(doc(db, 'names', key), { uid: u.uid });
-    await b.commit();
+    const statsRef = doc(db, 'meta', 'stats'), cfgRef = doc(db, 'meta', 'config');
+    await runTransaction(db, async tx => {
+      const s = await tx.get(statsRef), c = await tx.get(cfgRef), n = await tx.get(doc(db, 'names', key));
+      if (!s.exists() || !c.exists()) { const e = new Error('setup-missing'); e.code = 'setup-missing'; throw e; }
+      const active = s.data().active | 0;
+      if (active >= (c.data().maxPlayers | 0)) { const e = new Error('full'); e.code = 'full'; throw e; }
+      if (n.exists()) { const e = new Error('name-taken'); e.code = 'name-taken'; throw e; }
+      tx.set(doc(db, 'players', u.uid), Object.assign({}, data, { name, nameKey: key, createdAt: serverTimestamp() }));
+      tx.set(doc(db, 'names', key), { uid: u.uid });
+      tx.update(statsRef, { active: active + 1 });
+    });
   },
   // For game pages: resolves {user, player} or sends the visitor to login / registration.
   async requirePlayer(root) {
@@ -44,6 +57,7 @@ const FB = {
     if (!u) { location.replace(root); return new Promise(() => {}); }
     const p = await FB.getPlayer(u.uid);
     if (!p) { location.replace(root + 'create/'); return new Promise(() => {}); }
+    if (p.disabled) { location.replace(root); return new Promise(() => {}); }
     return { user: u, player: p };
   }
 };
