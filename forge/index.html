@@ -262,6 +262,10 @@ body{font-weight:500}
 .kraft .drule{margin:0;font-size:12.5px;font-weight:700;line-height:1.65;color:#3d2610}
 .kraft .sheetx{margin-top:4px}
 body.sheeton .grain{opacity:0}
+.rcell .unx{display:none;position:absolute;right:4px;top:4px;width:24px;height:24px;line-height:24px;text-align:center;font-size:13px;font-weight:900;color:#f0dfb8;background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30;cursor:pointer;z-index:2}
+.rcell.sel .unx{display:block}
+.rcell .unx:active{transform:translateY(1px)}
+.rcell .unx:focus-visible{outline:2px solid #fff;outline-offset:1px}
 #loading{position:fixed;left:12px;right:12px;top:40%;z-index:99;text-align:center;font-size:14px;color:var(--dim)}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
 @media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
@@ -564,7 +568,7 @@ function openSheet(k,ti){var s=ST[k],w=W[k],sh=document.getElementById('sheet'),
     var grid=el('div','rgrid');
     (w.ench[t]||[]).forEach(function(id){var r=RUNE[id];var o=el('button','rcell'+(lockT?' locked':''));o.type='button';o.dataset.id=id;
       o.style.setProperty('--rc',r.color);o.style.setProperty('--rcA',hexA(r.color,.55));o.style.setProperty('--rcB',hexA(r.color,.22));o.style.setProperty('--rcS',hexA(r.color,.8));
-      o.appendChild(runeStone(id,54,true,lockT));o.appendChild(el('span','t',r.name));o.appendChild(el('span','sub',r.en+'・'+r.cat));o.appendChild(el('span','ord'));
+      o.appendChild(runeStone(id,54,true,lockT));o.appendChild(el('span','t',r.name));o.appendChild(el('span','sub',r.en+'・'+r.cat));o.appendChild(el('span','ord'));var ux=el('span','unx','✕');ux.setAttribute('role','button');ux.setAttribute('tabindex','0');ux.setAttribute('aria-label','取消選擇'+r.name);var unpick=function(e){e.stopPropagation();e.preventDefault();var P=SHEET.pick,i=P.indexOf(id);if(i>=0){P.splice(i,1);syncSheet()}};ux.addEventListener('click',unpick);ux.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')unpick(e)});o.appendChild(ux);
       o.addEventListener('click',function(){if(lockT){toast('Lv'+REQ[t]+' 解鎖，還差 '+(REQ[t]-s.lv)+' 級');return}openDetail(id)});grid.appendChild(o)});
     box.appendChild(grid)});
   syncSheet();
