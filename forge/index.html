@@ -266,7 +266,7 @@ body.sheeton .grain{opacity:0}
 .rcell.sel .unx{display:block}
 .rcell .unx:active{transform:translateY(1px)}
 .rcell .unx:focus-visible{outline:2px solid #fff;outline-offset:1px}
-html,body{touch-action:manipulation}
+html,body,*{touch-action:manipulation}
 #loading{position:fixed;left:12px;right:12px;top:40%;z-index:99;text-align:center;font-size:14px;color:var(--dim)}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
 @media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
@@ -696,6 +696,12 @@ function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requ
     document.getElementById('loading').remove();render(true)})})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
 })();
+</script>
+<script>
+/* iOS Safari ignores touch-action on some elements: block the double-tap zoom manually (the second tap still clicks) */
+(function(){var last=0,lastT=null;document.addEventListener('touchend',function(e){var now=Date.now(),t=e.target;
+  if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
+  last=now;lastT=t},{passive:false})})();
 </script>
 <script type="module" src="../common/fb.js?v=1"></script>
 </body></html>

@@ -272,7 +272,7 @@ body.sheeton .grain{opacity:0}
 @media (prefers-reduced-motion:reduce){body::after{animation:none}}
 </style>
 <style>
-html,body{touch-action:manipulation}
+html,body,*{touch-action:manipulation}
 .dollcard{padding:14px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--wear) 0 0/288px 288px,linear-gradient(180deg,rgba(220,235,255,.07),rgba(0,0,0,.26)),var(--panel);box-shadow:inset 0 0 0 2px var(--bd),inset 0 4px 0 0 var(--hi),inset 0 -4px 0 0 var(--lo);clip-path:var(--cpC)}
 .dollbox{position:relative;background:radial-gradient(circle at 50% 78%,rgba(255,150,60,.28),rgba(255,150,60,0) 55%),#161b22;box-shadow:0 0 0 2px #06080b,inset 0 0 0 2px #5d6b7c;line-height:0}
 #doll{image-rendering:pixelated}
@@ -604,6 +604,12 @@ new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)}
     renderHead();renderSeg();renderPanel();renderTabs();requestAnimationFrame(loop)})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')});
 })();
+</script>
+<script>
+/* iOS Safari ignores touch-action on some elements: block the double-tap zoom manually (the second tap still clicks) */
+(function(){var last=0,lastT=null;document.addEventListener('touchend',function(e){var now=Date.now(),t=e.target;
+  if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
+  last=now;lastT=t},{passive:false})})();
 </script>
 <script type="module" src="../common/fb.js?v=1"></script>
 </body></html>
