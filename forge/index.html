@@ -236,7 +236,11 @@ body{font-weight:500}
 .rcell .sub{font-size:10.5px;font-weight:700;color:#7a5a30;line-height:1.3;text-align:center;letter-spacing:.02em}
 .rcell:active:not(.locked){transform:translateY(2px)}
 .rcell:focus-visible{outline:2px solid #4a2a12;outline-offset:2px}
-.rcell.sel{background-color:rgba(255,240,200,.22);box-shadow:inset 0 0 0 6px #4a2a12}
+.rcell.sel{background-color:rgba(255,240,200,.22)}
+.rcell .rstone.lit .st{animation:none;filter:none}
+.rcell.sel .rstone .st{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 6px var(--rcA));animation:selstone 1.6s steps(4) infinite}
+@keyframes selstone{0%,100%{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 4px var(--rcB))}50%{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 10px var(--rcA))}}
+@media (prefers-reduced-motion:reduce){.rcell.sel .rstone .st{animation:none}}
 @keyframes cellglow{0%,100%{box-shadow:inset 0 0 0 6px var(--rcS),0 0 0 4px var(--rcB)}50%{box-shadow:inset 0 0 0 6px var(--rc),0 0 0 4px var(--rcA)}}
 @media (prefers-reduced-motion:reduce){.rcell.sel{animation:none}}
 .rcell.locked{cursor:not-allowed}.rcell.locked>*{filter:grayscale(1);opacity:.5}
@@ -643,7 +647,7 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
       var b=el('div','b');b.appendChild(document.createTextNode('Lv '+s.pts[i]+' = '));var em=el('em',null,'+'+fmt(o.per*s.pts[i])+o.u);b.appendChild(em);r.appendChild(b);
       var st=el('div','step');var m=el('button',null,'−');m.type='button';m.setAttribute('aria-label',o.l+' 減一點');m.disabled=s.pts[i]<=0;m.addEventListener('click',function(){s.pts[i]--;renderPanel();refreshDots()});
       var n=el('span','n',String(s.pts[i]));var pl=el('button',null,'+');pl.type='button';pl.setAttribute('aria-label',o.l+' 加一點');pl.disabled=left<=0;pl.addEventListener('click',function(){s.pts[i]++;renderPanel();refreshDots()});
-      st.appendChild(m);st.appendChild(n);st.appendChild(pl);r.appendChild(st);h.appendChild(r)});
+      st.appendChild(n);st.appendChild(pl);r.appendChild(st);h.appendChild(r)});
     pn.appendChild(el('p','note','每 5 級得 1 點,滿級共 20 點。單一選項沒有上限,可以全部投同一個。'));
   }else{
     var row=el('div','enrow'),M=slots(s.lv);
