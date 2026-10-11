@@ -5,9 +5,11 @@
 var PAD=4,N=48,CUTROW=31,PERIOD=2000,WAX=[5/Math.hypot(5,11),-11/Math.hypot(5,11)],WG=[25,26];
 var HAIR=[{n:'棕',h:0,s:112,l:11},{n:'紅',h:-13,s:160,l:17},{n:'金',h:37,s:141,l:44},{n:'藍',h:-152,s:190,l:39},{n:'綠',h:124,s:198,l:-4},{n:'黑',h:0,s:20,l:-30},{n:'白',h:0,s:0,l:90},{n:'粉',h:-36,s:170,l:54}];
 var SKINN=['普通','淺色','深色'];
-var STYLEN=['髮型 1','髮型 2','髮型 3','髮型 4','髮型 5','光頭','髮型 6'];
-/* display order: index 5 is 光頭 (kept for saved data), new styles are appended after it */
-var STYLE_ORDER=[0,1,2,3,4,6,5];
+/* index 5 is 光頭 (kept for saved data). hair_06.png, hair_07.png ... are detected automatically and use index 6, 7 ... */
+var STYLEN=['髮型 1','髮型 2','髮型 3','髮型 4','髮型 5','光頭'];
+var STYLE_ORDER=[0,1,2,3,4,5];
+function pad2(n){return (n<10?'0':'')+n}
+function probeHairs(base,q,from,out){return loadImg(base+'character/hair_'+pad2(from)+'.png'+q).then(function(im){if(!im||from>40)return out;out.push({n:from,im:im});return probeHairs(base,q,from+1,out)})}
 
 function mk(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c}
 function loadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
@@ -30,8 +32,9 @@ function load(base,v){var q='?v='+(v||'1'),jobs=[];
  ['body_a','body_b','body_c'].forEach(function(n,i){jobs.push(loadImg(base+'character/'+n+'.png'+q).then(function(im){A.skins[i]=im}))});
  for(var i=1;i<=8;i++)(function(i){jobs.push(loadImg(base+'character/eyes_'+i+'.png'+q).then(function(im){A.eyes[i-1]=im}))})(i);
  for(i=1;i<=5;i++)(function(i){jobs.push(loadImg(base+'character/hair_0'+i+'.png'+q).then(function(im){A.styles[i-1]=im}));jobs.push(loadImg(base+'character/job0'+i+'.png'+q).then(function(im){A.outfits[i-1]=im}))})(i);
- jobs.push(loadImg(base+'character/hair_06.png'+q).then(function(im){A.styles[6]=im||mk(40,40)}));
- return Promise.all(jobs).then(function(){A.styles[5]=mk(40,40);A.styles.forEach(function(h,si){A.hairT[si]=HAIR.map(function(t){return si===5?h:makeHair(h,t)})})})}
+ jobs.push(probeHairs(base,q,6,[]).then(function(list){STYLE_ORDER.length=0;[0,1,2,3,4].forEach(function(i){STYLE_ORDER.push(i)});
+   list.forEach(function(h){A.styles[h.n]=h.im;STYLEN[h.n]='髮型 '+h.n;STYLE_ORDER.push(h.n)});STYLE_ORDER.push(5)}));
+ return Promise.all(jobs).then(function(){A.styles[5]=mk(40,40);A.styles.forEach(function(h,si){if(h)A.hairT[si]=HAIR.map(function(t){return si===5?h:makeHair(h,t)})})})}
 
 /* swatch color sampled from an image (most common opaque, non-outline color) */
 function swatch(img){var c=mk(40,40),x=c.getContext('2d');x.drawImage(img,0,0);var d=x.getImageData(0,0,40,40).data,cnt={},best=null,bn=0;

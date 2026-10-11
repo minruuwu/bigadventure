@@ -256,12 +256,16 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     var weapons = WEAPON_ORDER.map(function(n){ var w = wp.filter(function(x){ return x.weapon_name === n; })[0], cu = w ? parseFloat(w.cut) : NaN; return {n:n, t:w ? w.weapon_desc : '', sn:w ? w.u_sn : '', cut:isNaN(cu) ? 1 : cu, ox:w ? (parseInt(w.offset_x,10) || 0) : 0, oy:w ? (parseInt(w.offset_y,10) || 0) : 0, offhand:w ? (w.offhand || '') : ''}; });
     return {tree:tree, weapons:weapons};
   }
-  Promise.all(['job_info.csv','job_level_up.csv','job_attribute.csv','weapon_info.csv'].map(getCSV)).then(function(R){ start(buildData(R)); }).catch(function(e){
+  /* hair_06.png, hair_07.png ... are picked up automatically (index 6, 7 ...; index 5 stays 光頭) */
+  function probeHairs(n, out){ return new Promise(function(res){ var im = new Image(); im.onload = function(){ out.push(n); res(n < 40 ? probeHairs(n + 1, out) : out); }; im.onerror = function(){ res(out); }; im.src = '../assets/character/hair_' + (n < 10 ? '0' : '') + n + '.png'; }); }
+  var EXTRA_HAIRS = [];
+  Promise.all(['job_info.csv','job_level_up.csv','job_attribute.csv','weapon_info.csv'].map(getCSV).concat([probeHairs(6, EXTRA_HAIRS)])).then(function(R){ start(buildData(R.slice(0,4))); }).catch(function(e){
     var m = document.createElement('p'); m.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:99;margin:0;padding:8px;background:#000;color:#ff9a8a;font:14px sans-serif';
     m.textContent = '資料表載入失敗：' + e.message + '（請用網址開啟，不能直接用檔案開啟）'; document.body.appendChild(m);
   });
   function start(D){
-  var ASSETS = {"skins": [{"n": "普通", "src": "../assets/character/body_a.png"}, {"n": "淺色", "src": "../assets/character/body_b.png"}, {"n": "深色", "src": "../assets/character/body_c.png"}], "styles": [{"n": "髮型 1", "src": "../assets/character/hair_01.png"}, {"n": "髮型 2", "src": "../assets/character/hair_02.png"}, {"n": "髮型 3", "src": "../assets/character/hair_03.png"}, {"n": "髮型 4", "src": "../assets/character/hair_04.png"}, {"n": "髮型 5", "src": "../assets/character/hair_05.png"}, {"n": "無", "bald": true, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAHElEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAfBoZKAABYJ0ZdgAAAABJRU5ErkJggg=="}, {"n": "髮型 6", "src": "../assets/character/hair_06.png"}], "eyes": [{"n": "眼色 1", "src": "../assets/character/eyes_1.png"}, {"n": "眼色 2", "src": "../assets/character/eyes_2.png"}, {"n": "眼色 3", "src": "../assets/character/eyes_3.png"}, {"n": "眼色 4", "src": "../assets/character/eyes_4.png"}, {"n": "眼色 5", "src": "../assets/character/eyes_5.png"}, {"n": "眼色 6", "src": "../assets/character/eyes_6.png"}, {"n": "眼色 7", "src": "../assets/character/eyes_7.png"}, {"n": "眼色 8", "src": "../assets/character/eyes_8.png"}], "defaults": {"skin": 0, "style": 0, "eyes": 5}, "jobs": ["../assets/character/job01.png", "../assets/character/job02.png", "../assets/character/job03.png", "../assets/character/job04.png", "../assets/character/job05.png"]};
+  var ASSETS = {"skins": [{"n": "普通", "src": "../assets/character/body_a.png"}, {"n": "淺色", "src": "../assets/character/body_b.png"}, {"n": "深色", "src": "../assets/character/body_c.png"}], "styles": [{"n": "髮型 1", "src": "../assets/character/hair_01.png"}, {"n": "髮型 2", "src": "../assets/character/hair_02.png"}, {"n": "髮型 3", "src": "../assets/character/hair_03.png"}, {"n": "髮型 4", "src": "../assets/character/hair_04.png"}, {"n": "髮型 5", "src": "../assets/character/hair_05.png"}, {"n": "無", "bald": true, "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAAHElEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAfBoZKAABYJ0ZdgAAAABJRU5ErkJggg=="}], "eyes": [{"n": "眼色 1", "src": "../assets/character/eyes_1.png"}, {"n": "眼色 2", "src": "../assets/character/eyes_2.png"}, {"n": "眼色 3", "src": "../assets/character/eyes_3.png"}, {"n": "眼色 4", "src": "../assets/character/eyes_4.png"}, {"n": "眼色 5", "src": "../assets/character/eyes_5.png"}, {"n": "眼色 6", "src": "../assets/character/eyes_6.png"}, {"n": "眼色 7", "src": "../assets/character/eyes_7.png"}, {"n": "眼色 8", "src": "../assets/character/eyes_8.png"}], "defaults": {"skin": 0, "style": 0, "eyes": 5}, "jobs": ["../assets/character/job01.png", "../assets/character/job02.png", "../assets/character/job03.png", "../assets/character/job04.png", "../assets/character/job05.png"]};
+  EXTRA_HAIRS.forEach(function(n){ ASSETS.styles[n] = {n:'髮型 ' + n, src:'../assets/character/hair_' + (n < 10 ? '0' : '') + n + '.png'}; });
   var TREE = D.tree;
   var JOBS = TREE.slice(0,5);
   var STATS = [['str','力量'],['int','智力'],['agi','敏捷'],['vit','體質'],['luk','幸運']];
@@ -857,7 +861,8 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     openSheet(title, lead, body, [{text:'確定', main:true, fn:closeSheet}]);
   }
   function skinSheet(){ pickSheet('選擇膚色', '選了就會立刻套在左邊的角色上。', ASSETS.skins, st.skin, function(i){ return thumb(i, st.style, st.eyes); }, function(i){ st.skin = i; refreshSlots(); }); }
-  var STYLE_ORDER = [0,1,2,3,4,6,5]; /* 光頭 stays index 5 for saved characters; new styles appended after it */
+
+  var STYLE_ORDER = [0,1,2,3,4].concat(EXTRA_HAIRS, [5]); /* 光頭 stays index 5 for saved characters; new styles appended after it */
   function styleSheet(){ pickSheet('選擇髮型', '髮色會沿用你現在選的顏色。', STYLE_ORDER.map(function(k){ return ASSETS.styles[k]; }), STYLE_ORDER.indexOf(st.style), function(i){ return thumb(st.skin, STYLE_ORDER[i], st.eyes); }, function(i){ st.style = STYLE_ORDER[i]; refreshSlots(); }); }
   function eyesSheet(){ pickSheet('選擇眼睛顏色', '選了就會立刻套在左邊的角色上。', ASSETS.eyes, st.eyes, function(i){ return thumb(st.skin, st.style, i); }, function(i){ st.eyes = i; refreshSlots(); }); }
   function outfitSheet(){
