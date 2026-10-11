@@ -1,9 +1,9 @@
 u_sn,weapon_name,weapon_e_name,weapon_desc,p_atk_lv100,m_atk_lv100,auto_stat_1,auto_per_level_1,auto_stat_2,auto_per_level_2,temper_stat_1,temper_per_point_1,temper_stat_2,temper_per_point_2,temper_stat_3,temper_per_point_3,stage_1_name,stage_2_name,stage_3_name,stage_4_name,cut,offset_x,offset_y,offhand
-weapon01,劍,Sword,均衡可靠的武器,500,,crit_damage_rate,0.50%,,,crit_rate,0.50%,crit_damage_rate,5%,p_damage_rate,1%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
-weapon02,斧,Axe,高傷害的重型武器,540,,hp_rate,0.30%,,,p_damage_rate,1.50%,crit_damage_rate,6%,hp_rate,2%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
-weapon03,匕,Dagger,擅長弱點攻擊的靈活武器,360,,crit_rate,0.15%,,,crit_rate,0.50%,eva_rate,0.50%,p_damage_rate,1%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
-weapon04,弓,Bow,出手輕巧，暴擊時特別痛的武器,360,,crit_damage_rate,0.80%,,,crit_damage_rate,5%,p_damage_rate,1%,eva_rate,0.50%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
-weapon05,槍,Spear,攻守兼備的武器,400,,p_reduce_rate,0.15%,m_reduce_rate,0.15%,p_reduce_rate,1%,m_reduce_rate,1%,p_damage_rate,1%,軼事級,歌謠級,史詩級,傳說級,1,0,0,shield01
-weapon06,錘,Hammer,兼顧物理與魔法輸出的武器,300,300,p_damage_rate,0.10%,m_damage_rate,0.10%,p_damage_rate,1%,m_damage_rate,1%,hp_rate,2%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
-weapon07,杖,Staff,專門施展魔法的武器,,400,m_damage_rate,0.20%,,,m_damage_rate,1.50%,crit_damage_rate,4%,m_reduce_rate,1%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
-weapon08,書,Book,擅長抓準時機引爆魔力的武器,,360,crit_rate,0.20%,,,m_damage_rate,1%,crit_rate,0.50%,crit_damage_rate,4%,軼事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon01,劍,Sword,均衡可靠的武器,500,,crit_damage_rate,0.50%,,,crit_rate,0.50%,crit_damage_rate,5%,p_damage_rate,1%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon02,斧,Axe,高傷害的重型武器,540,,hp_rate,0.30%,,,p_damage_rate,1.50%,crit_damage_rate,6%,hp_rate,2%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon03,匕,Dagger,擅長弱點攻擊的靈活武器,360,,crit_rate,0.15%,,,crit_rate,0.50%,eva_rate,0.50%,p_damage_rate,1%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon04,弓,Bow,出手輕巧，暴擊時特別痛的武器,360,,crit_damage_rate,0.80%,,,crit_damage_rate,5%,p_damage_rate,1%,eva_rate,0.50%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon05,槍,Spear,攻守兼備的武器,400,,p_reduce_rate,0.15%,m_reduce_rate,0.15%,p_reduce_rate,1%,m_reduce_rate,1%,p_damage_rate,1%,敘事級,歌謠級,史詩級,傳說級,1,0,0,shield01
+weapon06,錘,Hammer,兼顧物理與魔法輸出的武器,300,300,p_damage_rate,0.10%,m_damage_rate,0.10%,p_damage_rate,1%,m_damage_rate,1%,hp_rate,2%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon07,杖,Staff,專門施展魔法的武器,,400,m_damage_rate,0.20%,,,m_damage_rate,1.50%,crit_damage_rate,4%,m_reduce_rate,1%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
+weapon08,書,Book,擅長抓準時機引爆魔力的武器,,360,crit_rate,0.20%,,,m_damage_rate,1%,crit_rate,0.50%,crit_damage_rate,4%,敘事級,歌謠級,史詩級,傳說級,1,0,0,
