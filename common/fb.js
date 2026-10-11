@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -46,10 +46,17 @@ const FB = {
       const active = s.data().active | 0;
       if (active >= (c.data().maxPlayers | 0)) { const e = new Error('full'); e.code = 'full'; throw e; }
       if (n.exists()) { const e = new Error('name-taken'); e.code = 'name-taken'; throw e; }
-      tx.set(doc(db, 'players', u.uid), Object.assign({}, data, { name, nameKey: key, createdAt: serverTimestamp() }));
+      tx.set(doc(db, 'players', u.uid), Object.assign({}, data, { name, nameKey: key, createdAt: serverTimestamp(), lastSeen: serverTimestamp() }));
       tx.set(doc(db, 'names', key), { uid: u.uid });
       tx.update(statsRef, { active: active + 1 });
     });
+  },
+  // Marks the signed-in player as recently online (players/{uid}.lastSeen).
+  async touch() { const u = auth.currentUser; if (!u) return; try { await updateDoc(doc(db, 'players', u.uid), { lastSeen: serverTimestamp() }); } catch (e) { console.warn('touch failed', e.code || e); } },
+  // Most recently online players: [{uid, ...data, lastSeen: millis}]
+  async listPlayers(n) {
+    const s = await getDocs(query(collection(db, 'players'), orderBy('lastSeen', 'desc'), limit(n || 30)));
+    return s.docs.map(d => { const v = d.data(); return Object.assign({ uid: d.id }, v, { lastSeen: v.lastSeen && v.lastSeen.toMillis ? v.lastSeen.toMillis() : 0 }); });
   },
   // For game pages: resolves {user, player} or sends the visitor to login / registration.
   async requirePlayer(root) {
@@ -58,6 +65,8 @@ const FB = {
     const p = await FB.getPlayer(u.uid);
     if (!p) { location.replace(root + 'create/'); return new Promise(() => {}); }
     if (p.disabled) { location.replace(root); return new Promise(() => {}); }
+    FB.touch();
+    if (!FB._beat) FB._beat = setInterval(() => { if (document.visibilityState === 'visible') FB.touch(); }, 5 * 60 * 1000);
     return { user: u, player: p };
   }
 };

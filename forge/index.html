@@ -678,7 +678,7 @@ function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
   items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='forge'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
     if(it[0]==='forge'&&afford)b.appendChild(el('i','dot'));
-    if(it[0]==='camp')b.addEventListener('click',function(){location.href='../camp/index.html'});else if(it[0]!=='forge')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
+    if(it[0]==='camp')b.addEventListener('click',function(){location.href='../camp/index.html'});else if(it[0]==='party')b.addEventListener('click',function(){location.href='../party/index.html'});else if(it[0]!=='forge')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
 function render(scroll){renderTop();renderChips();renderCard();renderActs();renderSeg();renderPanel();renderTabs();}
 /* 外層重繪時保持分頁內容同步 */
 var _r=render;render=function(sc){_r(sc)};
@@ -703,5 +703,5 @@ function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requ
   if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
   last=now;lastT=t},{passive:false})})();
 </script>
-<script type="module" src="../common/fb.js?v=2"></script>
+<script type="module" src="../common/fb.js?v=3"></script>
 </body></html>

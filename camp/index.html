@@ -547,7 +547,7 @@ function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
   var items=[['camp','營地','camp'],['forge','鍛造','forge'],['adv','冒險','map'],['party','隊伍','banner'],['set','設定','scroll']];
     items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='camp'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
-    if(it[0]==='forge')b.addEventListener('click',function(){location.href='../forge/index.html'});else if(it[0]!=='camp')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
+    if(it[0]==='forge')b.addEventListener('click',function(){location.href='../forge/index.html'});else if(it[0]==='party')b.addEventListener('click',function(){location.href='../party/index.html'});else if(it[0]!=='camp')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
 
 function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
 /* ---------- the player's saved character (mock until Firebase is wired) ---------- */
@@ -611,5 +611,5 @@ new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)}
   if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
   last=now;lastT=t},{passive:false})})();
 </script>
-<script type="module" src="../common/fb.js?v=2"></script>
+<script type="module" src="../common/fb.js?v=3"></script>
 </body></html>
