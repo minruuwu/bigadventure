@@ -363,7 +363,7 @@ var BASE='../assets/',V='1';
 var W={},ORDER=[],RUNE={};
 var USABLE={weapon01:1,weapon02:1,weapon05:1,weapon06:1}; /* 範例:目前職業「戰士・攻」可用 */
 var EQUIPPED='weapon01';
-var S={stones:90000000,cur:'weapon01',tab:'up'};
+var S={stones:92000,cur:'weapon01',tab:'up'};
 var ST={};
 var TN=['一','二','三'],REQ=[30,60,90];
 var STATL={crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害',p_damage_rate:'物理增傷',m_damage_rate:'魔法增傷',hp_rate:'生命',eva_rate:'閃避率',p_reduce_rate:'物理減傷',m_reduce_rate:'魔法減傷'};
@@ -624,9 +624,9 @@ function renderActs(){var k=S.cur,s=ST[k],h=document.getElementById('acts');h.te
     h.appendChild(b)}
   if(s.lv>=100){mk('已滿級','Lv 100',true,null);mk('已滿級','—',true,null);return}
   var c=cost(s.lv),need=c-S.stones;
-  mk('升級','需 '+num(c)+(need>0?'・還差 '+num(need):''),need>0,function(){var ok=upOne(k);if(ok)render(false);return ok},true);
-  var nt=nextTemperLv(k),ct=costTo(k,nt),need2=ct-S.stones;
-  mk('升到 Lv'+nt,'共 '+num(ct)+(need2>0?'・還差 '+num(need2):'')+(nt%5===0?'・淬火點':''),need2>0,function(){var n=upToNext(k);if(n)toast('升了 '+n+' 級');render(false);return n>0},false)}
+  mk('提升一級','需 '+num(c)+(need>0?'・還差 '+num(need):''),need>0,function(){var ok=upOne(k);if(ok)render(false);return ok},true);
+  var tl=s.lv,tc=0;while(tl<100&&tc+cost(tl)<=S.stones){tc+=cost(tl);tl++}
+  mk('投入全部',tl>s.lv?'可升到 Lv'+tl+'・花費 '+num(tc):'鍛造石不足',tl<=s.lv,function(){var n=0;while(upOne(k))n++;if(n)toast('升了 '+n+' 級，到 Lv'+s.lv);render(false);return false},false)}
 function renderSeg(){var h=document.getElementById('seg');h.textContent='';
   [['up','升級'],['tm','淬火'],['en','附魔']].forEach(function(t){var b=el('button',null,t[1]);var pd=pend(S.cur);if((t[0]==='tm'&&pd.tm)||(t[0]==='en'&&pd.en))b.appendChild(el('i','rd sd'));b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(S.tab===t[0]));
     b.addEventListener('click',function(){S.tab=t[0];renderSeg();renderPanel()});h.appendChild(b)})}
