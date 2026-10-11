@@ -16,7 +16,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;bac
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 92% 6%,rgba(255,140,50,.20),rgba(255,140,50,0) 42%);animation:flick 1.8s steps(3) infinite}
 @keyframes flick{0%{opacity:1}33%{opacity:.78}66%{opacity:.92}100%{opacity:1}}
 canvas{image-rendering:pixelated;display:block}
-.grain{position:fixed;inset:0;pointer-events:none;z-index:60;background-size:480px 480px;image-rendering:pixelated;opacity:1}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:0;background-size:480px 480px;image-rendering:pixelated;opacity:1}
 button{font:inherit;color:inherit}
 .app{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1}
 .px,.card,.sum,.pts,.temper,.opt,.btn,.chip,.stage,.ghost,.step button,.toast,.enslot{border:0;box-shadow:inset 0 0 0 2px var(--bd),inset 0 4px 0 0 var(--hi),inset 0 -4px 0 0 var(--lo);clip-path:var(--cpA)}
@@ -266,6 +266,7 @@ body.sheeton .grain{opacity:0}
 .rcell.sel .unx{display:block}
 .rcell .unx:active{transform:translateY(1px)}
 .rcell .unx:focus-visible{outline:2px solid #fff;outline-offset:1px}
+html,body{touch-action:manipulation}
 #loading{position:fixed;left:12px;right:12px;top:40%;z-index:99;text-align:center;font-size:14px;color:var(--dim)}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
 @media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
@@ -676,18 +677,25 @@ function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
   var afford=ORDER.some(function(k){return pend(k).any});
   items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='forge'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
-    if(it[0]==='camp'||(it[0]==='forge'&&afford))b.appendChild(el('i','dot'));
-    if(it[0]!=='forge')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
+    if(it[0]==='forge'&&afford)b.appendChild(el('i','dot'));
+    if(it[0]==='camp')b.addEventListener('click',function(){location.href='../camp/index.html'});else if(it[0]!=='forge')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
 function render(scroll){renderTop();renderChips();renderCard();renderActs();renderSeg();renderPanel();renderTabs();}
 /* 外層重繪時保持分頁內容同步 */
 var _r=render;render=function(sc){_r(sc)};
 getCSVs();
-function getCSVs(){Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV)).then(buildData).then(function(){
+function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
+function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})});
+  Promise.all([Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','job_info.csv'].map(getCSV)),who]).then(function(X){var R=X[0],me=X[1].player;
+    return buildData(R.slice(0,3)).then(function(){
     if(!ORDER.length)throw new Error('weapon_info.csv 沒有資料');
+    var en={};R[0].forEach(function(r){en[r.u_sn]=String(r.weapon_e_name||'').toLowerCase()});
+    var job=R[3][me.job|0]||R[3][0];USABLE={};ORDER.forEach(function(k){if(job&&job['usable_'+en[k]])USABLE[k]=1});
+    ORDER.forEach(function(k){if(W[k].n===me.weapon)EQUIPPED=k});
     ORDER.forEach(function(k){ST[k]={lv:1,pts:[0,0,0],ench:[]}});
-    if(!W[S.cur])S.cur=ORDER[0];if(!W[EQUIPPED])EQUIPPED=ORDER[0];
-    document.getElementById('loading').remove();render(true)})
-  .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+e.message+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
+    if(!W[EQUIPPED])EQUIPPED=ORDER[0];S.cur=EQUIPPED;
+    document.getElementById('loading').remove();render(true)})})
+  .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
 })();
 </script>
+<script type="module" src="../common/fb.js?v=1"></script>
 </body></html>

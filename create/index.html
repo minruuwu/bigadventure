@@ -3,9 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html,body{touch-action:manipulation}</style>
 <title>冒險者登記</title>
 </head>
 <body>
+<div id="gate" style="position:fixed;inset:0;z-index:999;background:#140d08;color:#d9c08a;display:flex;align-items:center;justify-content:center;font:700 15px 'Noto Serif TC',serif">確認冒險者身分…</div>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Serif+TC:wght@400;600&display=swap">
 <style>
 /* Layout: loose pixel pages on a dark plank table, one candle at the upper left.
@@ -885,12 +887,25 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   /* ================= finish ================= */
   function finish(){
     var name = $('name').value.trim();
-    if(!name){ $('msg').textContent = '請先寫下名字。'; $('name').focus(); return; }
-    lastFocus = $('finish');
-    var dl = el('dl','reg'), rows = [['姓名',name],['職業',JOBS[st.job].name],['膚色',ASSETS.skins[st.skin].n],['髮型',ASSETS.styles[st.style].n],['髮色',isBald()?'—':HAIR[st.hair].n],['眼睛顏色',ASSETS.eyes[st.eyes].n],['外觀',outfitName()],['初始武器',st.weapon]];
-    rows.forEach(function(r){ dl.appendChild(el('dt',null,r[0])); dl.appendChild(el('dd',null,r[1])); });
-    var body = el('div'); body.appendChild(dl); body.appendChild(el('p','note','這是畫面測試版，資料還沒有儲存。'));
-    openSheet('冒險者登記簿', null, body, [{text:'回去修改', main:true, fn:closeSheet}]);
+    var bad = window.FB ? window.FB.validName(name) : (name ? '' : '請先寫下名字。');
+    if(bad){ $('msg').textContent = bad; $('name').focus(); return; }
+    if(!window.FB){ $('msg').textContent = '還在連線，請稍等一下再按。'; return; }
+    lastFocus = $('finish'); var fbtn = $('finish'); fbtn.disabled = true; $('msg').textContent = '確認名字中…';
+    window.FB.nameTaken(name).then(function(taken){
+      fbtn.disabled = false;
+      if(taken){ $('msg').textContent = '這個名字已經有冒險者使用了，換一個吧。'; $('name').focus(); return; }
+      $('msg').textContent = '';
+      var dl = el('dl','reg'), rows = [['姓名',name],['職業',JOBS[st.job].name],['膚色',ASSETS.skins[st.skin].n],['髮型',ASSETS.styles[st.style].n],['髮色',isBald()?'—':HAIR[st.hair].n],['眼睛顏色',ASSETS.eyes[st.eyes].n],['外觀',outfitName()],['初始武器',st.weapon]];
+      rows.forEach(function(r){ dl.appendChild(el('dt',null,r[0])); dl.appendChild(el('dd',null,r[1])); });
+      var body = el('div'); body.appendChild(dl); body.appendChild(el('p','note','角色建立後無法刪除或修改，確定要用這份資料登記嗎？'));
+      openSheet('冒險者登記簿', null, body, [{text:'回去修改', fn:closeSheet}, {text:'確定登記', main:true, fn:function(ev){ confirmCreate(ev, name); }}]);
+    }).catch(function(e){ fbtn.disabled = false; $('msg').textContent = '連線失敗，請再試一次。（' + (e.code || e.message) + '）'; });
+  }
+  function confirmCreate(ev, name){
+    var b = ev.currentTarget; b.disabled = true; b.textContent = '登記中…';
+    window.FB.createPlayer({name:name, job:st.job, jobSn:JOBS[st.job].sn, skin:st.skin, style:st.style, hair:st.hair, eyes:st.eyes, outfit:st.outfit, weapon:st.weapon})
+      .then(function(){ location.replace('../camp/'); })
+      .catch(function(err){ closeSheet(); $('msg').textContent = err && err.code === 'permission-denied' ? '登記失敗：名字可能剛被別人用走，或這個帳號已經有角色了。' : '登記失敗（' + (err.code || err.message) + '）'; });
   }
   $('finish').addEventListener('click', finish);
   $('name').addEventListener('input', function(){ $('count').textContent = Array.from(this.value).length + '/10'; if(this.value.trim()) $('msg').textContent = ''; });
@@ -1098,6 +1113,16 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   }
 })();
 </script>
+<script>
+(function(){
+  function go(FB){ FB.ready.then(function(u){
+      if(!u){ location.replace('../'); return; }
+      return FB.getPlayer(u.uid).then(function(p){ if(p){ location.replace('../camp/'); return; } var g=document.getElementById('gate'); if(g) g.remove(); });
+    }).catch(function(e){ var g=document.getElementById('gate'); if(g) g.textContent='連線失敗，請重新整理。（'+(e.code||e.message)+'）'; }); }
+  if(window.FB) go(window.FB); else window.addEventListener('fb-ready', function(){ go(window.FB); }, {once:true});
+})();
+</script>
+<script type="module" src="../common/fb.js?v=1"></script>
 
 </body>
 </html>
