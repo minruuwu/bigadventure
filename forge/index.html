@@ -101,7 +101,7 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .tab[aria-selected="true"]{color:var(--accent);background:#34404d;box-shadow:inset 0 3px 0 var(--accent)}
 .tab[aria-selected="true"] canvas{filter:none}
 .dot{position:absolute;top:8px;right:calc(50% - 26px);width:8px;height:8px;background:var(--red);box-shadow:0 0 0 2px #080503}
-.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;--bd:#e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;--bd:#e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;white-space:nowrap}
 .toast.on{opacity:1}
 
 .enrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -112,7 +112,7 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .enslot .nm{font-size:13px;font-weight:700;text-align:center;line-height:1.25;min-height:2.5em;display:flex;align-items:center;text-shadow:1px 1px 0 #000}
 .enslot.lock .lvt,.enslot.lock .eic,.enslot.lock .nm{opacity:.35}
 .enslot.lock{cursor:default}
-.sheet{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:8px}
+.sheet{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:8px}
 .sheet[hidden]{display:none}
 .sheetbg{position:absolute;inset:0;background:rgba(0,0,0,.78)}
 .scroll{position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;filter:drop-shadow(5px 6px 0 rgba(0,0,0,.6));max-height:calc(100vh - 24px)}
@@ -127,8 +127,8 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .edge.l{background-image:var(--edgeL)}
 .edge.r{background-image:var(--edgeR)}
 .pbody{flex:1;min-width:0;padding:16px 4px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px;
- background-color:#d9c08a;background-image:linear-gradient(rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),linear-gradient(0deg,rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),var(--stain),var(--wear);
- background-size:auto,auto,576px 576px,288px 288px;background-repeat:no-repeat,no-repeat,repeat,repeat;background-position:0 0,0 100%,0 0,0 0}
+ background-color:#d9c08a;background-image:linear-gradient(rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),linear-gradient(0deg,rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stain),var(--wear);
+ background-size:auto,auto,auto,576px 576px,288px 288px;background-repeat:no-repeat,no-repeat,no-repeat,repeat,repeat;background-position:0 0,0 100%,0 0,0 0,0 0}
 .phead{display:flex;align-items:center;gap:12px}
 .plate{flex:0 0 auto;background:#2b1d13;padding:4px;box-shadow:0 0 0 2px #3b2713,3px 3px 0 2px rgba(60,30,10,.4);transform:rotate(-3deg)}
 .ptitle{min-width:0;flex:1}
@@ -206,6 +206,58 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 body{font-weight:500}
 .sopt .t,.paper h2,.name,.top h1{font-weight:900}
 .sopt .d,.sopt .sub,.pghint,.sopt details,.stat,.note,.enit .dd,.sum,.barcap,.temper,.pts,.enslot .lvt,.stage,.chip .lv,.btn small,.toast{font-weight:700}
+.rstone{position:relative;display:inline-block;flex:0 0 auto}
+.rstone .st{position:absolute;inset:0;image-rendering:pixelated}
+.rstone .gl{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%)}
+.rstone.lit .st{filter:drop-shadow(0 0 2px var(--rcB));animation:stoneglow 2.6s steps(6) infinite}
+@keyframes stoneglow{0%,100%{filter:drop-shadow(0 0 2px var(--rcB))}50%{filter:drop-shadow(0 0 3px var(--rcA)) drop-shadow(0 0 8px var(--rcB))}}
+@media (prefers-reduced-motion:reduce){.rstone.lit .st{animation:none}}
+.enslot.lock .eic{opacity:.75}
+.sheetcnt{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#5a3d1e}
+.sheetcnt b{font-size:16px;color:#4a2a12;margin-right:6px}
+.sheetcnt .pip{width:12px;height:12px;background:rgba(90,55,20,.18);box-shadow:inset 0 0 0 2px #5a3d1e}
+.sheetcnt .pip.on{box-shadow:inset 0 0 0 2px #3b2713}
+.sheetcnt .pip.lock{background:none;box-shadow:inset 0 0 0 2px rgba(90,55,20,.3)}
+.sec{margin-top:4px}
+.sech{font-size:13px;font-weight:900;letter-spacing:.12em;color:#5a3d1e;border-bottom:2px dashed rgba(90,55,20,.4);padding-bottom:4px}
+.sec.lock .sech{color:#8a7350}
+.sopt.locked .pick,.sopt.locked details{filter:grayscale(1);opacity:.5}
+.sopt.locked .pick{cursor:not-allowed}
+.sopt .usedb{z-index:2}
+.sopt .ord{position:absolute;left:8px;top:8px;z-index:2;min-width:22px;height:22px;line-height:22px;text-align:center;font-size:13px;font-weight:900;color:#fff;background:var(--rc);box-shadow:0 0 0 2px #241610;text-shadow:1px 1px 0 #241610}
+.sopt .ord:empty{display:none}
+.rowh{font-size:13px;font-weight:900;letter-spacing:.12em;color:#5a3d1e;border-bottom:2px dashed rgba(90,55,20,.4);padding-bottom:4px;margin-top:2px}
+.rowh.lock{color:#8a7350}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rcell{position:relative;appearance:none;border:0;margin:0;font:inherit;color:#3b2713;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px 10px;min-width:0;
+  background:rgba(120,80,30,.08);box-shadow:inset 0 0 0 6px rgba(90,55,20,.13)}
+.rcell .rstone{margin-bottom:4px}
+.rcell .t{font-size:13px;font-weight:900;line-height:1.3;text-align:center}
+.rcell .sub{font-size:10.5px;font-weight:700;color:#7a5a30;line-height:1.3;text-align:center;letter-spacing:.02em}
+.rcell:active:not(.locked){transform:translateY(2px)}
+.rcell:focus-visible{outline:2px solid #4a2a12;outline-offset:2px}
+.rcell.sel{background-color:rgba(255,240,200,.22);box-shadow:inset 0 0 0 6px #4a2a12}
+@keyframes cellglow{0%,100%{box-shadow:inset 0 0 0 6px var(--rcS),0 0 0 4px var(--rcB)}50%{box-shadow:inset 0 0 0 6px var(--rc),0 0 0 4px var(--rcA)}}
+@media (prefers-reduced-motion:reduce){.rcell.sel{animation:none}}
+.rcell.locked{cursor:not-allowed}.rcell.locked>*{filter:grayscale(1);opacity:.5}
+.rcell .ord{position:absolute;left:6px;top:6px;min-width:20px;height:20px;line-height:20px;text-align:center;font-size:12px;font-weight:900;color:#fff;background:var(--rc);box-shadow:0 0 0 2px #241610;text-shadow:1px 1px 0 #241610;filter:none;opacity:1}
+.rcell .ord:empty{display:none}
+.det{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
+.det[hidden]{display:none}
+.detbg{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.kraft{position:relative;width:100%;max-width:330px;max-height:calc(100vh - 60px);overflow-y:auto;padding:22px 18px 16px;display:flex;flex-direction:column;gap:10px;color:#2e1d0e;
+  background:#b98a57 var(--kraft) 0 0/288px 288px;clip-path:var(--cpC);box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),inset 6px 6px 0 6px rgba(255,225,180,.18);animation:pop .18s steps(3) both}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.kraft{animation:none}}
+.kraft .sheetclose{top:12px;right:12px}
+.dhd{display:flex;align-items:center;gap:12px;padding-right:34px}
+.dtt .t{font-size:19px;font-weight:900;color:#2a1708}
+.dtt .sub{font-size:12px;font-weight:700;color:#5a3a1a;letter-spacing:.06em}
+.kraft .dd{margin:0;font-size:14px;font-weight:700;line-height:1.6}
+.kraft .dlab{font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a;border-top:2px dashed rgba(60,30,10,.35);padding-top:8px}
+.kraft .drule{margin:0;font-size:12.5px;font-weight:700;line-height:1.65;color:#3d2610}
+.kraft .sheetx{margin-top:4px}
+body.sheeton .grain{opacity:0}
 #loading{position:fixed;left:12px;right:12px;top:40%;z-index:99;text-align:center;font-size:14px;color:var(--dim)}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
 @media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
@@ -226,7 +278,7 @@ body{font-weight:500}
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
-  <div class="sheet" id="sheet" hidden><div class="sheetbg" id="sheetBg"></div><div class="scroll" role="dialog" aria-modal="true" aria-labelledby="sheetT"><div class="roller"></div><div class="paper"><button type="button" class="sheetclose" id="sheetClose" aria-label="關閉">✕</button><i class="edge l"></i><div class="pbody"><h2 id="sheetT">符文</h2><p class="pghint" id="sheetHint"></p><div class="sheetopts" id="sheetOpts"></div><button type="button" class="sheetx" id="sheetX">注入符文之力</button></div><i class="edge r"></i></div><div class="roller"></div></div></div></div>
+  <div class="sheet" id="sheet" hidden><div class="sheetbg" id="sheetBg"></div><div class="det" id="det" hidden><div class="detbg" id="detBg"></div><div class="kraft" role="dialog" aria-modal="true"><button type="button" class="sheetclose" id="detX" aria-label="關閉">✕</button><div id="detBody"></div><button type="button" class="sheetx" id="detGo">選擇這個符文</button></div></div><div class="scroll" role="dialog" aria-modal="true" aria-labelledby="sheetT"><div class="roller"></div><div class="paper"><button type="button" class="sheetclose" id="sheetClose" aria-label="關閉">✕</button><i class="edge l"></i><div class="pbody"><h2 id="sheetT">符文</h2><p class="pghint" id="sheetHint"></p><div class="sheetcnt" id="sheetCnt"></div><div class="sheetopts" id="sheetOpts"></div><button type="button" class="sheetx" id="sheetX">注入符文之力</button></div><i class="edge r"></i></div><div class="roller"></div></div></div></div>
 </div>
 <script>
 (function(){
@@ -380,6 +432,25 @@ function buildRune(r,paper){var G=32,P=4,U=4,T=G+P*2;
   x.globalAlpha=1;x.imageSmoothingEnabled=false;x.drawImage(r.img,P*U,P*U,G*U,G*U);return o}
 function buildEmpty(){var g=make(function(a){UNK.forEach(function(l){a.line(l[0],l[1],l[2],l[3],'#6f7c8c')})},14,true);
   var o=document.createElement('canvas');o.width=o.height=160;var x=o.getContext('2d');x.imageSmoothingEnabled=false;x.globalAlpha=.75;x.drawImage(g,32,32,96,96);return o}
+var SCACHE={};
+function stoneCv(seed,dim){var key=seed+(dim?'d':'');if(!SCACHE[key]){var N=16,sd=1;for(var i=0;i<seed.length;i++)sd=(sd*31+seed.charCodeAt(i))%233280;
+    function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+    var pts=[],K=9;for(var j=0;j<K;j++){var a=j/K*6.283+(r()-.5)*.5,rad=6.3+r()*1.3;pts.push([N/2+rad*Math.cos(a),N/2+rad*Math.sin(a)*.92+.4])}
+    var m=[];for(var y=0;y<N;y++){m[y]=[];for(var x=0;x<N;x++){var px=x+.5,py=y+.5,ins=false;for(var p=0,q=K-1;p<K;q=p++){var xi=pts[p][0],yi=pts[p][1],xj=pts[q][0],yj=pts[q][1];if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))ins=!ins}m[y][x]=ins}}
+    function In(x,y){return x>=0&&y>=0&&x<N&&y<N&&m[y][x]}
+    var P=dim?{b:'#4a4744',h:'#5c5955',l:'#383633',s1:'#504d49',s2:'#423f3c'}:{b:'#68635c',h:'#8c877e',l:'#46423d',s1:'#76716a',s2:'#54504a'};
+    var c=document.createElement('canvas');c.width=c.height=N+2;var x2=c.getContext('2d');
+    for(var yy=-1;yy<=N;yy++)for(var xx=-1;xx<=N;xx++){var col=null;
+      if(In(xx,yy)){col=P.b;if(!In(xx-1,yy-1)||!In(xx,yy-1))col=P.h;else if(!In(xx+1,yy+1)||!In(xx,yy+1)||!In(xx+1,yy))col=P.l;else{var t=r();if(t<.12)col=P.s1;else if(t<.18)col=P.s2}}
+      else if(In(xx+1,yy)||In(xx-1,yy)||In(xx,yy+1)||In(xx,yy-1))col='#241610';
+      if(col){x2.fillStyle=col;x2.fillRect(xx+1,yy+1,1,1)}}
+    var cx=4+Math.floor(r()*4),cy=9+Math.floor(r()*3);x2.fillStyle=P.l;for(var k2=0;k2<3;k2++){if(In(cx,cy))x2.fillRect(cx+1,cy+1,1,1);cx++;cy+=r()<.5?1:0}
+    SCACHE[key]=c}return SCACHE[key]}
+/* rune on an irregular stone; the stone glows faintly in the rune's color */
+function runeStone(id,size,paper,dim){var r=id?RUNE[id]:null,w=el('span','rstone'+(r&&!dim?' lit':'')+(dim?' dim':''));w.style.width=w.style.height=size+'px';
+  if(r){w.style.setProperty('--rc',r.color);w.style.setProperty('--rcA',hexA(r.color,.55));w.style.setProperty('--rcB',hexA(r.color,.25))}
+  var s=cv(stoneCv(id||'empty',dim||!r),1);s.className='st';s.style.width=s.style.height=size+'px';w.appendChild(s);
+  if(r){var g=runeCv(id,Math.round(size*.62),paper);g.classList.add('gl');w.appendChild(g)}return w}
 function runeCv(id,size,paper){var r=id?RUNE[id]:null,key=(r&&r.img?id:'none')+(paper?'p':'');
   if(!RCACHE[key])RCACHE[key]=r&&r.img?buildRune(r,paper):buildEmpty();
   var c=cv(RCACHE[key],1);c.style.width=c.style.height=size+'px';c.className=r&&r.img?'rune':'rune none';return c}
@@ -414,7 +485,8 @@ function haloMask(k,st,L){var key=k+st+L;if(!HALO[key]){var sil=silhouette(k,st)
     if(d>lo&&d<=hi){var ok=L===1?true:L===2?((xx+y)%2===0):((xx%2===0)&&(y%2===0));if(ok)x.fillRect(xx,y,1,1)}}
   HALO[key]=c}return HALO[key]}
 function haloTint(k,st,L,col){var key=k+st+L+col;if(!TINT[key]){var m=haloMask(k,st,L),c=document.createElement('canvas');c.width=c.height=SZ;var x=c.getContext('2d');x.drawImage(m,0,0);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,SZ,SZ);TINT[key]=c}return TINT[key]}
-function enchColors(k){var s=ST[k];return [0,1,2].map(function(ti){var id=s.ench[ti];if(!id||s.lv<REQ[ti]||!RUNE[id])return null;return RUNE[id].color})}
+function slots(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
+function enchColors(k){var s=ST[k];return [0,1,2].map(function(i){var id=s.ench[i];return id&&RUNE[id]?RUNE[id].color:null})}
 var lastT=0,FX=null;
 function drawStage(ts){var c=SC.ctx;if(!c)return;var dt=Math.min(.1,(ts-lastT)/1000||0);lastT=ts;var st=SC.st,k=SC.k,t=TIER[st];
   var ec=enchColors(k),anyR=ec.some(function(q){return q});
@@ -456,7 +528,7 @@ function drawStage(ts){var c=SC.ctx;if(!c)return;var dt=Math.min(.1,(ts-lastT)/1
       for(var y=Math.floor(cy-rad-2);y<=cy+rad+2;y++)for(var xx=Math.floor(cx-rad-2);xx<=cx+rad+2;xx++){var d=Math.hypot(xx-cx,y-cy);var X=(xx+96)%96,Y=(y+96)%96;
         if(d<rad*.7){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad&&(xx+y)%2===0){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad+1.5&&d>=rad&&r()<.5){x.fillStyle='rgba(70,40,15,.26)';x.fillRect(X,Y,1,1)}}}
     return 'url('+c.toDataURL()+')'}
-  document.body.style.setProperty('--wear',tile('steel'));document.body.style.setProperty('--wearB',tile('wood'));document.getElementById('sheet').style.setProperty('--wear',tile('paper'));document.getElementById('sheet').style.setProperty('--wearS',tile('steel'));document.getElementById('sheet').style.setProperty('--edgeL',edgeTile('l'));document.getElementById('sheet').style.setProperty('--edgeR',edgeTile('r'));document.getElementById('sheet').style.setProperty('--stain',stainTile());document.getElementById('sheet').style.setProperty('--wearC',tile('copper'))}catch(e){}})();
+  document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})());document.body.style.setProperty('--wear',tile('steel'));document.body.style.setProperty('--wearB',tile('wood'));document.getElementById('sheet').style.setProperty('--wear',tile('paper'));document.getElementById('sheet').style.setProperty('--wearS',tile('steel'));document.getElementById('sheet').style.setProperty('--edgeL',edgeTile('l'));document.getElementById('sheet').style.setProperty('--edgeR',edgeTile('r'));document.getElementById('sheet').style.setProperty('--stain',stainTile());document.getElementById('sheet').style.setProperty('--wearC',tile('copper'))}catch(e){}})();
 (function(){try{var c=document.createElement('canvas');c.width=c.height=80;var x=c.getContext('2d');var seed=5;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
   for(var y=0;y<80;y++)for(var xx=0;xx<80;xx++){var r=rnd();if(r<.20){x.fillStyle='rgba(0,0,0,.16)';x.fillRect(xx,y,1,1)}else if(r<.30){x.fillStyle='rgba(255,235,200,.075)';x.fillRect(xx,y,1,1)}else if(r<.305){x.fillStyle='rgba(255,220,160,.20)';x.fillRect(xx,y,1,1)}}
   document.getElementById('grain').style.backgroundImage='url('+c.toDataURL()+')'}catch(e){}})();
@@ -469,37 +541,47 @@ function drawStage(ts){var c=SC.ctx;if(!c)return;var dt=Math.min(.1,(ts-lastT)/1
 
 /* ---------- enchant picker sheet ---------- */
 var SHEET={ti:-1,k:null,pick:null};
-function closeSheet(){var sh=document.getElementById('sheet');sh.hidden=true;document.removeEventListener('keydown',sheetKey);var ti=SHEET.ti;SHEET.ti=-1;var b=document.querySelector('.enslot[data-ti="'+ti+'"]');if(b)b.focus()}
-function sheetKey(e){if(e.key==='Escape')closeSheet()}
-function cands(k,ti){var w=W[k],s=ST[k],out=[],seen={};
-  for(var t=ti;t>=0;t--)(w.ench[t]||[]).forEach(function(id){if(seen[id])return;seen[id]=1;var used=-1;[0,1,2].forEach(function(o){if(o!==ti&&s.ench[o]===id)used=o});out.push({id:id,from:t,used:used})});
-  return out.filter(function(c){return c.used<0}).concat(out.filter(function(c){return c.used>=0}))}
+function closeSheet(){var sh=document.getElementById('sheet');sh.hidden=true;document.body.classList.remove('sheeton');document.removeEventListener('keydown',sheetKey);var ti=SHEET.ti;SHEET.ti=-1;var b=document.querySelector('.enslot[data-ti="'+ti+'"]')||document.querySelector('.enslot');if(b)b.focus()}
+function sheetKey(e){if(e.key==='Escape'){if(!document.getElementById('det').hidden)closeDetail();else closeSheet()}}
 function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
-function syncSheet(){var s=ST[SHEET.k],cur=s.ench[SHEET.ti];
-  Array.prototype.forEach.call(document.querySelectorAll('#sheetOpts .sopt'),function(o){var on=o.dataset.id===SHEET.pick;o.classList.toggle('sel',on);o.querySelector('.pick').setAttribute('aria-pressed',String(on))});
-  document.getElementById('sheetX').disabled=!SHEET.pick||SHEET.pick===cur}
-function openSheet(k,ti){var s=ST[k],sh=document.getElementById('sheet'),box=document.getElementById('sheetOpts');SHEET.ti=ti;SHEET.k=k;SHEET.pick=s.ench[ti];
-  var list=cands(k,ti),free=list.filter(function(c){return c.used<0}).length;
-  document.getElementById('sheetT').textContent=TN[ti]+'階符文';
-  document.getElementById('sheetHint').textContent='Lv'+REQ[ti]+' 解鎖，可選 '+free+' 個。三階同時生效，每階選一個，可以隨時更換；同一個符文不能重複選。';
+function sameSet(a,b){return a.length===b.length&&a.every(function(x,i){return b[i]===x})}
+function syncSheet(){var s=ST[SHEET.k],M=slots(s.lv),P=SHEET.pick;
+  Array.prototype.forEach.call(document.querySelectorAll('#sheetOpts .rcell'),function(o){var i=P.indexOf(o.dataset.id),on=i>=0;o.classList.toggle('sel',on);
+    o.querySelector('.ord').textContent=on?String(i+1):'';o.setAttribute('aria-pressed',String(on))});
+  var cnt=document.getElementById('sheetCnt');cnt.textContent='';cnt.appendChild(document.createTextNode('已選 '));cnt.appendChild(el('b',null,P.length+' / '+M));
+  for(var i=0;i<3;i++){var d=el('i','pip'+(i<M?(i<P.length?' on':''):' lock'));if(i<P.length)d.style.background=RUNE[P[i]].color;cnt.appendChild(d)}
+  document.getElementById('sheetX').disabled=sameSet(P,s.ench)}
+function openSheet(k,ti){var s=ST[k],w=W[k],sh=document.getElementById('sheet'),box=document.getElementById('sheetOpts');SHEET.ti=ti;SHEET.k=k;SHEET.pick=s.ench.slice();
+  document.getElementById('sheetT').textContent='符文之書';
+  document.getElementById('sheetHint').textContent='點符文查看說明並選擇。Lv30／60／90 各解放一格與一排新符文。';
   box.textContent='';
-  list.forEach(function(c){var r=RUNE[c.id],cur=s.ench[ti]===c.id;var o=el('div','sopt'+(c.used>=0?' used':''));o.dataset.id=c.id;
-    o.style.setProperty('--rc',r.color);o.style.setProperty('--rcA',hexA(r.color,.55));o.style.setProperty('--rcB',hexA(r.color,.22));o.style.setProperty('--rcS',hexA(r.color,.8));
-    var b=el('button','pick');b.type='button';b.disabled=c.used>=0;
-    var hd=el('span','hd');var ic=el('span','eic');ic.appendChild(runeCv(c.id,46,true));hd.appendChild(ic);
-    var tt=el('span','tt');tt.appendChild(el('span','t',r.name));tt.appendChild(el('span','sub',r.en+'・'+r.cat));hd.appendChild(tt);b.appendChild(hd);
-    b.appendChild(el('span','d',r.desc));
-    b.addEventListener('click',function(){SHEET.pick=c.id;syncSheet()});o.appendChild(b);
-    if(cur){o.appendChild(starCv());b.setAttribute('aria-label',r.name+'（目前注入）')}
-    if(c.used>=0)o.appendChild(el('span','usedb','已用於'+TN[c.used]+'階'));
-    if(r.detail){var dt=document.createElement('details');dt.appendChild(el('summary',null,'規則細節'));dt.appendChild(el('p',null,r.detail));o.appendChild(dt)}
-    box.appendChild(o)});
+  [0,1,2].forEach(function(t){var lockT=s.lv<REQ[t];
+    box.appendChild(el('div','rowh'+(lockT?' lock':''),TN[t]+'階'+(lockT?'・Lv'+REQ[t]+' 解鎖':'')));
+    var grid=el('div','rgrid');
+    (w.ench[t]||[]).forEach(function(id){var r=RUNE[id];var o=el('button','rcell'+(lockT?' locked':''));o.type='button';o.dataset.id=id;
+      o.style.setProperty('--rc',r.color);o.style.setProperty('--rcA',hexA(r.color,.55));o.style.setProperty('--rcB',hexA(r.color,.22));o.style.setProperty('--rcS',hexA(r.color,.8));
+      o.appendChild(runeStone(id,54,true,lockT));o.appendChild(el('span','t',r.name));o.appendChild(el('span','sub',r.en+'・'+r.cat));o.appendChild(el('span','ord'));
+      o.addEventListener('click',function(){if(lockT){toast('Lv'+REQ[t]+' 解鎖，還差 '+(REQ[t]-s.lv)+' 級');return}openDetail(id)});grid.appendChild(o)});
+    box.appendChild(grid)});
   syncSheet();
-  sh.hidden=false;document.addEventListener('keydown',sheetKey);var pb=box.parentNode;if(pb)pb.scrollTop=0;
-  var f=box.querySelector('.sopt.sel .pick')||box.querySelector('.pick:not([disabled])');if(f)f.focus({preventScroll:true})}
-function applySheet(){var k=SHEET.k,ti=SHEET.ti,id=SHEET.pick,s=ST[k];if(!id||id===s.ench[ti])return;
-  s.ench[ti]=id;FX={t0:performance.now(),col:RUNE[id].color,L:ti+1};toast('已注入「'+RUNE[id].name+'」');closeSheet();renderPanel();refreshDots()}
-document.getElementById('sheetBg').addEventListener('click',closeSheet);document.getElementById('sheetX').addEventListener('click',applySheet);document.getElementById('sheetClose').addEventListener('click',closeSheet);
+  sh.hidden=false;document.body.classList.add('sheeton');document.addEventListener('keydown',sheetKey);var pb=box.parentNode;if(pb)pb.scrollTop=0;
+  var f=box.querySelector('.rcell.sel')||box.querySelector('.rcell:not(.locked)');if(f)f.focus({preventScroll:true})}
+/* kraft-paper detail popup */
+var DET={id:null};
+function openDetail(id){var r=RUNE[id],s=ST[SHEET.k],M=slots(s.lv),P=SHEET.pick,on=P.indexOf(id)>=0,d=document.getElementById('det'),b=document.getElementById('detBody');DET.id=id;
+  b.textContent='';var hd=el('div','dhd');hd.appendChild(runeStone(id,84,true,false));var tt=el('div','dtt');tt.appendChild(el('div','t',r.name));tt.appendChild(el('div','sub',r.en+'・'+r.cat));hd.appendChild(tt);b.appendChild(hd);
+  b.appendChild(el('p','dd',r.desc));
+  if(r.detail){b.appendChild(el('div','dlab','規則細節'));b.appendChild(el('p','drule',r.detail))}
+  var btn=document.getElementById('detGo');btn.disabled=false;
+  btn.textContent=on?'取消選擇':'選擇這個符文';btn.disabled=!on&&P.length>=M;
+  d.hidden=false;(btn.disabled?document.getElementById('detX'):btn).focus({preventScroll:true})}
+function closeDetail(){document.getElementById('det').hidden=true;var c=document.querySelector('.rcell[data-id="'+DET.id+'"]');if(c)c.focus({preventScroll:true})}
+function toggleDetail(){var P=SHEET.pick,M=slots(ST[SHEET.k].lv),i=P.indexOf(DET.id);if(i>=0)P.splice(i,1);else if(P.length<M)P.push(DET.id);else{toast('先取消一個符文');return}syncSheet();closeDetail()}
+function applySheet(){var k=SHEET.k,s=ST[k],P=SHEET.pick.slice();if(sameSet(P,s.ench))return;
+  var added=P.filter(function(id){return s.ench.indexOf(id)<0});s.ench=P;
+  if(added.length){FX={t0:performance.now(),col:RUNE[added[added.length-1]].color};toast('已注入「'+added.map(function(id){return RUNE[id].name}).join('、')+'」')}else toast('已更新符文');
+  closeSheet();renderPanel();refreshDots()}
+document.getElementById('sheetBg').addEventListener('click',closeSheet);document.getElementById('detBg').addEventListener('click',closeDetail);document.getElementById('detX').addEventListener('click',closeDetail);document.getElementById('detGo').addEventListener('click',toggleDetail);document.getElementById('sheetX').addEventListener('click',applySheet);document.getElementById('sheetClose').addEventListener('click',closeSheet);
 /* ---------- upgrade logic ---------- */
 function upOne(k){var s=ST[k];if(s.lv>=100)return false;var c=cost(s.lv);if(S.stones<c)return false;S.stones-=c;s.lv++;return true}
 function costTo(k,target){var s=ST[k],t=0;for(var l=s.lv;l<target;l++)t+=cost(l);return t}
@@ -564,22 +646,21 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
       st.appendChild(m);st.appendChild(n);st.appendChild(pl);r.appendChild(st);h.appendChild(r)});
     pn.appendChild(el('p','note','每 5 級得 1 點,滿級共 20 點。單一選項沒有上限,可以全部投同一個。'));
   }else{
-    var row=el('div','enrow');
-    REQ.forEach(function(req,ti){var locked=s.lv<req,id=s.ench[ti],r=id?RUNE[id]:null;
-      var b=el('button','enslot'+(locked?' lock':'')+(r?' has':''));b.type='button';b.dataset.ti=ti;
-      b.setAttribute('aria-label',TN[ti]+'階 Lv'+req+(locked?'，未解鎖':r?'，'+r.name:'，未選擇'));
-      b.appendChild(el('span','lvt',TN[ti]+'階・Lv'+req));var ic=el('span','eic');ic.appendChild(runeCv(locked?null:id,64,false));b.appendChild(ic);
-      b.appendChild(el('span','nm',locked?'Lv'+req+' 解鎖':r?r.name:'選擇符文'));
+    var row=el('div','enrow'),M=slots(s.lv);
+    [0,1,2].forEach(function(i){var locked=i>=M,id=s.ench[i],r=id?RUNE[id]:null;
+      var b=el('button','enslot'+(locked?' lock':'')+(r?' has':''));b.type='button';b.dataset.ti=i;
+      b.setAttribute('aria-label','第 '+(i+1)+' 格'+(locked?'，Lv'+REQ[i]+' 解鎖':r?'，'+r.name:'，未選擇'));
+      b.appendChild(el('span','lvt','第 '+(i+1)+' 格'));var ic=el('span','eic');ic.appendChild(runeStone(locked?null:id,90,false,locked));b.appendChild(ic);
+      b.appendChild(el('span','nm',locked?'Lv'+REQ[i]+' 解鎖':r?r.name:'選擇符文'));
       if(!locked&&!r)b.appendChild(el('i','rd'));
-      b.addEventListener('click',function(){if(locked)toast('Lv'+req+' 解鎖，還差 '+(req-s.lv)+' 級');else openSheet(k,ti)});row.appendChild(b)});
+      b.addEventListener('click',function(){if(locked)toast('Lv'+REQ[i]+' 解鎖，還差 '+(REQ[i]-s.lv)+' 級');else openSheet(k,i)});row.appendChild(b)});
     h.appendChild(row);
-    var act=[0,1,2].filter(function(ti){return s.ench[ti]&&s.lv>=REQ[ti]&&RUNE[s.ench[ti]]});
-    if(act.length){var lst=el('div','enlist');lst.appendChild(el('div','enhd','生效中的符文'));
-      act.forEach(function(ti){var r=RUNE[s.ench[ti]],it=el('div','enit');it.appendChild(runeCv(r.id,32,false));var tx=el('div','tx');
-        tx.appendChild(el('b',null,TN[ti]+'階・'+r.name));tx.appendChild(el('span','dd',r.desc));it.appendChild(tx);lst.appendChild(it)});h.appendChild(lst)}
-    pn.appendChild(el('p','note','點選欄位挑選符文。一／二／三階分別在 Lv30／60／90 解鎖，三階同時生效，可以隨時更換；同一個符文不能重複選。'));
+    if(s.ench.length){var lst=el('div','enlist');lst.appendChild(el('div','enhd','生效中的符文'));
+      s.ench.forEach(function(id){var r=RUNE[id],it=el('div','enit');it.appendChild(runeStone(id,36,false,false));var tx=el('div','tx');
+        tx.appendChild(el('b',null,r.name));tx.appendChild(el('span','dd',r.desc));it.appendChild(tx);lst.appendChild(it)});h.appendChild(lst)}
+    pn.appendChild(el('p','note','點任一格打開符文之書。武器 Lv30／60／90 各解放一格與一組新符文，解放後的符文可以放進任何一格；同一個符文不能重複裝。'));
   }}
-function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=REQ.some(function(req,ti){return s.lv>=req&&!s.ench[ti]});return {tm:tm,en:en,any:tm||en}}
+function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=s.ench.length<slots(s.lv);return {tm:tm,en:en,any:tm||en}}
 function refreshDots(){renderChips();renderSeg();renderTabs()}
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
   var items=[['camp','營地','camp'],['forge','鍛造','forge'],['adv','冒險','map'],['party','隊伍','banner'],['set','設定','scroll']];
@@ -594,7 +675,7 @@ var _r=render;render=function(sc){_r(sc)};
 getCSVs();
 function getCSVs(){Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV)).then(buildData).then(function(){
     if(!ORDER.length)throw new Error('weapon_info.csv 沒有資料');
-    ORDER.forEach(function(k){ST[k]={lv:1,pts:[0,0,0],ench:[null,null,null]}});
+    ORDER.forEach(function(k){ST[k]={lv:1,pts:[0,0,0],ench:[]}});
     if(!W[S.cur])S.cur=ORDER[0];if(!W[EQUIPPED])EQUIPPED=ORDER[0];
     document.getElementById('loading').remove();render(true)})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+e.message+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
