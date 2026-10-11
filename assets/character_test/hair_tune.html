@@ -64,7 +64,7 @@ button:active{transform:translateY(1px)}
   <div class="stats" id="stats"></div>
  </div>
 </div>
-<script src="../../common/doll.js?v=5"></script>
+<script src="../../common/doll.js?v=6"></script>
 <script>
 (function(){
 function $(i){return document.getElementById(i)}
@@ -96,7 +96,7 @@ function loadFile(f){if(!f)return;if(!/png$/i.test(f.type)&&!/\.png$/i.test(f.na
  var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){SRC=im;msg('已載入 '+f.name+(im.width!==40||im.height!==40?'（注意：尺寸是 '+im.width+'×'+im.height+'，會縮放成 40×40）':''));adjust()};im.src=r.result};r.readAsDataURL(f)}
 Doll.load(BASE,'1').then(function(){
  function fill(id,arr,v){arr.forEach(function(n,i){var o=document.createElement('option');o.value=i;o.textContent=n;$(id).appendChild(o)});$(id).value=v}
- fill('sSkin',Doll.SKINN,0);fill('sEyes',A.eyes.map(function(_,i){return '眼色 '+(i+1)}),5);fill('sOut',JOBN,0);
+ fill('sSkin',Doll.SKINN,0);fill('sEyes',A.eyes.map(function(_,i){return '眼色 '+(i+1)}),5);fill('sOut',[],0);Doll.OUTFIT_ORDER.forEach(function(i){var o=document.createElement('option');o.value=i;o.textContent=Doll.JOBN[i]+'裝';$('sOut').appendChild(o)});$('sOut').value=0;
  var styles=Doll.STYLE_ORDER.filter(function(i){return i!==5});
  styles.forEach(function(i){[ 'preset','ref'].forEach(function(id){var o=document.createElement('option');o.value=i;o.textContent=Doll.STYLEN[i];$(id).appendChild(o)})});
  $('preset').value=6;$('ref').value=0;

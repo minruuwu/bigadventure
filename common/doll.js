@@ -9,12 +9,17 @@ var SKINN=['普通','淺色','深色'];
 var STYLEN=['髮型 1','髮型 2','髮型 3','髮型 4','髮型 5','光頭'];
 var STYLE_ORDER=[0,1,2,3,4,5];
 function pad2(n){return (n<10?'0':'')+n}
-function probeSeq(base,q,from,out){return loadImg(base+'character/hair_'+pad2(from)+'.png'+q).then(function(im){if(!im||from>40)return out;out.push({n:from,im:im});return probeSeq(base,q,from+1,out)})}
-/* extra hairs: remember how many exist (per browser session) and load those in parallel, then probe onward */
-function probeHairs(base,q,from,out){var k=0;try{k=+sessionStorage.getItem('hairMax')||0}catch(e){}
+function probeSeq(url,from,out){return loadImg(url(from)).then(function(im){if(!im||from>60)return out;out.push({n:from,im:im});return probeSeq(url,from+1,out)})}
+/* numbered extras (hair_06…, job06…): remember how many exist (per browser session), load those in parallel, then probe onward */
+function probeRun(url,key,from){var k=0,out=[];try{k=+sessionStorage.getItem(key)||0}catch(e){}
  var ns=[];for(var n=from;n<=Math.max(from,k+1);n++)ns.push(n);
- return Promise.all(ns.map(function(n){return loadImg(base+'character/hair_'+pad2(n)+'.png'+q)})).then(function(ims){var i=0;for(;i<ims.length&&ims[i];i++)out.push({n:ns[i],im:ims[i]});
-  return i===ims.length?probeSeq(base,q,ns[ns.length-1]+1,out):out}).then(function(list){try{sessionStorage.setItem('hairMax',String(list.length?list[list.length-1].n:from-1))}catch(e){}return list})}
+ return Promise.all(ns.map(function(n){return loadImg(url(n))})).then(function(ims){var i=0;for(;i<ims.length&&ims[i];i++)out.push({n:ns[i],im:ims[i]});
+  return i===ims.length?probeSeq(url,ns[ns.length-1]+1,out):out}).then(function(list){try{sessionStorage.setItem(key,String(list.length?list[list.length-1].n:from-1))}catch(e){}return list})}
+function probeHairs(base,q,from){return probeRun(function(n){return base+'character/hair_'+pad2(n)+'.png'+q},'hairMax',from)}
+/* job names / serials from data/job_info.csv (index 0 = job01) */
+var JOBN=['戰士','魔法師','遊蕩者','牧師','鍊金士'],JOBSN=['job01','job02','job03','job04','job05'];
+function loadJobs(base,q){return fetch(base+'data/job_info.csv'+q).then(function(r){return r.ok?r.text():''}).then(function(t){
+  t.replace(/^\uFEFF/,'').split(/\r?\n/).slice(1).forEach(function(line){var c=line.split(','),m=/^job(\d+)$/.exec(c[0]||'');if(m&&c[1]){JOBN[+m[1]-1]=c[1].trim();JOBSN[+m[1]-1]=c[0]}})}).catch(function(){})}
 
 function mk(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c}
 function loadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
@@ -32,12 +37,20 @@ function makeHair(img,t){var c=mk(40,40),x=c.getContext('2d',{willReadFrequently
  for(i=0;i<1600;i++){if(!out[i]){p[i*4]=B[0];p[i*4+1]=B[1];p[i*4+2]=B[2];p[i*4+3]=255}else p[i*4+3]=0}
  x.putImageData(d,0,0);x.drawImage(clean,0,0);return c}
 
-var A={skins:[],eyes:[],styles:[],outfits:[],hairT:[]};
+var A={skins:[],eyes:[],styles:[],outfits:[],backs:[],hairT:[]};
+/* outfit indexes in menu order: job01–05, then job06… as they are found */
+var OUTFIT_ORDER=[0,1,2,3,4];
 function load(base,v){var q='?v='+(v||'1'),jobs=[];
  ['body_a','body_b','body_c'].forEach(function(n,i){jobs.push(loadImg(base+'character/'+n+'.png'+q).then(function(im){A.skins[i]=im}))});
  for(var i=1;i<=8;i++)(function(i){jobs.push(loadImg(base+'character/eyes_'+i+'.png'+q).then(function(im){A.eyes[i-1]=im}))})(i);
  for(i=1;i<=5;i++)(function(i){jobs.push(loadImg(base+'character/hair_0'+i+'.png'+q).then(function(im){A.styles[i-1]=im}));jobs.push(loadImg(base+'character/job0'+i+'.png'+q).then(function(im){A.outfits[i-1]=im}))})(i);
- jobs.push(probeHairs(base,q,6,[]).then(function(list){STYLE_ORDER.length=0;[0,1,2,3,4].forEach(function(i){STYLE_ORDER.push(i)});
+ jobs.push(loadJobs(base,q));
+ /* outfits job06+ are detected automatically; every outfit may have a back layer jobNN_b.png (drawn under the weapon) */
+ var outfitsDone=Promise.all(jobs.slice()).then(function(){return probeRun(function(n){return base+'character/job'+pad2(n)+'.png'+q},'jobMax',6)}).then(function(list){
+   OUTFIT_ORDER.length=0;[0,1,2,3,4].forEach(function(i){OUTFIT_ORDER.push(i)});list.forEach(function(o){A.outfits[o.n-1]=o.im;OUTFIT_ORDER.push(o.n-1)});
+   return Promise.all(OUTFIT_ORDER.map(function(i){return loadImg(base+'character/job'+pad2(i+1)+'_b.png'+q).then(function(im){A.backs[i]=im||null})}))});
+ jobs.push(outfitsDone);
+ jobs.push(probeHairs(base,q,6).then(function(list){STYLE_ORDER.length=0;[0,1,2,3,4].forEach(function(i){STYLE_ORDER.push(i)});
    list.forEach(function(h){A.styles[h.n]=h.im;STYLEN[h.n]='髮型 '+h.n;STYLE_ORDER.push(h.n)});STYLE_ORDER.push(5)}));
  return Promise.all(jobs).then(function(){A.styles[5]=mk(40,40);A.styles.forEach(function(h,si){if(h)A.hairT[si]=HAIR.map(function(t){return si===5?h:makeHair(h,t)})})})}
 
@@ -83,6 +96,7 @@ function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=M
  if(s.halo&&s.halo.length&&(pc||sh)){var hk=(w?w.key+'|'+w.cut+'|'+w.ox+'|'+w.oy:'')+'|'+(sh?s.shield.key:''),hm=haloMasks(hk,pc&&pc.g,w?w.ox:0,w?w.oy:0,sh&&sh.g);
   for(var L=3;L>=1;L--){var col=s.halo[L-1];if(!col)continue;var ph=Math.sin(now/1000*2*Math.PI/2.6+L*1.1);octx.globalAlpha=Math.max(.2,Math.min(.8,Math.round((.42+.22*ph)*5)/5));octx.drawImage(tinted(hm[L],hk+'|'+L,col),0,d)}
   octx.globalAlpha=1}
+ if(A.backs[s.outfit])squash(A.backs[s.outfit],d);
  if(pc)octx.drawImage(pc.under,w.ox,w.oy+d);
  squash(A.skins[s.skin],d);squash(A.outfits[s.outfit],d);
  if(pc)octx.drawImage(pc.over,w.ox,w.oy+d);
@@ -92,5 +106,5 @@ function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=M
  return off}
 function draw(canvas,s,now){var f=frame(s,now),x=canvas.getContext('2d');x.clearRect(0,0,canvas.width,canvas.height);x.imageSmoothingEnabled=false;x.drawImage(f,0,0,N,N,0,0,canvas.width,canvas.height)}
 
-global.Doll={makeHair:makeHair,N:N,HAIR:HAIR,SKINN:SKINN,STYLEN:STYLEN,STYLE_ORDER:STYLE_ORDER,assets:A,load:load,draw:draw,swatch:swatch,hairColor:hairColor,loadImg:loadImg};
+global.Doll={makeHair:makeHair,N:N,HAIR:HAIR,SKINN:SKINN,STYLEN:STYLEN,STYLE_ORDER:STYLE_ORDER,OUTFIT_ORDER:OUTFIT_ORDER,JOBN:JOBN,JOBSN:JOBSN,assets:A,load:load,draw:draw,swatch:swatch,hairColor:hairColor,loadImg:loadImg};
 })(window);

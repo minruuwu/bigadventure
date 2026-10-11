@@ -347,7 +347,7 @@ html,body,*{touch-action:manipulation}
   <div class="toast" id="toast"></div>
 </div>
 <div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
-<script src="../common/doll.js?v=5"></script>
+<script src="../common/doll.js?v=6"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -575,11 +575,11 @@ function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
 function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
 
 /* ---------- plaza ---------- */
-var JOBN=['戰士','魔法師','遊蕩者','牧師','鍊金士'];
+var JOBN=Doll.JOBN; /* filled from job_info.csv by Doll.load */
 var SW=180,SH=210,SCALE=2,ONLINE_MS=10*60*1000;
 var scene=document.getElementById('scene'),sx=scene.getContext('2d'),tagsEl=document.getElementById('tags');
 var PETLIST=[],ACT=[],ME_UID=null,BG=null,WBYNAME={};
-function jobIcon(p){return BASE+'icons/jobs/framed/'+(p.jobSn||('job0'+((p.job|0)+1)))+'.png?v='+V}
+function jobIcon(p){return BASE+'icons/jobs/framed/'+(p.jobSn||Doll.JOBSN[p.job|0]||'job01')+'.png?v='+V}
 function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w];
   return{skin:p.skin|0,style:p.style|0,hair:p.hair|0,eyes:p.eyes==null?5:p.eyes,outfit:p.outfit==null?(p.job|0):p.outfit,
     weapon:wd&&wd.img[0]?{img:wd.img[0],key:w+'_0',cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,

@@ -325,7 +325,7 @@ html,body,*{touch-action:manipulation}
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<script src="../common/doll.js?v=5"></script>
+<script src="../common/doll.js?v=6"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -551,7 +551,7 @@ function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
 
 function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
 /* ---------- the player's saved character (mock until Firebase is wired) ---------- */
-var JOBN=['戰士','魔法師','遊蕩者','牧師','鍊金士'];
+var JOBN=Doll.JOBN; /* filled from job_info.csv by Doll.load */
 var WEAPON_BY_NAME={};
 var ME={name:'',job:0,skin:0,style:0,hair:0,eyes:5,outfit:null,weapon:'劍'};
 var C2={},TAB='look',RUNES=[];
@@ -574,7 +574,7 @@ function renderSeg(){var h=document.getElementById('seg');h.textContent='';
 function set(k,v){C2[k]=v;renderPanel();renderHead()}
 function renderPanel(){var h=document.getElementById('panel');h.textContent='';
   if(TAB==='look'){
-    h.appendChild(grp('衣服',JOBN.map(function(n,i){return opt(n+'裝',C2.outfit===i,function(){set('outfit',i)})})));
+    h.appendChild(grp('衣服',Doll.OUTFIT_ORDER.map(function(i){return opt(JOBN[i]+'裝',C2.outfit===i,function(){set('outfit',i)})})));
     h.appendChild(grp('髮型',Doll.STYLE_ORDER.map(function(i){return opt(Doll.STYLEN[i],C2.style===i,function(){set('style',i)})})));
     if(C2.style!==5)h.appendChild(grp('髮色',Doll.HAIR.map(function(t,i){return opt(t.n,C2.hair===i,function(){set('hair',i)},Doll.hairColor(i))})));
     h.appendChild(grp('膚色',Doll.SKINN.map(function(n,i){return opt(n,C2.skin===i,function(){set('skin',i)},Doll.swatch(Doll.assets.skins[i]))})));
