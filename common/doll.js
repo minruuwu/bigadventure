@@ -84,5 +84,5 @@ function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=M
  return off}
 function draw(canvas,s,now){var f=frame(s,now),x=canvas.getContext('2d');x.clearRect(0,0,canvas.width,canvas.height);x.imageSmoothingEnabled=false;x.drawImage(f,0,0,N,N,0,0,canvas.width,canvas.height)}
 
-global.Doll={N:N,HAIR:HAIR,SKINN:SKINN,STYLEN:STYLEN,STYLE_ORDER:STYLE_ORDER,assets:A,load:load,draw:draw,swatch:swatch,hairColor:hairColor,loadImg:loadImg};
+global.Doll={makeHair:makeHair,N:N,HAIR:HAIR,SKINN:SKINN,STYLEN:STYLEN,STYLE_ORDER:STYLE_ORDER,assets:A,load:load,draw:draw,swatch:swatch,hairColor:hairColor,loadImg:loadImg};
 })(window);

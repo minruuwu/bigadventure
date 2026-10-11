@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>髮型試色工具</title>
+<style>
+:root{--bg:#1c130d;--panel:#2a1d14;--line:#4a3523;--fg:#eadcbf;--dim:#a4916f;--accent:#f0c24a}
+*{box-sizing:border-box;touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 "Noto Sans TC",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:860px;margin:0 auto;padding:12px 14px 48px;display:grid;gap:12px}
+h1{font-size:18px;margin:4px 0 0}
+.lead{margin:0;color:var(--dim);font-size:12.5px}
+.card{background:var(--panel);border-left:4px solid var(--line);padding:10px 12px;display:grid;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row>b{font-weight:400;color:var(--dim);font-size:12px;min-width:4.5em}
+button,select,label.file{font:inherit;color:var(--fg);background:#3b2a1a;border:2px solid var(--line);padding:6px 12px;min-height:38px;cursor:pointer}
+label.file input{display:none}
+button:active{transform:translateY(1px)}
+.drop{border:2px dashed var(--line);padding:14px;text-align:center;color:var(--dim)}
+.drop.on{border-color:var(--accent);color:var(--accent)}
+.sl{display:grid;grid-template-columns:5.5em 1fr 3.4em;gap:8px;align-items:center}
+.sl input{width:100%;accent-color:var(--accent)}
+.sl output{text-align:right;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}}
+.tile{background:#8a6a3e;border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:4px 2px 6px}
+.dark .tile{background:#241a14}
+.tile canvas{image-rendering:pixelated;display:block}
+.tile span{font-size:12px;color:#fff;text-shadow:1px 1px 0 #000}
+.pair{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.pair figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--dim)}
+.pair canvas{image-rendering:pixelated;background:repeating-conic-gradient(#3a2a1c 0 25%,#2a1d14 0 50%) 0 0/16px 16px;border:2px solid var(--line)}
+.stats{font-size:12.5px;color:var(--dim);font-variant-numeric:tabular-nums;line-height:1.7}
+.stats b{color:var(--fg)}
+.chk{display:flex;align-items:center;gap:6px}
+.msg{color:var(--accent);font-size:12.5px;min-height:1.2em}
+</style></head><body>
+<div class="wrap">
+ <div><h1>髮型試色工具</h1><p class="lead">選一張 40×40 的髮型 PNG，立刻套上 8 種髮色看效果。只在這台裝置的瀏覽器裡運作，不會上傳。陰影深淺由「線條顏色」和「透明度」決定：顏色越接近黑、透明度越高，陰影越深。</p></div>
+
+ <div class="card">
+  <div class="drop" id="drop">把 PNG 拖到這裡，或
+   <label class="file">選擇檔案<input type="file" id="file" accept="image/png"></label>
+  </div>
+  <div class="row"><b>或載入現有</b><select id="preset"></select><button id="usePreset">載入</button></div>
+  <div class="msg" id="msg"></div>
+ </div>
+
+ <div class="card">
+  <div class="sl"><b>陰影強度</b><input type="range" id="kA" min="0.5" max="2.5" step="0.05" value="1"><output id="kAv">×1.00</output></div>
+  <div class="sl"><b>線條加深</b><input type="range" id="kD" min="0" max="100" step="5" value="0"><output id="kDv">0%</output></div>
+  <div class="row"><button id="resetAdj">還原調整</button><button id="dl">下載調整後的 PNG</button></div>
+  <div class="row"><b>預覽</b><select id="sSkin"></select><select id="sEyes"></select><select id="sOut"></select>
+   <label class="chk"><input type="checkbox" id="oBr" checked> 呼吸</label><label class="chk"><input type="checkbox" id="oDark"> 深色背景</label></div>
+ </div>
+
+ <div class="card"><b style="font-weight:700">你的髮型</b><div class="grid" id="gMine"></div></div>
+
+ <div class="card"><div class="row"><b>對照髮型</b><select id="ref"></select></div><div class="grid" id="gRef"></div></div>
+
+ <div class="card"><b style="font-weight:700">圖片檢視</b>
+  <div class="pair">
+   <figure><canvas id="vOrig" width="40" height="40" style="width:200px;height:200px"></canvas>原圖（棋盤底＝透明）</figure>
+   <figure><canvas id="vAlpha" width="40" height="40" style="width:200px;height:200px"></canvas>透明度圖（越白越不透明）</figure>
+  </div>
+  <div class="stats" id="stats"></div>
+ </div>
+</div>
+<script src="../../common/doll.js?v=3"></script>
+<script>
+(function(){
+function $(i){return document.getElementById(i)}
+var A=Doll.assets,MINE=7,REF_DEFAULT=0,SRC=null,ADJ=null,S={skin:0,eyes:5,outfit:0,ref:0,breath:true};
+var BASE='../../assets/';
+var JOBN=['戰士裝','魔法師裝','遊蕩者裝','牧師裝','鍊金士裝'];
+var tiles={mine:[],ref:[]};
+function mk(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c}
+function msg(t){$('msg').textContent=t}
+/* adjusted copy of the source: alpha x kA, rgb pulled toward black by kD */
+function adjust(){if(!SRC)return;var kA=+$('kA').value,kD=+$('kD').value/100,c=mk(40,40),x=c.getContext('2d');x.drawImage(SRC,0,0,40,40);var d=x.getImageData(0,0,40,40),p=d.data;
+ for(var i=0;i<1600;i++){if(!p[i*4+3])continue;p[i*4+3]=Math.min(255,Math.round(p[i*4+3]*kA));for(var j=0;j<3;j++)p[i*4+j]=Math.round(p[i*4+j]*(1-kD))}
+ x.putImageData(d,0,0);ADJ=c;A.styles[MINE]=c;A.hairT[MINE]=Doll.HAIR.map(function(t){return Doll.makeHair(c,t)});
+ $('kAv').textContent='×'+kA.toFixed(2);$('kDv').textContent=Math.round(kD*100)+'%';views()}
+function stats(img){var c=mk(40,40),x=c.getContext('2d');x.drawImage(img,0,0,40,40);var p=x.getImageData(0,0,40,40).data,n=0,sa=0,sr=0,sg=0,sb=0,full=0;
+ for(var i=0;i<1600;i++){var a=p[i*4+3];if(!a)continue;n++;sa+=a;if(a>=250)full++;sr+=p[i*4];sg+=p[i*4+1];sb+=p[i*4+2]}
+ return n?{n:n,a:Math.round(sa/n),full:full,rgb:[Math.round(sr/n),Math.round(sg/n),Math.round(sb/n)]}:null}
+function fmt(s){return s?'像素 <b>'+s.n+'</b>・平均透明度 <b>'+s.a+'</b>/255・完全不透明 <b>'+s.full+'</b> 格・平均線條色 <b>RGB('+s.rgb.join(',')+')</b>':'—'}
+function views(){var o=$('vOrig').getContext('2d'),al=$('vAlpha').getContext('2d');o.clearRect(0,0,40,40);al.clearRect(0,0,40,40);if(!ADJ)return;
+ o.drawImage(ADJ,0,0);var d=ADJ.getContext('2d').getImageData(0,0,40,40),q=al.createImageData(40,40);
+ for(var i=0;i<1600;i++){var a=d.data[i*4+3];q.data[i*4]=q.data[i*4+1]=q.data[i*4+2]=a;q.data[i*4+3]=a?255:0}al.putImageData(q,0,0);
+ var ref=A.styles[S.ref];$('stats').innerHTML='你的髮型：'+fmt(stats(ADJ))+'<br>對照（'+Doll.STYLEN[S.ref]+'）：'+fmt(stats(ref))}
+function build(gid,key){var g=$(gid);g.textContent='';tiles[key]=[];Doll.HAIR.forEach(function(h,i){var t=document.createElement('div');t.className='tile';var c=mk(48*3,48*3);t.appendChild(c);var s=document.createElement('span');s.textContent=h.n;t.appendChild(s);g.appendChild(t);tiles[key].push(c)})}
+function loop(now){var base={skin:S.skin,eyes:S.eyes,outfit:S.outfit,weapon:null,shield:null,halo:[],breath:S.breath};
+ if(A.hairT[MINE])tiles.mine.forEach(function(c,i){Doll.draw(c,Object.assign({style:MINE,hair:i},base),now)});
+ tiles.ref.forEach(function(c,i){Doll.draw(c,Object.assign({style:S.ref,hair:i},base),now)});
+ requestAnimationFrame(loop)}
+function loadFile(f){if(!f)return;if(!/png$/i.test(f.type)&&!/\.png$/i.test(f.name)){msg('請選 PNG 檔');return}
+ var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){SRC=im;msg('已載入 '+f.name+(im.width!==40||im.height!==40?'（注意：尺寸是 '+im.width+'×'+im.height+'，會縮放成 40×40）':''));adjust()};im.src=r.result};r.readAsDataURL(f)}
+Doll.load(BASE,'1').then(function(){
+ function fill(id,arr,v){arr.forEach(function(n,i){var o=document.createElement('option');o.value=i;o.textContent=n;$(id).appendChild(o)});$(id).value=v}
+ fill('sSkin',Doll.SKINN,0);fill('sEyes',A.eyes.map(function(_,i){return '眼色 '+(i+1)}),5);fill('sOut',JOBN,0);
+ var styles=Doll.STYLE_ORDER.filter(function(i){return i!==5});
+ styles.forEach(function(i){[ 'preset','ref'].forEach(function(id){var o=document.createElement('option');o.value=i;o.textContent=Doll.STYLEN[i];$(id).appendChild(o)})});
+ $('preset').value=6;$('ref').value=0;
+ [['sSkin','skin'],['sEyes','eyes'],['sOut','outfit'],['ref','ref']].forEach(function(a){$(a[0]).addEventListener('change',function(){S[a[1]]=+this.value;views()})});
+ $('oBr').addEventListener('change',function(){S.breath=this.checked});
+ $('oDark').addEventListener('change',function(){document.body.classList.toggle('dark',this.checked)});
+ $('kA').addEventListener('input',adjust);$('kD').addEventListener('input',adjust);
+ $('resetAdj').addEventListener('click',function(){$('kA').value=1;$('kD').value=0;adjust()});
+ $('usePreset').addEventListener('click',function(){var i=+$('preset').value;SRC=A.styles[i];msg('已載入現有的 '+Doll.STYLEN[i]);adjust()});
+ $('file').addEventListener('change',function(){loadFile(this.files[0]);this.value=''});
+ var dz=$('drop');['dragenter','dragover'].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();dz.classList.add('on')})});
+ ['dragleave','drop'].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();dz.classList.remove('on')})});
+ dz.addEventListener('drop',function(ev){loadFile(ev.dataTransfer.files[0])});
+ $('dl').addEventListener('click',function(){if(!ADJ){msg('還沒有載入髮型');return}ADJ.toBlob(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='hair_adjusted.png';document.body.appendChild(a);a.click();a.remove()},'image/png')});
+ build('gMine','mine');build('gRef','ref');
+ SRC=A.styles[6];msg('已載入現有的 髮型 6，可以直接調整，或換成你的新圖');adjust();
+ requestAnimationFrame(loop)});
+})();
+</script>
+</body></html>
