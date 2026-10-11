@@ -392,17 +392,17 @@ function buildData(R){
   R[2].forEach(function(r){var w=W[r.weapon_u_sn],t=parseInt(r.tier,10)-1;if(!w||!(t>=0&&t<3))return;
     w.ench[t]=[r.rune_1,r.rune_2,r.rune_3].filter(function(id){return RUNE[id]})});
   var jobs=[];
-  ORDER.forEach(function(k){if(W[k].off)jobs.push(loadImg(BASE+'weapons/'+W[k].off+'.png?v='+V).then(function(im){W[k].offImg=im}));[0,1,2,3].forEach(function(st){jobs.push(loadImg(BASE+'weapons/'+k+'_'+(st+1)+'.png?v='+V).then(function(im){W[k].img[st]=im}))})});
+  ORDER.forEach(function(k){if(W[k].off){W[k].offImg=[];[0,1,2,3].forEach(function(st){var names=st===0?[W[k].off]:[W[k].off.replace(/\d+$/,'')+'_'+(st+1),W[k].off+'_'+(st+1)];jobs.push(names.reduce(function(pr,n){return pr.then(function(im){return im||loadImg(BASE+'weapons/'+n+'.png?v='+V)})},Promise.resolve(null)).then(function(im){W[k].offImg[st]=im}))})}[0,1,2,3].forEach(function(st){jobs.push(loadImg(BASE+'weapons/'+k+'_'+(st+1)+'.png?v='+V).then(function(im){W[k].img[st]=im}))})});
   Object.keys(RUNE).forEach(function(id){jobs.push(loadImg(BASE+'icons/runes/'+id+'.png?v='+V).then(function(im){RUNE[id].img=im}))});
   return Promise.all(jobs)}
 
 /* ---------- weapon sprites: PNG cropped to content, centered on a 26px canvas ---------- */
-var SPR=22,WCACHE={};
+var SPR=24,WCACHE={};
 var OFF_POS={x:5,y:8}; /* 副手(盾)相對於主武器(含黑邊)左上角的位置 */
 function trim(im){var t=document.createElement('canvas');t.width=im.naturalWidth;t.height=im.naturalHeight;var tx=t.getContext('2d');tx.drawImage(im,0,0);
   var d=tx.getImageData(0,0,t.width,t.height).data,x0=t.width,y0=t.height,x1=-1,y1=-1;
   for(var y=0;y<t.height;y++)for(var x=0;x<t.width;x++)if(d[(y*t.width+x)*4+3]>0){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-  if(x1<0)return null;var c=document.createElement('canvas');c.width=x1-x0+1;c.height=y1-y0+1;c.getContext('2d').drawImage(t,x0,y0,c.width,c.height,0,0,c.width,c.height);return c}
+  if(x1<0)return null;var c=document.createElement('canvas');c.width=x1-x0+1;c.height=y1-y0+1;c.getContext('2d').drawImage(t,x0,y0,c.width,c.height,0,0,c.width,c.height);c.ox=x0;c.oy=y0;return c}
 function outlined(src){var w=src.width,h=src.height,o=document.createElement('canvas');o.width=w+2;o.height=h+2;var x=o.getContext('2d');
   var d=src.getContext('2d').getImageData(0,0,w,h).data;x.fillStyle='#000';
   for(var yy=0;yy<h;yy++)for(var xx=0;xx<w;xx++)if(d[(yy*w+xx)*4+3]>0){x.fillRect(xx+2,yy+1,1,1);x.fillRect(xx,yy+1,1,1);x.fillRect(xx+1,yy+2,1,1);x.fillRect(xx+1,yy,1,1)}
@@ -410,8 +410,8 @@ function outlined(src){var w=src.width,h=src.height,o=document.createElement('ca
 function wsprite(k,st){var key=k+st;if(!WCACHE[key]){var w=W[k],im=w.img[st]||w.img[0];var c=document.createElement('canvas');c.width=c.height=SPR;
     var m=im?trim(im):null;
     if(m){m=outlined(m);
-      if(w.offImg){var oc=trim(w.offImg);if(oc){oc=outlined(oc);var x0=Math.min(0,OFF_POS.x),y0=Math.min(0,OFF_POS.y),cw=Math.max(m.width,OFF_POS.x+oc.width)-x0,ch=Math.max(m.height,OFF_POS.y+oc.height)-y0;
-        var cm=document.createElement('canvas');cm.width=cw;cm.height=ch;var cx2=cm.getContext('2d');cx2.drawImage(m,-x0,-y0);cx2.drawImage(oc,OFF_POS.x-x0,OFF_POS.y-y0);m=cm}}
+      var oi=w.offImg&&(w.offImg[st]||w.offImg[0]),ref=w.offImg&&w.offImg[0]?trim(w.offImg[0]):null;if(oi){var oc=trim(oi);if(oc){var px=OFF_POS.x+(ref?oc.ox-ref.ox:0),py=OFF_POS.y+(ref?oc.oy-ref.oy:0);oc=outlined(oc);var x0=Math.min(0,px),y0=Math.min(0,py),cw=Math.max(m.width,px+oc.width)-x0,ch=Math.max(m.height,py+oc.height)-y0;
+        var cm=document.createElement('canvas');cm.width=cw;cm.height=ch;var cx2=cm.getContext('2d');cx2.drawImage(m,-x0,-y0);cx2.drawImage(oc,px-x0,py-y0);m=cm}}
       var sc=Math.min(1,SPR/m.width,SPR/m.height),dw=Math.round(m.width*sc),dh=Math.round(m.height*sc);var cx=c.getContext('2d');cx.imageSmoothingEnabled=false;
       cx.drawImage(m,0,0,m.width,m.height,Math.floor((SPR-dw)/2),Math.floor((SPR-dh)/2),dw,dh)}
     WCACHE[key]=c}return WCACHE[key]}
@@ -471,7 +471,7 @@ function toast(t){var e=document.getElementById('toast');e.textContent=t;e.class
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 
 /* ---------- stage animation: shadow, breathing bob, light particles ---------- */
-var SZ=30,SC={cv:null,ctx:null,k:'weapon01',st:0},PART=[],SIL={},GLOW={};
+var SZ=32,SC={cv:null,ctx:null,k:'weapon01',st:0},PART=[],SIL={},GLOW={};
 var GCOL=['#3a3128','#2c3a52','#5a4418','#7a2a16'];
 var REDUCE=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 function silhouette(k,st){var key=k+st;if(!SIL[key]){var src=wsprite(k,st),c=document.createElement('canvas');c.width=src.width;c.height=src.height;var x=c.getContext('2d');x.drawImage(src,0,0);x.globalCompositeOperation='source-in';x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);SIL[key]=c}return SIL[key]}
