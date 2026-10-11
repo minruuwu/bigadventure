@@ -9,7 +9,12 @@ var SKINN=['普通','淺色','深色'];
 var STYLEN=['髮型 1','髮型 2','髮型 3','髮型 4','髮型 5','光頭'];
 var STYLE_ORDER=[0,1,2,3,4,5];
 function pad2(n){return (n<10?'0':'')+n}
-function probeHairs(base,q,from,out){return loadImg(base+'character/hair_'+pad2(from)+'.png'+q).then(function(im){if(!im||from>40)return out;out.push({n:from,im:im});return probeHairs(base,q,from+1,out)})}
+function probeSeq(base,q,from,out){return loadImg(base+'character/hair_'+pad2(from)+'.png'+q).then(function(im){if(!im||from>40)return out;out.push({n:from,im:im});return probeSeq(base,q,from+1,out)})}
+/* extra hairs: remember how many exist (per browser session) and load those in parallel, then probe onward */
+function probeHairs(base,q,from,out){var k=0;try{k=+sessionStorage.getItem('hairMax')||0}catch(e){}
+ var ns=[];for(var n=from;n<=Math.max(from,k+1);n++)ns.push(n);
+ return Promise.all(ns.map(function(n){return loadImg(base+'character/hair_'+pad2(n)+'.png'+q)})).then(function(ims){var i=0;for(;i<ims.length&&ims[i];i++)out.push({n:ns[i],im:ims[i]});
+  return i===ims.length?probeSeq(base,q,ns[ns.length-1]+1,out):out}).then(function(list){try{sessionStorage.setItem('hairMax',String(list.length?list[list.length-1].n:from-1))}catch(e){}return list})}
 
 function mk(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c}
 function loadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
