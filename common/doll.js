@@ -45,10 +45,10 @@ function load(base,v){var q='?v='+(v||'1'),jobs=[];
  for(var i=1;i<=8;i++)(function(i){jobs.push(loadImg(base+'character/eyes_'+i+'.png'+q).then(function(im){A.eyes[i-1]=im}))})(i);
  for(i=1;i<=5;i++)(function(i){jobs.push(loadImg(base+'character/hair_0'+i+'.png'+q).then(function(im){A.styles[i-1]=im}));jobs.push(loadImg(base+'character/job0'+i+'.png'+q).then(function(im){A.outfits[i-1]=im}))})(i);
  jobs.push(loadJobs(base,q));
- /* outfits job06+ are detected automatically; every outfit may have a back layer jobNN_b.png (drawn under the weapon) */
+ /* outfits job06+ are detected automatically; job06+ may have a back layer jobNN_b.png (drawn under the weapon). job01-05 have none, so they are not requested (avoids 404 noise); to give one a back layer, change the i<5 check */
  var outfitsDone=Promise.all(jobs.slice()).then(function(){return probeRun(function(n){return base+'character/job'+pad2(n)+'.png'+q},'jobMax',6)}).then(function(list){
    OUTFIT_ORDER.length=0;[0,1,2,3,4].forEach(function(i){OUTFIT_ORDER.push(i)});list.forEach(function(o){A.outfits[o.n-1]=o.im;OUTFIT_ORDER.push(o.n-1)});
-   return Promise.all(OUTFIT_ORDER.map(function(i){return loadImg(base+'character/job'+pad2(i+1)+'_b.png'+q).then(function(im){A.backs[i]=im||null})}))});
+   return Promise.all(OUTFIT_ORDER.map(function(i){if(i<5)return Promise.resolve(A.backs[i]=null);return loadImg(base+'character/job'+pad2(i+1)+'_b.png'+q).then(function(im){A.backs[i]=im||null})}))});
  jobs.push(outfitsDone);
  jobs.push(probeHairs(base,q,6).then(function(list){STYLE_ORDER.length=0;[0,1,2,3,4].forEach(function(i){STYLE_ORDER.push(i)});
    list.forEach(function(h){A.styles[h.n]=h.im;STYLEN[h.n]='髮型 '+h.n;STYLE_ORDER.push(h.n)});STYLE_ORDER.push(5)}));
