@@ -74,14 +74,17 @@ function pieces(img,key,cut,outline,split){var k=key+'|'+cut+'|'+outline+'|'+spl
   if(g.A[i]){tgt.data[i*4]=sd[i*4];tgt.data[i*4+1]=sd[i*4+1];tgt.data[i*4+2]=sd[i*4+2];tgt.data[i*4+3]=sd[i*4+3]}
   else if(outline&&g.R[i]){tgt.data[i*4]=10;tgt.data[i*4+1]=7;tgt.data[i*4+2]=5;tgt.data[i*4+3]=255}}
  ux.putImageData(ud,0,0);ox.putImageData(od,0,0);return(PC[k]={under:under,over:over,g:g})}
-/* halo ring masks around weapon(+shield), outside the black outline */
+/* halo ring masks around weapon(+shield), outside the black outline.
+   Rings are shaped from both pieces together; each ring pixel is then filed under the nearer piece
+   so the weapon part can be clipped at the feet line while the shield part is not. Returns {w:[_,L1,L2,L3], s:[_,L1,L2,L3]} */
 function haloMasks(key,wg,ox,oy,sg){if(HC[key])return HC[key];var M=new Uint8Array(N*N),X,Y;
- function add(g,dx,dy){for(Y=0;Y<N;Y++)for(X=0;X<N;X++){if(g.A[Y*N+X]||g.R[Y*N+X]){var a=X+dx,b=Y+dy;if(a>=0&&b>=0&&a<N&&b<N)M[b*N+a]=1}}}
- if(wg)add(wg,ox,oy);if(sg)add(sg,0,0);
- var L=[null,mk(N,N),mk(N,N),mk(N,N)],ctxs=L.map(function(c){return c&&c.getContext('2d')});
- for(Y=0;Y<N;Y++)for(X=0;X<N;X++){if(M[Y*N+X])continue;var d=9;for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var a=X+dx,b=Y+dy;if(a>=0&&b>=0&&a<N&&b<N&&M[b*N+a]){var dd=Math.hypot(dx,dy);if(dd<d)d=dd}}
-  var lv=d<=1.5?1:d<=2.6?2:d<=3.7?3:0;if(!lv)continue;var ok=lv===1?true:lv===2?((X+Y)%2===0):((X%2===0)&&(Y%2===0));if(ok){ctxs[lv].fillStyle='#fff';ctxs[lv].fillRect(X,Y,1,1)}}
- return(HC[key]=L)}
+ function add(g,dx,dy,v){for(Y=0;Y<N;Y++)for(X=0;X<N;X++){if(g.A[Y*N+X]||g.R[Y*N+X]){var a=X+dx,b=Y+dy;if(a>=0&&b>=0&&a<N&&b<N)M[b*N+a]|=v}}}
+ if(wg)add(wg,ox,oy,1);if(sg)add(sg,0,0,2);
+ function set(){var L=[null,mk(N,N),mk(N,N),mk(N,N)];return{L:L,x:L.map(function(c){return c&&c.getContext('2d')})}}
+ var W=set(),S=set();
+ for(Y=0;Y<N;Y++)for(X=0;X<N;X++){if(M[Y*N+X])continue;var d=9,dw=9,ds=9;for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var a=X+dx,b=Y+dy;if(a>=0&&b>=0&&a<N&&b<N&&M[b*N+a]){var dd=Math.hypot(dx,dy),m=M[b*N+a];if(dd<d)d=dd;if(m&1&&dd<dw)dw=dd;if(m&2&&dd<ds)ds=dd}}
+  var lv=d<=1.5?1:d<=2.6?2:d<=3.7?3:0;if(!lv)continue;var ok=lv===1?true:lv===2?((X+Y)%2===0):((X%2===0)&&(Y%2===0));if(ok){var T=ds<=dw?S:W;T.x[lv].fillStyle='#fff';T.x[lv].fillRect(X,Y,1,1)}}
+ return(HC[key]={w:W.L,s:S.L})}
 var TC={};
 function tinted(mask,key,col){var k=key+col;if(!TC[k]){var c=mk(N,N),x=c.getContext('2d');x.drawImage(mask,0,0);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,N,N);TC[k]=c}return TC[k]}
 
@@ -94,9 +97,10 @@ function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=M
  octx.fillStyle='rgba(0,0,0,.38)';var sy=PAD;octx.fillRect(PAD+14,sy+34,7,1);octx.fillRect(PAD+12,sy+35,11,1);octx.fillRect(PAD+11,sy+36,13,1);octx.fillRect(PAD+10,sy+37,15,1);octx.fillRect(PAD+12,sy+38,11,1);
  var w=s.weapon,pc=w&&w.img?pieces(w.img,w.key,w.cut,ol,true):null,sh=s.shield&&s.shield.img?pieces(s.shield.img,s.shield.key,0,ol,false):null;
  if(s.halo&&s.halo.length&&(pc||sh)){var hk=(w?w.key+'|'+w.cut+'|'+w.ox+'|'+w.oy:'')+'|'+(sh?s.shield.key:''),hm=haloMasks(hk,pc&&pc.g,w?w.ox:0,w?w.oy:0,sh&&sh.g);
-  octx.save();octx.beginPath();octx.rect(0,0,N,PAD+34);octx.clip(); /* halo stops at the feet line (top of the shadow) */
-  for(var L=3;L>=1;L--){var col=s.halo[L-1];if(!col)continue;var ph=Math.sin(now/1000*2*Math.PI/2.6+L*1.1);octx.globalAlpha=Math.max(.2,Math.min(.8,Math.round((.42+.22*ph)*5)/5));octx.drawImage(tinted(hm[L],hk+'|'+L,col),0,d)}
-  octx.globalAlpha=1;octx.restore()}
+  for(var L=3;L>=1;L--){var col=s.halo[L-1];if(!col)continue;var ph=Math.sin(now/1000*2*Math.PI/2.6+L*1.1);octx.globalAlpha=Math.max(.2,Math.min(.8,Math.round((.42+.22*ph)*5)/5));
+   octx.drawImage(tinted(hm.s[L],hk+'|s'+L,col),0,d); /* shield halo: free */
+   octx.save();octx.beginPath();octx.rect(0,0,N,PAD+34);octx.clip();octx.drawImage(tinted(hm.w[L],hk+'|w'+L,col),0,d);octx.restore()} /* weapon halo stops at the feet line */
+  octx.globalAlpha=1}
  if(A.backs[s.outfit])squash(A.backs[s.outfit],d);
  if(pc)octx.drawImage(pc.under,w.ox,w.oy+d);
  squash(A.skins[s.skin],d);squash(A.outfits[s.outfit],d);
