@@ -673,12 +673,12 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
 function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=s.ench.length<slots(s.lv);return {tm:tm,en:en,any:tm||en}}
 function refreshDots(){renderChips();renderSeg();renderTabs()}
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
-  var items=[['camp','營地','camp'],['forge','鍛造','forge'],['adv','冒險','map'],['party','隊伍','banner'],['set','設定','scroll']];
+  var items=[['camp','營地','camp'],['forge','鍛造','forge'],['adv','冒險','map'],['char','角色','banner'],['set','設定','scroll']];
   var afford=ORDER.some(function(k){return pend(k).any});
   items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='forge'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
     if(it[0]==='forge'&&afford)b.appendChild(el('i','dot'));
-    if(it[0]==='camp')b.addEventListener('click',function(){location.href='../camp/index.html'});else if(it[0]==='party')b.addEventListener('click',function(){location.href='../party/index.html'});else if(it[0]!=='forge')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
+    b.setAttribute('data-k',it[0]);if(it[0]!=='forge')b.addEventListener('click',function(){if(!NavIcons.go(it[0]))toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)});NavIcons.apply(h)}
 function render(scroll){renderTop();renderChips();renderCard();renderActs();renderSeg();renderPanel();renderTabs();}
 /* 外層重繪時保持分頁內容同步 */
 var _r=render;render=function(sc){_r(sc)};
@@ -686,7 +686,7 @@ getCSVs();
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})});
   Promise.all([Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','job_info.csv'].map(getCSV)),who]).then(function(X){var R=X[0],me=X[1].player;
-    return buildData(R.slice(0,3)).then(function(){
+    NavIcons.setPlayer(me);return buildData(R.slice(0,3)).then(function(){
     if(!ORDER.length)throw new Error('weapon_info.csv 沒有資料');
     var en={};R[0].forEach(function(r){en[r.u_sn]=String(r.weapon_e_name||'').toLowerCase()});
     var job=R[3][me.job|0]||R[3][0];USABLE={};ORDER.forEach(function(k){if(job&&job['usable_'+en[k]])USABLE[k]=1});
@@ -703,5 +703,7 @@ function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requ
   if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
   last=now;lastT=t},{passive:false})})();
 </script>
+<script src="../common/doll.js?v=8"></script>
+<script src="../common/nav.js?v=1"></script>
 <script type="module" src="../common/fb.js?v=3"></script>
 </body></html>

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>營地・換裝模擬</title>
+<title>營地・營火廣場</title>
 <style>
 :root{color-scheme:dark;--bg:#120c08;--panel:#2b333e;--panel2:#3a4656;--line:#3a4654;--fg:#eadbbd;--dim:#aab5c4;--accent:#e0b84a;--red:#d4553f;--ok:#8fd478;
 --bd:#06080b;--hi:#8794a6;--lo:#0f1318;
@@ -309,6 +309,29 @@ html,body,*{touch-action:manipulation}
 .resetrow{display:flex;justify-content:center}
 .resetrow .ghost{min-height:42px;padding:8px 18px}
 .dollnote{text-align:center}
+</style><style>
+.plaza{position:relative;width:100%;line-height:0;box-shadow:0 0 0 2px #06080b,inset 0 0 0 2px #5d6b7c;overflow:hidden;touch-action:manipulation}
+#scene{display:block;width:100%;image-rendering:pixelated}
+.tags{position:absolute;inset:0;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:3px;padding:1px 5px 1px 2px;background:rgba(12,8,5,.78);box-shadow:0 0 0 1px #000;white-space:nowrap;font-size:11px;font-weight:700;line-height:15px;color:#eadbbd;text-shadow:1px 1px 0 #000;pointer-events:auto;cursor:pointer}
+.tag img{width:13px;height:13px;image-rendering:pixelated}
+.tag.me{color:#ffd76a;box-shadow:0 0 0 1px #e0b84a}
+.tag.pet{color:#bfe3ff;padding-left:5px}
+.tag .on{width:6px;height:6px;background:#5fd16a;box-shadow:0 0 0 1px #000;margin-left:2px}
+.phead{display:flex;align-items:baseline;justify-content:space-between}
+.phead h2{margin:0;font-size:15px;font-weight:900;text-shadow:1px 1px 0 #000}
+.phead span{font-size:12px;color:var(--dim);font-weight:700}
+.pcard{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
+.pcard[hidden]{display:none}
+.pcard .bg{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.pcard .box{position:relative;width:100%;max-width:300px;padding:18px 16px 16px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#2e1d0e;
+  background:#b98a57 var(--kraft,none) 0 0/288px 288px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
+.pcard .x{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:#4a2a12;color:#f0dfb8;font-weight:900;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
+.pcard canvas{image-rendering:pixelated;background:radial-gradient(circle at 50% 78%,rgba(255,150,60,.25),rgba(255,150,60,0) 55%),#2b1d13;box-shadow:0 0 0 3px #3b2713}
+.pcard .nm{display:flex;align-items:center;gap:6px;font-size:18px;font-weight:900}
+.pcard .nm img{width:26px;height:26px;image-rendering:pixelated}
+.pcard .sub{font-size:13px;font-weight:700;color:#5a3a1a}
+.pcard .soon{margin-top:6px;font-size:12px;color:#6a4a2a}
 </style></head>
 <body>
 <div class="grain" id="grain" aria-hidden="true"></div>
@@ -316,18 +339,19 @@ html,body,*{touch-action:manipulation}
 <div class="app">
   <div class="top"><h1>營地</h1></div>
   <div class="main">
-    <div class="shd"><div class="dollcard"><div class="dollbox"><canvas id="doll" aria-label="角色預覽"></canvas></div><div class="dname" id="dname"></div><div class="dsub" id="dsub"></div></div></div>
-    <div class="seg" role="tablist" id="seg"></div>
-    <div class="panel" id="panel"></div>
-    <div class="resetrow"><button type="button" class="ghost" id="reset">回到我的樣子</button></div>
-    <p class="note dollnote">這裡是換裝模擬，怎麼換都不會改到你的角色，也不會存檔。</p>
+    <div class="phead"><h2>營火廣場</h2><span id="pcount"></span></div>
+    <div class="shd"><div class="plaza" id="plaza"><canvas id="scene" aria-label="營地裡的冒險者"></canvas><div class="tags" id="tags"></div></div></div>
+    <p class="note">這裡會顯示最近上線的 15 位冒險者和你自己。名牌旁的綠點代表 10 分鐘內有上線。點名牌可以看詳細資料。</p>
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
+<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
 <script src="../common/doll.js?v=8"></script>
+<script src="../common/nav.js?v=1"></script>
 <script>
 (function(){
+var OUT='#241610';
 var OUT='#241610';
 var OUT='#241610';
 var C={steel:'#c6ced8',steelM:'#8d98a8',steelD:'#59627a',wood:'#a06f3c',woodD:'#6b4423',canvas:'#e6d3a8',canvasD:'#c4a874',red:'#c0463a',redD:'#8a2a20',gold:'#e0b84a',goldD:'#a87a22',par:'#eadbbd',ink:'#5a3a20',hot:'#f08a3a',skin:'#e2b48a',blue:'#4f8fd8',blueD:'#2f5d9a',green:'#5fae52',dark:'#3a2414'};
@@ -544,72 +568,205 @@ function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cl
   document.body.style.setProperty('--wall','url('+c.toDataURL()+')')}catch(e){}})();
 
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
-  var items=[['camp','營地','camp'],['forge','鍛造','forge'],['adv','冒險','map'],['party','隊伍','banner'],['set','設定','scroll']];
+  var items=[['camp','營地','camp'],['forge','鍛造','forge'],['adv','冒險','map'],['char','角色','banner'],['set','設定','scroll']];
     items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='camp'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
-    if(it[0]==='forge')b.addEventListener('click',function(){location.href='../forge/index.html'});else if(it[0]==='party')b.addEventListener('click',function(){location.href='../party/index.html'});else if(it[0]!=='camp')b.addEventListener('click',function(){toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)})}
+    b.setAttribute('data-k',it[0]);if(it[0]!=='camp')b.addEventListener('click',function(){STOP=true;if(!NavIcons.go(it[0])){STOP=false;last=0;requestAnimationFrame(tick);toast('「'+it[1]+'」頁面尚未製作')}});h.appendChild(b)});NavIcons.apply(h)}
 
 function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
-/* ---------- the player's saved character (mock until Firebase is wired) ---------- */
-var JOBN=Doll.JOBN; /* filled from job_info.csv by Doll.load */
-var WEAPON_BY_NAME={};
-var ME={name:'',job:0,skin:0,style:0,hair:0,eyes:5,outfit:null,weapon:'劍'};
-var C2={},TAB='look',RUNES=[];
-function myLook(){var w=WEAPON_BY_NAME[ME.weapon]||ORDER[0];return{outfit:ME.outfit==null?ME.job:ME.outfit,skin:ME.skin,style:ME.style,hair:ME.hair,eyes:ME.eyes,w:w,stage:1,halo:false,runes:[]}}
-function weaponSpec(){var w=W[C2.w];if(!w)return null;var st=C2.stage-1,im=w.img[st]||w.img[0];return{img:im,key:C2.w+'_'+(w.img[st]?st:0),cut:w.cut,ox:w.ox,oy:w.oy}}
-function shieldSpec(){var w=W[C2.w];if(!w||!w.offImg)return null;var st=C2.stage-1,im=w.offImg[st]||w.offImg[0];return im?{img:im,key:'off_'+C2.w+'_'+(w.offImg[st]?st:0)}:null}
-/* ---------- doll canvas ---------- */
-var DC=document.getElementById('doll'),DS=6;
-function fitDoll(){var avail=Math.min(window.innerWidth,460)-80;DS=Math.max(4,Math.min(7,Math.floor(avail/Doll.N)));DC.width=DC.height=Doll.N*DS;DC.style.width=DC.style.height=(Doll.N*DS)+'px'}
-function dollState(){return{skin:C2.skin,style:C2.style,hair:C2.hair,eyes:C2.eyes,outfit:C2.outfit,weapon:weaponSpec(),shield:shieldSpec(),halo:C2.halo?C2.runes.map(function(id){return RUNE[id].color}):[]}}
-function loop(now){Doll.draw(DC,dollState(),now);requestAnimationFrame(loop)}
-/* ---------- UI ---------- */
-function opt(label,on,fn,sw){var b=el('button','opt2');b.type='button';b.setAttribute('aria-pressed',String(!!on));if(sw){var s=el('i','sw');s.style.background=sw;b.appendChild(s)}if(label!=null)b.appendChild(el('span',null,label));b.addEventListener('click',fn);return b}
-function grp(label,kids,cls){var g=el('div','grp');g.appendChild(el('div','glab',label));var o=el('div',cls||'opts');kids.forEach(function(k){o.appendChild(k)});g.appendChild(o);return g}
-function renderHead(){var w=W[C2.w];document.getElementById('dname').textContent=ME.name+'・'+JOBN[ME.job];
-  document.getElementById('dsub').textContent='手持：'+(w?(w.sname[C2.stage-1]||w.n):'—')+(C2.halo&&C2.runes.length?'・光暈 '+C2.runes.length+' 層':'')}
-function renderSeg(){var h=document.getElementById('seg');h.textContent='';
-  [['look','外觀'],['weapon','武器'],['halo','光暈']].forEach(function(t){var b=el('button',null,t[1]);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(TAB===t[0]));
-    b.addEventListener('click',function(){TAB=t[0];renderSeg();renderPanel()});h.appendChild(b)})}
-function set(k,v){C2[k]=v;renderPanel();renderHead()}
-function renderPanel(){var h=document.getElementById('panel');h.textContent='';
-  if(TAB==='look'){
-    h.appendChild(grp('衣服',Doll.OUTFIT_ORDER.map(function(i){return opt(JOBN[i]+'裝',C2.outfit===i,function(){set('outfit',i)})})));
-    h.appendChild(grp('髮型',Doll.STYLE_ORDER.map(function(i){return opt(Doll.STYLEN[i],C2.style===i,function(){set('style',i)})})));
-    if(C2.style!==5)h.appendChild(grp('髮色',Doll.HAIR.map(function(t,i){return opt(t.n,C2.hair===i,function(){set('hair',i)},Doll.hairColor(i))})));
-    h.appendChild(grp('膚色',Doll.SKINN.map(function(n,i){return opt(n,C2.skin===i,function(){set('skin',i)},Doll.swatch(Doll.assets.skins[i]))})));
-    h.appendChild(grp('眼色',Doll.assets.eyes.map(function(im,i){return opt(String(i+1),C2.eyes===i,function(){set('eyes',i)},Doll.swatch(im))})));
-  }else if(TAB==='weapon'){
-    h.appendChild(grp('武器',ORDER.map(function(k){var b=opt(null,C2.w===k,function(){C2.w=k;renderPanel();renderHead()});b.insertBefore(cv(wsprite(k,0),2),b.firstChild);b.appendChild(el('span',null,W[k].n));return b}),'wgrid'));
-    var w=W[C2.w];h.appendChild(grp('階段',[1,2,3,4].map(function(s){var b=opt(null,C2.stage===s,function(){set('stage',s)});b.appendChild(el('span',null,['一','二','三','四'][s-1]+'階'));b.appendChild(el('small',null,w.sname[s-1]||''));return b}),'sgrid'));
-  }else{
-    var hh=el('div','hhead');var cnt=el('div','hcnt');cnt.appendChild(document.createTextNode('已選 '));cnt.appendChild(el('b',null,C2.runes.length+' / 3'));
-    for(var i=0;i<3;i++){var p=el('i','pip');if(i<C2.runes.length)p.style.background=RUNE[C2.runes[i]].color;cnt.appendChild(p)}
-    hh.appendChild(cnt);hh.appendChild(opt(C2.halo?'光暈：開':'光暈：關',C2.halo,function(){if(!C2.halo&&!C2.runes.length){toast('先選一個符文');return}set('halo',!C2.halo)}));h.appendChild(hh);
-    var g=el('div','rgrid2');RUNES.forEach(function(id){var r=RUNE[id],i=C2.runes.indexOf(id);var b=el('button','rc'+(i>=0?' sel':''));b.type='button';
-      b.style.setProperty('--rc',r.color);b.style.setProperty('--rcA',hexA(r.color,.55));b.style.setProperty('--rcB',hexA(r.color,.22));
-      b.appendChild(runeStone(id,44,false,false));b.appendChild(el('span','t',r.name));b.appendChild(el('span','ord',i>=0?String(i+1):''));
-      b.addEventListener('click',function(){var j=C2.runes.indexOf(id);if(j>=0)C2.runes.splice(j,1);else if(C2.runes.length>=3){toast('最多 3 個，先取消一個');return}else{C2.runes.push(id);C2.halo=true}
-        if(!C2.runes.length)C2.halo=false;renderPanel();renderHead()});g.appendChild(b)});
-    var wrap=el('div',C2.halo?'':'off');wrap.appendChild(g);h.appendChild(wrap);
-    h.appendChild(el('p','note','點符文加入光暈，最多 3 層，選的順序就是由內到外的順序。'));
-  }}
-document.getElementById('reset').addEventListener('click',function(){C2=myLook();renderPanel();renderHead();toast('已回到你的樣子')});
 
+/* ---------- plaza ---------- */
+var JOBN=Doll.JOBN; /* filled from job_info.csv by Doll.load */
+var SW=180,SH=210,SCALE=2,ONLINE_MS=10*60*1000;
+var scene=document.getElementById('scene'),sx=scene.getContext('2d'),tagsEl=document.getElementById('tags');
+var PETLIST=[],ACT=[],ME_UID=null,BG=null,WBYNAME={};
+function jobIcon(p){return BASE+'icons/jobs/framed/'+(p.jobSn||Doll.JOBSN[p.job|0]||'job01')+'.png?v='+V}
+function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w];
+  return{skin:p.skin|0,style:p.style|0,hair:p.hair|0,eyes:p.eyes==null?5:p.eyes,outfit:p.outfit==null?(p.job|0):p.outfit,
+    weapon:wd&&wd.img[0]?{img:wd.img[0],key:w+'_0',cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
+    shield:wd&&wd.offImg&&wd.offImg[0]?{img:wd.offImg[0],key:'off_'+w+'_0'}:null,halo:[]}}
+function rnd(a,b){return a+Math.random()*(b-a)}
+/* fixed spots (feet position); people stand still and breathe, facing the fire */
+var FIRE={x:90,y:122}; /* fire centre x, base line y */
+var SLOTS=[[66,170],[112,166],[52,140],[101,96],[124,112],[70,90],[90,181],[132,146],[36,118],[150,126],[156,164],[148,98],[28,160],[44,86],[42,184],[138,194]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
+function placeAll(list){ACT=[];list.forEach(function(p,i){var sl=SLOTS[i%SLOTS.length],x=sl[0],y=sl[1];
+  var a={p:p,x:x,y:y,tx:x,ty:y,face:x<FIRE.x?1:x>FIRE.x?-1:(Math.random()<.5?-1:1),still:true,wait:1,tmp:document.createElement('canvas'),phase:rnd(0,4000)};
+  a.tmp.width=a.tmp.height=48;a.look=look(p);
+  var t=document.createElement('div');t.className='tag'+(p.uid===ME_UID?' me':'');var im=new Image();im.src=jobIcon(p);im.alt=JOBN[p.job|0]||'';t.appendChild(im);
+  var nm=document.createElement('span');nm.textContent=p.name;t.appendChild(nm);
+  if(p.uid!==ME_UID&&p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS){var d=document.createElement('i');d.className='on';d.title='線上';t.appendChild(d)}
+  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
+/* background: chunky pixel art drawn on a half-resolution grid (1 art pixel = 2 scene pixels) */
+var STARS=[],FG=null;
+function buildBG(){var G=2,GW=SW/G,GH=SH/G,c=document.createElement('canvas');c.width=SW;c.height=SH;var x=c.getContext('2d'),sd=7;
+  function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+  function P(px,py,col,w,h){x.fillStyle=col;x.fillRect(px*G,py*G,(w||1)*G,(h||1)*G)}
+  var HOR=26; /* horizon row in art pixels */
+  /* sky gradient bands */
+  ['#0a0d18','#0d1120','#111628','#151b2e'].forEach(function(col,i){P(0,i*7,col,GW,7)});
+  /* stars (twinkle is drawn per frame) */
+  STARS=[];for(var i=0;i<34;i++)STARS.push({x:Math.floor(r()*GW)*G,y:Math.floor(r()*(HOR-6))*G,big:r()<.18,ph:r()*6.28,sp:.8+r()*1.6,col:r()<.3?'#ffe9b0':'#c9d4ff'});
+  /* far treeline */
+  for(var k=0;k<GW;k++){var h=4+Math.floor(r()*5)+(k%7<3?2:0);P(k,HOR-h,'#121a16',1,h)}
+  /* ground */
+  P(0,HOR,'#2a1f16',GW,GH-HOR);
+  for(i=0;i<520;i++){var t=r();P(Math.floor(r()*GW),HOR+Math.floor(r()*(GH-HOR)),t<.4?'#33261b':t<.75?'#231910':'#3d2e1f')}
+  for(i=0;i<26;i++){var gx=Math.floor(r()*GW),gy=HOR+2+Math.floor(r()*(GH-HOR-4));P(gx,gy,'#3a4a24');P(gx+1,gy-1,'#4e6230')}
+  /* tent */
+  function tent(cx,top,H,c1,c2,c3,trim){
+    for(var y=0;y<H;y++){var hw=Math.round(y*0.95);
+      for(var xx=-hw;xx<=hw;xx++){var col=xx<0?c1:xx===0?c2:c3;if(xx<0&&(xx+y)%5===0)col=c2;P(cx+xx,top+y,col)}
+      P(cx-hw-1,top+y,'#1d1008');P(cx+hw+1,top+y,'#1d1008')}
+    P(cx-H,top+H,'#1d1008',H*2+1,1);
+    for(y=Math.floor(H*0.45);y<H;y++){var dw=Math.round((y-H*0.45)*0.5);P(cx-dw,top+y,'#1a0f08',dw*2+1,1)}
+    var fl=Math.floor(H*0.45);for(y=fl;y<H;y++){var dw2=Math.round((y-fl)*0.5);P(cx+dw2+1,top+y,c2)}
+    P(cx-Math.round((H-1)*0.95),top+H-1,trim,Math.round((H-1)*0.95)*2+1,1);
+    P(cx,top-3,'#6b4423',1,3);P(cx+1,top-3,'#b3342a',2,1);P(cx+1,top-2,'#8a2a20',1,1)}
+  /* crates and logs */
+  function crate(px,py){P(px,py,'#1d1008',7,6);P(px+1,py+1,'#8a5e2c',5,4);P(px+1,py+1,'#a8763a',5,1);P(px+3,py+1,'#5a3a1e',1,4);P(px+1,py+3,'#5a3a1e',5,1)}
+  /* side trees: own foreground layer (drawn over the wanderers), dark trunk + stacked round clumps */
+  var f=document.createElement('canvas');f.width=SW;f.height=SH;var fx=f.getContext('2d');
+  function Q(px,py,col,w,h){fx.fillStyle=col;fx.fillRect(px*G,py*G,(w||1)*G,(h||1)*G)}
+  function tree(cx,base,sc){var tw=2*sc+1,th=16*sc;
+    for(var y=0;y<th;y++)for(var xx=0;xx<tw;xx++){var col=xx===0?'#1e130b':xx===tw-1?'#0b0604':((y+xx*3)%5===0?'#20140c':'#28190f');Q(cx+xx-Math.floor(tw/2),base-y,col)}
+    Q(cx-Math.floor(tw/2)-1,base-th,'#050302',1,th);Q(cx+Math.ceil(tw/2),base-th,'#050302',1,th);
+    var top=base-th,R=5*sc,blobs=[[0,-2.2*R,R*.9],[-.9*R,-1.4*R,R*.85],[.9*R,-1.5*R,R*.8],[-1.2*R,-.3*R,R*.8],[1.15*R,-.2*R,R*.85],[0,-.6*R,R],[-.4*R,.5*R,R*.7],[.5*R,.6*R,R*.65]];
+    var M={};function key(a,b){return a+','+b}
+    function shade(bl,xx,yy){var dx=xx+.5-(cx+bl[0]),dy=yy+.5-(top+bl[1]),d=Math.hypot(dx,dy),br=bl[2];if(d>br)return null;var lit=(-dx-dy)/br;return {edge:d>br-1.2,lv:lit>.55?3:lit>.05?2:1}}
+    blobs.forEach(function(bl,bi){var bx=cx+bl[0],by=top+bl[1],br=bl[2];
+      for(var yy=Math.floor(by-br);yy<=Math.ceil(by+br);yy++)for(var xx=Math.floor(bx-br);xx<=Math.ceil(bx+br);xx++){var sh=shade(bl,xx,yy);if(!sh)continue;
+        var lv=sh.lv;if(sh.edge){ /* rim: dark only where it meets nothing; over another clump it fades to one step below that clump */
+          var under=null;for(var j=0;j<blobs.length;j++){if(j===bi)continue;var o=shade(blobs[j],xx,yy);if(o&&!o.edge){under=o;break}}
+          lv=under?Math.max(1,under.lv-1):0}
+        M[key(xx,yy)]={lv:lv}}});
+    var PAL=['#08120a','#0d1a0f','#132517','#19301c'];
+    Object.keys(M).forEach(function(k){var a=k.split(','),xx=+a[0],yy=+a[1],m=M[k],col=PAL[m.lv];if(m.lv===3&&(xx+yy)%3===0)col='#203b23';Q(xx,yy,col)});
+    Object.keys(M).forEach(function(k){var a=k.split(','),xx=+a[0],yy=+a[1];[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(o){if(!(key(xx+o[0],yy+o[1]) in M))Q(xx+o[0],yy+o[1],'#040805')})})}
+  FG=f;
+  BG=c}
+function stars(now){var t=now/1000;STARS.forEach(function(s){if(Math.abs(s.x-LAMP.x)<9&&Math.abs(s.y-LAMP.y-6)<12)return;var a=.35+.65*(.5+.5*Math.sin(t*s.sp+s.ph));a=Math.round(a*4)/4;sx.globalAlpha=a;sx.fillStyle=s.col;
+    if(s.big){sx.fillRect(s.x,s.y,2,2);sx.globalAlpha=a*.5;sx.fillRect(s.x-2,s.y,2,2);sx.fillRect(s.x+2,s.y,2,2);sx.fillRect(s.x,s.y-2,2,2);sx.fillRect(s.x,s.y+2,2,2)}else sx.fillRect(s.x,s.y,2,2)});sx.globalAlpha=1}
+/* ---------- campfire: centre of the plaza, depth-sorted at FIRE.y, with drifting sparks ---------- */
+var SPARKS=[],sparkAcc=0,LAYER={blanket:null,back:null,front:null};
+/* oil lamp hanging from the left pole of the red canopy (camp_back.png): soft yellow-white glow, slow gentle flicker */
+var LAMP={x:136,y:34}; /* x = lantern centre, y = bracket row */
+function lamp(now){var cx=LAMP.x,T=LAMP.y,IR='#231d19',IM='#3b322b',BR='#8a6a3a',BH='#c79a52',BD='#5a4226';
+  var fl=.85+.1*Math.sin(now/900)+.05*Math.sin(now/370);
+  for(var i=0;i<6;i++)R(IM,cx+i,T-1+Math.round(i*2/5),1,1);R(IR,cx,T,1,1);R(IR,cx,T+1,1,1); /* bracket slanting down-right into the pole, hook */
+  R(IR,cx-1,T+2,1,1);R(IR,cx+1,T+2,1,1);                              /* ring */
+  R(BH,cx,T+3,1,1);                                                   /* finial */
+  R(BD,cx-1,T+4,3,1);R(BR,cx,T+4,1,1);                                /* roof */
+  R(BR,cx-2,T+5,5,1);R(BH,cx-1,T+5,1,1);
+  R(BD,cx-3,T+6,7,1);R(BR,cx-2,T+6,2,1);                              /* top rim */
+  R(IR,cx-3,T+7,1,5);R(IR,cx+3,T+7,1,5);                              /* frame posts */
+  R('#e9c06a',cx-2,T+7,1,5);R('#e9c06a',cx+2,T+7,1,5);R('#ffefb8',cx-1,T+7,3,5); /* glass */
+  sx.globalAlpha=fl;R('#ffd56a',cx,T+8,1,1);R('#fffbe6',cx,T+9,1,2);R('#fff6d0',cx-1,T+10,1,1);R('#fff6d0',cx+1,T+10,1,1);sx.globalAlpha=1; /* flame */
+  R(BR,cx-3,T+12,7,1);R(BH,cx-2,T+12,2,1);                            /* bottom rim */
+  R(BD,cx-2,T+13,5,1);R(BR,cx,T+14,1,1)}                               /* base + drop */
+/* old blanket (assets/camp/camp_blanket.png) is drawn under camp_back.png so the backpack and tent sit on it */
+function lampGlow(now){var fl=.88+.08*Math.sin(now/900)+.04*Math.sin(now/370),x=LAMP.x+.5,y=LAMP.y+9.5;
+  var g=sx.createRadialGradient(x,y,1,x,y,24);g.addColorStop(0,'rgba(255,244,200,'+(.30*fl)+')');g.addColorStop(.35,'rgba(255,236,180,'+(.12*fl)+')');g.addColorStop(1,'rgba(255,236,180,0)');
+  sx.fillStyle=g;sx.fillRect(x-24,y-24,48,48)}
+['blanket','back','front'].forEach(function(k){var im=new Image();im.onload=function(){LAYER[k]=im};im.src=BASE+'camp/camp_'+k+'.png?v='+V});
+/* irregular stones around the fire (no outline): each one is a few rows of varying width */
+/* irregular stones around the fire (no outline). Back ones sit behind the logs; front ones are bigger,
+   sit below the logs without touching them, and the one tall stone overlaps the logs a little. */
+var STONES=(function(){var sd=11;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+  var cols=[['#6f6a66','#a19a92','#47423e'],['#7c766f','#aea79e','#504a45'],['#625d59','#8f8983','#3e3936'],['#857e76','#b8b0a6','#575049']];
+  function make(x,y,w,h,front){var rows=[],c=cols[Math.floor(r()*cols.length)];
+    for(var j=0;j<h;j++){var edge=(j===0||j===h-1),inset=edge?1:0,ww=w-inset*2;if(edge&&r()<.4){ww-=1;if(r()<.5)inset+=1}rows.push([inset,Math.max(2,ww)])}
+    return{x:x,y:y,rows:rows,c:c[0],hi:c[1],dk:c[2],front:front}}
+  var out=[];
+  [[-14,-2],[-12,-6],[-8,-8],[-3,-9],[3,-9],[8,-8],[12,-6],[14,-2]].forEach(function(p){var w=4+Math.floor(r()*3),h=3+Math.floor(r()*2);out.push(make(p[0]-Math.floor(w/2)+Math.round(r()*2-1),p[1]-h+1+Math.round(r()*2-1),w,h,false))});
+  [[-17,1,5,4],[-11,4,5,4],[-5,5,5,4],[1,3,5,5],[7,5,5,4],[12,2,5,4]].forEach(function(p){out.push(make(p[0],p[1],p[2],p[3],true))});
+  return out})();
+var ASH=(function(){var sd=5,out=[];function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+  var C=['#4a4440','#5e5853','#3a3430','#6e6761','#7f7871'];
+  for(var k=0;k<46;k++){var a=r()*6.283,d=Math.sqrt(r()),x=Math.round(Math.cos(a)*d*14),y=Math.round(Math.sin(a)*d*5)+1;out.push([x,y,C[Math.floor(r()*C.length)],r()<.35?2:1])}
+  return out})();
+function stone(st,cx,by){var x=cx+st.x,y=by+st.y;st.rows.forEach(function(r,j){R(j===st.rows.length-1?st.dk:st.c,x+r[0],y+j,r[1],1)});R(st.hi,x+st.rows[0][0]+1,y,Math.max(1,st.rows[0][1]-2),1);if(st.rows.length>3)R(st.hi,x+st.rows[1][0],y+1,1,1)}
+function inFire(x,y){return Math.abs(x-FIRE.x)<22&&Math.abs(y-FIRE.y)<10}
+function clearPath(x0,y0,x1,y1){for(var k=0;k<=8;k++){if(inFire(x0+(x1-x0)*k/8,y0+(y1-y0)*k/8))return false}return true}
+function fireGlow(now){var fl=.9+.1*Math.sin(now/170)+.06*Math.sin(now/53);
+  var g=sx.createRadialGradient(FIRE.x,FIRE.y-6,3,FIRE.x,FIRE.y-6,92);g.addColorStop(0,'rgba(255,150,60,'+(.34*fl)+')');g.addColorStop(.45,'rgba(255,120,40,'+(.14*fl)+')');g.addColorStop(1,'rgba(255,120,40,0)');sx.fillStyle=g;sx.fillRect(0,0,SW,SH);
+  /* warm ellipse of lit ground */
+  sx.fillStyle='rgba(255,170,80,'+(.10*fl)+')';for(var yy=-7;yy<=7;yy++){var hw=Math.round(30*Math.sqrt(1-(yy*yy)/49));sx.fillRect(FIRE.x-hw,FIRE.y+yy,hw*2,1)}}
+function R(c,x,y,w,h){sx.fillStyle=c;sx.fillRect(x,y,w||1,h||1)}
+function fire(now){var cx=FIRE.x,by=FIRE.y,f=Math.floor(now/130)%6;
+  /* stone ring */
+  STONES.forEach(function(st){if(!st.front)stone(st,cx,by)});
+  ASH.forEach(function(a){R(a[2],cx+a[0],by+a[1],a[3],1)}); /* ash bed */
+  /* logs (crossed) */
+  for(var i=0;i<14;i++){R('#2a170b',cx-9+i,by-4+Math.round(i*.35),2,3);R('#2a170b',cx+8-i,by-4+Math.round(i*.35),2,3)}
+  for(i=0;i<14;i++){R(i%4?'#7a4a24':'#5a341a',cx-9+i,by-4+Math.round(i*.35),2,2);R(i%4?'#6b4020':'#4f2e16',cx+8-i,by-4+Math.round(i*.35),2,2)}
+  R('#ffb040',cx-4,by-2,8,1);R('#ff7a2a',cx-6,by-1,12,1);R('#c2401c',cx-5,by,10,1); /* embers */
+  /* front logs lying between the fire and the front stones, charred ends glowing */
+  for(i=0;i<11;i++){var lx=cx-9+i,ly=by+2+(i>7?1:0);R('#2a170b',lx,ly-1,1,4);R(i%4?'#6b4020':'#4f2e16',lx,ly,1,2)}
+  R('#7a4a24',cx-9,by+2,1,1);R('#a06a3a',cx-9,by+3,1,1);                 /* cut end (rings) */
+  R('#2a170b',cx+2,by+2,1,3);R('#c2401c',cx+1,by+3,1,1);R('#ff7a2a',cx+2,by+3,1,1);
+  for(i=0;i<5;i++){var kx=cx+4+i,ky=by+1+Math.round(i*.4);R('#2a170b',kx,ky-1,1,3);R(i%3?'#5a341a':'#3f2412',kx,ky,1,1)}
+  R('#ff8a2a',cx+4,by+1,1,1);
+  R('#5e5853',cx-3,by+4,2,1);R('#4a4440',cx+4,by+4,3,1);R('#c2401c',cx+5,by+4,1,1);R('#6e6761',cx-7,by+4,2,1);R('#7f7871',cx+1,by+5,1,1);R('#4a4440',cx-10,by+1,2,1);R('#5e5853',cx+10,by+1,1,1); /* ash and coals */
+  STONES.forEach(function(st){if(st.front)stone(st,cx,by)});
+  /* flames: 6 frames of layered tongues */
+  var T=[[-6,6,0],[-3,10,1],[0,13,2],[3,9,3],[6,6,4],[-1,8,5],[2,11,0]];
+  T.forEach(function(t){var ph=(f+t[2])%6,h=t[1]+[0,1,2,1,0,-1][ph],x=cx+t[0]+[0,1,0,-1,0,1][ph],w=t[1]>9?4:3;
+    for(var y=0;y<h;y++){var k=y/h,ww=Math.max(1,Math.round(w*(1-k*k))),xx=x-Math.floor(ww/2)+Math.round(Math.sin((y+ph*2)*.7)*k*1.5);R(k<.35?'#ffd35a':k<.7?'#ff8a2a':'#d8401c',xx,by-3-y,ww,1)}});
+  /* hot core */
+  var ch=6+[0,1,1,0,0,-1][f];for(var y=0;y<ch;y++){var ww=Math.max(1,Math.round(3*(1-y/ch)));R(y<ch*.5?'#fff6c8':'#ffe07a',cx-Math.floor(ww/2),by-3-y,ww,1)}}
+function sparks(now,dt){sparkAcc+=dt*9;while(sparkAcc>1){sparkAcc--;SPARKS.push({x:FIRE.x+rnd(-6,6),y:FIRE.y-8-rnd(0,5),vx:rnd(-3,3),vy:-rnd(8,15),life:0,max:rnd(1.8,3.6),ph:rnd(0,6.28)})}
+  SPARKS=SPARKS.filter(function(p){p.life+=dt;if(p.life>p.max)return false;p.vy*=1-dt*.25;p.x+=(p.vx+Math.sin(p.life*2+p.ph)*4)*dt;p.y+=p.vy*dt;
+    var k=p.life/p.max;sx.globalAlpha=k<.7?1:Math.max(0,1-(k-.7)/.3);R(k<.3?'#fff3c0':k<.6?'#ffc040':'#ff6a20',Math.round(p.x),Math.round(p.y),1,1);return true});sx.globalAlpha=1}
+var last=0,STOP=false,FRAME_MS=50; /* ~20fps is plenty for pixel art and keeps phones cool */
+function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimationFrame(tick);return}var dt=Math.min(.15,(now-last)/1000||0);last=now;sx.imageSmoothingEnabled=false;sx.drawImage(BG,0,0);stars(now);if(LAYER.blanket)sx.drawImage(LAYER.blanket,0,0,SW,SH);if(LAYER.back)sx.drawImage(LAYER.back,0,0,SW,SH);lamp(now);lampGlow(now);fireGlow(now);
+  ACT.forEach(function(a){if(a.still)return;if(a.wait>0){a.wait-=dt;if(a.wait<=0){var rg=a.pet?40:24;for(var tr=0;tr<8;tr++){a.tx=Math.max(34,Math.min(SW-34,a.x+rnd(-rg,rg)));a.ty=Math.max(70,Math.min(SH-12,a.y+rnd(-14,14)));if(clearPath(a.x,a.y,a.tx,a.ty))break;a.tx=a.x;a.ty=a.y}}}
+    else{var dx=a.tx-a.x,dy=a.ty-a.y,d=Math.hypot(dx,dy);if(d<.6){a.wait=a.pet?rnd(1,4):rnd(2,7)}else{var sp=(a.pet?16:9)*dt;a.x+=dx/d*Math.min(sp,d);a.y+=dy/d*Math.min(sp,d);if(Math.abs(dx)>.3)a.face=dx<0?-1:1}}});
+  var fireDone=false;ACT.slice().sort(function(a,b){return a.y-b.y}).forEach(function(a){if(!fireDone&&a.y>FIRE.y){fire(now);fireDone=true}var px=Math.round(a.x),py=Math.round(a.y),tagY=a.y-36;
+    if(a.pet){var P=a.pet,moving=a.wait<=0,fr=P.frames>1&&moving?Math.floor((now+a.phase)/140)%P.frames:0,hop=P.frames===1&&moving?-Math.round(Math.abs(Math.sin((now+a.phase)/110))*2):0;
+      sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);px=0}sx.drawImage(P.img,fr*P.fw,0,P.fw,P.fh,px-Math.round(P.dw/2),py-P.dh+hop,P.dw,P.dh);sx.restore();tagY=a.y-P.dh-4}
+    else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore()}
+    a.tag.style.left=(a.x/SW*100)+'%';a.tag.style.top=(tagY/SH*100)+'%';a.tag.style.zIndex=Math.round(a.y)});
+  if(!fireDone)fire(now);sparks(now,dt);if(LAYER.front)sx.drawImage(LAYER.front,0,0,SW,SH);
+  if(FG)sx.drawImage(FG,0,0);
+  requestAnimationFrame(tick)}
+/* ---------- detail card ---------- */
+var CARD=null;
+function openCard(a){CARD=a;var p=a.p;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;
+  if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
+  document.getElementById('pcName').appendChild(document.createTextNode(p.name));
+  var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
+  document.getElementById('pcSub').textContent=(JOBN[p.job|0]||'冒險者')+(on?'・'+on:'');document.getElementById('pcard').hidden=false}
+function ago(t){var m=Math.round((Date.now()-t)/60000);if(m<60)return m+' 分鐘前';var h=Math.round(m/60);if(h<48)return h+' 小時前';return Math.round(h/24)+' 天前'}
+function closeCard(){CARD=null;document.getElementById('pcard').hidden=true}
+document.getElementById('pcBg').addEventListener('click',closeCard);document.getElementById('pcX').addEventListener('click',closeCard);
+(function cardLoop(now){if(STOP)return;if(CARD&&CARD.pet){var P=CARD.pet,cv=document.getElementById('pcDoll'),cx=cv.getContext('2d'),k=Math.max(1,Math.floor(Math.min(150/P.fw,150/P.fh))),fr=P.frames>1?Math.floor(now/180)%P.frames:0;
+    cx.clearRect(0,0,192,192);cx.imageSmoothingEnabled=false;cx.drawImage(P.img,fr*P.fw,0,P.fw,P.fh,Math.round(96-P.fw*k/2),Math.round(170-P.fh*k),P.fw*k,P.fh*k)}
+  else if(CARD)Doll.draw(document.getElementById('pcDoll'),CARD.look,now);requestAnimationFrame(cardLoop)})(0);
+/* ---------- start ---------- */
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
-new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})}).then(function(who){var p=who.player;['name','job','skin','style','hair','eyes','outfit','weapon'].forEach(function(k){if(p[k]!==undefined)ME[k]=p[k]});
-  return Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV))}).then(buildData).then(function(){return Doll.load(BASE,V)}).then(function(){
-    ORDER.forEach(function(k){WEAPON_BY_NAME[W[k].n]=k});RUNES=Object.keys(RUNE).sort();
-    C2=myLook();document.getElementById('loading').remove();fitDoll();window.addEventListener('resize',fitDoll);
-    renderHead();renderSeg();renderPanel();renderTabs();requestAnimationFrame(loop)})
-  .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')});
+function demoPlayers(){var names=['阿明','小美','阿傑','雞湯','B豪','老楊','賤賤','康哥','Mia','Leo','阿花','胖虎','小魚','Kevin','阿凱'],ws=['劍','斧','匕','弓','槍','錘','杖','書'],now=Date.now();
+  return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3,4,6,7,5][i%8],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i%8],lastSeen:now-(i<5?i*60000:i*3600000)}})}
+/* camp pets: assets/pets/gm_pet_NN.png — single image, or a horizontal strip of square frames */
+var PETS=[['gm_pet_01','阿梅'],['gm_pet_02','阿果']];
+function loadPets(){return Promise.all(PETS.map(function(d){return new Promise(function(res){var im=new Image();im.onload=function(){
+    var w=im.naturalWidth,h=im.naturalHeight,frames=(w>=h*2&&w%h===0)?w/h:1,fw=w/frames,fh=h,div=Math.max(1,Math.ceil(fh/40));
+    res({name:d[1],img:im,frames:frames,fw:fw,fh:fh,dw:Math.round(fw/div),dh:Math.round(fh/div)})};im.onerror=function(){res(null)};im.src=BASE+'pets/'+d[0]+'.png?v='+V})}))}
+function placePets(list){list.forEach(function(P,i){if(!P)return;var x,y;do{x=rnd(50,SW-50);y=rnd(90,SH-20)}while(inFire(x,y));
+  var a={pet:P,p:{name:P.name},x:x,y:y,tx:x,ty:y,face:Math.random()<.5?-1:1,wait:rnd(.5,3),phase:rnd(0,4000)};
+  var t=document.createElement('div');t.className='tag pet';var nm=document.createElement('span');nm.textContent=P.name;t.appendChild(nm);
+  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
+function start(me,others){ME_UID=me.uid;NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
+  document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
+  scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
+var demo=/[?&]demo=1/.test(location.search);
+window.addEventListener('pagehide',function(){STOP=true});window.addEventListener('pageshow',function(e){if(e.persisted&&STOP){STOP=false;last=0;requestAnimationFrame(tick)}});
+Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV)).then(buildData).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
+  if(demo){var d=demoPlayers();start(d[0],d.slice(1));return}
+  return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){return FB.listPlayers(30).then(function(all){
+    var me=Object.assign({uid:who.user.uid},who.player,{lastSeen:Date.now()});
+    start(me,all.filter(function(p){return p.uid!==me.uid&&!p.disabled}));res()})})})})
+}).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
-</script>
-<script>
-/* iOS Safari ignores touch-action on some elements: block the double-tap zoom manually (the second tap still clicks) */
-(function(){var last=0,lastT=null;document.addEventListener('touchend',function(e){var now=Date.now(),t=e.target;
-  if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
-  last=now;lastT=t},{passive:false})})();
 </script>
 <script type="module" src="../common/fb.js?v=3"></script>
 </body></html>
