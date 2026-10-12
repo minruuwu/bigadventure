@@ -10,7 +10,8 @@ var LINKS={camp:'../camp/index.html',forge:'../forge/index.html',char:'../charac
 var cache={},player=null,lastTabs=null,dollLoading=false,headKey='',headCv=null;
 var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 /* pixel-art icons: a whole number of screen pixels per art pixel, about 2.4 css px (7 device px on a 3x phone) */
-var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr;
+var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(2.06*dpr))/dpr;
+function pxs(k){return k==='forge'?PXSF:PXS}
 
 /* processed icons are kept for the browser session so the next page shows them straight away */
 function ssGet(k){try{return JSON.parse(sessionStorage.getItem('navicon:'+k)||'null')}catch(e){return null}}
@@ -23,7 +24,7 @@ function go(k){if(LINKS[k]){location.href=LINKS[k];return true}return false}
 
 /* small images (<= 32 px tall) are pixel art: shown as-is at 2 css px per pixel, may poke above the bar.
    bigger ones: crop transparent margins, fit into BOX_W x BOX_H css px at 3x, smooth scale, then a dark outline */
-function processIcon(img){
+function processIcon(img,ol){
   if(img.naturalHeight<=32){var q=document.createElement('canvas');q.width=img.naturalWidth;q.height=img.naturalHeight;q.getContext('2d').drawImage(img,0,0);
     q.__css=[q.width*PXS,q.height*PXS];q.__pixel=true;return q}
   var w=img.naturalWidth,h=img.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(img,0,0);
@@ -32,16 +33,20 @@ function processIcon(img){
   if(x1<0)return null;var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
   var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(img,x0,y0,cw,ch,0,0,W,H);
   var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
-  var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
+  var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
   var c=document.createElement('canvas');c.width=W+2*P;c.height=H+2*P;var cx=c.getContext('2d');
   for(var dy=-P;dy<=P;dy++)for(var dx=-P;dx<=P;dx++)if(dx*dx+dy*dy<=P*P)cx.drawImage(sil,P+dx,P+dy);
   cx.drawImage(s,P,P);c.__css=[(W+2*P)/DPR,(H+2*P)/DPR];return c}
 
-function load(k){if(k in cache)return;cache[k]=null;var im=new Image();
-  im.onload=function(){var c=processIcon(im);cache[k]=c||false;if(c){if(c.__pixel)c.__css=[c.width*PXS,c.height*PXS];save(k,c)}if(lastTabs)apply(lastTabs)};im.onerror=function(){cache[k]=false};
-  im.src=BASE+'icons/nav/'+FILES[k]+'.png?v=2'}
+/* optional outline-source image (camp_tent.png): the outline follows only these pixels, so the soft night sky around the tent gets none */
+function olScaled(ol,x0,y0,cw,ch,W,H){if(!ol)return null;var o=document.createElement('canvas');o.width=W;o.height=H;var ox=o.getContext('2d');ox.imageSmoothingEnabled=true;ox.imageSmoothingQuality='high';ox.drawImage(ol,x0,y0,cw,ch,0,0,W,H);
+  var od=ox.getImageData(0,0,W,H);for(var i=3;i<od.data.length;i+=4)od.data[i]=od.data[i]>=120?255:0;ox.putImageData(od,0,0);return o}
+function load(k){if(k in cache)return;cache[k]=null;var im=new Image(),tn=null;
+  im.onload=function(){if(k==='camp'&&!tn){tn=new Image();tn.onload=im.onload;tn.onerror=function(){cache[k]=false};tn.src=BASE+'icons/nav/camp_tent.png?v=3';return}
+    var c=processIcon(im,tn);cache[k]=c||false;if(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];save(k,c)}if(lastTabs)apply(lastTabs)};im.onerror=function(){cache[k]=false};
+  im.src=BASE+'icons/nav/'+FILES[k]+'.png?v=3'}
 /* warm start from this session's saved copies (fresh files still load and replace them) */
-Object.keys(FILES).forEach(function(k){restore(k,function(c){if(c.__pixel)c.__css=[c.width*PXS,c.height*PXS];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
+Object.keys(FILES).forEach(function(k){restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
 restore('head',function(c){if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
 
 /* head-and-chest portrait: 22x24 crop of the 48px doll, 1px outline, shown at 3x and allowed to poke above the bar */
@@ -131,10 +136,12 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
 
 /* ---- camp tab (current page): warm light through the tent door, a breathing grainy halo over it, and a chat bubble ---- */
 var CF={state:0,icon:null,lit:null,halo:null,HX:0,HY:0,cv:null,btn:null,iconEl:null,run:false,last:0,t0:0},LT=[255,232,165];
-function campBuild(img){
+function campBuild(img,mimg,tent){
   var w=img.naturalWidth,h=img.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(img,0,0);
   var id=tx.getImageData(0,0,w,h),d=id.data,door=[],x,y,i;
-  for(y=0;y<h;y++)for(x=Math.floor(w*.62);x<=Math.ceil(w*.83);x++){i=(y*w+x)*4;if(d[i+3]>200&&(d[i]+d[i+1]+d[i+2])/3<55)door.push([x,y])}
+  /* the door slit comes from camp_door.png (same size, opaque where the slit is), since the night sky is dark too */
+  var mt=document.createElement('canvas');mt.width=w;mt.height=h;var mtx=mt.getContext('2d');mtx.drawImage(mimg,0,0);var md0=mtx.getImageData(0,0,w,h).data;
+  for(y=0;y<h;y++)for(x=0;x<w;x++)if(md0[(y*w+x)*4+3]>200)door.push([x,y])
   if(!door.length)return false;
   /* lit copy of the drawing: the slit becomes light and light seeps ~3.6px onto the canvas around it */
   var ld=new Uint8ClampedArray(d);
@@ -143,7 +150,7 @@ function campBuild(img){
     var q=md===0?1:md<=3.6?0.5*(1-md/3.6):0;if(q>0)for(var c=0;c<3;c++)ld[i+c]=d[i+c]+(LT[c]-d[i+c])*q}
   var litSrc=document.createElement('canvas');litSrc.width=w;litSrc.height=h;litSrc.getContext('2d').putImageData(new ImageData(ld,w,h),0,0);
   var mask=document.createElement('canvas');mask.width=w;mask.height=h;var mx=mask.getContext('2d');mx.fillStyle='#fff';door.forEach(function(p){mx.fillRect(p[0],p[1],1,1)});
-  var a=processIcon(img),b=processLitIcon(litSrc,mask,img);if(!a||!b)return false;
+  var a=processIcon(img,tent),b=processLitIcon(litSrc,mask,img,tent);if(!a||!b)return false;
   CF.icon=a;CF.lit=b.c;
   CF.doorC=b.doorC;CF.halo=null;CF.haloR=0;return true}
 /* halo centred on the tent door, sized to stay inside the tab; chunky 1-css-px grain, 7 soft levels, softer over the tent */
@@ -156,14 +163,14 @@ function makeHalo(rx){var ry=Math.round(rx*0.78),a=CF.icon,HW=rx*2,HH=ry*2,hc=do
     hx.fillStyle='rgba(252,226,156,'+al.toFixed(3)+')';hx.fillRect(x,y,CELL,CELL)}
   return hc}
 /* same geometry as processIcon, but the outline next to the lit slit (and dark seam pixels there) take the light colour */
-function processLitIcon(src,mask,orig){
+function processLitIcon(src,mask,orig,ol){
   var w=orig.naturalWidth,h=orig.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(orig,0,0);
   var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
   var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
   var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(src,x0,y0,cw,ch,0,0,W,H);
   var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
-  var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
+  var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
   var m=document.createElement('canvas');m.width=W;m.height=H;var mx=m.getContext('2d');mx.imageSmoothingEnabled=true;mx.drawImage(mask,x0,y0,cw,ch,0,0,W,H);
   var md=mx.getImageData(0,0,W,H);for(i=0;i<md.data.length;i+=4){var on=md.data[i+3]>60;md.data[i]=LT[0];md.data[i+1]=LT[1];md.data[i+2]=LT[2];md.data[i+3]=on?255:0}mx.putImageData(md,0,0);
   var c=document.createElement('canvas');c.width=W+2*P;c.height=H+2*P;var cx=c.getContext('2d'),R=P+1,dx,dy;
@@ -184,7 +191,7 @@ function drawBubble(x,ox,oy,nd){var S=7;
   x.fillStyle='#080503';BUB.forEach(function(row,j){for(var i=0;i<row.length;i++)if(row[i]==='o')x.fillRect(ox+i*S,oy+j*S,S,S)});
   x.fillStyle='#462d19';for(var k=0;k<nd;k++)x.fillRect(ox+(3+k*3)*S,oy+3*S,S,S)}
 function campOn(btn,iconEl){
-  if(CF.state===0){CF.state=1;var im=new Image();im.onload=function(){CF.state=campBuild(im)?2:3;if(CF.state===2&&CF.btn&&CF.btn.isConnected)campOn(CF.btn,CF.iconEl)};im.onerror=function(){CF.state=3};im.src=BASE+'icons/nav/camp.png?v=2'}
+  if(CF.state===0){CF.state=1;var im=new Image(),mi=new Image(),ti=new Image();im.onload=function(){mi.onload=function(){ti.onload=function(){CF.state=campBuild(im,mi,ti)?2:3;if(CF.state===2&&CF.btn&&CF.btn.isConnected)campOn(CF.btn,CF.iconEl)};ti.onerror=function(){CF.state=3};ti.src=BASE+'icons/nav/camp_tent.png?v=3'};mi.onerror=function(){CF.state=3};mi.src=BASE+'icons/nav/camp_door.png?v=3'};im.onerror=function(){CF.state=3};im.src=BASE+'icons/nav/camp.png?v=3'}
   CF.btn=btn;CF.iconEl=iconEl;if(CF.state!==2)return;
   if(!CF.cv){CF.cv=document.createElement('canvas');CF.cv.style.cssText='position:absolute;left:0;top:-34px;pointer-events:none;z-index:3'}
   var bw=btn.clientWidth,bh=btn.clientHeight+34;CF.cv.width=bw*DPR;CF.cv.height=bh*DPR;CF.cv.style.width=bw+'px';CF.cv.style.height=bh+'px';
@@ -201,7 +208,7 @@ function campTick(now){if(!CF.cv||!CF.cv.isConnected||!CF.iconEl||!CF.iconEl.isC
   requestAnimationFrame(campTick)}
 
 /* sparks drifting up off the anvil while the forge tab is the current page (tiny canvas, ~20fps, stops when hidden) */
-var SP={cv:null,parts:[],acc:0,last:0,run:false,w:0,h:0},SPX=10,SPY=18,SPS=PXS;
+var SP={cv:null,parts:[],acc:0,last:0,run:false,w:0,h:0},SPX=10,SPY=18,SPS=PXSF;
 function sparksOn(btn,icon,src){var W=src.width+2*SPX,H=src.height+SPY+2;
   if(!SP.cv){SP.cv=document.createElement('canvas');SP.cv.style.cssText='position:absolute;pointer-events:none;z-index:3;image-rendering:pixelated'}
   SP.cv.width=W;SP.cv.height=H;SP.cv.style.width=W*SPS+'px';SP.cv.style.height=H*SPS+'px';SP.w=src.width;SP.h=src.height;
