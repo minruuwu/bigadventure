@@ -10,7 +10,7 @@ var LINKS={camp:'../camp/index.html',forge:'../forge/index.html',char:'../charac
 var cache={},player=null,lastTabs=null,dollLoading=false,headKey='',headCv=null;
 var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 /* pixel-art icons: a whole number of screen pixels per art pixel, about 2.4 css px (7 device px on a 3x phone) */
-var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(1.72*dpr))/dpr;
+var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(2.06*dpr))/dpr;
 function pxs(k){return k==='forge'?PXSF:PXS}
 
 /* processed icons are kept for the browser session so the next page shows them straight away */
@@ -30,7 +30,7 @@ function processIcon(img,ol){
   var w=img.naturalWidth,h=img.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(img,0,0);
   var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-  if(x1<0)return null;var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
+  if(x1<0)return null;var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch)*(ol?1.09:1),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
   var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(img,x0,y0,cw,ch,0,0,W,H);
   var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
   var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
@@ -167,7 +167,7 @@ function processLitIcon(src,mask,orig,ol){
   var w=orig.naturalWidth,h=orig.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(orig,0,0);
   var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-  var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
+  var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch)*(ol?1.09:1),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
   var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(src,x0,y0,cw,ch,0,0,W,H);
   var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
   var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
@@ -194,14 +194,14 @@ function campOn(btn,iconEl){
   if(CF.state===0){CF.state=1;var im=new Image(),mi=new Image(),ti=new Image();im.onload=function(){mi.onload=function(){ti.onload=function(){CF.state=campBuild(im,mi,ti)?2:3;if(CF.state===2&&CF.btn&&CF.btn.isConnected)campOn(CF.btn,CF.iconEl)};ti.onerror=function(){CF.state=3};ti.src=BASE+'icons/nav/camp_tent.png?v=3'};mi.onerror=function(){CF.state=3};mi.src=BASE+'icons/nav/camp_door.png?v=3'};im.onerror=function(){CF.state=3};im.src=BASE+'icons/nav/camp.png?v=3'}
   CF.btn=btn;CF.iconEl=iconEl;if(CF.state!==2)return;
   if(!CF.cv){CF.cv=document.createElement('canvas');CF.cv.style.cssText='position:absolute;left:0;top:-34px;pointer-events:none;z-index:3'}
-  var bw=btn.clientWidth,bh=btn.clientHeight+34;CF.cv.width=bw*DPR;CF.cv.height=bh*DPR;CF.cv.style.width=bw+'px';CF.cv.style.height=bh+'px';
+  var bw0=btn.clientWidth,EX=Math.round(bw0*.3),EY=20,bw=bw0+2*EX,bh=btn.clientHeight+34+EY;CF.EX=EX*DPR;CF.cv.style.left=(-EX)+'px';CF.cv.width=bw*DPR;CF.cv.height=bh*DPR;CF.cv.style.width=bw+'px';CF.cv.style.height=bh+'px';
   btn.appendChild(CF.cv);iconEl.style.visibility='hidden';
-  requestAnimationFrame(function(){if(!iconEl.isConnected)return;var cx=iconEl.offsetLeft*DPR+CF.doorC[0],r=Math.floor(Math.min(cx,bw*DPR-cx)-3);r=Math.max(30,r-r%3);
+  requestAnimationFrame(function(){if(!iconEl.isConnected)return;var cx=iconEl.offsetLeft*DPR+CF.EX+CF.doorC[0],r=Math.floor(Math.min(cx,bw*DPR-cx)-3);r=Math.max(30,r-r%3);
     if(r!==CF.haloR){CF.haloR=r;CF.halo=makeHalo(r)}});
   if(!CF.run){CF.run=true;CF.t0=performance.now();requestAnimationFrame(campTick)}}
 function campTick(now){if(!CF.cv||!CF.cv.isConnected||!CF.iconEl||!CF.iconEl.isConnected){CF.run=false;return}
   if(CF.last&&now-CF.last<48){requestAnimationFrame(campTick);return}CF.last=now;var t=(now-CF.t0)/1000;
-  var x=CF.cv.getContext('2d'),ix=CF.iconEl.offsetLeft*DPR,iy=(CF.iconEl.offsetTop+34)*DPR;x.clearRect(0,0,CF.cv.width,CF.cv.height);
+  var x=CF.cv.getContext('2d'),ix=CF.iconEl.offsetLeft*DPR+CF.EX,iy=(CF.iconEl.offsetTop+34)*DPR;x.clearRect(0,0,CF.cv.width,CF.cv.height);
   var fl=.36+.08*Math.sin(t*.9)+.03*Math.sin(t*2.3),q=Math.min(1,0.82+0.12*(fl-0.36)/0.11),bf=0.42+0.58*(0.5+0.5*Math.sin(t*2*Math.PI/4));
   x.drawImage(CF.icon,ix,iy);x.globalAlpha=q;x.drawImage(CF.lit,ix,iy);if(CF.halo){x.globalAlpha=bf;x.drawImage(CF.halo,ix+CF.doorC[0]-CF.haloR,iy+CF.doorC[1]-Math.round(CF.haloR*0.78));x.globalAlpha=1}
   var ph=t%4;if(ph<2.4){var nd=ph<.6?1:ph<1.2?2:3,pop=Math.min(1,ph/.15);drawBubble(x,ix+110,iy-52+Math.round((1-pop)*8),nd)}
