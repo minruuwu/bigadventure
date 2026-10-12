@@ -84,16 +84,16 @@ function campBuild(img){
   var mask=document.createElement('canvas');mask.width=w;mask.height=h;var mx=mask.getContext('2d');mx.fillStyle='#fff';door.forEach(function(p){mx.fillRect(p[0],p[1],1,1)});
   var a=processIcon(img),b=processLitIcon(litSrc,mask,img);if(!a||!b)return false;
   CF.icon=a;CF.lit=b.c;
-  /* halo in icon-local device px: centred just above the door's foot, chunky 1-css-px grain, 7 soft levels, softer over the tent */
-  var HW=330,HH=270;CF.HX=Math.round((HW-a.width)/2);CF.HY=90;var hc=document.createElement('canvas');hc.width=HW;hc.height=HH;var hx=hc.getContext('2d');
-  var gx=CF.HX+b.door[0]-6,gy=CF.HY+b.door[1]-24,BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]],CELL=3;
-  var ia=a.getContext('2d').getImageData(0,0,a.width,a.height).data;
-  for(y=0;y<HH;y+=CELL)for(x=0;x<HW;x+=CELL){var ex=(x+1.5-gx)/1.2,ey=(y+1.5-gy)/0.9,dist=Math.sqrt(ex*ex+ey*ey)/125;if(dist>=1)continue;
+  CF.doorC=b.doorC;CF.halo=null;CF.haloR=0;return true}
+/* halo centred on the tent door, sized to stay inside the tab; chunky 1-css-px grain, 7 soft levels, softer over the tent */
+function makeHalo(rx){var ry=Math.round(rx*0.78),a=CF.icon,HW=rx*2,HH=ry*2,hc=document.createElement('canvas');hc.width=HW;hc.height=HH;var hx=hc.getContext('2d');
+  var ox=rx-CF.doorC[0],oy=ry-CF.doorC[1],BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]],CELL=3,ia=a.getContext('2d').getImageData(0,0,a.width,a.height).data,x,y;
+  for(y=0;y<HH;y+=CELL)for(x=0;x<HW;x+=CELL){var ex=(x+1.5-rx)/rx,ey=(y+1.5-ry)/ry,dist=Math.sqrt(ex*ex+ey*ey);if(dist>=1)continue;
     var v=Math.pow(1-dist,0.95)*7.2,lv=Math.floor(v)+(((v-Math.floor(v))*16>BAY[(y/CELL)%4][(x/CELL)%4])?1:0);if(lv<=0)continue;
-    var al=(40+Math.min(6,lv-1)*31)/255,ix=x-CF.HX,iy=y-CF.HY;
+    var al=(40+Math.min(6,lv-1)*31)/255,ix=x-ox,iy=y-oy;
     if(ix>=0&&iy>=0&&ix<a.width&&iy<a.height&&ia[(iy*a.width+ix)*4+3]>0)al*=0.68;
     hx.fillStyle='rgba(252,226,156,'+al.toFixed(3)+')';hx.fillRect(x,y,CELL,CELL)}
-  CF.halo=hc;return true}
+  return hc}
 /* same geometry as processIcon, but the outline next to the lit slit (and dark seam pixels there) take the light colour */
 function processLitIcon(src,mask,orig){
   var w=orig.naturalWidth,h=orig.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(orig,0,0);
@@ -115,8 +115,8 @@ function processLitIcon(src,mask,orig){
   for(i=0;i<o.length;i+=4)if(rd[i+3]&&o[i+3]&&(o[i]+o[i+1]+o[i+2])/3<110){o[i]=LT[0];o[i+1]=LT[1];o[i+2]=LT[2]}
   cx.putImageData(od,0,0);
   /* door foot (bottom-most slit pixel) in this canvas */
-  var fx=0,fy=-1,mk=mask.getContext('2d').getImageData(0,0,w,h).data;for(y=0;y<h;y++)for(x=0;x<w;x++)if(mk[(y*w+x)*4+3]&&y>=fy){fy=y;fx=x}
-  return {c:c,door:[(fx-x0)*sc*DPR+P,(fy-x0*0+0-y0)*sc*DPR+P]}}
+  var sxs=0,sys=0,n=0,mk=mask.getContext('2d').getImageData(0,0,w,h).data;for(y=0;y<h;y++)for(x=0;x<w;x++)if(mk[(y*w+x)*4+3]){sxs+=x;sys+=y;n++}
+  return {c:c,doorC:[(sxs/n+.5-x0)*sc*DPR+P,(sys/n+.5-y0)*sc*DPR+P]}}
 var BUB=['..ooooooooo..','.o.........o.','o...........o','o...........o','o...........o','.o.........o.','..ooooo.oooo.','......o.o....','.......o.....'];
 function drawBubble(x,ox,oy,nd){var S=7;
   x.fillStyle='#f4ecd6';[[2,1,10,1],[1,2,11,4],[2,5,10,5],[7,6,7,6]].forEach(function(r){x.fillRect(ox+r[0]*S,oy+r[1]*S,(r[2]-r[0]+1)*S,(r[3]-r[1]+1)*S)});
@@ -128,12 +128,14 @@ function campOn(btn,iconEl){
   if(!CF.cv){CF.cv=document.createElement('canvas');CF.cv.style.cssText='position:absolute;left:0;top:-34px;pointer-events:none;z-index:3'}
   var bw=btn.clientWidth,bh=btn.clientHeight+34;CF.cv.width=bw*DPR;CF.cv.height=bh*DPR;CF.cv.style.width=bw+'px';CF.cv.style.height=bh+'px';
   btn.appendChild(CF.cv);iconEl.style.visibility='hidden';
+  requestAnimationFrame(function(){if(!iconEl.isConnected)return;var cx=iconEl.offsetLeft*DPR+CF.doorC[0],r=Math.floor(Math.min(cx,bw*DPR-cx)-3);r=Math.max(30,r-r%3);
+    if(r!==CF.haloR){CF.haloR=r;CF.halo=makeHalo(r)}});
   if(!CF.run){CF.run=true;CF.t0=performance.now();requestAnimationFrame(campTick)}}
 function campTick(now){if(!CF.cv||!CF.cv.isConnected||!CF.iconEl||!CF.iconEl.isConnected){CF.run=false;return}
   if(CF.last&&now-CF.last<48){requestAnimationFrame(campTick);return}CF.last=now;var t=(now-CF.t0)/1000;
   var x=CF.cv.getContext('2d'),ix=CF.iconEl.offsetLeft*DPR,iy=(CF.iconEl.offsetTop+34)*DPR;x.clearRect(0,0,CF.cv.width,CF.cv.height);
   var fl=.36+.08*Math.sin(t*.9)+.03*Math.sin(t*2.3),q=Math.min(1,0.82+0.12*(fl-0.36)/0.11),bf=0.42+0.58*(0.5+0.5*Math.sin(t*2*Math.PI/4));
-  x.drawImage(CF.icon,ix,iy);x.globalAlpha=q;x.drawImage(CF.lit,ix,iy);x.globalAlpha=bf;x.drawImage(CF.halo,ix-CF.HX,iy-CF.HY);x.globalAlpha=1;
+  x.drawImage(CF.icon,ix,iy);x.globalAlpha=q;x.drawImage(CF.lit,ix,iy);if(CF.halo){x.globalAlpha=bf;x.drawImage(CF.halo,ix+CF.doorC[0]-CF.haloR,iy+CF.doorC[1]-Math.round(CF.haloR*0.78));x.globalAlpha=1}
   var ph=t%4;if(ph<2.4){var nd=ph<.6?1:ph<1.2?2:3,pop=Math.min(1,ph/.15);drawBubble(x,ix+110,iy-52+Math.round((1-pop)*8),nd)}
   requestAnimationFrame(campTick)}
 
