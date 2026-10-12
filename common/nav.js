@@ -12,8 +12,11 @@ var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 
 function go(k){if(LINKS[k]){location.href=LINKS[k];return true}return false}
 
-/* crop transparent margins, fit into BOX_W x BOX_H css px at 3x, smooth scale, then a dark outline */
+/* small images (<= 32 px tall) are pixel art: shown as-is at 2 css px per pixel, may poke above the bar.
+   bigger ones: crop transparent margins, fit into BOX_W x BOX_H css px at 3x, smooth scale, then a dark outline */
 function processIcon(img){
+  if(img.naturalHeight<=32){var q=document.createElement('canvas');q.width=img.naturalWidth;q.height=img.naturalHeight;q.getContext('2d').drawImage(img,0,0);
+    q.__css=[q.width*2,q.height*2];q.__pixel=true;return q}
   var w=img.naturalWidth,h=img.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(img,0,0);
   var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
@@ -46,9 +49,27 @@ function headCanvas(){var D=g.Doll;if(!player||!D)return null;
 function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFrom===src)return;
   var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.__navFrom=src;
   c.style.width=src.__css[0]+'px';c.style.height=src.__css[1]+'px';
-  if(src.__head){c.style.imageRendering='pixelated';c.style.marginTop=(48-src.__css[1])+'px';c.style.position='relative';c.style.zIndex='2';btn.style.overflow='visible'}
+  c.style.flex='none';
+  if(src.__head||src.__pixel){c.style.imageRendering='pixelated';c.style.marginTop=(48-src.__css[1])+'px';c.style.position='relative';c.style.zIndex='2';btn.style.overflow='visible'}
   else{c.style.margin=((48-src.__css[1])/2)+'px -6px';}
-  old.replaceWith(c)}
+  old.replaceWith(c);
+  if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src)}
+
+/* sparks drifting up off the anvil while the forge tab is the current page (tiny canvas, ~20fps, stops when hidden) */
+var SP={cv:null,parts:[],acc:0,last:0,run:false,w:0,h:0},SPX=10,SPY=18,SPS=2;
+function sparksOn(btn,icon,src){var W=src.width+2*SPX,H=src.height+SPY+2;
+  if(!SP.cv){SP.cv=document.createElement('canvas');SP.cv.style.cssText='position:absolute;pointer-events:none;z-index:3;image-rendering:pixelated'}
+  SP.cv.width=W;SP.cv.height=H;SP.cv.style.width=W*SPS+'px';SP.cv.style.height=H*SPS+'px';SP.w=src.width;SP.h=src.height;
+  btn.appendChild(SP.cv);
+  requestAnimationFrame(function(){if(!icon.isConnected)return;SP.cv.style.left=(icon.offsetLeft-SPX*SPS)+'px';SP.cv.style.top=(icon.offsetTop-SPY*SPS)+'px'});
+  if(!SP.run){SP.run=true;requestAnimationFrame(sparkTick)}}
+function sparkTick(now){if(!SP.cv||!SP.cv.isConnected){SP.run=false;return}
+  if(SP.last&&now-SP.last<48){requestAnimationFrame(sparkTick);return}var dt=Math.min(.1,(now-SP.last)/1000||0);SP.last=now;
+  SP.acc+=dt*7;while(SP.acc>1){SP.acc--;SP.parts.push({x:SPX+SP.w*(.16+Math.random()*.72),y:SPY+SP.h*(.28+Math.random()*.13),vx:Math.random()*5-2.5,vy:-(5+Math.random()*4),t:0,m:1+Math.random()*.8,ph:Math.random()*6.28})}
+  var x=SP.cv.getContext('2d');x.clearRect(0,0,SP.cv.width,SP.cv.height);
+  SP.parts=SP.parts.filter(function(p){p.t+=dt;if(p.t>p.m)return false;p.x+=(p.vx+Math.sin(p.t*3+p.ph)*2.5)*dt;p.y+=p.vy*dt;p.vy*=1-dt*.3;
+    var k=p.t/p.m;if(k>.85&&Math.floor(p.t*20)%2)return true;x.fillStyle=k<.3?'#fff6c8':k<.65?'#ffbe46':'#dc5f28';x.fillRect(Math.floor(p.x),Math.floor(p.y),1,1);return true});
+  requestAnimationFrame(sparkTick)}
 
 function apply(tabs){if(!tabs)return;lastTabs=tabs;
   Array.prototype.forEach.call(tabs.querySelectorAll('[data-k]'),function(b){var k=b.getAttribute('data-k');
