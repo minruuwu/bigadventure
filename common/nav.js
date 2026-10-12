@@ -10,7 +10,7 @@ var LINKS={camp:'../camp/index.html',forge:'../forge/index.html',char:'../charac
 var cache={},player=null,lastTabs=null,dollLoading=false,headKey='',headCv=null;
 var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 /* pixel-art icons: a whole number of screen pixels per art pixel, about 2.4 css px (7 device px on a 3x phone) */
-var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(2.06*dpr))/dpr;
+var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(1.72*dpr))/dpr;
 function pxs(k){return k==='forge'?PXSF:PXS}
 
 /* processed icons are kept for the browser session so the next page shows them straight away */
