@@ -49,14 +49,23 @@ function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
   if(!(D.assets.skins&&D.assets.skins.length&&D.assets.hairT&&D.assets.hairT.length)){
     if(!dollLoading){dollLoading=true;D.load(BASE,'1').then(function(){if(lastTabs)apply(lastTabs)})}return headCv}
   var look={skin:player.skin|0,style:player.style|0,hair:player.hair|0,eyes:player.eyes==null?5:player.eyes,outfit:player.outfit==null?(player.job|0):player.outfit,weapon:null,shield:null,halo:[],breath:false};
-  var key=JSON.stringify(look);if(headCv&&(key===headKey||key===headCv.__key)){headKey=key;return headCv}
-  var d=document.createElement('canvas');d.width=d.height=48;D.draw(d,look,1000);
-  var X0=12,Y0=5,W=22,H=24,src=d.getContext('2d').getImageData(X0,Y0,W,H).data,c=document.createElement('canvas');c.width=W+2;c.height=H+1;
+  var key=JSON.stringify(look);if(headCv&&(key===headKey||key===headCv.__key)){headKey=key;headCv.__look=look;return headCv}
+  var c=document.createElement('canvas');c.width=24;c.height=25;renderHead(look,1000,c);
+  c.__css=[24*3,25*3];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head',c);return c}
+var HD=document.createElement('canvas');HD.width=HD.height=48;
+function renderHead(look,now,c){var D=g.Doll;D.draw(HD,look,now);
+  var X0=12,Y0=5,W=22,H=24,src=HD.getContext('2d').getImageData(X0,Y0,W,H).data;
   var x=c.getContext('2d'),o=x.createImageData(W+2,H+1);function A(i,j){return i>=0&&j>=0&&i<W&&j<H?src[(j*W+i)*4+3]:0}
   for(var j=-1;j<H;j++)for(var i=-1;i<=W;i++){var k=((j+1)*(W+2)+(i+1))*4;
     if(A(i,j)>0){var s=(j*W+i)*4;o.data[k]=src[s];o.data[k+1]=src[s+1];o.data[k+2]=src[s+2];o.data[k+3]=255}
     else if(A(i+1,j)||A(i-1,j)||A(i,j+1)||A(i,j-1)){o.data[k]=8;o.data[k+1]=5;o.data[k+2]=3;o.data[k+3]=255}}
-  x.putImageData(o,0,0);c.__css=[(W+2)*3,(H+1)*3];c.__head=true;c.__key=key;headKey=key;headCv=c;save('head',c);return c}
+  x.putImageData(o,0,0)}
+/* 角色 tab (current page): the portrait breathes and blinks like the dolls do */
+var HA={el:null,look:null,run:false,last:0};
+function headAnimOn(el,look){HA.el=el;HA.look=look;if(!HA.run){HA.run=true;requestAnimationFrame(headTick)}}
+function headTick(now){if(!HA.el||!HA.el.isConnected||!HA.look||!g.Doll){HA.run=false;return}
+  if(HA.last&&now-HA.last<60){requestAnimationFrame(headTick);return}HA.last=now;
+  renderHead(Object.assign({},HA.look,{breath:true}),now,HA.el);requestAnimationFrame(headTick)}
 
 function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFrom===src)return;
   var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.__navFrom=src;
@@ -66,7 +75,8 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
   else{c.style.margin=((48-src.__css[1])/2)+'px -6px';}
   old.replaceWith(c);
   if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src);
-  if(btn.getAttribute('data-k')==='camp'&&!src.__pixel&&btn.getAttribute('aria-selected')==='true')campOn(btn,c)}
+  if(btn.getAttribute('data-k')==='camp'&&!src.__pixel&&btn.getAttribute('aria-selected')==='true')campOn(btn,c);
+  if(btn.getAttribute('data-k')==='char'&&src.__head&&src.__look&&btn.getAttribute('aria-selected')==='true')headAnimOn(c,src.__look)}
 
 /* ---- camp tab (current page): warm light through the tent door, a breathing grainy halo over it, and a chat bubble ---- */
 var CF={state:0,icon:null,lit:null,halo:null,HX:0,HY:0,cv:null,btn:null,iconEl:null,run:false,last:0,t0:0},LT=[255,232,165];
