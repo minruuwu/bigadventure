@@ -94,8 +94,9 @@ function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=M
  octx.fillStyle='rgba(0,0,0,.38)';var sy=PAD;octx.fillRect(PAD+14,sy+34,7,1);octx.fillRect(PAD+12,sy+35,11,1);octx.fillRect(PAD+11,sy+36,13,1);octx.fillRect(PAD+10,sy+37,15,1);octx.fillRect(PAD+12,sy+38,11,1);
  var w=s.weapon,pc=w&&w.img?pieces(w.img,w.key,w.cut,ol,true):null,sh=s.shield&&s.shield.img?pieces(s.shield.img,s.shield.key,0,ol,false):null;
  if(s.halo&&s.halo.length&&(pc||sh)){var hk=(w?w.key+'|'+w.cut+'|'+w.ox+'|'+w.oy:'')+'|'+(sh?s.shield.key:''),hm=haloMasks(hk,pc&&pc.g,w?w.ox:0,w?w.oy:0,sh&&sh.g);
+  octx.save();octx.beginPath();octx.rect(0,0,N,PAD+34);octx.clip(); /* halo stops at the feet line (top of the shadow) */
   for(var L=3;L>=1;L--){var col=s.halo[L-1];if(!col)continue;var ph=Math.sin(now/1000*2*Math.PI/2.6+L*1.1);octx.globalAlpha=Math.max(.2,Math.min(.8,Math.round((.42+.22*ph)*5)/5));octx.drawImage(tinted(hm[L],hk+'|'+L,col),0,d)}
-  octx.globalAlpha=1}
+  octx.globalAlpha=1;octx.restore()}
  if(A.backs[s.outfit])squash(A.backs[s.outfit],d);
  if(pc)octx.drawImage(pc.under,w.ox,w.oy+d);
  squash(A.skins[s.skin],d);squash(A.outfits[s.outfit],d);
