@@ -53,19 +53,70 @@ function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
   var c=document.createElement('canvas');c.width=24;c.height=25;renderHead(look,1000,c);
   c.__css=[24*3,25*3];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head',c);return c}
 var HD=document.createElement('canvas');HD.width=HD.height=48;
-function renderHead(look,now,c){var D=g.Doll;D.draw(HD,look,now);
+function renderHead(look,now,c,glow){var D=g.Doll;D.draw(HD,look,now);
   var X0=12,Y0=5,W=22,H=24,src=HD.getContext('2d').getImageData(X0,Y0,W,H).data;
   var x=c.getContext('2d'),o=x.createImageData(W+2,H+1);function A(i,j){return i>=0&&j>=0&&i<W&&j<H?src[(j*W+i)*4+3]:0}
   for(var j=-1;j<H;j++)for(var i=-1;i<=W;i++){var k=((j+1)*(W+2)+(i+1))*4;
     if(A(i,j)>0){var s=(j*W+i)*4;o.data[k]=src[s];o.data[k+1]=src[s+1];o.data[k+2]=src[s+2];o.data[k+3]=255}
     else if(A(i+1,j)||A(i-1,j)||A(i,j+1)||A(i,j-1)){o.data[k]=8;o.data[k+1]=5;o.data[k+2]=3;o.data[k+3]=255}}
+  if(glow>0)eyeGlow(o,src,glow,W,H,W+2);
   x.putImageData(o,0,0)}
-/* 角色 tab (current page): the portrait breathes and blinks like the dolls do */
-var HA={el:null,look:null,run:false,last:0};
-function headAnimOn(el,look){HA.el=el;HA.look=look;if(!HA.run){HA.run=true;requestAnimationFrame(headTick)}}
-function headTick(now){if(!HA.el||!HA.el.isConnected||!HA.look||!g.Doll){HA.run=false;return}
-  if(HA.last&&now-HA.last<60){requestAnimationFrame(headTick);return}HA.last=now;
-  renderHead(Object.assign({},HA.look,{breath:true}),now,HA.el);requestAnimationFrame(headTick)}
+/* eyes brighten toward warm white and bloom faintly onto the skin beside them (only eye pixels that are really visible, not hidden under hair) */
+var EGL=[255,244,196],eyeCache={};
+function eyePixels(i){if(eyeCache[i])return eyeCache[i];var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(g.Doll.assets.eyes[i],0,0);
+  var d=x.getImageData(0,0,40,40).data,list=[];for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++){var k=(y*40+xx)*4;if(d[k+3]===255)list.push([xx,y,d[k],d[k+1],d[k+2]])}
+  return(eyeCache[i]=list)}
+function eyeGlow(o,src,e,W,H,ow){
+  var eyes=HA.look&&HA.look.eyes;if(eyes==null||!g.Doll.assets.eyes[eyes])return;
+  var vis=[],mark={},add=new Float32Array(ow*(H+1)),d=o.data,n,k;
+  eyePixels(eyes).forEach(function(p){var i=p[0]-8,j=p[1]-1;if(i<0||j<0||i>=W||j>=H)return;var s=(j*W+i)*4;
+    if(src[s]!==p[2]||src[s+1]!==p[3]||src[s+2]!==p[4]||src[s+3]!==255)return;vis.push([i+1,j+1]);mark[(j+1)*ow+i+1]=1});
+  vis.forEach(function(v){for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=v[0]+dx,ny=v[1]+dy;if(nx<0||ny<0||nx>=ow||ny>H)continue;n=ny*ow+nx;if(mark[n])continue;
+    var f=(dx&&dy?0.09:0.2)*e;if(f>add[n])add[n]=f}});
+  for(n=0;n<add.length;n++)if(add[n]>0){k=n*4;if(d[k+3]!==255||d[k]+d[k+1]+d[k+2]<60)continue;for(var c=0;c<3;c++)d[k+c]+=(EGL[c]-d[k+c])*add[n]}
+  var f=0.3+0.65*e;vis.forEach(function(v){k=(v[1]*ow+v[0])*4;for(var c=0;c<3;c++)d[k+c]+=(EGL[c]-d[k+c])*f})}
+
+/* 角色 tab (current page): while selected the portrait stops breathing and blinking; the eyes glow slowly and a grainy halo rises from the shoulders.
+   The halo is the portrait's own outline pulled upward, fading out before the top edge. Values tuned in the simulation: height 40px, zoom 1.0, strength 1.3, 5.1 s cycle. */
+var HA={el:null,look:null,run:false,last:0,t0:0,halo:null,fkey:null,f0:null,f1:null},HH={H:40,zoom:1,power:1.3,period:5.1,W:34,CELL:3};
+var HB4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],HAL=[0,48,92,138,184,226],HSC=document.createElement('canvas');HSC.width=24;HSC.height=25;
+function hHash(n){var s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)}
+function hSmooth(a,b,x){x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x)}
+function hSilhouette(){renderHead(Object.assign({},HA.look,{breath:false}),1000,HSC,0);var d=HSC.getContext('2d').getImageData(0,0,24,25).data,m=new Uint8Array(600);for(var i=0;i<600;i++)m[i]=d[i*4+3]>0?1:0;return m}
+/* f0 = steady glow hugging the outline, f1 = the part pulled upward (it gets the rising ripple) */
+function hBuild(W,Hc){
+  var S=hSilhouette(),k=HH.zoom,f0=new Float32Array(W*Hc),f1=new Float32Array(W*Hc),Sm=Math.max(5,Math.floor(Hc/k-25-1)),cx,cy,s,dx,dy;
+  for(cy=0;cy<Hc;cy++)for(cx=0;cx<W;cx++){
+    var sx=(cx+.5-W/2)/k+12,sy=25-(Hc-cy-.5)/k,a0=0,a1=0;
+    for(s=0;s<=Sm;s++){var yy=sy+s,v=0;
+      for(dy=-1;dy<=1;dy++)for(dx=-1;dx<=1;dx++){var ix=Math.floor(sx)+dx,iy=Math.floor(yy)+dy;if(ix>=0&&ix<24&&iy>=0&&iy<25&&S[iy*24+ix]){var q=(dx||dy)?0.6:1;if(q>v)v=q}}
+      if(!v)continue;var w=v*Math.pow(1-s/Sm,1.5);if(s<=1){if(w>a0)a0=w}else if(w>a1)a1=w}
+    var ex=Math.abs((cx+.5-W/2)/(W/2)),tp=(1-hSmooth(0.55,1,ex))*hSmooth(0,0.28,(cy+.5)/Hc),i=cy*W+cx;
+    f0[i]=a0*tp;f1[i]=a1*tp}
+  HA.f0=f0;HA.f1=f1}
+function haloDraw(t,e){var h=HA.halo,el=HA.el,W=HH.W,C=HH.CELL,Hc=Math.round((HH.H+48)/C);if(!h||!el.parentNode)return;
+  if(h.parentNode!==el.parentNode)el.parentNode.appendChild(h);
+  if(h.width!==W||h.height!==Hc){h.width=W;h.height=Hc;h.style.width=W*C+'px';h.style.height=Hc*C+'px';HA.fkey=null}
+  h.style.left=(el.offsetLeft+el.offsetWidth/2-W*C/2)+'px';h.style.top=(el.offsetTop+el.offsetHeight-Hc*C)+'px';
+  var key=(el.__navFrom&&el.__navFrom.__key)||'k';if(HA.fkey!==key){hBuild(W,Hc);HA.fkey=key}
+  var x=h.getContext('2d'),img=x.createImageData(W,Hc),d=img.data,pulse=0.62+0.38*e,cx,cy,F0,F1;
+  for(cy=0;cy<Hc;cy++)for(cx=0;cx<W;cx++){var i=cy*W+cx;F0=HA.f0[i];F1=HA.f1[i];if(F0<=0&&F1<=0)continue;
+    var ph=hHash(cx)*2.4+hHash(cx+31)*0.8*Math.sin(cy*.3),w=0.5+0.5*Math.sin(cy*0.5+t*4.5+ph);
+    var I=Math.min(1,(F0*0.8+F1*(0.2+0.8*w)*1.1)*pulse*HH.power),v=I*5,lv=Math.floor(v)+((v-Math.floor(v))>(HB4[(cy&3)*4+(cx&3)]+.5)/16?1:0);
+    if(lv<=0)continue;if(lv>5)lv=5;var k=i*4;
+    if(lv>=4){d[k]=255;d[k+1]=238;d[k+2]=180}else{d[k]=255;d[k+1]=186;d[k+2]=88}d[k+3]=HAL[lv]}
+  /* grains that float up from the shoulders and fade */
+  var y0=Hc-8,y1=Math.round(Hc*0.3);
+  for(var p=0;p<9;p++){var per=2.3+(p%3)*0.8,u=((t+hHash(p)*per)/per)%1,gx=Math.round(W/2+(hHash(p+9)*2-1)*Math.min(11,W/2-3)),gy=Math.round(y0-u*(y0-y1));
+    if(gx<0||gx>=W||gy<0||gy>=Hc)continue;var kk=(gy*W+gx)*4;d[kk]=EGL[0];d[kk+1]=EGL[1];d[kk+2]=EGL[2];d[kk+3]=Math.round(230*(1-u)*Math.min(1,HH.power))}
+  x.putImageData(img,0,0)}
+function headAnimOn(el,look){HA.el=el;HA.look=look;HA.fkey=null;
+  if(!HA.halo){var h=document.createElement('canvas');h.style.cssText='position:absolute;pointer-events:none;z-index:1;image-rendering:pixelated;flex:none';HA.halo=h}
+  if(!HA.run){HA.run=true;HA.t0=performance.now();requestAnimationFrame(headTick)}}
+function headTick(now){if(!HA.el||!HA.el.isConnected||!HA.look||!g.Doll){HA.run=false;if(HA.halo&&HA.halo.parentNode)HA.halo.parentNode.removeChild(HA.halo);return}
+  if(HA.last&&now-HA.last<42){requestAnimationFrame(headTick);return}HA.last=now;
+  var t=(now-HA.t0)/1000,e=0.5+0.5*Math.sin(t*2*Math.PI/HH.period-Math.PI/2);e=0.22+0.78*e;
+  renderHead(Object.assign({},HA.look,{breath:false}),1000,HA.el,e);haloDraw(t,e);requestAnimationFrame(headTick)}
 
 function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFrom===src)return;
   var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.__navFrom=src;
