@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>角色</title>
+<link rel="stylesheet" href="../common/font.css?v=1">
 <style>
 :root{color-scheme:dark;--bg:#120c08;--fg:#eadbbd;--dim:#b09a74;--accent:#e0b84a;--red:#d4553f;
   --panel:#2b1d13;--panel2:#3a2616;--hi:#6b4a2a;--lo:#080503;--ink:#f0e2c4;--gold:#ffd98a;
   --paper:#e3d3aa;--paper2:#d3bf8f;--pink:#3a2616;--pink2:#6b4a2a;--seal:#9a3a2a;--ok:#4f7a3a;
-  --font:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif}
+  --font:'Cubic 11','Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:#120c08;color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5;font-weight:500}
@@ -46,7 +47,12 @@ canvas{image-rendering:pixelated;display:block}
 /* ===== parchment sheets ===== */
 .back{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.72);display:flex;align-items:flex-end;justify-content:center}
 .back[hidden]{display:none}
-.sheet{position:relative;width:min(100%,460px);max-height:90%;overflow:auto;background:var(--paper);color:var(--pink);border:3px solid var(--lo);border-bottom:0;box-shadow:inset 0 0 0 2px var(--paper2),inset 0 0 40px rgba(110,74,42,.28);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sw{position:relative;width:min(100%,460px);max-height:90%;display:flex;filter:drop-shadow(0 -3px 0 rgba(0,0,0,.55))}
+.sw .edge{flex:0 0 24px;background-size:24px 192px;background-repeat:repeat-y;image-rendering:pixelated}
+.sw .edge.l{background-image:var(--edgeL)}.sw .edge.r{background-image:var(--edgeR)}
+.sheet{position:relative;flex:1;min-width:0;overflow:auto;color:var(--pink);padding:18px 6px calc(16px + env(safe-area-inset-bottom,0px));
+ background-color:#d9c08a;background-image:linear-gradient(rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stainP),var(--wearP);
+ background-size:auto,auto,576px 576px,288px 288px;background-repeat:no-repeat,no-repeat,repeat,repeat;background-position:0 0,0 0,0 0,0 0}
 .sheet h2{margin:0 0 2px;font-size:18px;letter-spacing:.06em}
 .sheet .hint{margin:0 0 12px;font-size:12px;color:var(--pink2)}
 .sheet .x{position:absolute;right:10px;top:10px;font:inherit;font-size:12px;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:3px 10px;cursor:pointer;z-index:6}
@@ -63,7 +69,7 @@ canvas{image-rendering:pixelated;display:block}
 .step button:disabled,.b:disabled{opacity:.4;cursor:default}
 .b.alt{background:var(--paper2);color:var(--pink)}
 .b.go{background:var(--seal)}
-.bar{position:sticky;bottom:-16px;margin:14px -16px -16px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--paper2);border-top:2px solid var(--lo);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.bar{position:sticky;bottom:-16px;margin:14px -6px -16px;padding:10px 6px calc(10px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .bar .t{margin-right:auto;font-size:12px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -76,7 +82,10 @@ canvas{image-rendering:pixelated;display:block}
 input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:4px 8px;min-width:0;width:100%}
 .msgline{font-size:12px;min-height:1.4em;color:var(--seal)}
 .sheet.m{padding-top:0}
-.mirror-wrap{position:sticky;top:0;z-index:4;margin:0 -16px 12px;padding:18px 0 14px;display:flex;justify-content:center;border-bottom:3px solid var(--lo);background:radial-gradient(ellipse 70% 60% at 50% 45%,#3a2616 0,#1c120b 75%)}
+.ic{width:16px;height:16px;flex:none;image-rendering:pixelated;display:inline-block;vertical-align:-3px;margin-right:6px}
+.dl{color:var(--ok);margin-left:6px;font-variant-numeric:tabular-nums}
+.ask{flex:1 1 100%;font-size:12px;color:var(--seal)}
+.mirror-wrap{position:sticky;top:0;z-index:4;margin:0 -6px 12px;padding:18px 0 14px;display:flex;justify-content:center;border-bottom:3px solid var(--lo);background:radial-gradient(ellipse 70% 60% at 50% 45%,#3a2616 0,#1c120b 75%)}
 .mbox{position:relative;width:240px;height:280px}
 .mbox canvas{position:absolute;image-rendering:pixelated}
 #mframe{left:0;top:0;width:240px;height:280px}
@@ -108,7 +117,8 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="back" id="back" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="back" id="back" hidden><div class="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i></div></div>
+<script src="../common/paper.js?v=1"></script>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=13"></script>
 <script>
@@ -358,17 +368,24 @@ function persist(fields){if(demo)return Promise.resolve();return new Promise(fun
 /* ================= sheets ================= */
 var back=$('back'),sheet=$('sheet'),cur=null,open={};
 function head(t,h){return '<button class="x" data-a="close" type="button">關閉</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
+var HAS_ICONS=false,DKEYS=['hp','patk','matk','eva','crit','critdmg','pdef','mdef'],askReset=false;
+function ic(id){return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=1">':''}
+function derivedBase(){var sv={};KEYS.forEach(function(x){sv[x]=S.pend[x];S.pend[x]=0});var r=derived();KEYS.forEach(function(x){S.pend[x]=sv[x]});return r}
+function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="dl">'+(d>0?'+':'')+d+'</span>':''}
+  var bn=parseFloat(b),nn=parseFloat(n),dd=Math.round((nn-bn)*10)/10;return dd?'<span class="dl">'+(dd>0?'+':'')+dd+'%</span>':''}
 function sheetHTML(k){
   if(k==='paper'){var a=A(),u=unspent(),ps=pendingSum(),h=head('屬性','點屬性名稱看加成來源；加號只是暫存，按「確定」才會寫入。');
     h+='<div class="sec">五項屬性　剩餘自由點數 <b>'+u+'</b></div>';
     KEYS.forEach(function(k2){var d=a[k2],o=open['a'+k2];
-      h+='<div class="row"><button class="nm" data-a="open" data-id="a'+k2+'" type="button">'+NAMES[k2]+'<small>'+(o?'收起':'來源')+'</small></button><div class="step"><span class="v">'+d.total+(S.pend[k2]?' (+'+S.pend[k2]+')':'')+'</span>'+
+      h+='<div class="row"><button class="nm" data-a="open" data-id="a'+k2+'" type="button">'+ic(k2)+NAMES[k2]+'<small>'+(o?'收起':'來源')+'</small></button><div class="step"><span class="v">'+d.total+(S.pend[k2]?'<span class="dl">+'+S.pend[k2]+'</span>':'')+'</span>'+
         '<button data-a="sub" data-k="'+k2+'" type="button" '+(S.pend[k2]?'':'disabled')+' aria-label="減少">−</button><button data-a="add" data-k="'+k2+'" type="button" '+(u>0?'':'disabled')+' aria-label="增加">＋</button></div>'+
         (o?'<div class="src"><div>天生 10</div>'+(d.jobParts.length?d.jobParts.map(function(l){return '<div>職業永久加成：'+esc(l)+'</div>'}).join(''):'<div>職業永久加成 +0</div>')+'<div>自由配點 +'+d.alloc+'</div><div>其他加成 +0</div></div>':'')+'</div>'});
     h+='<div class="sec">其他屬性</div>';
-    derived().forEach(function(r,i){var o=open['d'+i];h+='<div class="row"><button class="nm" data-a="open" data-id="d'+i+'" type="button">'+r[0]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+r[1]+'</span>'+(o?'<div class="src">'+r[2].map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>':'')+'</div>'});
-    h+='<div class="sec">屬性抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
-    h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置配點</button><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';return h}
+    var db=derivedBase();derived().forEach(function(r,i){var o=open['d'+i];h+='<div class="row"><button class="nm" data-a="open" data-id="d'+i+'" type="button">'+ic(DKEYS[i])+r[0]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+r[1]+(ps?diffStr(db[i][1],r[1]):'')+'</span>'+(o?'<div class="src">'+r[2].map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>':'')+'</div>'});
+    h+='<div class="sec">屬性抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+ic(r[0])+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
+    if(askReset)h+='<div class="bar"><span class="ask">確定要重置全部配點？已配的點數會全部退回，可以重新分配。</span><button class="b alt" data-a="resetno" type="button">不要</button><button class="b go" data-a="resetyes" type="button">確定重置</button></div>';
+    else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置配點</button><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
+    return h}
   if(k==='book'){var h2=head('技能','目前先顯示，之後再開放裝備。');
     h2+='<div class="sec">戰鬥技能（依序循環）</div>'+[1,2,3,4].map(function(n){return '<div class="slot"><span>戰鬥技能 '+n+'</span><span>無法點擊</span></div>'}).join('');
     h2+='<div class="sec">反應技能</div><div class="slot"><span>反應技能</span><span>無法點擊</span></div>';
@@ -405,7 +422,7 @@ function updateMirror(){var bad=lockedChosen(),dirty=Object.keys(OPT).some(funct
   var sv=$('msave'),rv=$('mrevert');if(sv)sv.disabled=!(dirty&&!bad.length);if(rv)rv.disabled=!dirty}
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
 function openSheet(k){cur=k;open={};sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
-function closeSheet(){if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
+function closeSheet(){askReset=false;if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper');if(p)p.innerHTML='屬性'+(u>0?'<i class="dot"></i>':'');$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
 function zeroAlloc(){return {str:0,int:0,agi:0,vit:0,luk:0}}
@@ -416,7 +433,9 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='sub'){if(S.pend[k]>0){S.pend[k]--;render();refresh()}}
   else if(a==='ok'){var na={};KEYS.forEach(function(x){na[x]=S.alloc[x]+S.pend[x]});persist({alloc:na}).then(function(){S.alloc=na;KEYS.forEach(function(x){S.pend[x]=0});render();refresh();toast('配點已儲存')},function(er){toast(errMsg(er))})}
   else if(a==='cancel'){KEYS.forEach(function(x){S.pend[x]=0});render();refresh()}
-  else if(a==='reset'){var z=zeroAlloc();persist({alloc:z}).then(function(){S.alloc=z;KEYS.forEach(function(x){S.pend[x]=0});render();refresh();toast('配點已重置')},function(er){toast(errMsg(er))})}
+  else if(a==='reset'){askReset=true;render()}
+  else if(a==='resetno'){askReset=false;render()}
+  else if(a==='resetyes'){askReset=false;var z=zeroAlloc();persist({alloc:z}).then(function(){S.alloc=z;KEYS.forEach(function(x){S.pend[x]=0});render();refresh();toast('配點已重置')},function(er){toast(errMsg(er))})}
   else if(a==='weapon'){var w=b.getAttribute('data-w');persist({weapon:w}).then(function(){S.weapon=w;render();refresh();pushNavPlayer()},function(er){msg('wmsg',errMsg(er))})}
   else if(a==='lookcancel'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]});render()}
   else if(a==='looksave'){var f=Object.assign({},S.look);persist(f).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
