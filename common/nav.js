@@ -36,7 +36,7 @@ function processIcon(img,ol){
   var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
   var c=document.createElement('canvas');c.width=W+2*P;c.height=H+2*P;var cx=c.getContext('2d');
   for(var dy=-P;dy<=P;dy++)for(var dx=-P;dx<=P;dx++)if(dx*dx+dy*dy<=P*P)cx.drawImage(sil,P+dx,P+dy);
-  cx.drawImage(s,P,P);c.__css=[(W+2*P)/DPR,(H+2*P)/DPR];c.__geo={x0:x0,y0:y0,sc:sc,P:P};return c}
+  cx.drawImage(s,P,P);c.__css=[(W+2*P)/DPR,(H+2*P)/DPR];c.__geo={x0:x0,y0:y0,sc:sc,P:P,cw:cw,ch:ch};return c}
 
 /* optional outline-source image (camp_tent.png): the outline follows only these pixels, so the soft night sky around the tent gets none */
 function olScaled(ol,x0,y0,cw,ch,W,H){if(!ol)return null;var o=document.createElement('canvas');o.width=W;o.height=H;var ox=o.getContext('2d');ox.imageSmoothingEnabled=true;ox.imageSmoothingQuality='high';ox.drawImage(ol,x0,y0,cw,ch,0,0,W,H);
@@ -151,7 +151,11 @@ function campBuild(img,mimg,tent){
   var litSrc=document.createElement('canvas');litSrc.width=w;litSrc.height=h;litSrc.getContext('2d').putImageData(new ImageData(ld,w,h),0,0);
   var mask=document.createElement('canvas');mask.width=w;mask.height=h;var mx=mask.getContext('2d');mx.fillStyle='#fff';door.forEach(function(p){mx.fillRect(p[0],p[1],1,1)});
   var a=processIcon(img,tent),b=processLitIcon(litSrc,mask,img,tent);if(!a||!b)return false;
-  CF.icon=a;CF.lit=b.c;CF.geo=a.__geo;CF.stars=[];
+  CF.icon=a;CF.lit=b.c;CF.geo=a.__geo;
+  /* tent + its outline as a mask, so the twinkling stars can be hidden behind the tent */
+  (function(){var G=a.__geo,P=G.P,W=a.width-2*P,H=a.height-2*P,t0=olScaled(tent,G.x0,G.y0,G.cw,G.ch,W,H),m=document.createElement('canvas');m.width=a.width;m.height=a.height;var mx=m.getContext('2d');
+    for(var dy=-P;dy<=P;dy++)for(var dx=-P;dx<=P;dx++)if(dx*dx+dy*dy<=P*P)mx.drawImage(t0,P+dx,P+dy);CF.mask=m;
+    var sl=document.createElement('canvas');sl.width=a.width;sl.height=a.height;CF.sl=sl})();CF.stars=[];
   [[18,10],[41,8],[46,19],[24,17],[12,24],[37,14],[49,30],[14,34]].forEach(function(p,n){if(d[(p[1]*w+p[0])*4+3]>200)CF.stars.push({x:p[0],y:p[1],ph:n*1.9+.7,sp:.55+(n%3)*.2})});
   CF.doorC=b.doorC;CF.halo=null;CF.haloR=0;return true}
 /* halo centred on the tent door, sized to stay inside the tab; chunky 1-css-px grain, 7 soft levels, softer over the tent */
@@ -206,10 +210,11 @@ function campTick(now){if(!CF.cv||!CF.cv.isConnected||!CF.iconEl||!CF.iconEl.isC
   var fl=.36+.08*Math.sin(t*.9)+.03*Math.sin(t*2.3),q=Math.min(1,0.66+0.12*(fl-0.36)/0.11),bf=0.42+0.58*(0.5+0.5*Math.sin(t*2*Math.PI/4));
   x.drawImage(CF.icon,ix,iy);x.globalAlpha=q;x.drawImage(CF.lit,ix,iy);if(CF.halo){x.globalAlpha=bf;x.drawImage(CF.halo,ix+CF.doorC[0]-CF.haloR,iy+CF.doorC[1]-Math.round(CF.haloR*0.78));x.globalAlpha=1}
   var G=CF.geo,cell=Math.max(2,Math.round(G.sc*DPR));
-  (CF.stars||[]).forEach(function(st){var v=Math.sin(t*st.sp*2.2+st.ph),sx=ix+Math.round((st.x-G.x0+.5)*G.sc*DPR+G.P),sy=iy+Math.round((st.y-G.y0+.5)*G.sc*DPR+G.P);
-    if(v>.35){var a=Math.min(1,(v-.35)/.4);x.fillStyle='rgba(255,248,214,'+a.toFixed(2)+')';x.fillRect(sx-cell/2,sy-cell/2,cell,cell);
-      if(v>.8){x.fillStyle='rgba(255,248,214,.55)';x.fillRect(sx-cell*1.5,sy-cell/2,cell,cell);x.fillRect(sx+cell*.5,sy-cell/2,cell,cell);x.fillRect(sx-cell/2,sy-cell*1.5,cell,cell);x.fillRect(sx-cell/2,sy+cell*.5,cell,cell)}}
-    else if(v<-.55){x.fillStyle='rgba(8,11,34,.7)';x.fillRect(sx-cell/2,sy-cell/2,cell,cell)}});
+  var sx2=CF.sl.getContext('2d');sx2.clearRect(0,0,CF.sl.width,CF.sl.height);(CF.stars||[]).forEach(function(st){var v=Math.sin(t*st.sp*2.2+st.ph),sx=Math.round((st.x-G.x0+.5)*G.sc*DPR+G.P),sy=Math.round((st.y-G.y0+.5)*G.sc*DPR+G.P);
+    if(v>.35){var a=Math.min(1,(v-.35)/.4);sx2.fillStyle='rgba(255,248,214,'+a.toFixed(2)+')';sx2.fillRect(sx-cell/2,sy-cell/2,cell,cell);
+      if(v>.8){sx2.fillStyle='rgba(255,248,214,.55)';sx2.fillRect(sx-cell*1.5,sy-cell/2,cell,cell);sx2.fillRect(sx+cell*.5,sy-cell/2,cell,cell);sx2.fillRect(sx-cell/2,sy-cell*1.5,cell,cell);sx2.fillRect(sx-cell/2,sy+cell*.5,cell,cell)}}
+    else if(v<-.55){sx2.fillStyle='rgba(8,11,34,.7)';sx2.fillRect(sx-cell/2,sy-cell/2,cell,cell)}});
+  sx2.globalCompositeOperation='destination-out';sx2.drawImage(CF.mask,0,0);sx2.globalCompositeOperation='source-over';x.drawImage(CF.sl,ix,iy);
   /* a few warm light motes drifting up from the door, one chunky pixel each */
   for(var m=0;m<4;m++){var u=((t/3.4+m*.25)%1),mx=ix+CF.doorC[0]+Math.round(Math.sin(m*2.4+t*.8)*5*DPR)-3,my=iy+CF.doorC[1]-Math.round(u*16*DPR)-3*DPR,al=Math.sin(u*Math.PI)*.85;
     x.fillStyle='rgba(255,226,150,'+al.toFixed(2)+')';x.fillRect(mx-mx%3,my-my%3,3,3)}
