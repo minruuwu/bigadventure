@@ -51,6 +51,26 @@ const FB = {
       tx.update(statsRef, { active: active + 1 });
     });
   },
+  // Saves fields on the signed-in player's own document (appearance, weapon, job, point allocation ...).
+  async updatePlayer(fields) { const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), fields); },
+  // Rename: names must stay unique; at most 3 renames; the old name is released after success.
+  async renamePlayer(newName) {
+    const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
+    const name = String(newName).trim(), key = nameKeyOf(name), pRef = doc(db, 'players', u.uid);
+    await runTransaction(db, async tx => {
+      const p = await tx.get(pRef); if (!p.exists()) throw new Error('no-player');
+      const d = p.data(), used = d.renames | 0;
+      if (used >= 3) { const e = new Error('no-renames'); e.code = 'no-renames'; throw e; }
+      const oldKey = d.nameKey || nameKeyOf(d.name);
+      if (key !== oldKey) {
+        const n = await tx.get(doc(db, 'names', key));
+        if (n.exists()) { const e = new Error('name-taken'); e.code = 'name-taken'; throw e; }
+        tx.set(doc(db, 'names', key), { uid: u.uid });
+        tx.delete(doc(db, 'names', oldKey));
+      }
+      tx.update(pRef, { name, nameKey: key, renames: used + 1 });
+    });
+  },
   // Marks the signed-in player as recently online (players/{uid}.lastSeen).
   async touch() { const u = auth.currentUser; if (!u) return; try { await updateDoc(doc(db, 'players', u.uid), { lastSeen: serverTimestamp() }); } catch (e) { console.warn('touch failed', e.code || e); } },
   // Most recently online players: [{uid, ...data, lastSeen: millis}]

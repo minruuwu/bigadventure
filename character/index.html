@@ -1,330 +1,114 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>角色・換裝模擬</title>
+<title>角色</title>
 <style>
-:root{color-scheme:dark;--bg:#120c08;--panel:#2b333e;--panel2:#3a4656;--line:#3a4654;--fg:#eadbbd;--dim:#aab5c4;--accent:#e0b84a;--red:#d4553f;--ok:#8fd478;
---bd:#06080b;--hi:#8794a6;--lo:#0f1318;
---cpA:polygon(0 6px,2px 6px,2px 4px,4px 4px,4px 2px,6px 2px,6px 0,100% 0,100% calc(100% - 4px),calc(100% - 2px) calc(100% - 4px),calc(100% - 2px) calc(100% - 2px),calc(100% - 4px) calc(100% - 2px),calc(100% - 4px) 100%,0 100%);
---cpB:polygon(0 0,calc(100% - 4px) 0,calc(100% - 4px) 2px,calc(100% - 2px) 2px,calc(100% - 2px) 4px,100% 4px,100% 100%,6px 100%,6px calc(100% - 2px),4px calc(100% - 2px),4px calc(100% - 4px),2px calc(100% - 4px),2px calc(100% - 6px),0 calc(100% - 6px));
---cpC:polygon(0 4px,2px 4px,2px 2px,4px 2px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 2px,calc(100% - 2px) 2px,calc(100% - 2px) 4px,100% 4px,100% calc(100% - 6px),calc(100% - 2px) calc(100% - 6px),calc(100% - 2px) calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) calc(100% - 2px),calc(100% - 6px) calc(100% - 2px),calc(100% - 6px) 100%,4px 100%,4px calc(100% - 2px),2px calc(100% - 2px),2px calc(100% - 4px),0 calc(100% - 4px));
---rivets:linear-gradient(#c3ccd8,#c3ccd8) 6px 6px/3px 3px no-repeat,linear-gradient(#c3ccd8,#c3ccd8) calc(100% - 9px) 6px/3px 3px no-repeat,linear-gradient(#c3ccd8,#c3ccd8) 6px calc(100% - 9px)/3px 3px no-repeat,linear-gradient(#c3ccd8,#c3ccd8) calc(100% - 9px) calc(100% - 9px)/3px 3px no-repeat;
---rust:linear-gradient(rgba(150,70,25,.85),rgba(150,70,25,.85)) 2px 10px/2px 7px no-repeat,linear-gradient(rgba(120,55,20,.8),rgba(120,55,20,.8)) calc(100% - 16px) calc(100% - 4px)/9px 2px no-repeat,linear-gradient(rgba(150,70,25,.7),rgba(150,70,25,.7)) 14px 2px/6px 2px no-repeat;
---font:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif}
+:root{color-scheme:dark;--bg:#120c08;--fg:#eadbbd;--dim:#b09a74;--accent:#e0b84a;--red:#d4553f;
+  --panel:#2b1d13;--panel2:#3a2616;--hi:#6b4a2a;--lo:#080503;--ink:#f0e2c4;--gold:#ffd98a;
+  --paper:#e3d3aa;--paper2:#d3bf8f;--pink:#3a2616;--pink2:#6b4a2a;--seal:#9a3a2a;--ok:#4f7a3a;
+  --font:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;background:#120c08 var(--wall,none);background-size:96px 48px;image-rendering:pixelated;color:var(--fg);font-family:var(--font);line-height:1.5}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 38%,rgba(0,0,0,0) 0,rgba(0,0,0,.55) 70%,rgba(0,0,0,.85) 100%)}
-body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 92% 6%,rgba(255,140,50,.20),rgba(255,140,50,0) 42%);animation:flick 1.8s steps(3) infinite}
-@keyframes flick{0%{opacity:1}33%{opacity:.78}66%{opacity:.92}100%{opacity:1}}
+html,body{margin:0}
+body{background:#120c08;color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5;font-weight:500}
+button{font-family:inherit}
 canvas{image-rendering:pixelated;display:block}
-.grain{position:fixed;inset:0;pointer-events:none;z-index:0;background-size:480px 480px;image-rendering:pixelated;opacity:1}
-button{font:inherit;color:inherit}
-.app{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1}
-.px,.card,.sum,.pts,.temper,.opt,.btn,.chip,.stage,.ghost,.step button,.toast,.enslot{border:0;box-shadow:inset 0 0 0 2px var(--bd),inset 0 4px 0 0 var(--hi),inset 0 -4px 0 0 var(--lo);clip-path:var(--cpA)}
-.chip:nth-child(even),.opt:nth-child(even),.stage:nth-child(even),.temper:nth-child(even),.enslot:nth-child(even),.sum:nth-child(even),.btn:nth-child(even),.step button:nth-child(odd){clip-path:var(--cpB)}
-.chip:nth-child(3n),.stage:nth-child(3n),.opt:nth-child(3n),.enslot:nth-child(3n),.card,.pts{clip-path:var(--cpC)}
-.shd{filter:drop-shadow(4px 4px 0 rgba(0,0,0,.55))}
-.chips,.acts,#panel,.seg,.stages,.enrow{filter:drop-shadow(4px 4px 0 rgba(0,0,0,.55))}
-.btn:focus-visible,.chip:focus-visible,.opt:focus-visible,.enslot:focus-visible,.ghost:focus-visible,.step button:focus-visible{outline:0;box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 5px var(--bd)}
-.card,.sum,.pts,.temper{background:var(--rivets),var(--rust),var(--wear) 0 0/288px 288px,linear-gradient(180deg,rgba(220,235,255,.07),rgba(0,0,0,.26)),repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),var(--panel)}
-.opt,.stage,.chip,.enslot{background:var(--wear) 0 0/288px 288px,linear-gradient(180deg,rgba(220,235,255,.07),rgba(0,0,0,.26)),repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),var(--panel)}
+.app{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
 .top{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#1f262e;border-bottom:4px solid #06080b;box-shadow:inset 0 -3px 0 #5d6b7c,0 4px 0 rgba(0,0,0,.4)}
 .top h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.3em;text-shadow:2px 2px 0 #000}
-.stones{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--accent);font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 #000}
-.main{flex:1;padding:16px 18px 100px;display:flex;flex-direction:column;gap:14px}
-.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.chip{padding:8px 2px 7px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;position:relative;font-size:15px;font-weight:700;line-height:1.2;text-shadow:1px 1px 0 #000}
-.chip[aria-selected="true"]{--bd:#e0b84a;background-color:var(--panel2);color:var(--accent)}
-.chip:active{transform:translateY(2px)}
-.chip.off{color:#6f7c8c;background-color:#171c22}
-.chip .lv{font-size:11px;font-weight:400;color:var(--dim);font-variant-numeric:tabular-nums}
-.chip .eq{position:absolute;top:3px;right:3px;background:var(--accent);color:#17110d;font-size:10px;padding:0 4px;line-height:15px;box-shadow:0 0 0 2px #080503}
-.card{padding:16px;display:flex;gap:14px}
-.art{flex:0 0 auto;align-self:flex-start;background:#161b22;padding:0;box-shadow:0 0 0 2px #06080b,inset 0 0 0 2px #5d6b7c}
-.info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.name{font-size:17px;font-weight:700;text-shadow:1px 1px 0 #000}
-.badges{display:flex;gap:6px;flex-wrap:wrap;min-height:20px}
-.badge{font-size:11px;padding:0 6px;line-height:19px;background:#171c22;color:var(--dim);box-shadow:inset 0 0 0 2px #3a4654}
-.badge.eq{color:var(--accent);box-shadow:inset 0 0 0 2px #8a6a22}
-.badge.warn{color:#d49a6a;box-shadow:inset 0 0 0 2px #7a4a2a}
-.stat{font-size:12.5px;color:var(--fg);font-variant-numeric:tabular-nums}
-.stat span{color:var(--dim)}
-.stat.auto{min-height:38px}
-.bar{height:8px;background:#06080b;margin-top:5px;box-shadow:inset 0 0 0 2px #3a4654;padding:2px}
-.bar i{display:block;height:100%;background:var(--accent)}
-.barcap{font-size:11px;color:var(--dim)}
-.acts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn{--hi:#d49a52;--lo:#3d230d;background:#7a4f22;min-height:54px;padding:8px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:14px;font-weight:700;user-select:none;-webkit-user-select:none;touch-action:manipulation;text-shadow:1px 1px 0 #000}
-.btn small{font-size:11px;font-weight:400;color:#f6dfae}
-.btn:active:not(:disabled){transform:translateY(2px)}
-.btn:disabled{--hi:#3a4654;--lo:#0f1318;background:#222a33;color:#6f7c8c;cursor:default;text-shadow:none}
-.btn:disabled small{color:#d08a6a}
-.btn:focus-visible,.chip:focus-visible,.seg button:focus-visible,.opt:focus-visible,.tab:focus-visible,.arr:focus-visible,.ghost:focus-visible,.step button:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);background:#171c22;box-shadow:inset 0 0 0 2px #06080b,inset 0 4px 0 #5d6b7c}
-.seg button{background:none;border:0;border-bottom:4px solid transparent;padding:10px 0 7px;font-size:14px;font-weight:700;color:var(--dim);cursor:pointer}
-.seg button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);background:#2b333e}
-.panel{display:flex;flex-direction:column;gap:12px}
-.sum{padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:2px}
-.sum b{font-weight:700;color:var(--accent)}
-h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--dim);text-shadow:1px 1px 0 #000}
-.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.stage{padding:5px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--dim)}
-.stage .bg{background:#161b22;padding:2px}
-.stage.now{--bd:#e0b84a;color:var(--accent)}
-.stage.lock .bg canvas{filter:brightness(.6) saturate(.5)}
-.pts{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;font-size:13px;gap:8px}
-.pts .big{font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;text-shadow:1px 1px 0 #000}
-.ghost{background:#3a4654;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:700}
-.ghost:active:not(:disabled){transform:translateY(2px)}
-.ghost:disabled{color:#6f7c8c;background:#171c22;cursor:default}
-.temper{padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
-.temper .t{font-size:14px;font-weight:700}
-.temper .b{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
-.temper .b em{font-style:normal;color:var(--ok)}
-.step{display:flex;align-items:center;gap:8px;grid-row:1/3;grid-column:2}
-.step button{width:40px;height:40px;background:#46566a;font-size:20px;font-weight:700;line-height:1;cursor:pointer}
-.step button:active:not(:disabled){transform:translateY(2px)}
-.step button:disabled{background:#171c22;color:#556272;cursor:default}
-.step .n{min-width:40px;text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
-.tier{display:flex;flex-direction:column;gap:8px}
-.tier.lock{opacity:.5}
-.tierh{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);letter-spacing:.1em;text-shadow:1px 1px 0 #000}
-.opt{padding:9px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
-.opt .t{font-size:14px;font-weight:700}
-.opt .d{font-size:12px;color:var(--dim)}
-.opt[aria-pressed="true"]{--bd:#e0b84a;background-color:var(--panel2)}
-.opt[aria-pressed="true"] .t{color:var(--accent)}
-.opt:disabled{cursor:default}
-.note{font-size:11px;color:var(--dim);margin:4px 0 0}
-.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;display:grid;grid-template-columns:repeat(5,1fr);background:#1f262e;border-top:4px solid #06080b;box-shadow:inset 0 3px 0 #5d6b7c;z-index:5}
-.tab{position:relative;background:none;border:0;color:var(--dim);font-size:12px;font-weight:700;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-height:68px;text-shadow:1px 1px 0 #000}
-.tab canvas{filter:saturate(.3) brightness(.62)}
-.tab[aria-selected="true"]{color:var(--accent);background:#34404d;box-shadow:inset 0 3px 0 var(--accent)}
-.tab[aria-selected="true"] canvas{filter:none}
-.dot{position:absolute;top:8px;right:calc(50% - 26px);width:8px;height:8px;background:var(--red);box-shadow:0 0 0 2px #080503}
-.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;--bd:#e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;white-space:nowrap}
-.toast.on{opacity:1}
-
-.enrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.enslot{position:relative;min-height:150px;padding:8px 4px 8px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;cursor:pointer;overflow:hidden}
-.enslot:active:not(.lock){transform:translateY(2px)}
-.enslot .lvt{font-size:11px;color:var(--dim);letter-spacing:.1em}
-.enslot .eic{background:#161b22;padding:4px;box-shadow:inset 0 0 0 2px #3a4654}
-.enslot .nm{font-size:13px;font-weight:700;text-align:center;line-height:1.25;min-height:2.5em;display:flex;align-items:center;text-shadow:1px 1px 0 #000}
-.enslot.lock .lvt,.enslot.lock .eic,.enslot.lock .nm{opacity:.35}
-.enslot.lock{cursor:default}
-.sheet{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:8px}
-.sheet[hidden]{display:none}
-.sheetbg{position:absolute;inset:0;background:rgba(0,0,0,.78)}
-.scroll{position:relative;width:100%;max-width:380px;display:flex;flex-direction:column;filter:drop-shadow(5px 6px 0 rgba(0,0,0,.6));max-height:calc(100vh - 24px)}
-.roller{position:relative;flex:0 0 auto;height:24px;margin:0 6px;z-index:2;box-shadow:inset 0 0 0 2px #1a0d05;
- background:linear-gradient(rgba(20,8,2,.5),rgba(20,8,2,.5)) 14% 8px/12px 5px no-repeat,linear-gradient(rgba(20,8,2,.5),rgba(20,8,2,.5)) 41% 14px/16px 4px no-repeat,linear-gradient(rgba(20,8,2,.55),rgba(20,8,2,.55)) 66% 6px/9px 6px no-repeat,linear-gradient(rgba(20,8,2,.5),rgba(20,8,2,.5)) 86% 13px/14px 5px no-repeat,linear-gradient(rgba(70,150,120,.75),rgba(70,150,120,.75)) 29% 3px/7px 3px no-repeat,linear-gradient(rgba(60,130,105,.7),rgba(60,130,105,.7)) 75% 16px/8px 3px no-repeat,var(--wearC) 0 0/288px 288px,linear-gradient(#f0b27a 0 3px,#c47a3e 3px 9px,#97562a 9px 16px,#4a2410 16px 100%)}
-.roller::before,.roller::after{content:"";position:absolute;top:-4px;width:12px;height:32px;background:linear-gradient(rgba(20,8,2,.5),rgba(20,8,2,.5)) 3px 9px/5px 5px no-repeat,linear-gradient(rgba(70,150,120,.8),rgba(70,150,120,.8)) 6px 20px/4px 3px no-repeat,linear-gradient(90deg,#d99058 0 4px,#a8602f 4px 8px,#4a2410 8px 100%);box-shadow:inset 0 0 0 2px #1a0d05}
-.roller::before{left:-10px}.roller::after{right:-10px}
-.paper{position:relative;flex:1 1 auto;min-height:0;margin:0 8px;display:flex;color:#3b2713;overflow:hidden;animation:unroll .4s steps(8) both}
-@keyframes unroll{from{max-height:0}to{max-height:calc(100vh - 80px)}}
-@media (prefers-reduced-motion:reduce){.paper{animation:none}}
-.edge{flex:0 0 24px;background-repeat:repeat-y;background-size:24px 192px;image-rendering:pixelated}
-.edge.l{background-image:var(--edgeL)}
-.edge.r{background-image:var(--edgeR)}
-.pbody{flex:1;min-width:0;padding:16px 4px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px;
- background-color:#d9c08a;background-image:linear-gradient(rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),linear-gradient(0deg,rgba(60,30,10,.40) 0 3px,rgba(60,30,10,.26) 3px 6px,rgba(60,30,10,.12) 6px 9px,transparent 9px),linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stain),var(--wear);
- background-size:auto,auto,auto,576px 576px,288px 288px;background-repeat:no-repeat,no-repeat,no-repeat,repeat,repeat;background-position:0 0,0 100%,0 0,0 0,0 0}
-.phead{display:flex;align-items:center;gap:12px}
-.plate{flex:0 0 auto;background:#2b1d13;padding:4px;box-shadow:0 0 0 2px #3b2713,3px 3px 0 2px rgba(60,30,10,.4);transform:rotate(-3deg)}
-.ptitle{min-width:0;flex:1}
-.pgtier{font-size:11px;letter-spacing:.25em;color:#7a5a30}
-.paper h2{margin:2px 0 0;font-size:17px;font-weight:700;line-height:1.5;letter-spacing:.08em;color:#4a2a12;border-bottom:2px solid #8a6a3a;padding-bottom:8px;text-align:center}
-.pghint{margin:0;font-size:12.5px;line-height:1.55;color:#5a3d1e}
-.sheetx{align-self:stretch;background:#4a2a12;color:#f0dfb8;border:0;padding:10px 0;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608,3px 3px 0 2px rgba(60,30,10,.35)}
-.sheetx:active{transform:translateY(2px)}
-.sheetopts{display:flex;flex-direction:column;gap:12px}
-.sopt{position:relative;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:12px 14px 13px;cursor:pointer;border:0;background:rgba(120,80,30,.08);color:#3b2713;box-shadow:inset 0 0 0 6px rgba(90,55,20,.13)}
-.sopt .hd{display:flex;align-items:center;gap:8px}
-.sopt .eic{flex:0 0 auto;background:#2b1d13;padding:3px;box-shadow:0 0 0 2px #3b2713}
-.sopt .t{font-size:14px;font-weight:700;color:#3b2713}
-.sopt .d{font-size:12px;line-height:1.5;color:#5a3d1e}
-.sopt.sel{background-color:rgba(255,240,200,.16);box-shadow:inset 0 0 0 6px var(--rcS),0 0 0 6px var(--rcB);animation:selglow 1.8s steps(3) infinite}
-@keyframes selglow{0%,100%{box-shadow:inset 0 0 0 6px var(--rcS),0 0 0 6px var(--rcB)}50%{box-shadow:inset 0 0 0 6px var(--rc),0 0 0 6px var(--rcA)}}
-@media (prefers-reduced-motion:reduce){.sopt.sel{animation:none}}
-.sopt:focus-visible,.sheetx:focus-visible,.enslot:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.btn,.ghost,.step button{background-image:var(--wear),linear-gradient(180deg,rgba(255,230,180,.10),rgba(0,0,0,.22));background-size:288px 288px,auto}
-.tab[aria-selected="true"],.sopt.sel{background-image:var(--wear);background-size:288px 288px}
-/* brown wood keys (buttons, tabs, selectable slots) */
-.chip,.enslot,.ghost,.step button,.seg,.tabs{--panel:#2b1d13;--panel2:#3a2616;--hi:#6b4a2a;--lo:#150c06;--bd:#080503;--dim:#b09a74}
-.chip,.enslot{background:var(--wearB) 0 0/288px 288px,linear-gradient(180deg,rgba(255,220,160,.06),rgba(0,0,0,.24)),repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 12px),var(--panel)}
-.chip[aria-selected="true"]{--bd:#e0b84a;background-color:var(--panel2)}
-.chip.off{background-color:#1d140d;color:#7a6a50}
-.ghost,.step button{background-color:#4a3018;background-image:var(--wearB),linear-gradient(180deg,rgba(255,230,180,.10),rgba(0,0,0,.22))}
-.ghost:disabled,.step button:disabled{background-color:#1d140d;color:#6a5a44}
-.seg{background-color:#1a110b;box-shadow:inset 0 0 0 2px #080503,inset 0 4px 0 #6b4a2a}
-.seg button[aria-selected="true"]{background:#2b1d13}
-.tabs{background:#2a1b0f;border-top-color:#080503;box-shadow:inset 0 3px 0 #6b4a2a}
-.tab[aria-selected="true"]{background:#3d2814}
-.rd{position:absolute;top:5px;left:5px;width:9px;height:9px;background:#d4553f;box-shadow:0 0 0 2px #080503,inset -2px -2px 0 #8a2a20}
-.rd.sd{left:auto;top:9px;right:calc(50% - 34px)}
-.seg button{position:relative}
-.enslot .eic,.sopt .eic{background:none!important;padding:0!important;box-shadow:none!important}
-.rune{animation:runeglow 2.6s steps(6) infinite}
-@keyframes runeglow{0%,100%{filter:brightness(.82)}50%{filter:brightness(1.3)}}
-@media (prefers-reduced-motion:reduce){.rune{animation:none}}
-.sopt{padding:0;gap:0;cursor:default}
-.sopt .pick{appearance:none;background:none;border:0;margin:0;font:inherit;color:inherit;text-align:left;width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px 8px;cursor:pointer}
-.sopt .pick:active:not([disabled]){transform:translateY(2px)}
-.sopt .pick:focus-visible{outline:2px solid #4a2a12;outline-offset:-4px}
-.sopt.used{opacity:1;background:rgba(60,40,20,.14)}
-.sopt.used .pick,.sopt.used details{filter:grayscale(1) brightness(.85);opacity:.55}
-.sopt.used .pick{cursor:not-allowed}
-.sopt .tt{display:flex;flex-direction:column;min-width:0}
-.sopt .sub{font-size:11px;color:#7a5a30;letter-spacing:.06em}
-.sopt .usedb{position:absolute;top:8px;right:8px;font-size:11px;line-height:1.6;padding:0 6px;background:#8a2a20;color:#f0dfb8;box-shadow:0 0 0 2px #3b2713;transform:rotate(3deg)}
-.sopt{overflow:hidden}
-.sopt .star{position:absolute;top:var(--st,6px);right:var(--sr,6px);pointer-events:none;z-index:0;opacity:.9;filter:drop-shadow(0 0 2px var(--rcB));animation:starglow 2.6s steps(6) infinite}
-@keyframes starglow{0%,100%{filter:drop-shadow(0 0 2px var(--rcB))}50%{filter:drop-shadow(0 0 2px var(--rcA)) drop-shadow(0 0 6px var(--rcA))}}
-@media (prefers-reduced-motion:reduce){.sopt .star{animation:none}}
-.sopt .pick,.sopt details{position:relative;z-index:1}
-.sopt .pick{padding-right:40px}
-.sheetclose{position:absolute;top:10px;right:14px;z-index:3;width:30px;height:30px;padding:0;border:0;cursor:pointer;background:#4a2a12;color:#f0dfb8;font-size:16px;font-weight:700;line-height:30px;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
-.sheetclose:active{transform:translateY(2px)}
-.sheetclose:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.sheetx:disabled{background:#8a7350;color:#d9c7a0;cursor:default;box-shadow:0 0 0 2px #5a4528}
-.paper h2{padding-left:34px;padding-right:34px}
-.sopt details{padding:0 12px 10px;font-size:11.5px;line-height:1.6;color:#5a3d1e}
-.sopt summary{cursor:pointer;color:#7a4a1a;font-weight:700;list-style:none;width:max-content}
-.sopt summary::-webkit-details-marker{display:none}
-.sopt summary::before{content:"▸ "}
-.sopt details[open] summary::before{content:"▾ "}
-.sopt details p{margin:4px 0 0;padding:6px 8px;background:rgba(90,55,20,.08);box-shadow:inset 0 0 0 1px rgba(90,55,20,.25)}
-.rune.none{animation:none;opacity:.55}
-.enslot.lock .eic{opacity:.25}
-.enlist{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:#1a110b;box-shadow:inset 0 0 0 2px #080503,inset 0 3px 0 #3a2616}
-.enhd{font-size:11px;letter-spacing:.15em;color:#b09a74}
-.enit{display:flex;gap:8px;align-items:center}
-.enit canvas{flex:0 0 auto}
-.enit .tx{min-width:0;display:flex;flex-direction:column}
-.enit b{font-size:13px}
-.enit .dd{font-size:12px;color:#b09a74;line-height:1.45}
-body{font-weight:500}
-.sopt .t,.paper h2,.name,.top h1{font-weight:900}
-.sopt .d,.sopt .sub,.pghint,.sopt details,.stat,.note,.enit .dd,.sum,.barcap,.temper,.pts,.enslot .lvt,.stage,.chip .lv,.btn small,.toast{font-weight:700}
-.rstone{position:relative;display:inline-block;flex:0 0 auto}
-.rstone .st{position:absolute;inset:0;image-rendering:pixelated}
-.rstone .gl{position:absolute;left:50%;top:50%;transform:translate(-50%,-52%)}
-.rstone.lit .st{filter:drop-shadow(0 0 2px var(--rcB));animation:stoneglow 2.6s steps(6) infinite}
-@keyframes stoneglow{0%,100%{filter:drop-shadow(0 0 2px var(--rcB))}50%{filter:drop-shadow(0 0 3px var(--rcA)) drop-shadow(0 0 8px var(--rcB))}}
-@media (prefers-reduced-motion:reduce){.rstone.lit .st{animation:none}}
-.enslot.lock .eic{opacity:.75}
-.sheetcnt{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#5a3d1e}
-.sheetcnt b{font-size:16px;color:#4a2a12;margin-right:6px}
-.sheetcnt .pip{width:12px;height:12px;background:rgba(90,55,20,.18);box-shadow:inset 0 0 0 2px #5a3d1e}
-.sheetcnt .pip.on{box-shadow:inset 0 0 0 2px #3b2713}
-.sheetcnt .pip.lock{background:none;box-shadow:inset 0 0 0 2px rgba(90,55,20,.3)}
-.sec{margin-top:4px}
-.sech{font-size:13px;font-weight:900;letter-spacing:.12em;color:#5a3d1e;border-bottom:2px dashed rgba(90,55,20,.4);padding-bottom:4px}
-.sec.lock .sech{color:#8a7350}
-.sopt.locked .pick,.sopt.locked details{filter:grayscale(1);opacity:.5}
-.sopt.locked .pick{cursor:not-allowed}
-.sopt .usedb{z-index:2}
-.sopt .ord{position:absolute;left:8px;top:8px;z-index:2;min-width:22px;height:22px;line-height:22px;text-align:center;font-size:13px;font-weight:900;color:#fff;background:var(--rc);box-shadow:0 0 0 2px #241610;text-shadow:1px 1px 0 #241610}
-.sopt .ord:empty{display:none}
-.rowh{font-size:13px;font-weight:900;letter-spacing:.12em;color:#5a3d1e;border-bottom:2px dashed rgba(90,55,20,.4);padding-bottom:4px;margin-top:2px}
-.rowh.lock{color:#8a7350}
-.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rcell{position:relative;appearance:none;border:0;margin:0;font:inherit;color:#3b2713;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px 10px;min-width:0;
-  background:rgba(120,80,30,.08);box-shadow:inset 0 0 0 6px rgba(90,55,20,.13)}
-.rcell .rstone{margin-bottom:4px}
-.rcell .t{font-size:13px;font-weight:900;line-height:1.3;text-align:center}
-.rcell .sub{font-size:10.5px;font-weight:700;color:#7a5a30;line-height:1.3;text-align:center;letter-spacing:.02em}
-.rcell:active:not(.locked){transform:translateY(2px)}
-.rcell:focus-visible{outline:2px solid #4a2a12;outline-offset:2px}
-.rcell.sel{background-color:rgba(255,240,200,.22)}
-.rcell .rstone.lit .st{animation:none;filter:none}
-.rcell.sel .rstone .st{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 6px var(--rcA));animation:selstone 1.6s steps(4) infinite}
-@keyframes selstone{0%,100%{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 4px var(--rcB))}50%{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 10px var(--rcA))}}
-@media (prefers-reduced-motion:reduce){.rcell.sel .rstone .st{animation:none}}
-@keyframes cellglow{0%,100%{box-shadow:inset 0 0 0 6px var(--rcS),0 0 0 4px var(--rcB)}50%{box-shadow:inset 0 0 0 6px var(--rc),0 0 0 4px var(--rcA)}}
-@media (prefers-reduced-motion:reduce){.rcell.sel{animation:none}}
-.rcell.locked{cursor:not-allowed}.rcell.locked>*{filter:grayscale(1);opacity:.5}
-.rcell .ord{position:absolute;left:6px;top:6px;min-width:20px;height:20px;line-height:20px;text-align:center;font-size:12px;font-weight:900;color:#fff;background:var(--rc);box-shadow:0 0 0 2px #241610;text-shadow:1px 1px 0 #241610;filter:none;opacity:1}
-.rcell .ord:empty{display:none}
-.det{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
-.det[hidden]{display:none}
-.detbg{position:absolute;inset:0;background:rgba(0,0,0,.55)}
-.kraft{position:relative;width:100%;max-width:330px;max-height:calc(100vh - 60px);overflow-y:auto;padding:22px 18px 16px;display:flex;flex-direction:column;gap:10px;color:#2e1d0e;
-  background:#b98a57 var(--kraft) 0 0/288px 288px;clip-path:var(--cpC);box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),inset 6px 6px 0 6px rgba(255,225,180,.18);animation:pop .18s steps(3) both}
-@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){.kraft{animation:none}}
-.kraft .sheetclose{top:12px;right:12px}
-.dhd{display:flex;align-items:center;gap:12px;padding-right:34px}
-.dtt .t{font-size:19px;font-weight:900;color:#2a1708}
-.dtt .sub{font-size:12px;font-weight:700;color:#5a3a1a;letter-spacing:.06em}
-.kraft .dd{margin:0;font-size:14px;font-weight:700;line-height:1.6}
-.kraft .dlab{font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a;border-top:2px dashed rgba(60,30,10,.35);padding-top:8px}
-.kraft .drule{margin:0;font-size:12.5px;font-weight:700;line-height:1.65;color:#3d2610}
-.kraft .sheetx{margin-top:4px}
-body.sheeton .grain{opacity:0}
-.rcell .unx{display:none;position:absolute;right:4px;top:4px;width:24px;height:24px;line-height:24px;text-align:center;font-size:13px;font-weight:900;color:#f0dfb8;background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30;cursor:pointer;z-index:2}
-.rcell.sel .unx{display:block}
-.rcell .unx:active{transform:translateY(1px)}
-.rcell .unx:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.main{flex:1;padding:0 0 92px;display:flex;flex-direction:column;gap:10px}
+.note{font-size:11px;color:var(--dim);margin:0 18px}
 #loading{position:fixed;left:12px;right:12px;top:40%;z-index:99;text-align:center;font-size:14px;color:var(--dim)}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
-@media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
-@media (prefers-reduced-motion:reduce){body::after{animation:none}}
-</style>
-<style>
-html,body,*{touch-action:manipulation}
-.dollcard{padding:14px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--wear) 0 0/288px 288px,linear-gradient(180deg,rgba(220,235,255,.07),rgba(0,0,0,.26)),var(--panel);box-shadow:inset 0 0 0 2px var(--bd),inset 0 4px 0 0 var(--hi),inset 0 -4px 0 0 var(--lo);clip-path:var(--cpC)}
-.dollbox{position:relative;background:radial-gradient(circle at 50% 78%,rgba(255,150,60,.28),rgba(255,150,60,0) 55%),#161b22;box-shadow:0 0 0 2px #06080b,inset 0 0 0 2px #5d6b7c;line-height:0}
-#doll{image-rendering:pixelated}
-.dname{font-size:18px;font-weight:900;text-shadow:1px 1px 0 #000}
-.dsub{font-size:12.5px;font-weight:700;color:var(--dim)}
-.grp{display:flex;flex-direction:column;gap:6px}
-.glab{font-size:12px;font-weight:900;letter-spacing:.12em;color:var(--dim)}
-.opts{display:flex;flex-wrap:wrap;gap:8px}
-.opt2{position:relative;min-width:56px;min-height:40px;padding:6px 10px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font:inherit;font-size:13px;font-weight:700;color:var(--fg);border:0;background:#2b1d13;box-shadow:inset 0 0 0 2px #080503,inset 0 3px 0 #6b4a2a,inset 0 -3px 0 #150c06;text-shadow:1px 1px 0 #000}
-.opt2[aria-pressed="true"]{background:#3d2814;box-shadow:inset 0 0 0 2px #e0b84a,inset 0 3px 0 #6b4a2a,inset 0 -3px 0 #150c06;color:#f3d77a}
-.opt2:active{transform:translateY(2px)}
-.opt2 .sw{width:16px;height:16px;box-shadow:0 0 0 2px #080503,inset -2px -2px 0 rgba(0,0,0,.25)}
-.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.wgrid .opt2{flex-direction:column;gap:2px;min-height:58px}
-.wgrid canvas{image-rendering:pixelated}
-.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.sgrid .opt2{flex-direction:column;gap:0;font-size:12px;min-height:46px;padding:4px 2px;text-align:center;line-height:1.25}
-.sgrid .opt2 small{font-size:10.5px;color:var(--dim);font-weight:700}
-.hhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.hcnt{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
-.hcnt b{font-size:16px;color:var(--accent)}
-.hcnt .pip{width:12px;height:12px;background:#1a110b;box-shadow:inset 0 0 0 2px #6b4a2a}
-.switch{min-width:88px}
-.rgrid2{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.rc{position:relative;appearance:none;border:0;margin:0;padding:6px 2px 6px;background:#1f150e;box-shadow:inset 0 0 0 2px #080503;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg);font:inherit;min-width:0}
-.rc .t{font-size:11px;font-weight:700;line-height:1.2;text-align:center;text-shadow:1px 1px 0 #000}
-.rc .rstone.lit .st{animation:none;filter:none}
-.rc.sel{background:#2e2014}
-.rc.sel .rstone .st{filter:drop-shadow(2px 0 0 var(--rc)) drop-shadow(-2px 0 0 var(--rc)) drop-shadow(0 2px 0 var(--rc)) drop-shadow(0 -2px 0 var(--rc)) drop-shadow(0 0 6px var(--rcA))}
-.rc .ord{position:absolute;left:3px;top:3px;min-width:18px;height:18px;line-height:18px;text-align:center;font-size:11px;font-weight:900;color:#fff;background:var(--rc);box-shadow:0 0 0 2px #241610;text-shadow:1px 1px 0 #241610}
-.rc .ord:empty{display:none}
-.rc:active{transform:translateY(2px)}
-.off .rgrid2{opacity:.4;filter:grayscale(.6)}
-.resetrow{display:flex;justify-content:center}
-.resetrow .ghost{min-height:42px;padding:8px 18px}
-.dollnote{text-align:center}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;display:grid;grid-template-columns:repeat(5,1fr);background:#2a1b0f;border-top:4px solid #080503;box-shadow:inset 0 3px 0 #6b4a2a;z-index:5}
+.tab{position:relative;background:none;border:0;color:var(--dim);font-size:12px;font-weight:700;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-height:68px;text-shadow:1px 1px 0 #000}
+.tab canvas{filter:saturate(.3) brightness(.62)}
+.tab[aria-selected="true"]{color:var(--accent);background:#3d2814;box-shadow:inset 0 3px 0 var(--accent)}
+.tab[aria-selected="true"] canvas{filter:none}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;box-shadow:0 0 0 2px #e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;max-width:92vw}
+.toast.on{opacity:1}
+
+/* ===== night tent room (92 x 120 art pixels, shown scaled) ===== */
+.room{position:relative;width:100%;aspect-ratio:92/120;background:#0c0705;overflow:hidden;container-type:inline-size}
+.room canvas{position:absolute;display:block;image-rendering:pixelated}
+#bg,#fg{left:0;top:0;width:100%;height:100%}
+#doll{left:23.913%;top:28.333%;width:52.174%;height:40%}
+.light{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(ellipse 62% 46% at 50% 21%,rgba(255,184,96,.42),transparent 74%);animation:flick 3.3s ease-in-out infinite}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 48%,transparent 55%,rgba(0,0,0,.5))}
+@keyframes flick{0%,100%{opacity:.78}35%{opacity:1}60%{opacity:.86}80%{opacity:.97}}
+@media (prefers-reduced-motion:reduce){.light{animation:none}}
+.hs{position:absolute;background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit}
+.hs:hover,.hs:focus-visible{outline:2px dashed var(--gold);outline-offset:2px;background:rgba(255,217,138,.10)}
+.pill{position:absolute;transform:translate(-50%,-50%);font-size:clamp(10px,2.9cqw,12px);padding:1px 7px;color:var(--ink);background:rgba(8,5,3,.82);border:1px solid #000;box-shadow:inset 0 1px 0 var(--hi);pointer-events:none;white-space:nowrap}
+.dot{display:inline-block;width:7px;height:7px;background:#e0482f;border:1px solid #000;margin-left:5px;vertical-align:1px}
+.card{position:absolute;left:39.13%;top:82.2%;width:34.78%;height:14.5%;color:#3a2616;pointer-events:none;display:flex;flex-direction:column;justify-content:center;gap:1px;line-height:1.25}
+.card b{font-size:clamp(11px,3.4cqw,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card span{font-size:clamp(10px,3cqw,13px)}
+
+/* ===== parchment sheets ===== */
+.back{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.72);display:flex;align-items:flex-end;justify-content:center}
+.back[hidden]{display:none}
+.sheet{position:relative;width:min(100%,460px);max-height:90%;overflow:auto;background:var(--paper);color:var(--pink);border:3px solid var(--lo);border-bottom:0;box-shadow:inset 0 0 0 2px var(--paper2),inset 0 0 40px rgba(110,74,42,.28);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet h2{margin:0 0 2px;font-size:18px;letter-spacing:.06em}
+.sheet .hint{margin:0 0 12px;font-size:12px;color:var(--pink2)}
+.sheet .x{position:absolute;right:10px;top:10px;font:inherit;font-size:12px;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:3px 10px;cursor:pointer;z-index:6}
+.sheet button:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.sec{font-size:12px;letter-spacing:.08em;color:var(--pink2);margin:14px 0 6px;border-bottom:1px dashed var(--pink2);padding-bottom:2px}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(58,38,22,.18)}
+.row .nm{background:none;border:0;font:inherit;text-align:left;color:var(--pink);cursor:pointer;padding:0;display:flex;gap:8px;align-items:baseline}
+.row .nm small{color:var(--pink2);font-size:11px}
+.row .v{font-variant-numeric:tabular-nums;font-weight:700}
+.row .src{grid-column:1/-1;font-size:12px;color:var(--pink2);padding:2px 0 2px 10px;border-left:3px solid var(--pink2)}
+.row .src div+div{margin-top:1px}
+.step{display:flex;align-items:center;gap:6px}
+.step button,.b{white-space:nowrap;font:inherit;font-size:13px;color:#f0e2c4;background:var(--pink);border:2px solid var(--lo);padding:2px 10px;cursor:pointer;min-width:30px}
+.step button:disabled,.b:disabled{opacity:.4;cursor:default}
+.b.alt{background:var(--paper2);color:var(--pink)}
+.b.go{background:var(--seal)}
+.bar{position:sticky;bottom:-16px;margin:14px -16px -16px;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--paper2);border-top:2px solid var(--lo);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.bar .t{margin-right:auto;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:12px;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:3px 9px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--pink);color:#f0e2c4}
+.chip:disabled{opacity:.55;cursor:default}
+.slot{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;margin-bottom:6px;background:var(--paper2);border:2px dashed var(--pink2);color:var(--pink2)}
+.meter{height:8px;background:var(--paper2);border:2px solid var(--lo);margin-top:3px}
+.meter i{display:block;height:100%;background:var(--seal)}
+input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:4px 8px;min-width:0;width:100%}
+.msgline{font-size:12px;min-height:1.4em;color:var(--seal)}
+.sheet.m{padding-top:0}
+.mirror-wrap{position:sticky;top:0;z-index:4;margin:0 -16px 12px;padding:18px 0 14px;display:flex;justify-content:center;border-bottom:3px solid var(--lo);background:radial-gradient(ellipse 70% 60% at 50% 45%,#3a2616 0,#1c120b 75%)}
+.mbox{position:relative;width:240px;height:280px}
+.mbox canvas{position:absolute;image-rendering:pixelated}
+#mframe{left:0;top:0;width:240px;height:280px}
+#mdoll{left:24px;top:52px;width:192px;height:192px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.fields label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;color:var(--pink2);letter-spacing:.06em}
+select.sel{font:inherit;font-size:13px;width:100%;min-width:0;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:7px 6px}
+select.sel.bad{color:var(--seal);border-color:var(--seal)}
+.tag{color:var(--seal);font-size:11px;margin-left:6px}
+.tag[hidden]{display:none}
+.jobrow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(58,38,22,.18)}
+.jobrow small{grid-column:1/-1;color:var(--pink2);font-size:11px}
 </style></head>
 <body>
-<div class="grain" id="grain" aria-hidden="true"></div>
 <div id="loading">讀取資料中…</div>
 <div class="app">
   <div class="top"><h1>角色</h1></div>
-  <div class="main">
-    <div class="shd"><div class="dollcard"><div class="dollbox"><canvas id="doll" aria-label="角色預覽"></canvas></div><div class="dname" id="dname"></div><div class="dsub" id="dsub"></div></div></div>
-    <div class="seg" role="tablist" id="seg"></div>
-    <div class="panel" id="panel"></div>
-    <div class="resetrow"><button type="button" class="ghost" id="reset">回到我的樣子</button></div>
-    <p class="note dollnote">這裡是換裝模擬，怎麼換都不會改到你的角色，也不會存檔。</p>
-  </div>
+  <main class="main">
+    <section class="room" id="room" aria-label="角色頁">
+      <canvas id="bg" width="92" height="120"></canvas>
+      <canvas id="doll" width="48" height="48"></canvas>
+      <canvas id="fg" width="92" height="120"></canvas>
+      <div class="light"></div><div class="vig"></div>
+      <div id="hsHost" style="display:contents"></div>
+      <div class="card" id="cardText"></div>
+    </section>
+    <p class="note" id="demoNote" hidden>示範模式：用範例資料，改了不會存檔。</p>
+  </main>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
+<div class="back" id="back" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=13"></script>
 <script>
@@ -402,17 +186,6 @@ var TIER=[
  {pre:'傳說',blade:'#e7d8ff',edge:'#ffffff',dark:'#8a62d0',acc:'#ff6a8a',hand:'#4a2a5a',gem:'#ff6a8a'}
 ];
 function cv(src,scale){var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.style.width=src.width*scale+'px';c.style.height=src.height*scale+'px';return c}
-/* ---------- data: read from assets (CSV + PNG) ---------- */
-var BASE='../assets/',V='1';
-var W={},ORDER=[],RUNE={};
-var USABLE={weapon01:1,weapon02:1,weapon05:1,weapon06:1}; /* 範例:目前職業「戰士・攻」可用 */
-var EQUIPPED='weapon01';
-var S={stones:92000,cur:'weapon01',tab:'up'};
-var ST={};
-var TN=['一','二','三'],REQ=[30,60,90];
-var STATL={crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害',p_damage_rate:'物理增傷',m_damage_rate:'魔法增傷',hp_rate:'生命',eva_rate:'閃避率',p_reduce_rate:'物理減傷',m_reduce_rate:'魔法減傷'};
-function fixT(s){return String(s||'').replace(/爆擊/g,'暴擊')}
-function pct(s){return parseFloat(String(s||'').replace('%',''))||0}
 function parseCSV(t){t=t.replace(/^﻿/,'');var rows=[],row=[],f='',q=false;
   for(var i=0;i<t.length;i++){var c=t.charAt(i);
     if(q){if(c==='"'){if(t.charAt(i+1)==='"'){f+='"';i++}else q=false}else f+=c}
@@ -425,192 +198,269 @@ function parseCSV(t){t=t.replace(/^﻿/,'');var rows=[],row=[],f='',q=false;
   return rows.map(function(r){var o={};head.forEach(function(h,k){o[h]=(r[k]==null?'':r[k]).trim()});return o})}
 function getCSV(n){return fetch(BASE+'data/'+n+'?v='+V,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(n+' '+r.status);return r.arrayBuffer()}).then(function(b){return parseCSV(new TextDecoder('utf-8').decode(b))})}
 function loadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
-function buildData(R){
-  R[0].forEach(function(r){var k=r.u_sn;if(!k)return;ORDER.push(k);var au=[],tm=[];
-    [1,2].forEach(function(n){var s=r['auto_stat_'+n];if(s)au.push({l:STATL[s]||s,per:pct(r['auto_per_level_'+n]),u:'%'})});
-    [1,2,3].forEach(function(n){var s=r['temper_stat_'+n];if(s)tm.push({l:STATL[s]||s,per:pct(r['temper_per_point_'+n]),u:'%'})});
-    W[k]={n:r.weapon_name,phys:parseFloat(r.p_atk_lv100)||0,mag:parseFloat(r.m_atk_lv100)||0,auto:au,temper:tm,
-      sname:[r.stage_1_name,r.stage_2_name,r.stage_3_name,r.stage_4_name],img:[],off:r.offhand||'',offImg:null,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0,ench:[[],[],[]]}});
-  R[1].forEach(function(r){if(!r.u_sn)return;RUNE[r.u_sn]={id:r.u_sn,name:r.rune_name,en:r.rune_e_name,glyph:r.rune_glyph,cat:r.category,color:r.color||'#d0a0ff',
-    desc:fixT(r.rune_desc),detail:fixT(r.rule_detail),restr:r.restriction,img:null}});
-  R[2].forEach(function(r){var w=W[r.weapon_u_sn],t=parseInt(r.tier,10)-1;if(!w||!(t>=0&&t<3))return;
-    w.ench[t]=[r.rune_1,r.rune_2,r.rune_3].filter(function(id){return RUNE[id]})});
-  var jobs=[];
-  ORDER.forEach(function(k){if(W[k].off){W[k].offImg=[];[0,1,2,3].forEach(function(st){var names=st===0?[W[k].off]:[W[k].off.replace(/\d+$/,'')+'_'+(st+1),W[k].off+'_'+(st+1)];jobs.push(names.reduce(function(pr,n){return pr.then(function(im){return im||loadImg(BASE+'weapons/'+n+'.png?v='+V)})},Promise.resolve(null)).then(function(im){W[k].offImg[st]=im}))})}[0,1,2,3].forEach(function(st){jobs.push(loadImg(BASE+'weapons/'+k+'_'+(st+1)+'.png?v='+V).then(function(im){W[k].img[st]=im}))})});
-  Object.keys(RUNE).forEach(function(id){jobs.push(loadImg(BASE+'icons/runes/'+id+'.png?v='+V).then(function(im){RUNE[id].img=im}))});
-  return Promise.all(jobs)}
+function rect(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h)}
+function inside(P,x,y){var r=false;for(var i=0,j=P.length-1;i<P.length;j=i++){var a=P[i],b=P[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])r=!r}return r}
+function poly(c,P,col){c.fillStyle=col;var xs=P.map(function(p){return p[0]}),ys=P.map(function(p){return p[1]}),x0=Math.floor(Math.min.apply(null,xs)),x1=Math.ceil(Math.max.apply(null,xs)),y0=Math.floor(Math.min.apply(null,ys)),y1=Math.ceil(Math.max.apply(null,ys));
+  for(var y=y0;y<y1;y++)for(var x=x0;x<x1;x++)if(inside(P,x+.5,y+.5))c.fillRect(x,y,1,1)}
+function line(c,x0,y0,x1,y1,col){c.fillStyle=col;var dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,e=dx+dy;for(;;){c.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;var e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
+function ell(c,cx,cy,rx,ry,col){c.fillStyle=col;for(var y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(var x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++){var a=(x+.5-cx)/rx,b=(y+.5-cy)/ry;if(a*a+b*b<=1)c.fillRect(x,y,1,1)}}
+var seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
 
-/* ---------- weapon sprites: PNG cropped to content, centered on a 26px canvas ---------- */
-var SPR=24,WCACHE={};
-var OFF_POS={x:5,y:8}; /* 副手(盾)相對於主武器(含黑邊)左上角的位置 */
-function trim(im){var t=document.createElement('canvas');t.width=im.naturalWidth;t.height=im.naturalHeight;var tx=t.getContext('2d');tx.drawImage(im,0,0);
-  var d=tx.getImageData(0,0,t.width,t.height).data,x0=t.width,y0=t.height,x1=-1,y1=-1;
-  for(var y=0;y<t.height;y++)for(var x=0;x<t.width;x++)if(d[(y*t.width+x)*4+3]>0){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-  if(x1<0)return null;var c=document.createElement('canvas');c.width=x1-x0+1;c.height=y1-y0+1;c.getContext('2d').drawImage(t,x0,y0,c.width,c.height,0,0,c.width,c.height);c.ox=x0;c.oy=y0;return c}
-function outlined(src){var w=src.width,h=src.height,o=document.createElement('canvas');o.width=w+2;o.height=h+2;var x=o.getContext('2d');
-  var d=src.getContext('2d').getImageData(0,0,w,h).data;x.fillStyle='#000';
-  for(var yy=0;yy<h;yy++)for(var xx=0;xx<w;xx++)if(d[(yy*w+xx)*4+3]>0){x.fillRect(xx+2,yy+1,1,1);x.fillRect(xx,yy+1,1,1);x.fillRect(xx+1,yy+2,1,1);x.fillRect(xx+1,yy,1,1)}
-  x.drawImage(src,1,1);return o}
-function wsprite(k,st){var key=k+st;if(!WCACHE[key]){var w=W[k],im=w.img[st]||w.img[0];var c=document.createElement('canvas');c.width=c.height=SPR;
-    var m=im?trim(im):null;
-    if(m){m=outlined(m);
-      var oi=w.offImg&&(w.offImg[st]||w.offImg[0]),ref=w.offImg&&w.offImg[0]?trim(w.offImg[0]):null;if(oi){var oc=trim(oi);if(oc){var px=OFF_POS.x+(ref?oc.ox-ref.ox:0),py=OFF_POS.y+(ref?oc.oy-ref.oy:0);oc=outlined(oc);var x0=Math.min(0,px),y0=Math.min(0,py),cw=Math.max(m.width,px+oc.width)-x0,ch=Math.max(m.height,py+oc.height)-y0;
-        var cm=document.createElement('canvas');cm.width=cw;cm.height=ch;var cx2=cm.getContext('2d');cx2.drawImage(m,-x0,-y0);cx2.drawImage(oc,px-x0,py-y0);m=cm}}
-      var sc=Math.min(1,SPR/m.width,SPR/m.height),dw=Math.round(m.width*sc),dh=Math.round(m.height*sc);var cx=c.getContext('2d');cx.imageSmoothingEnabled=false;
-      cx.drawImage(m,0,0,m.width,m.height,Math.floor((SPR-dw)/2),Math.floor((SPR-dh)/2),dw,dh)}
-    WCACHE[key]=c}return WCACHE[key]}
+function dot(c,x,y,col){c.fillStyle=col;c.fillRect(x,y,1,1)}
+function gableTop(x){return x<=46?34-(x/46)*31:3+((x-46)/46)*31}
+function drawBack(){var b=$('bg').getContext('2d'),i,x,y;
+  /* night outside: the two roof planes, cool and dark, with seams running along the slope */
+  rect(b,0,0,92,120,'#1d2232');
+  for(i=1;i<=5;i++){line(b,46,3-i*7,0,34-i*7,'#151a27');line(b,46,3-i*7,92,34-i*7,'#151a27')}
+  for(i=0;i<40;i++)dot(b,Math.floor(rnd()*92),Math.floor(rnd()*34),'rgba(120,140,190,.10)');
+  /* back gable wall: canvas panels lit warm from the lamp */
+  var P=[[46,3],[92,34],[92,72],[0,72],[0,34]];
+  for(y=3;y<72;y++)for(x=0;x<92;x++){if(!inside(P,x+.5,y+.5))continue;var pn=Math.floor(x/15.34),r=rnd();b.fillStyle=r<.08?'#4b3827':r<.13?'#634d36':(pn%2?'#5b4731':'#54402c');b.fillRect(x,y,1,1)}
+  [15,31,46,61,77].forEach(function(sx){var yt=Math.ceil(gableTop(sx));rect(b,sx,yt,1,72-yt,'#37281b');for(var yy=yt;yy<72;yy+=3)dot(b,sx+1,yy,'#6e5639')});
+  rect(b,58,48,9,8,'#6a5238');rect(b,58,48,9,1,'#7a6040');for(i=0;i<9;i+=2){dot(b,58+i,48,'#3a2a1c');dot(b,58+i,55,'#3a2a1c')}
+  rect(b,25,40,6,6,'#604a34');
+  /* rafters, tie beam and wall poles */
+  [[46,3,0,34],[46,3,92,34]].forEach(function(l){line(b,l[0],l[1],l[2],l[3],'#3b2614');line(b,l[0],l[1]+1,l[2],l[3]+1,'#3b2614');line(b,l[0],l[1]-1,l[2],l[3]-1,'#6b4a2a')});
+  rect(b,0,34,92,3,'#3b2614');rect(b,0,34,92,1,'#7a5530');for(i=0;i<5;i++)dot(b,8+i*19,35,'#24160a');
+  rect(b,3,37,2,35,'#4a2f1a');rect(b,3,37,1,35,'#6b4a2a');rect(b,87,37,2,35,'#4a2f1a');rect(b,87,37,1,35,'#6b4a2a');
+  /* ground cloth behind the table */
+  rect(b,0,66,92,8,'#1d140d');rect(b,0,66,92,1,'#3a2c1f');for(x=0;x<92;x+=13)rect(b,x,67,1,6,'#120b07');
+  /* hammock slung between the rafters, with a pillow and a blanket */
+  for(x=18;x<=74;x++){var yt=Math.round(24+7*Math.sin(Math.PI*(x-18)/56));rect(b,x,yt,1,3,((x>>1)%2)?'#8a6a44':'#a48058');dot(b,x,yt+3,'#3a2616');dot(b,x,yt-1,'#c0a070')}
+  line(b,18,21,18,25,'#c0a070');line(b,74,21,74,25,'#c0a070');ell(b,18,21,1.6,1.6,'#b0802f');ell(b,74,21,1.6,1.6,'#b0802f');
+  ell(b,31,29,4.4,2,'#d8cdb0');ell(b,58,29.5,8,3,'#7a3a2a');rect(b,52,28,12,1,'#9a4a34');
+  /* oil lamp hanging from the apex */
+  for(y=3;y<13;y+=2)dot(b,46,y,'#8a6a3a');ell(b,46,12.5,2.4,1.6,'#b0802f');rect(b,43,13,7,2,'#b0802f');rect(b,44,15,5,9,'#e8d8a0');rect(b,45,16,3,7,'#f7e9bd');
+  rect(b,45,18,3,5,'#ffd070');rect(b,46,17,1,5,'#fff6c8');rect(b,43,24,7,3,'#b0802f');rect(b,43,24,7,1,'#d9a84a');
+  /* food hanging from the tie beam: garlic, chillies, sausages */
+  line(b,28,36,28,47,'#7a5a3a');for(i=0;i<4;i++){ell(b,28+(i%2?1.4:-0.6),39+i*2.8,1.8,1.7,'#e8dcc0');dot(b,28,37+i*2.8,'#cbbf9c')}
+  line(b,33,36,33,39,'#7a5a3a');[[-2,7],[0,8],[2,7],[-1,6]].forEach(function(d){line(b,33,39,33+d[0],39+d[1],'#b03a2a')});dot(b,33,39,'#7a5a3a');
+  line(b,64,36,64,39,'#7a5a3a');ell(b,64,42,1.9,2.8,'#8a3b2a');ell(b,64,48,1.9,2.8,'#7a3322');dot(b,64,45,'#d8c8a0');
+  line(b,69,36,69,38,'#7a5a3a');ell(b,69,41,1.7,2.4,'#8a3b2a');ell(b,60,38.5,2,2.4,'#6b8a3a');line(b,60,36,60,37,'#7a5a3a');
+  /* chest behind the table, left */
+  rect(b,2,66,22,6,'#6b4a2a');rect(b,2,62,22,5,'#7d5833');rect(b,3,61,20,1,'#7d5833');rect(b,2,62,22,1,'#9a7040');rect(b,2,66,22,1,'#3a2616');
+  rect(b,6,61,2,11,'#2a2a2e');rect(b,18,61,2,11,'#2a2a2e');rect(b,12,64,4,4,'#b0802f');dot(b,13,66,'#3a2616');dot(b,14,66,'#3a2616');
+  /* mirror hung from the tie beam */
+  line(b,10,36,12,40,'#8a6a3a');line(b,18,36,16,40,'#8a6a3a');
+  ell(b,14,49,8.6,11.6,'#241508');ell(b,14,49,8,11,'#b0802f');ell(b,14,49,6.8,9.8,'#3b2a14');ell(b,14,49,6,9,'#5f7584');
+  for(i=0;i<8;i++)dot(b,10+Math.floor(i*.7),43+i,'#a9bcc4');for(i=0;i<4;i++)dot(b,12+Math.floor(i*.7),42+i,'#8fa5b0');rect(b,13,38,2,1,'#e0b25a');
+  /* weapon rack (right): a frame with a sword, a staff and an axe */
+  rect(b,65,62,24,2,'#4a2f1a');rect(b,65,62,24,1,'#7a5530');rect(b,67,37,2,25,'#6b4a2a');rect(b,86,37,2,25,'#6b4a2a');rect(b,67,37,1,25,'#8a6038');rect(b,86,37,1,25,'#8a6038');
+  rect(b,67,45,21,2,'#5a3a1c');rect(b,67,54,21,2,'#5a3a1c');
+  rect(b,73,36,2,20,'#c9ced4');rect(b,73,36,1,20,'#eef1f4');dot(b,73,35,'#c9ced4');rect(b,71,56,6,1,'#b0802f');rect(b,73,57,2,5,'#4a2f1a');
+  rect(b,79,32,1,30,'#7a5530');ell(b,79.5,30.5,2.4,2.4,'#6fd8ff');dot(b,79,30,'#d8f4ff');
+  rect(b,82,38,1,24,'#7a5530');poly(b,[[80,38],[85,38],[85.5,42],[80,43]],'#aab0b8');rect(b,80,38,5,1,'#d0d5da');
+  /* sack and a crate of apples, right, behind the table */
+  poly(b,[[68,72],[67,66],[70,62],[76,62],[78,66],[77,72]],'#b09a70');rect(b,70,62,6,1,'#7a5530');rect(b,74,64,3,8,'#8f7a54');dot(b,72,66,'#cbb98c');
+  rect(b,79,64,12,8,'#6b4a2a');rect(b,79,67,12,1,'#3a2616');rect(b,79,64,12,1,'#8a6038');ell(b,82,63,1.8,1.5,'#b03a2a');ell(b,86,62.6,1.8,1.5,'#c04a30');ell(b,89.2,63,1.6,1.4,'#a8332a')}
 
-/* ---------- rune glyphs: PNG + pixel glow in the rune's color (no frame, no backing) ---------- */
-var RCACHE={},STAR=null;
-function tri(a,p,col){for(var i=0;i<3;i++){var q=p[i],r=p[(i+1)%3];a.line(q[0],q[1],r[0],r[1],col)}}
-function starCv(){if(!STAR)STAR=make(function(a){var C=12,R=9.2,col='#8f3320';
-    function P(ang){return [C+R*Math.sin(ang),C-R*Math.cos(ang)]}
-    tri(a,[P(0),P(2.0944),P(4.1888)],col);tri(a,[P(Math.PI),P(Math.PI+2.0944),P(Math.PI+4.1888)],col);
-    for(var y=0;y<24;y++)for(var x=0;x<24;x++){var d=Math.hypot(x+.5-C,y+.5-C);if(Math.abs(d-11.3)<.55)a.px(x,y,col)}},24,true);
-  var c=cv(STAR,3);c.className='star';return c}
-var UNK=[[5,3,9,3],[9,3,9,6],[9,6,7,8],[7,8,7,9],[7,11,7,11]];
-function buildRune(r,paper){var G=32,P=4,U=4,T=G+P*2;
-  var s=document.createElement('canvas');s.width=s.height=G;var sx=s.getContext('2d');sx.drawImage(r.img,0,0,G,G);var d=sx.getImageData(0,0,G,G).data;
-  function has(x,y){return x>=0&&y>=0&&x<G&&y<G&&d[(y*G+x)*4+3]>90}
-  var o=document.createElement('canvas');o.width=o.height=T*U;var x=o.getContext('2d');x.fillStyle=r.color;
-  for(var y=-P;y<G+P;y++)for(var xx=-P;xx<G+P;xx++){if(has(xx,y))continue;var m=9;
-    for(var dy=-3;dy<=3;dy++)for(var dx=-3;dx<=3;dx++)if(has(xx+dx,y+dy)){var q=Math.max(Math.abs(dx),Math.abs(dy));if(q<m)m=q}
-    var a=m===1?(paper?.6:.55):m===2?(paper?.36:.3):(m===3&&(xx+y)%2===0)?(paper?.2:.15):0;
-    if(a){x.globalAlpha=a;x.fillRect((xx+P)*U,(y+P)*U,U,U)}}
-  x.globalAlpha=1;x.imageSmoothingEnabled=false;x.drawImage(r.img,P*U,P*U,G*U,G*U);return o}
-function buildEmpty(){var g=make(function(a){UNK.forEach(function(l){a.line(l[0],l[1],l[2],l[3],'#6f7c8c')})},14,true);
-  var o=document.createElement('canvas');o.width=o.height=160;var x=o.getContext('2d');x.imageSmoothingEnabled=false;x.globalAlpha=.75;x.drawImage(g,32,32,96,96);return o}
-var SCACHE={};
-function stoneCv(seed,dim){var key=seed+(dim?'d':'');if(!SCACHE[key]){var N=16,sd=1;for(var i=0;i<seed.length;i++)sd=(sd*31+seed.charCodeAt(i))%233280;
-    function r(){sd=(sd*9301+49297)%233280;return sd/233280}
-    var pts=[],K=9;for(var j=0;j<K;j++){var a=j/K*6.283+(r()-.5)*.5,rad=6.3+r()*1.3;pts.push([N/2+rad*Math.cos(a),N/2+rad*Math.sin(a)*.92+.4])}
-    var m=[];for(var y=0;y<N;y++){m[y]=[];for(var x=0;x<N;x++){var px=x+.5,py=y+.5,ins=false;for(var p=0,q=K-1;p<K;q=p++){var xi=pts[p][0],yi=pts[p][1],xj=pts[q][0],yj=pts[q][1];if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))ins=!ins}m[y][x]=ins}}
-    function In(x,y){return x>=0&&y>=0&&x<N&&y<N&&m[y][x]}
-    var P=dim?{b:'#4a4744',h:'#5c5955',l:'#383633',s1:'#504d49',s2:'#423f3c'}:{b:'#68635c',h:'#8c877e',l:'#46423d',s1:'#76716a',s2:'#54504a'};
-    var c=document.createElement('canvas');c.width=c.height=N+2;var x2=c.getContext('2d');
-    for(var yy=-1;yy<=N;yy++)for(var xx=-1;xx<=N;xx++){var col=null;
-      if(In(xx,yy)){col=P.b;if(!In(xx-1,yy-1)||!In(xx,yy-1))col=P.h;else if(!In(xx+1,yy+1)||!In(xx,yy+1)||!In(xx+1,yy))col=P.l;else{var t=r();if(t<.12)col=P.s1;else if(t<.18)col=P.s2}}
-      else if(In(xx+1,yy)||In(xx-1,yy)||In(xx,yy+1)||In(xx,yy-1))col='#241610';
-      if(col){x2.fillStyle=col;x2.fillRect(xx+1,yy+1,1,1)}}
-    var cx=4+Math.floor(r()*4),cy=9+Math.floor(r()*3);x2.fillStyle=P.l;for(var k2=0;k2<3;k2++){if(In(cx,cy))x2.fillRect(cx+1,cy+1,1,1);cx++;cy+=r()<.5?1:0}
-    SCACHE[key]=c}return SCACHE[key]}
-/* rune on an irregular stone; the stone glows faintly in the rune's color */
-function runeStone(id,size,paper,dim){var r=id?RUNE[id]:null,w=el('span','rstone'+(r&&!dim?' lit':'')+(dim?' dim':''));w.style.width=w.style.height=size+'px';
-  if(r){w.style.setProperty('--rc',r.color);w.style.setProperty('--rcA',hexA(r.color,.55));w.style.setProperty('--rcB',hexA(r.color,.25))}
-  var s=cv(stoneCv(id||'empty',dim||!r),1);s.className='st';s.style.width=s.style.height=size+'px';w.appendChild(s);
-  if(r){var g=runeCv(id,Math.round(size*.62),paper);g.classList.add('gl');w.appendChild(g)}return w}
-function runeCv(id,size,paper){var r=id?RUNE[id]:null,key=(r&&r.img?id:'none')+(paper?'p':'');
-  if(!RCACHE[key])RCACHE[key]=r&&r.img?buildRune(r,paper):buildEmpty();
-  var c=cv(RCACHE[key],1);c.style.width=c.style.height=size+'px';c.className=r&&r.img?'rune':'rune none';return c}
-function cost(lv){return Math.round(3*Math.pow(lv,1.3))}
-function stage(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
-var STAGE_AT=[1,30,60,90];
-function wname(k,st){return W[k].sname[st]||W[k].n}
-function fmt(n){return String(Math.round(n*10)/10)}
-function num(n){return n.toLocaleString('en-US')}
-function atk(k,lv){var w=W[k];return {p:Math.round(w.phys*lv/100),m:Math.round(w.mag*lv/100)}}
-function totalPts(lv){return Math.floor(lv/5)}
-function usedPts(k){var p=ST[k].pts;return p[0]+p[1]+p[2]}
-function toast(t){var e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},1400)}
+function drawFront(){var c=$('fg').getContext('2d'),i;
+  /* table top, front lip and front panel */
+  rect(c,0,72,92,19,'#70492a');
+  for(i=0;i<8;i++){var xb=i*13-2,xf=46+(xb-46)*1.16;line(c,Math.round(xb),72,Math.round(xf),90,'#5a3a20')}
+  for(i=0;i<46;i++)rect(c,Math.floor(rnd()*92),73+Math.floor(rnd()*17),1+Math.floor(rnd()*3),1,'rgba(40,22,10,.35)');
+  for(i=0;i<22;i++)rect(c,Math.floor(rnd()*92),73+Math.floor(rnd()*17),2,1,'rgba(255,205,150,.10)');
+  rect(c,0,72,92,1,'#3f2814');rect(c,0,91,92,1,'#8a6038');rect(c,0,92,92,2,'#4a3019');
+  rect(c,0,94,92,26,'#3a2616');rect(c,0,94,92,2,'#1d1209');
+  for(i=1;i<4;i++)rect(c,i*23,96,1,24,'#26180d');
+  for(i=0;i<30;i++)rect(c,Math.floor(rnd()*92),97+Math.floor(rnd()*22),1+Math.floor(rnd()*3),1,'rgba(15,8,3,.45)');
+  rect(c,0,119,92,1,'#150c06');
+  /* book (front left): open, two pages, a red ribbon */
+  poly(c,[[14,89],[28,88],[42,89],[42,90],[28,89.5],[14,90]],'#4a2f1a');
+  poly(c,[[15,81],[28,80],[28,87],[14,88]],'#e8dab2');poly(c,[[28,80],[41,81],[42,88],[28,87]],'#dccda2');line(c,28,80,28,87,'#8a7650');
+  for(i=0;i<4;i++){line(c,17,(82+i*1.6)|0,26,(81+i*1.6)|0,'#9a8658');line(c,30,(81+i*1.6)|0,39,(82+i*1.6)|0,'#9a8658')}
+  rect(c,27,87,2,4,'#9a2f2a');
+  /* paper (kraft sheet with writing and a seal) */
+  poly(c,[[47,81],[69,80],[72,88],[44,88.5]],'#c4a265');poly(c,[[44,88.5],[72,88],[72,89],[44,89.5]],'#8a6a3a');
+  for(i=0;i<4;i++){var wy=(82+i*1.8)|0;line(c,50,wy,50+11+(i%2)*5,wy,'#7a5a2f')}
+  ell(c,65,85,2.2,2.2,'#9a3a2a');dot(c,65,85,'#c05a44');
+  /* a mug and a loaf, only for looks */
+  rect(c,77,83,5,6,'#9aa0a8');rect(c,77,83,5,1,'#3a2616');rect(c,82,84,1,3,'#9aa0a8');rect(c,77,83,1,6,'#c4c9d0');
+  ell(c,8,87,5,2.6,'#c0873f');line(c,5,85,6,88,'#9a6a2a');line(c,8,85,9,88,'#9a6a2a');line(c,11,85,12,88,'#9a6a2a');
+  /* guild card nailed to the front panel */
+  rect(c,22,96,48,22,'#150c06');rect(c,23,97,46,20,'#6b4a2a');rect(c,23,97,46,1,'#8a6038');
+  rect(c,25,99,42,16,'#d8c28e');rect(c,25,99,42,1,'#efe0b4');rect(c,25,114,42,1,'#b79f6c');
+  [[24,98],[66,98],[24,115],[66,115]].forEach(function(p){rect(c,p[0],p[1],2,2,'#8a8f96');rect(c,p[0],p[1],1,1,'#cfd3d8')});
+  ell(c,32,107,5.6,5.6,'#8a3b2a');ell(c,32,107,4.6,4.6,'#d8c28e');ell(c,32,107,3.6,3.6,'#8a3b2a');
+  line(c,32,102,32,112,'#d8c28e');line(c,27,107,37,107,'#d8c28e');line(c,29,104,35,110,'#c39a62');line(c,35,104,29,110,'#c39a62');rect(c,31,106,2,2,'#efe0b4')}
+var $=function(id){return document.getElementById(id)};
+var BASE='../assets/',V='1';
+var dollCv=$('doll');
+var demo=/[?&]demo=1/.test(location.search);
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-(function(){try{function tile(kind){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var seed=kind==='paper'?11:23;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
-  function dot(col,n){x.fillStyle=col;for(var i=0;i<n;i++)x.fillRect(Math.floor(rnd()*48),Math.floor(rnd()*48),1,1)}
-  if(kind==='paper'){dot('rgba(0,0,0,.26)',40);dot('rgba(255,230,180,.10)',24);dot('rgba(190,90,30,.14)',12);
-    for(var ci=0;ci<3;ci++){var cx=Math.floor(rnd()*40),cy=Math.floor(rnd()*40),cl=8+Math.floor(rnd()*8);x.fillStyle='rgba(50,25,8,.22)';for(var cj=0;cj<cl;cj++){cx+=(rnd()<.55?1:0);cy+=(rnd()<.55?1:0)+(rnd()<.2?-1:0);x.fillRect(cx%48,Math.abs(cy)%48,1,1)}}
-    for(var i=0;i<3;i++){var bx=Math.floor(rnd()*42),by=Math.floor(rnd()*42);x.fillStyle='rgba(120,70,20,.14)';x.fillRect(bx,by,4,3);x.fillRect(bx+1,by-1,2,1)}}
-  else if(kind==='wood'){dot('rgba(0,0,0,.34)',60);dot('rgba(255,220,170,.09)',34);dot('rgba(0,0,0,.22)',24);for(var wi=0;wi<4;wi++){var wy=Math.floor(rnd()*46);x.fillStyle='rgba(0,0,0,.18)';x.fillRect(Math.floor(rnd()*20),wy,10+Math.floor(rnd()*20),1)}}
-  else if(kind==='copper'){dot('rgba(20,8,2,.38)',60);dot('rgba(255,200,150,.14)',40);dot('rgba(70,150,120,.30)',10);dot('rgba(0,0,0,.25)',20)}
-  else{dot('rgba(0,0,0,.34)',70);dot('rgba(200,220,255,.10)',60);dot('rgba(190,95,35,.28)',9);
-    for(var i2=0;i2<5;i2++){var px=Math.floor(rnd()*38),py=Math.floor(rnd()*44),len=4+Math.floor(rnd()*5);x.fillStyle='rgba(205,225,255,.20)';for(var j=0;j<len;j++)x.fillRect(px+j,py+(j>>1),1,1)}
-    for(var i3=0;i3<4;i3++){var qx=Math.floor(rnd()*44),qy=Math.floor(rnd()*44);x.fillStyle='rgba(0,0,0,.30)';x.fillRect(qx,qy,2,2)}}
-  return 'url('+c.toDataURL()+')'}
-  function edgeTile(side){var W2=4,H2=32,c=document.createElement('canvas');c.width=W2;c.height=H2;var x=c.getContext('2d');var sd=side==='l'?3:9;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
-    var e=1;for(var y=0;y<H2;y++){var rr=r();if(rr<.16)e=Math.max(0,e-1);else if(rr<.34)e=Math.min(2,e+1);var cut=e;if(r()<.05)cut=Math.min(3,e+1);
-      for(var xx=0;xx<W2;xx++){var px=side==='l'?xx:W2-1-xx;if(px<cut)continue;if(px===cut){x.fillStyle='#3b2713'}else if(px===cut+1&&r()<.55){x.fillStyle='#8a5e2c'}else{x.fillStyle=r()<.08?'#c7a96e':'#d9c08a'}x.fillRect(xx,y,1,1)}}
-    return 'url('+c.toDataURL()+')'}
-  function stainTile(){var c=document.createElement('canvas');c.width=c.height=96;var x=c.getContext('2d');var sd=17;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
-    for(var i=0;i<9;i++){var cx=r()*96,cy=r()*96,rad=5+r()*9,col=r()<.3?'rgba(150,80,25,':'rgba(110,70,25,';
-      for(var y=Math.floor(cy-rad-2);y<=cy+rad+2;y++)for(var xx=Math.floor(cx-rad-2);xx<=cx+rad+2;xx++){var d=Math.hypot(xx-cx,y-cy);var X=(xx+96)%96,Y=(y+96)%96;
-        if(d<rad*.7){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad&&(xx+y)%2===0){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad+1.5&&d>=rad&&r()<.5){x.fillStyle='rgba(70,40,15,.26)';x.fillRect(X,Y,1,1)}}}
-    return 'url('+c.toDataURL()+')'}
-  document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})());document.body.style.setProperty('--wear',tile('steel'));document.body.style.setProperty('--wearB',tile('wood'));document.getElementById('sheet').style.setProperty('--wear',tile('paper'));document.getElementById('sheet').style.setProperty('--wearS',tile('steel'));document.getElementById('sheet').style.setProperty('--edgeL',edgeTile('l'));document.getElementById('sheet').style.setProperty('--edgeR',edgeTile('r'));document.getElementById('sheet').style.setProperty('--stain',stainTile());document.getElementById('sheet').style.setProperty('--wearC',tile('copper'))}catch(e){}})();
-(function(){try{var c=document.createElement('canvas');c.width=c.height=80;var x=c.getContext('2d');var seed=5;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
-  for(var y=0;y<80;y++)for(var xx=0;xx<80;xx++){var r=rnd();if(r<.20){x.fillStyle='rgba(0,0,0,.16)';x.fillRect(xx,y,1,1)}else if(r<.30){x.fillStyle='rgba(255,235,200,.075)';x.fillRect(xx,y,1,1)}else if(r<.305){x.fillStyle='rgba(255,220,160,.20)';x.fillRect(xx,y,1,1)}}
-  document.getElementById('grain').style.backgroundImage='url('+c.toDataURL()+')'}catch(e){}})();
-/* ---------- wall texture (brick tile) ---------- */
-(function(){try{var c=document.createElement('canvas');c.width=32;c.height=16;var x=c.getContext('2d');x.fillStyle='#0c0705';x.fillRect(0,0,32,16);
-  var pal=['#2a1d17','#30221a','#26191a','#2d2019','#22171a'],seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
-  for(var r=0;r<2;r++){var off=r?8:0;for(var b=-1;b<3;b++){var bx=off+b*16;x.fillStyle=pal[Math.floor(rnd()*pal.length)];x.fillRect(bx+1,r*8+1,14,7);x.fillStyle='rgba(255,200,140,.07)';x.fillRect(bx+1,r*8+1,14,1);
-    if(rnd()<.5){x.fillStyle='rgba(0,0,0,.25)';x.fillRect(bx+3+Math.floor(rnd()*8),r*8+3+Math.floor(rnd()*3),2,1)}}}
-  document.body.style.setProperty('--wall','url('+c.toDataURL()+')')}catch(e){}})();
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},2200)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function pctNum(s){return parseFloat(String(s||'').replace('%',''))/100||0}
+function pct(x){return (x*100).toFixed(1).replace(/\.0$/,'')+'%'}
 
-function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
+/* ================= data ================= */
+var JOB={},JOBORDER=[],ATTR={},GROWTH={},WEAPON={},WORDER=[],WNAME2K={};
+var UCOL={sword:'劍',axe:'斧',dagger:'匕',bow:'弓',spear:'槍',hammer:'錘',staff:'杖',book:'書'};
+var KEYS=['str','int','agi','vit','luk'],NAMES={str:'力量',int:'智力',agi:'敏捷',vit:'體質',luk:'幸運'};
+var RES=[['fire','火炎'],['frost','冰霜'],['lightning','雷電'],['wind','疾風'],['nature','自然'],['light','光明'],['dark','黑暗']];
+var MAXREN=3;
+function buildData(R){
+  R[0].forEach(function(r){if(!r.u_sn)return;JOB[r.u_sn]=r;JOBORDER.push(r.u_sn)});
+  R[1].forEach(function(r){if(r.u_sn)ATTR[r.u_sn]=r});
+  R[2].forEach(function(r){if(r.u_sn)GROWTH[r.u_sn]=r});
+  R[3].forEach(function(r){if(!r.u_sn)return;WEAPON[r.u_sn]={sn:r.u_sn,n:r.weapon_name,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0,off:r.offhand||'',img:null,offImg:null};WORDER.push(r.u_sn);WNAME2K[r.weapon_name]=r.u_sn});
+  var jobs=[];WORDER.forEach(function(k){var w=WEAPON[k];jobs.push(loadImg(BASE+'weapons/'+k+'_1.png?v='+V).then(function(im){w.img=im}));
+    if(w.off)jobs.push(loadImg(BASE+'weapons/'+w.off+'.png?v='+V).then(function(im){w.offImg=im}))});
+  return Promise.all(jobs)}
+function usableList(sn){var j=JOB[sn],o=[];if(!j)return o;Object.keys(UCOL).forEach(function(c){if(String(j['usable_'+c]||'').trim()==='1')o.push(UCOL[c])});return WORDER.map(function(k){return WEAPON[k].n}).filter(function(n){return o.indexOf(n)>=0})}
+function defaultWeaponName(sn){var j=JOB[sn],w=j&&WEAPON[j.default_weapon];return w?w.n:null}
+function reqMet(sn){var j=JOB[sn];if(!j)return false;if((j.required_condition||'0')==='0')return true;var ok=true;
+  [1,2].forEach(function(n){var r=j['required_job_'+n];if(r){var need=parseInt(j['required_job_'+n+'_level'],10)||0;if((S.jobLvs[r]|0)<need)ok=false}});return ok}
+
+/* ================= player state ================= */
+var S=null;
+function fromPlayer(p){var s={uid:p.uid||'',name:p.name||'冒險者',lv:Math.max(1,p.lv|0||1),exp:p.exp|0,job:p.job|0,jobSn:p.jobSn||('job'+('0'+((p.job|0)+1)).slice(-2)),
+  jobLvs:Object.assign({},p.jobLv||{}),jobExp:p.jobExp|0,alloc:Object.assign({str:0,int:0,agi:0,vit:0,luk:0},p.alloc||{}),pend:{str:0,int:0,agi:0,vit:0,luk:0},
+  renames:p.renames|0,weapon:p.weapon||'劍',saved:null,look:null};
+  s.saved={skin:p.skin|0,style:p.style|0,hair:p.hair|0,eyes:p.eyes==null?5:p.eyes|0,outfit:p.outfit==null?(p.job|0):(p.outfit|0)};s.look=Object.assign({},s.saved);return s}
+function totalPts(){return 5*(S.lv-1)}
+function spent(){var t=0;KEYS.forEach(function(k){t+=S.alloc[k]+S.pend[k]});return t}
+function unspent(){return Math.max(0,totalPts()-spent())}
+function pendingSum(){var t=0;KEYS.forEach(function(k){t+=S.pend[k]});return t}
+function jobName(sn){return JOB[sn]?JOB[sn].job_name:'—'}
+function growthOf(sn,k){var g=GROWTH[sn];return g?(parseFloat(g['per_level_'+k])||0):0}
+function A(){var r={};KEYS.forEach(function(k){var j=0,parts=[];JOBORDER.forEach(function(sn){var lv=S.jobLvs[sn]|0;if(lv>0){var g=growthOf(sn,k);if(g){j+=g*lv;parts.push(jobName(sn)+' Lv'+lv+' × '+g+' = +'+g*lv)}}});
+  var a=S.alloc[k]+S.pend[k];r[k]={job:j,jobParts:parts,alloc:a,total:10+j+a}});return r}
+function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.total,l=a.luk.total,at=ATTR[S.jobSn]||{},jn=jobName(S.jobSn);
+  var hpb=pctNum(at.hp_bonus),pb=pctNum(at.p_atk_bonus),mb=pctNum(at.m_atk_bonus),eb=pctNum(at.eva_rate_bonus),cb=pctNum(at.crit_rate_bonus),db=pctNum(at.crit_damage_rate_bonus);
+  var L=[];
+  L.push(['生命力',Math.round(v*5*(1+hpb)),['體質 '+v+' × 5 = '+v*5].concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)+' → +'+Math.round(v*5*hpb)]:[])]);
+  L.push(['物理攻擊力',Math.round(s*(1+pb)),['力量 '+s+' × 1 = '+s].concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round(s*pb)]:[]).concat(['（武器的攻擊另外計算）'])]);
+  L.push(['魔法攻擊力',Math.round(i*(1+mb)),['智力 '+i+' × 1 = '+i].concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round(i*mb)]:[]).concat(['（武器的攻擊另外計算）'])]);
+  L.push(['閃避率',pct(g/(g+800)+eb),['敏捷 '+g+' ÷ ('+g+' + 800) = '+pct(g/(g+800))].concat(eb?[jn+'職業加成 +'+pct(eb)]:[])]);
+  L.push(['暴擊率',pct(g/(g+500)+cb),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[])]);
+  L.push(['暴擊傷害',pct(0.5+l*0.01+db),['基礎 50%','幸運 '+l+' × 1% = '+l+'%'].concat(db?[jn+'職業加成 +'+pct(db)]:[])]);
+  L.push(['物理減傷','0%',['基礎 0%','（來自武器、符文與狀態）']]);
+  L.push(['魔法減傷','0%',['基礎 0%','（來自武器、符文與狀態）']]);
+  return L}
+function resOf(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])}
+
+/* ================= appearance options ================= */
+function outfitUnlocked(i){var sn='job'+('0'+(i+1)).slice(-2);return i===S.job||(S.jobLvs[sn]|0)>0||i===S.saved.outfit}
+var OPT={
+  outfit:{label:'衣服',list:function(){return Doll.OUTFIT_ORDER.map(function(i){return{v:i,n:(Doll.JOBN[i]||('外觀 '+(i+1)))+'裝',lock:!outfitUnlocked(i)}})}},
+  style:{label:'髮型',list:function(){return Doll.STYLE_ORDER.map(function(i){return{v:i,n:Doll.STYLEN[i],lock:false}})}},
+  hair:{label:'髮色',list:function(){return Doll.HAIR.map(function(h,i){return{v:i,n:h.n,lock:false}})}},
+  skin:{label:'膚色',list:function(){return Doll.SKINN.map(function(n,i){return{v:i,n:n,lock:false}})}},
+  eyes:{label:'眼色',list:function(){var o=[];Doll.assets.eyes.forEach(function(im,i){if(im)o.push({v:i,n:'眼睛 '+(i+1),lock:false})});return o}}};
+function lockedChosen(){var bad=[];Object.keys(OPT).forEach(function(k){OPT[k].list().forEach(function(o){if(o.v===S.look[k]&&o.lock)bad.push(OPT[k].label+'「'+o.n+'」')})});return bad}
+
+/* ================= saving ================= */
+function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
+function errMsg(e){var c=e&&(e.code||e.message)||'';return c==='permission-denied'?'儲存失敗：資料庫規則還沒開放這個欄位（permission-denied）':'儲存失敗（'+c+'）'}
+function persist(fields){if(demo)return Promise.resolve();return new Promise(function(res,rej){withFB(function(FB){FB.updatePlayer(fields).then(res,rej)})})}
+
+/* ================= sheets ================= */
+var back=$('back'),sheet=$('sheet'),cur=null,open={};
+function head(t,h){return '<button class="x" data-a="close" type="button">關閉</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
+function sheetHTML(k){
+  if(k==='paper'){var a=A(),u=unspent(),ps=pendingSum(),h=head('屬性','點屬性名稱看加成來源；加號只是暫存，按「確定」才會寫入。');
+    h+='<div class="sec">五項屬性　剩餘自由點數 <b>'+u+'</b></div>';
+    KEYS.forEach(function(k2){var d=a[k2],o=open['a'+k2];
+      h+='<div class="row"><button class="nm" data-a="open" data-id="a'+k2+'" type="button">'+NAMES[k2]+'<small>'+(o?'收起':'來源')+'</small></button><div class="step"><span class="v">'+d.total+(S.pend[k2]?' (+'+S.pend[k2]+')':'')+'</span>'+
+        '<button data-a="sub" data-k="'+k2+'" type="button" '+(S.pend[k2]?'':'disabled')+' aria-label="減少">−</button><button data-a="add" data-k="'+k2+'" type="button" '+(u>0?'':'disabled')+' aria-label="增加">＋</button></div>'+
+        (o?'<div class="src"><div>天生 10</div>'+(d.jobParts.length?d.jobParts.map(function(l){return '<div>職業永久加成：'+esc(l)+'</div>'}).join(''):'<div>職業永久加成 +0</div>')+'<div>自由配點 +'+d.alloc+'</div><div>其他加成 +0</div></div>':'')+'</div>'});
+    h+='<div class="sec">其他屬性</div>';
+    derived().forEach(function(r,i){var o=open['d'+i];h+='<div class="row"><button class="nm" data-a="open" data-id="d'+i+'" type="button">'+r[0]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+r[1]+'</span>'+(o?'<div class="src">'+r[2].map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>':'')+'</div>'});
+    h+='<div class="sec">屬性抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
+    h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置配點</button><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';return h}
+  if(k==='book'){var h2=head('技能','目前先顯示，之後再開放裝備。');
+    h2+='<div class="sec">戰鬥技能（依序循環）</div>'+[1,2,3,4].map(function(n){return '<div class="slot"><span>戰鬥技能 '+n+'</span><span>無法點擊</span></div>'}).join('');
+    h2+='<div class="sec">反應技能</div><div class="slot"><span>反應技能</span><span>無法點擊</span></div>';
+    h2+='<div class="sec">被動技能</div>'+[1,2,3].map(function(n){return '<div class="slot"><span>被動技能 '+n+'</span><span>無法點擊</span></div>'}).join('');return h2}
+  if(k==='rack'){var us=usableList(S.jobSn),h3=head('武器架','只能裝備目前職業可用的武器類型；其餘灰色。');
+    h3+='<div class="chips">'+WORDER.map(function(sn){var w=WEAPON[sn].n,ok=us.indexOf(w)>=0;return '<button class="chip" type="button" data-a="weapon" data-w="'+w+'" aria-pressed="'+(S.weapon===w)+'" '+(ok?'':'disabled')+'>'+w+(ok?'':'（此職業不可用）')+'</button>'}).join('')+'</div>';
+    h3+='<p class="hint" style="margin-top:12px">目前裝備：'+esc(S.weapon)+'。轉職後，不能用的武器會自動換成新職業的預設武器。</p><div class="msgline" id="wmsg"></div>';return h3}
+  if(k==='mirror'){var h4='<button class="x" data-a="close" type="button">關閉</button><div class="mirror-wrap"><div class="mbox"><canvas id="mframe" width="60" height="70"></canvas><canvas id="mdoll" width="48" height="48"></canvas></div></div>';
+    h4+='<h2>外觀</h2><p class="hint">改了選項，鏡子裡的人偶會立刻跟著變。只要有一項是未解鎖的，就不能儲存。</p><div class="fields">';
+    Object.keys(OPT).forEach(function(g){h4+='<label><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><select class="sel" id="sel-'+g+'" data-g="'+g+'">'+OPT[g].list().map(function(o){return '<option value="'+o.v+'"'+(S.look[g]===o.v?' selected':'')+'>'+esc(o.n)+(o.lock?'（未解鎖）':'')+'</option>'}).join('')+'</select></label>'});
+    h4+='</div><div class="bar"><span class="t" id="mstat"></span><button class="b alt" id="mrevert" data-a="lookcancel" type="button">還原</button><button class="b go" id="msave" data-a="looksave" type="button">儲存</button></div>';return h4}
+  if(k==='card'){var left=MAXREN-S.renames,h5=head('冒險者公會證','姓名、等級、職業與轉職都在這裡。');
+    h5+='<div class="sec">姓名</div><div class="row"><span style="font-size:16px;font-weight:700">'+esc(S.name)+'</span><span class="hint" style="margin:0">剩餘改名 '+left+' 次</span></div>';
+    h5+='<div style="display:flex;gap:8px;margin-top:8px"><input class="nm-in" id="nin" maxlength="10" placeholder="新名字（最多 10 字）" '+(left>0?'':'disabled')+'><button class="b go" data-a="rename" type="button" '+(left>0?'':'disabled')+'>改名</button></div><div class="msgline" id="nmsg"></div>';
+    h5+='<div class="sec">人物等級</div><div class="row"><span>Lv '+S.lv+'</span><span class="v">經驗 '+S.exp.toLocaleString('en-US')+'</span></div>';
+    var jl=S.jobLvs[S.jobSn]|0;h5+='<div class="sec">當前職業</div><div class="row"><span>'+esc(jobName(S.jobSn))+'　Lv '+jl+' / 50</span><span class="v">經驗 '+S.jobExp.toLocaleString('en-US')+'</span></div>';
+    h5+='<div style="margin-top:12px"><button class="b go" data-a="jobs" type="button">轉職</button></div>';return h5}
+  if(k==='jobs'){var h6=head('轉職','職業隨時可以換；各職業的等級會保留。條件未達成的職業會灰掉。');
+    JOBORDER.forEach(function(sn){var j=JOB[sn],ok=reqMet(sn),now=sn===S.jobSn,lv=S.jobLvs[sn]|0;
+      h6+='<div class="jobrow"><span><b>'+esc(j.job_name)+'</b>　Lv '+lv+'</span><button class="b '+(now||!ok?'alt':'go')+'" type="button" data-a="setjob" data-sn="'+sn+'" '+(now||!ok?'disabled':'')+'>'+(now?'目前職業':ok?'轉職':'條件未達成')+'</button>'+
+        '<small>'+esc(j.job_desc||'')+(j.required_desc?'　需要：'+esc(j.required_desc):'')+'</small></div>'});
+    h6+='<div class="msgline" id="jmsg"></div>';return h6}
+  return ''}
+function drawMirrorFrame(){var cv=$('mframe');if(!cv)return;var c=cv.getContext('2d');c.clearRect(0,0,60,70);
+  ell(c,30,36,29.6,34.6,'#241508');ell(c,30,36,28.6,33.6,'#b0802f');ell(c,30,36,27.2,32.2,'#8a5f20');ell(c,30,36,25.8,30.8,'#3b2a14');
+  var bands=['#7a93a3','#6f8898','#657f90','#5b7686','#516878'];
+  for(var y=7;y<66;y++){var dy=(y+.5-36)/29.6;if(Math.abs(dy)>=1)continue;var w=Math.round(24.8*Math.sqrt(1-dy*dy)),t=Math.min(4,Math.floor((y-7)/12));rect(c,30-w,y,w*2,1,bands[t])}
+  line(c,14,24,27,10,'#a9bcc4');line(c,15,24,28,10,'#a9bcc4');line(c,12,32,20,22,'#8fa5b0');line(c,13,32,21,22,'#8fa5b0');
+  ell(c,30,3,3.2,2.4,'#2a1a0c');ell(c,30,3,2.4,1.8,'#b03a2e');rect(c,29,2,1,1,'#f0a090');
+  rect(c,10,60,2,1,'#c9a25a');rect(c,48,60,2,1,'#c9a25a');rect(c,6,34,1,2,'#d8b268')}
+function updateMirror(){var bad=lockedChosen(),dirty=Object.keys(OPT).some(function(g){return S.look[g]!==S.saved[g]});
+  Object.keys(OPT).forEach(function(g){var o=OPT[g].list().filter(function(x){return x.v===S.look[g]})[0],lk=!!(o&&o.lock),t=$('tg-'+g),sl=$('sel-'+g);if(t)t.hidden=!lk;if(sl)sl.classList.toggle('bad',lk)});
+  var st=$('mstat');if(st){st.textContent=bad.length?'有未解鎖的選項：'+bad.join('、')+'，無法儲存':(dirty?'有尚未儲存的變更':'已是儲存的外觀');st.style.color=bad.length?'var(--seal)':'inherit'}
+  var sv=$('msave'),rv=$('mrevert');if(sv)sv.disabled=!(dirty&&!bad.length);if(rv)rv.disabled=!dirty}
+function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
+function openSheet(k){cur=k;open={};sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
+function closeSheet(){if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
+function refresh(){var u=unspent(),p=$('pillPaper');if(p)p.innerHTML='屬性'+(u>0?'<i class="dot"></i>':'');$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
+function msg(id,t){var m=$(id);if(m)m.textContent=t}
+function zeroAlloc(){return {str:0,int:0,agi:0,vit:0,luk:0}}
+sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b||b.disabled)return;var a=b.getAttribute('data-a'),k=b.getAttribute('data-k');
+  if(a==='close')closeSheet();
+  else if(a==='open'){var id=b.getAttribute('data-id');open[id]=!open[id];render()}
+  else if(a==='add'){if(unspent()>0){S.pend[k]++;render();refresh()}}
+  else if(a==='sub'){if(S.pend[k]>0){S.pend[k]--;render();refresh()}}
+  else if(a==='ok'){var na={};KEYS.forEach(function(x){na[x]=S.alloc[x]+S.pend[x]});persist({alloc:na}).then(function(){S.alloc=na;KEYS.forEach(function(x){S.pend[x]=0});render();refresh();toast('配點已儲存')},function(er){toast(errMsg(er))})}
+  else if(a==='cancel'){KEYS.forEach(function(x){S.pend[x]=0});render();refresh()}
+  else if(a==='reset'){var z=zeroAlloc();persist({alloc:z}).then(function(){S.alloc=z;KEYS.forEach(function(x){S.pend[x]=0});render();refresh();toast('配點已重置')},function(er){toast(errMsg(er))})}
+  else if(a==='weapon'){var w=b.getAttribute('data-w');persist({weapon:w}).then(function(){S.weapon=w;render();refresh();pushNavPlayer()},function(er){msg('wmsg',errMsg(er))})}
+  else if(a==='lookcancel'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]});render()}
+  else if(a==='looksave'){var f=Object.assign({},S.look);persist(f).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
+  else if(a==='jobs'){openSheet('jobs')}
+  else if(a==='setjob'){var sn=b.getAttribute('data-sn'),idx=parseInt(sn.slice(3),10)-1,f2={job:idx,jobSn:sn},us=usableList(sn),nw=S.weapon;
+    if(us.indexOf(nw)<0){nw=defaultWeaponName(sn)||us[0]||nw;f2.weapon=nw}
+    persist(f2).then(function(){S.job=idx;S.jobSn=sn;S.weapon=nw;openSheet('card');refresh();pushNavPlayer();toast('已轉職為 '+jobName(sn))},function(er){msg('jmsg',errMsg(er))})}
+  else if(a==='rename'){var v=$('nin').value.trim();
+    var bad=(window.FB&&window.FB.validName)?window.FB.validName(v):(v?'':'請先寫下新名字。');if(bad){msg('nmsg',bad);return}
+    if(v===S.name){msg('nmsg','這已經是你的名字了。');return}
+    if(demo){S.name=v;S.renames++;render();refresh();return}
+    b.disabled=true;withFB(function(FB){FB.renamePlayer(v).then(function(){S.name=v;S.renames++;render();refresh();toast('改名完成')},function(er){b.disabled=false;msg('nmsg',er&&er.code==='name-taken'?'這個名字已經有人用了。':er&&er.code==='no-renames'?'改名次數已經用完。':errMsg(er))})})}});
+sheet.addEventListener('change',function(e){var t=e.target;if(t.tagName==='SELECT'&&t.getAttribute('data-g')){S.look[t.getAttribute('data-g')]=+t.value;updateMirror()}});
+back.addEventListener('click',function(e){if(e.target===back)closeSheet()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&cur)closeSheet()});
+var HS=[{k:'mirror',l:'外觀：換外觀',x:5,y:36,w:19,h:25,p:'外觀',px:14},{k:'book',l:'書本：技能',x:13,y:77,w:31,h:14,p:'技能書',px:28},
+  {k:'paper',l:'牛皮紙頁：屬性',x:44,y:77,w:29,h:14,p:'屬性',px:58.5,id:'pillPaper'},{k:'rack',l:'武器架：換武器類型',x:66,y:33,w:24,h:30,p:'武器架',px:78},
+  {k:'card',l:'冒險者公會證：姓名、等級、職業',x:22,y:96,w:48,h:22}];
+(function(){var host=$('hsHost');HS.forEach(function(h){var b=document.createElement('button');b.className='hs';b.type='button';b.setAttribute('data-k',h.k);b.setAttribute('aria-label',h.l);
+  b.style.cssText='left:'+(h.x/92*100)+'%;top:'+(h.y/120*100)+'%;width:'+(h.w/92*100)+'%;height:'+(h.h/120*100)+'%';b.addEventListener('click',function(){openSheet(h.k)});host.appendChild(b);
+  if(h.p){var sp=document.createElement('span');sp.className='pill';if(h.id)sp.id=h.id;sp.style.cssText='left:'+h.px+'%;top:'+(93/120*100)+'%';sp.textContent=h.p;host.appendChild(sp)}})})();
+
+/* ================= doll + weapon sprite ================= */
+var WSPEC=null,SSPEC=null;
+function updateWeaponSprites(){var w=WEAPON[WNAME2K[S.weapon]];WSPEC=w&&w.img?{img:w.img,key:w.sn+'_0',cut:w.cut,ox:w.ox,oy:w.oy}:null;SSPEC=w&&w.offImg?{img:w.offImg,key:'off_'+w.sn+'_0'}:null}
+function tick(now){var L=S.look,lk={skin:L.skin,style:L.style,hair:L.hair,eyes:L.eyes,outfit:L.outfit,weapon:WSPEC,shield:SSPEC,halo:[],breath:true};Doll.draw(dollCv,lk,now);var m=$('mdoll');if(m&&cur==='mirror')Doll.draw(m,Object.assign({},lk,{weapon:null,shield:null}),now);requestAnimationFrame(tick)}
+function pushNavPlayer(){if(window.NavIcons)NavIcons.setPlayer(Object.assign({uid:S.uid,name:S.name,job:S.job,jobSn:S.jobSn,weapon:S.weapon},S.saved))}
+
+/* ================= tabs ================= */
+function renderTabs(){var h=$('tabs');h.textContent='';
   var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','設定','scroll']];
-    items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='char'));
+  items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='char'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
     b.setAttribute('data-k',it[0]);if(it[0]!=='char')b.addEventListener('click',function(){if(!NavIcons.go(it[0]))toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)});NavIcons.apply(h)}
 
-function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
-/* ---------- the player's saved character (mock until Firebase is wired) ---------- */
-var JOBN=Doll.JOBN; /* filled from job_info.csv by Doll.load */
-var WEAPON_BY_NAME={};
-var ME={name:'',job:0,skin:0,style:0,hair:0,eyes:5,outfit:null,weapon:'劍'};
-var C2={},TAB='look',RUNES=[];
-function myLook(){var w=WEAPON_BY_NAME[ME.weapon]||ORDER[0];return{outfit:ME.outfit==null?ME.job:ME.outfit,skin:ME.skin,style:ME.style,hair:ME.hair,eyes:ME.eyes,w:w,stage:1,halo:false,runes:[]}}
-function weaponSpec(){var w=W[C2.w];if(!w)return null;var st=C2.stage-1,im=w.img[st]||w.img[0];return{img:im,key:C2.w+'_'+(w.img[st]?st:0),cut:w.cut,ox:w.ox,oy:w.oy}}
-function shieldSpec(){var w=W[C2.w];if(!w||!w.offImg)return null;var st=C2.stage-1,im=w.offImg[st]||w.offImg[0];return im?{img:im,key:'off_'+C2.w+'_'+(w.offImg[st]?st:0)}:null}
-/* ---------- doll canvas ---------- */
-var DC=document.getElementById('doll'),DS=6;
-function fitDoll(){var avail=Math.min(window.innerWidth,460)-80;DS=Math.max(4,Math.min(7,Math.floor(avail/Doll.N)));DC.width=DC.height=Doll.N*DS;DC.style.width=DC.style.height=(Doll.N*DS)+'px'}
-function dollState(){return{skin:C2.skin,style:C2.style,hair:C2.hair,eyes:C2.eyes,outfit:C2.outfit,weapon:weaponSpec(),shield:shieldSpec(),halo:C2.halo?C2.runes.map(function(id){return RUNE[id].color}):[]}}
-function loop(now){Doll.draw(DC,dollState(),now);requestAnimationFrame(loop)}
-/* ---------- UI ---------- */
-function opt(label,on,fn,sw){var b=el('button','opt2');b.type='button';b.setAttribute('aria-pressed',String(!!on));if(sw){var s=el('i','sw');s.style.background=sw;b.appendChild(s)}if(label!=null)b.appendChild(el('span',null,label));b.addEventListener('click',fn);return b}
-function grp(label,kids,cls){var g=el('div','grp');g.appendChild(el('div','glab',label));var o=el('div',cls||'opts');kids.forEach(function(k){o.appendChild(k)});g.appendChild(o);return g}
-function renderHead(){var w=W[C2.w];document.getElementById('dname').textContent=ME.name+'・'+JOBN[ME.job];
-  document.getElementById('dsub').textContent='手持：'+(w?(w.sname[C2.stage-1]||w.n):'—')+(C2.halo&&C2.runes.length?'・光暈 '+C2.runes.length+' 層':'')}
-function renderSeg(){var h=document.getElementById('seg');h.textContent='';
-  [['look','外觀'],['weapon','武器'],['halo','光暈']].forEach(function(t){var b=el('button',null,t[1]);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(TAB===t[0]));
-    b.addEventListener('click',function(){TAB=t[0];renderSeg();renderPanel()});h.appendChild(b)})}
-function set(k,v){C2[k]=v;renderPanel();renderHead()}
-function renderPanel(){var h=document.getElementById('panel');h.textContent='';
-  if(TAB==='look'){
-    h.appendChild(grp('衣服',Doll.OUTFIT_ORDER.map(function(i){return opt(JOBN[i]+'裝',C2.outfit===i,function(){set('outfit',i)})})));
-    h.appendChild(grp('髮型',Doll.STYLE_ORDER.map(function(i){return opt(Doll.STYLEN[i],C2.style===i,function(){set('style',i)})})));
-    if(C2.style!==5)h.appendChild(grp('髮色',Doll.HAIR.map(function(t,i){return opt(t.n,C2.hair===i,function(){set('hair',i)},Doll.hairColor(i))})));
-    h.appendChild(grp('膚色',Doll.SKINN.map(function(n,i){return opt(n,C2.skin===i,function(){set('skin',i)},Doll.swatch(Doll.assets.skins[i]))})));
-    h.appendChild(grp('眼色',Doll.assets.eyes.map(function(im,i){return opt(String(i+1),C2.eyes===i,function(){set('eyes',i)},Doll.swatch(im))})));
-  }else if(TAB==='weapon'){
-    h.appendChild(grp('武器',ORDER.map(function(k){var b=opt(null,C2.w===k,function(){C2.w=k;renderPanel();renderHead()});b.insertBefore(cv(wsprite(k,0),2),b.firstChild);b.appendChild(el('span',null,W[k].n));return b}),'wgrid'));
-    var w=W[C2.w];h.appendChild(grp('階段',[1,2,3,4].map(function(s){var b=opt(null,C2.stage===s,function(){set('stage',s)});b.appendChild(el('span',null,['一','二','三','四'][s-1]+'階'));b.appendChild(el('small',null,w.sname[s-1]||''));return b}),'sgrid'));
-  }else{
-    var hh=el('div','hhead');var cnt=el('div','hcnt');cnt.appendChild(document.createTextNode('已選 '));cnt.appendChild(el('b',null,C2.runes.length+' / 3'));
-    for(var i=0;i<3;i++){var p=el('i','pip');if(i<C2.runes.length)p.style.background=RUNE[C2.runes[i]].color;cnt.appendChild(p)}
-    hh.appendChild(cnt);hh.appendChild(opt(C2.halo?'光暈：開':'光暈：關',C2.halo,function(){if(!C2.halo&&!C2.runes.length){toast('先選一個符文');return}set('halo',!C2.halo)}));h.appendChild(hh);
-    var g=el('div','rgrid2');RUNES.forEach(function(id){var r=RUNE[id],i=C2.runes.indexOf(id);var b=el('button','rc'+(i>=0?' sel':''));b.type='button';
-      b.style.setProperty('--rc',r.color);b.style.setProperty('--rcA',hexA(r.color,.55));b.style.setProperty('--rcB',hexA(r.color,.22));
-      b.appendChild(runeStone(id,44,false,false));b.appendChild(el('span','t',r.name));b.appendChild(el('span','ord',i>=0?String(i+1):''));
-      b.addEventListener('click',function(){var j=C2.runes.indexOf(id);if(j>=0)C2.runes.splice(j,1);else if(C2.runes.length>=3){toast('最多 3 個，先取消一個');return}else{C2.runes.push(id);C2.halo=true}
-        if(!C2.runes.length)C2.halo=false;renderPanel();renderHead()});g.appendChild(b)});
-    var wrap=el('div',C2.halo?'':'off');wrap.appendChild(g);h.appendChild(wrap);
-    h.appendChild(el('p','note','點符文加入光暈，最多 3 層，選的順序就是由內到外的順序。'));
-  }}
-document.getElementById('reset').addEventListener('click',function(){C2=myLook();renderPanel();renderHead();toast('已回到你的樣子')});
-
-function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
-new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})}).then(function(who){var p=who.player;NavIcons.setPlayer(p);['name','job','skin','style','hair','eyes','outfit','weapon'].forEach(function(k){if(p[k]!==undefined)ME[k]=p[k]});
-  return Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV))}).then(buildData).then(function(){return Doll.load(BASE,V)}).then(function(){
-    ORDER.forEach(function(k){WEAPON_BY_NAME[W[k].n]=k});RUNES=Object.keys(RUNE).sort();
-    C2=myLook();document.getElementById('loading').remove();fitDoll();window.addEventListener('resize',fitDoll);
-    renderHead();renderSeg();renderPanel();renderTabs();requestAnimationFrame(loop)})
-  .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')});
+/* ================= start ================= */
+function start(p){S=fromPlayer(p);updateWeaponSprites();drawBack();drawFront();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
+var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',skin:0,style:0,hair:0,eyes:5,outfit:0};
+Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv'].map(getCSV)).then(buildData).then(function(){return Doll.load(BASE,V)}).then(function(){
+  if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');
+  if(demo){$('demoNote').hidden=false;start(DEMO);return}
+  return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){start(Object.assign({uid:who.user.uid},who.player));res()})})})
+}).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script>
-/* iOS Safari ignores touch-action on some elements: block the double-tap zoom manually (the second tap still clicks) */
-(function(){var last=0,lastT=null;document.addEventListener('touchend',function(e){var now=Date.now(),t=e.target;
-  if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
-  last=now;lastT=t},{passive:false})})();
-</script>
-<script type="module" src="../common/fb.js?v=3"></script>
+<script type="module" src="../common/fb.js?v=4"></script>
 </body></html>
