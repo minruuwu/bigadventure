@@ -65,7 +65,77 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
   if(src.__head||src.__pixel){c.style.imageRendering='pixelated';c.style.marginTop=(48-src.__css[1])+'px';c.style.position='relative';c.style.zIndex='2';btn.style.overflow='visible'}
   else{c.style.margin=((48-src.__css[1])/2)+'px -6px';}
   old.replaceWith(c);
-  if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src)}
+  if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src);
+  if(btn.getAttribute('data-k')==='camp'&&!src.__pixel&&btn.getAttribute('aria-selected')==='true')campOn(btn,c)}
+
+/* ---- camp tab (current page): warm light through the tent door, a breathing grainy halo over it, and a chat bubble ---- */
+var CF={state:0,icon:null,lit:null,halo:null,HX:0,HY:0,cv:null,btn:null,iconEl:null,run:false,last:0,t0:0},LT=[255,232,165];
+function campBuild(img){
+  var w=img.naturalWidth,h=img.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(img,0,0);
+  var id=tx.getImageData(0,0,w,h),d=id.data,door=[],x,y,i;
+  for(y=0;y<h;y++)for(x=Math.floor(w*.62);x<=Math.ceil(w*.83);x++){i=(y*w+x)*4;if(d[i+3]>200&&(d[i]+d[i+1]+d[i+2])/3<55)door.push([x,y])}
+  if(!door.length)return false;
+  /* lit copy of the drawing: the slit becomes light and light seeps ~3.6px onto the canvas around it */
+  var ld=new Uint8ClampedArray(d);
+  for(y=0;y<h;y++)for(x=0;x<w;x++){i=(y*w+x)*4;if(d[i+3]<200)continue;var md=99;
+    for(var k=0;k<door.length;k++){var dx=x-door[k][0],dy=y-door[k][1],dd=dx*dx+dy*dy;if(dd<md)md=dd}md=Math.sqrt(md);
+    var q=md===0?1:md<=3.6?0.5*(1-md/3.6):0;if(q>0)for(var c=0;c<3;c++)ld[i+c]=d[i+c]+(LT[c]-d[i+c])*q}
+  var litSrc=document.createElement('canvas');litSrc.width=w;litSrc.height=h;litSrc.getContext('2d').putImageData(new ImageData(ld,w,h),0,0);
+  var mask=document.createElement('canvas');mask.width=w;mask.height=h;var mx=mask.getContext('2d');mx.fillStyle='#fff';door.forEach(function(p){mx.fillRect(p[0],p[1],1,1)});
+  var a=processIcon(img),b=processLitIcon(litSrc,mask,img);if(!a||!b)return false;
+  CF.icon=a;CF.lit=b.c;
+  /* halo in icon-local device px: centred just above the door's foot, chunky 1-css-px grain, 7 soft levels, softer over the tent */
+  var HW=330,HH=270;CF.HX=Math.round((HW-a.width)/2);CF.HY=90;var hc=document.createElement('canvas');hc.width=HW;hc.height=HH;var hx=hc.getContext('2d');
+  var gx=CF.HX+b.door[0]-6,gy=CF.HY+b.door[1]-24,BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]],CELL=3;
+  var ia=a.getContext('2d').getImageData(0,0,a.width,a.height).data;
+  for(y=0;y<HH;y+=CELL)for(x=0;x<HW;x+=CELL){var ex=(x+1.5-gx)/1.2,ey=(y+1.5-gy)/0.9,dist=Math.sqrt(ex*ex+ey*ey)/125;if(dist>=1)continue;
+    var v=Math.pow(1-dist,0.95)*7.2,lv=Math.floor(v)+(((v-Math.floor(v))*16>BAY[(y/CELL)%4][(x/CELL)%4])?1:0);if(lv<=0)continue;
+    var al=(40+Math.min(6,lv-1)*31)/255,ix=x-CF.HX,iy=y-CF.HY;
+    if(ix>=0&&iy>=0&&ix<a.width&&iy<a.height&&ia[(iy*a.width+ix)*4+3]>0)al*=0.68;
+    hx.fillStyle='rgba(252,226,156,'+al.toFixed(3)+')';hx.fillRect(x,y,CELL,CELL)}
+  CF.halo=hc;return true}
+/* same geometry as processIcon, but the outline next to the lit slit (and dark seam pixels there) take the light colour */
+function processLitIcon(src,mask,orig){
+  var w=orig.naturalWidth,h=orig.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(orig,0,0);
+  var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
+  for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
+  var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(src,x0,y0,cw,ch,0,0,W,H);
+  var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
+  var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
+  var m=document.createElement('canvas');m.width=W;m.height=H;var mx=m.getContext('2d');mx.imageSmoothingEnabled=true;mx.drawImage(mask,x0,y0,cw,ch,0,0,W,H);
+  var md=mx.getImageData(0,0,W,H);for(i=0;i<md.data.length;i+=4){var on=md.data[i+3]>60;md.data[i]=LT[0];md.data[i+1]=LT[1];md.data[i+2]=LT[2];md.data[i+3]=on?255:0}mx.putImageData(md,0,0);
+  var c=document.createElement('canvas');c.width=W+2*P;c.height=H+2*P;var cx=c.getContext('2d'),R=P+1,dx,dy;
+  for(dy=-P;dy<=P;dy++)for(dx=-P;dx<=P;dx++)if(dx*dx+dy*dy<=P*P)cx.drawImage(sil,P+dx,P+dy);
+  var ring=document.createElement('canvas');ring.width=c.width;ring.height=c.height;var rx=ring.getContext('2d');
+  for(dy=-R;dy<=R;dy++)for(dx=-R;dx<=R;dx++)if(dx*dx+dy*dy<=R*R)rx.drawImage(m,P+dx,P+dy);
+  cx.globalCompositeOperation='source-atop';cx.drawImage(ring,0,0);cx.globalCompositeOperation='source-over';
+  cx.drawImage(s,P,P);
+  var od=cx.getImageData(0,0,c.width,c.height),rd=rx.getImageData(0,0,c.width,c.height).data,o=od.data;
+  for(i=0;i<o.length;i+=4)if(rd[i+3]&&o[i+3]&&(o[i]+o[i+1]+o[i+2])/3<110){o[i]=LT[0];o[i+1]=LT[1];o[i+2]=LT[2]}
+  cx.putImageData(od,0,0);
+  /* door foot (bottom-most slit pixel) in this canvas */
+  var fx=0,fy=-1,mk=mask.getContext('2d').getImageData(0,0,w,h).data;for(y=0;y<h;y++)for(x=0;x<w;x++)if(mk[(y*w+x)*4+3]&&y>=fy){fy=y;fx=x}
+  return {c:c,door:[(fx-x0)*sc*DPR+P,(fy-x0*0+0-y0)*sc*DPR+P]}}
+var BUB=['..ooooooooo..','.o.........o.','o...........o','o...........o','o...........o','.o.........o.','..ooooo.oooo.','......o.o....','.......o.....'];
+function drawBubble(x,ox,oy,nd){var S=7;
+  x.fillStyle='#f4ecd6';[[2,1,10,1],[1,2,11,4],[2,5,10,5],[7,6,7,6]].forEach(function(r){x.fillRect(ox+r[0]*S,oy+r[1]*S,(r[2]-r[0]+1)*S,(r[3]-r[1]+1)*S)});
+  x.fillStyle='#080503';BUB.forEach(function(row,j){for(var i=0;i<row.length;i++)if(row[i]==='o')x.fillRect(ox+i*S,oy+j*S,S,S)});
+  x.fillStyle='#462d19';for(var k=0;k<nd;k++)x.fillRect(ox+(3+k*3)*S,oy+3*S,S,S)}
+function campOn(btn,iconEl){
+  if(CF.state===0){CF.state=1;var im=new Image();im.onload=function(){CF.state=campBuild(im)?2:3;if(CF.state===2&&CF.btn&&CF.btn.isConnected)campOn(CF.btn,CF.iconEl)};im.onerror=function(){CF.state=3};im.src=BASE+'icons/nav/camp.png?v=2'}
+  CF.btn=btn;CF.iconEl=iconEl;if(CF.state!==2)return;
+  if(!CF.cv){CF.cv=document.createElement('canvas');CF.cv.style.cssText='position:absolute;left:0;top:-34px;pointer-events:none;z-index:3'}
+  var bw=btn.clientWidth,bh=btn.clientHeight+34;CF.cv.width=bw*DPR;CF.cv.height=bh*DPR;CF.cv.style.width=bw+'px';CF.cv.style.height=bh+'px';
+  btn.appendChild(CF.cv);iconEl.style.visibility='hidden';
+  if(!CF.run){CF.run=true;CF.t0=performance.now();requestAnimationFrame(campTick)}}
+function campTick(now){if(!CF.cv||!CF.cv.isConnected||!CF.iconEl||!CF.iconEl.isConnected){CF.run=false;return}
+  if(CF.last&&now-CF.last<48){requestAnimationFrame(campTick);return}CF.last=now;var t=(now-CF.t0)/1000;
+  var x=CF.cv.getContext('2d'),ix=CF.iconEl.offsetLeft*DPR,iy=(CF.iconEl.offsetTop+34)*DPR;x.clearRect(0,0,CF.cv.width,CF.cv.height);
+  var fl=.36+.08*Math.sin(t*.9)+.03*Math.sin(t*2.3),q=Math.min(1,0.82+0.12*(fl-0.36)/0.11),bf=0.42+0.58*(0.5+0.5*Math.sin(t*2*Math.PI/4));
+  x.drawImage(CF.icon,ix,iy);x.globalAlpha=q;x.drawImage(CF.lit,ix,iy);x.globalAlpha=bf;x.drawImage(CF.halo,ix-CF.HX,iy-CF.HY);x.globalAlpha=1;
+  var ph=t%4;if(ph<2.4){var nd=ph<.6?1:ph<1.2?2:3,pop=Math.min(1,ph/.15);drawBubble(x,ix+110,iy-52+Math.round((1-pop)*8),nd)}
+  requestAnimationFrame(campTick)}
 
 /* sparks drifting up off the anvil while the forge tab is the current page (tiny canvas, ~20fps, stops when hidden) */
 var SP={cv:null,parts:[],acc:0,last:0,run:false,w:0,h:0},SPX=10,SPY=18,SPS=PXS;
