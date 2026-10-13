@@ -19,4 +19,9 @@
       for(var y=Math.floor(cy-rad-2);y<=cy+rad+2;y++)for(var xx=Math.floor(cx-rad-2);xx<=cx+rad+2;xx++){var d=Math.hypot(xx-cx,y-cy);var X=(xx+96)%96,Y=(y+96)%96;
         if(d<rad*.7){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad&&(xx+y)%2===0){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad+1.5&&d>=rad&&r()<.5){x.fillStyle='rgba(70,40,15,.26)';x.fillRect(X,Y,1,1)}}}
     return 'url('+c.toDataURL()+')'}
-  var R=document.documentElement.style;R.setProperty('--wearP',tile('paper'));R.setProperty('--edgeL',edgeTile('l'));R.setProperty('--edgeR',edgeTile('r'));R.setProperty('--stainP',stainTile())}catch(e){}})();
+  /* 角色頁書頁用：深色破邊疊在紙上，內側邊緣也不規則（5 格寬；紙那側透明） */
+  function edgeTile2(side){var W2=5,H2=32,c=document.createElement('canvas');c.width=W2;c.height=H2;var x=c.getContext('2d');var sd=side==='l'?5:13;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+    var e=1,d=3;for(var y=0;y<H2;y++){var q=r();if(q<.2)e=Math.max(0,e-1);else if(q<.42)e=Math.min(1,e+1);q=r();if(q<.28)d=Math.max(2,d-1);else if(q<.56)d=Math.min(4,d+1);var dd=d;if(r()<.07)dd=Math.max(2,d-1);
+      for(var xx=0;xx<W2;xx++){var px=side==='l'?xx:W2-1-xx;if(px<e||px>dd)continue;x.fillStyle=px===e?'#241610':px===dd?'#5a3a1c':(r()<.12?'#5a3a1c':'#3b2713');x.fillRect(xx,y,1,1)}}
+    return 'url('+c.toDataURL()+')'}
+  var R=document.documentElement.style;R.setProperty('--wearP',tile('paper'));R.setProperty('--edgeL',edgeTile('l'));R.setProperty('--edgeR',edgeTile('r'));R.setProperty('--edgeL2',edgeTile2('l'));R.setProperty('--edgeR2',edgeTile2('r'));R.setProperty('--stainP',stainTile())}catch(e){}})();
