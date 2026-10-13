@@ -135,7 +135,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .tree image{image-rendering:pixelated}.tree g.n{cursor:pointer}
 .tcap{display:flex;align-items:center;min-height:30px;margin:6px 0 2px;font-size:14px}
 .tleg{font-size:11px;color:var(--pink2);margin:4px 0 0}
-</style></head>
+.icf{background-size:32px 32px;image-rendering:pixelated}</style></head>
 <body>
 <div id="loading">讀取資料中…</div>
 <div class="app">
@@ -455,20 +455,20 @@ function treeSVG(){var M=treeModel(),h='<svg class="tree" viewBox="0 0 300 300" 
 function treeCap(sn){var j=JOB[sn];if(!j)return '';var ok=reqMet(sn);return jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b>　'+(sn===S.jobSn?'目前職業':ok?'已可轉職':'未解鎖：'+esc(j.required_desc||''))}
 function head(t,h){return '<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
 var HAS_ICONS=true,DKEYS=['hp','patk','matk','eva','crit','critdmg','pdef','mdef'],askReset=false;
-function ic(id){return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=3" onerror="this.remove()">':''}
+function ic(id){if(HAS_ICONS&&DKEYS.indexOf(id)>=0)return '<span class="ic icf" style="background-image:url('+wframe(2)+')"><img class="ic" style="margin:0" alt="" src="../assets/icons/stats/'+id+'.png?v=4" onerror="this.remove()"></span>';return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=4" onerror="this.remove()">':''}
 function derivedBase(){var sv={};KEYS.forEach(function(x){sv[x]=S.pend[x];S.pend[x]=0});var r=derived();KEYS.forEach(function(x){S.pend[x]=sv[x]});return r}
 function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="dl">'+(d>0?'+':'')+d+'</span>':''}
   var bn=parseFloat(b),nn=parseFloat(n),dd=Math.round((nn-bn)*10)/10;return dd?'<span class="dl">'+(dd>0?'+':'')+dd+'%</span>':''}
 function sheetHTML(k){
   if(k==='paper'){var a=A(),u=unspent(),ps=pendingSum(),h=head('屬性','點屬性名稱看加成來源；加號只是暫存，按「確定」才會寫入。');
-    h+='<div class="sec">五項屬性　剩餘自由點數 <b>'+u+'</b></div>';
+    h+='<div class="sec">基礎屬性　剩餘自由點數 <b>'+u+'</b></div>';
     KEYS.forEach(function(k2){var d=a[k2],o=open['a'+k2];
       h+='<div class="row"><button class="nm" data-a="open" data-id="a'+k2+'" type="button">'+ic(k2)+NAMES[k2]+'<small>'+(o?'收起':'來源')+'</small></button><div class="step"><span class="v">'+d.total+(S.pend[k2]?'<span class="dl">+'+S.pend[k2]+'</span>':'')+'</span>'+
         '<button data-a="sub" data-k="'+k2+'" type="button" '+(S.pend[k2]?'':'disabled')+' aria-label="減少">−</button><button data-a="add" data-k="'+k2+'" type="button" '+(u>0?'':'disabled')+' aria-label="增加">＋</button></div>'+
         (o?'<div class="src"><div>天生 10</div>'+(d.jobParts.length?d.jobParts.map(function(l){return '<div>職業永久加成：'+esc(l)+'</div>'}).join(''):'<div>職業永久加成 +0</div>')+'<div>自由配點 +'+d.alloc+'</div><div>其他加成 +0</div></div>':'')+'</div>'});
-    h+='<div class="sec">其他屬性</div>';
+    h+='<div class="sec">戰鬥屬性</div>';
     var db=derivedBase();derived().forEach(function(r,i){var o=open['d'+i];h+='<div class="row"><button class="nm" data-a="open" data-id="d'+i+'" type="button">'+ic(DKEYS[i])+r[0]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+r[1]+(ps?diffStr(db[i][1],r[1]):'')+'</span>'+(o?'<div class="src">'+r[2].map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>':'')+'</div>'});
-    h+='<div class="sec">屬性抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+ic('res_'+r[0])+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
+    h+='<div class="sec">元素抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+ic('res_'+r[0])+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
     if(askReset)h+='<div class="bar"><span class="ask">確定要重置全部配點？已配的點數會全部退回，可以重新分配。</span><button class="b alt" data-a="resetno" type="button">不要</button><button class="b go" data-a="resetyes" type="button">確定重置</button></div>';
     else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置配點</button><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
     return h}
