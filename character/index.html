@@ -355,7 +355,7 @@ function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.t
 function resOf(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])}
 
 /* ================= appearance options ================= */
-function outfitUnlocked(i){var sn='job'+('0'+(i+1)).slice(-2);return i===S.job||(S.jobLvs[sn]|0)>0||i===S.saved.outfit}
+function outfitUnlocked(i){var sn='job'+('0'+(i+1)).slice(-2);return i===S.job||(S.jobLvs[sn]|0)>0||i===S.saved.outfit||reqMet(sn)}
 var OPT={
   outfit:{label:'衣服',list:function(){return Doll.OUTFIT_ORDER.map(function(i){return{v:i,n:(Doll.JOBN[i]||('外觀 '+(i+1)))+'裝',lock:!outfitUnlocked(i)}})}},
   style:{label:'髮型',list:function(){return Doll.STYLE_ORDER.map(function(i){return{v:i,n:Doll.STYLEN[i],lock:false}})}},
