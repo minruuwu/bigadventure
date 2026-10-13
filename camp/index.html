@@ -271,7 +271,7 @@ body.sheeton .grain{opacity:0}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
 @media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
 @media (prefers-reduced-motion:reduce){body::after{animation:none}}
-</style>
+#scene{filter:brightness(1.07) contrast(1.1)}</style>
 <style>
 html,body,*{touch-action:manipulation}
 .dollcard{padding:14px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--wear) 0 0/288px 288px,linear-gradient(180deg,rgba(220,235,255,.07),rgba(0,0,0,.26)),var(--panel);box-shadow:inset 0 0 0 2px var(--bd),inset 0 4px 0 0 var(--hi),inset 0 -4px 0 0 var(--lo);clip-path:var(--cpC)}
@@ -773,7 +773,7 @@ function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimation
   var fireDone=false;ACT.slice().sort(function(a,b){return a.y-b.y}).forEach(function(a){if(!fireDone&&a.y>FIRE.y){fire(now);fireDone=true}var px=Math.round(a.x),py=Math.round(a.y),tagY=a.y-36;
     if(a.pet){var P=a.pet,moving=a.wait<=0,fr=P.frames>1&&moving?Math.floor((now+a.phase)/140)%P.frames:0,hop=P.frames===1&&moving?-Math.round(Math.abs(Math.sin((now+a.phase)/110))*2):0;
       sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);px=0}sx.drawImage(P.img,fr*P.fw,0,P.fw,P.fh,px-Math.round(P.dw/2),py-P.dh+hop,P.dw,P.dh);sx.restore();tagY=a.y-P.dh-4}
-    else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}sx.save();sx.filter='brightness(1.07) contrast(1.1)';if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore()}
+    else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore()}
     a.tag.style.left=(a.x/SW*100)+'%';a.tag.style.top=(tagY/SH*100)+'%';a.tag.style.zIndex=Math.round(a.y)+1000});
   if(!fireDone)fire(now);sparks(now,dt);if(LAYER.front)sx.drawImage(LAYER.front,0,0,SW,SH);
   if(FG)sx.drawImage(FG,0,0);
