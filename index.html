@@ -333,7 +333,7 @@ var OUT='#241610';
   return 'url('+c.toDataURL()+')'}
   function edgeTile(side){var W2=4,H2=32,c=document.createElement('canvas');c.width=W2;c.height=H2;var x=c.getContext('2d');var sd=side==='l'?3:9;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
     var e=1;for(var y=0;y<H2;y++){var rr=r();if(rr<.16)e=Math.max(0,e-1);else if(rr<.34)e=Math.min(2,e+1);var cut=e;if(r()<.05)cut=Math.min(3,e+1);
-      for(var xx=0;xx<W2;xx++){var px=side==='l'?xx:W2-1-xx;if(px<cut)continue;if(px===cut){x.fillStyle='#3b2713'}else if(px===cut+1){x.fillStyle='#8a5e2c'}else{x.fillStyle=r()<.08?'#c7a96e':'#d9c08a'}x.fillRect(xx,y,1,1)}}
+      for(var xx=0;xx<W2;xx++){var px=side==='l'?xx:W2-1-xx;if(px<cut)continue;if(px===cut){x.fillStyle='#241610'}else if(px===cut+1){x.fillStyle='#3b2713'}else{x.fillStyle=r()<.12?'#5a3a1c':'#4a2f16'}x.fillRect(xx,y,1,1)}}
     return 'url('+c.toDataURL()+')'}
   function stainTile(){var c=document.createElement('canvas');c.width=c.height=96;var x=c.getContext('2d');var sd=17;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
     for(var i=0;i<9;i++){var cx=r()*96,cy=r()*96,rad=5+r()*9,col=r()<.3?'rgba(150,80,25,':'rgba(110,70,25,';
