@@ -239,7 +239,9 @@ function sparkTick(now){if(!SP.cv||!SP.cv.isConnected){SP.run=false;return}
 
 function apply(tabs){if(!tabs)return;lastTabs=tabs;
   Array.prototype.forEach.call(tabs.querySelectorAll('[data-k]'),function(b){var k=b.getAttribute('data-k');
-    if(k==='char'){var h=headCanvas();if(h)place(b,h);return}
+    if(k==='char'){var h=headCanvas();if(h){place(b,h);
+      /* the head may be the copy restored from this session: place() then returns early, so make sure the glow is running on the tab's canvas */
+      var cur=b.querySelector('canvas');if(cur&&cur.__navFrom===h&&b.getAttribute('aria-selected')==='true'&&h.__head&&h.__look&&!(HA.run&&HA.el===cur))headAnimOn(cur,h.__look)}return}
     if(FILES[k]){load(k);if(cache[k])place(b,cache[k])}})}
 
 function setPlayer(p){player=p;headKey='';if(lastTabs)apply(lastTabs)}
