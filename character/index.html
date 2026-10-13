@@ -135,7 +135,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .tree image{image-rendering:pixelated}.tree g.n{cursor:pointer}
 .tcap{display:flex;align-items:center;min-height:30px;margin:6px 0 2px;font-size:14px}
 .tleg{font-size:11px;color:var(--pink2);margin:4px 0 0}
-.icf{background-size:32px 32px;image-rendering:pixelated}</style></head>
+.icf{background-size:32px 32px;image-rendering:pixelated}.fl{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;color:var(--pink2);letter-spacing:.06em}.stp{display:flex;align-items:stretch;gap:4px;border:2px solid var(--lo);background:var(--paper2);padding:2px}.stp.bad{border-color:var(--seal)}.stp button{flex:none;width:34px;min-height:34px;font:inherit;font-size:14px;color:#f0e2c4;background:var(--pink);border:2px solid var(--lo);cursor:pointer;touch-action:manipulation}.stp .stv{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:var(--pink);text-align:center;line-height:1.15;letter-spacing:0}.stp .stv small{font-size:10px;opacity:.7}.stp.bad .stv{color:var(--seal)}</style></head>
 <body>
 <div id="loading">讀取資料中…</div>
 <div class="app">
@@ -484,7 +484,7 @@ function sheetHTML(k){
     return h3}
   if(k==='mirror'){var h4='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><div class="mirror-wrap"><div class="mbox"><canvas id="mframe" width="60" height="70"></canvas><canvas id="mdoll" width="48" height="48"></canvas></div></div>';
     h4+='<h2>外觀</h2><p class="hint">改了選項，鏡子裡的人偶會立刻跟著變。只要有一項是未解鎖的，就不能儲存。</p><div class="fields">';
-    Object.keys(OPT).forEach(function(g){h4+='<label><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><select class="sel" id="sel-'+g+'" data-g="'+g+'">'+OPT[g].list().map(function(o){return '<option value="'+o.v+'"'+(S.look[g]===o.v?' selected':'')+'>'+esc(o.n)+(o.lock?'（未解鎖）':'')+'</option>'}).join('')+'</select></label>'});
+    Object.keys(OPT).forEach(function(g){h4+='<div class="fl"><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><div class="stp" id="sel-'+g+'"><button type="button" data-a="lstep" data-g="'+g+'" data-d="-1" aria-label="上一個'+OPT[g].label+'">◀</button><span class="stv" id="sv-'+g+'">'+stepText(g)+'</span><button type="button" data-a="lstep" data-g="'+g+'" data-d="1" aria-label="下一個'+OPT[g].label+'">▶</button></div></div>'});
     h4+='</div><div class="bar"><span class="t" id="mstat"></span><button class="b alt" id="mrevert" data-a="lookcancel" type="button">還原</button><button class="b go" id="msave" data-a="looksave" type="button">儲存</button></div>';return h4}
   if(k==='card'){var left=MAXREN-S.renames,h5=head('冒險者公會證','姓名、等級、職業與轉職都在這裡。').replace('<h2>','<h2 class="bold">');
     h5+='<div class="sec gs">姓名</div>';
@@ -512,6 +512,7 @@ function drawMirrorFrame(){var cv=$('mframe');if(!cv)return;var c=cv.getContext(
   line(c,14,24,27,10,'#a9bcc4');line(c,15,24,28,10,'#a9bcc4');line(c,12,32,20,22,'#8fa5b0');line(c,13,32,21,22,'#8fa5b0');
   ell(c,30,3,3.2,2.4,'#2a1a0c');ell(c,30,3,2.4,1.8,'#b03a2e');rect(c,29,2,1,1,'#f0a090');
   rect(c,10,60,2,1,'#c9a25a');rect(c,48,60,2,1,'#c9a25a');rect(c,6,34,1,2,'#d8b268')}
+function stepText(g){var l=OPT[g].list(),k=-1;l.forEach(function(o,n){if(o.v===S.look[g])k=n});if(k<0)return '—';var o=l[k];return esc(o.n)+(o.lock?'（未解鎖）':'')+'<small>'+(k+1)+'/'+l.length+'</small>'}
 function updateMirror(){var bad=lockedChosen(),dirty=Object.keys(OPT).some(function(g){return S.look[g]!==S.saved[g]});
   Object.keys(OPT).forEach(function(g){var o=OPT[g].list().filter(function(x){return x.v===S.look[g]})[0],lk=!!(o&&o.lock),t=$('tg-'+g),sl=$('sel-'+g);if(t)t.hidden=!lk;if(sl)sl.classList.toggle('bad',lk)});
   var st=$('mstat');if(st){st.textContent=bad.length?'有未解鎖的選項：'+bad.join('、')+'，無法儲存':(dirty?'有尚未儲存的變更':'已是儲存的外觀');st.style.color=bad.length?'var(--seal)':'inherit'}
@@ -544,6 +545,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='wno'){confirmWeapon=null;render()}
   else if(a==='wyes'){var w=WEAPON[confirmWeapon].n;b.disabled=true;persist({weapon:w}).then(function(){S.weapon=w;confirmWeapon=null;render();refresh();pushNavPlayer();toast('已裝備 '+w)},function(er){b.disabled=false;msg('wcmsg',errMsg(er))})}
   else if(a==='lookcancel'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]});render()}
+  else if(a==='lstep'){var g2=b.getAttribute('data-g'),d2=+b.getAttribute('data-d'),l2=OPT[g2].list(),n2=l2.length,k2=0;l2.forEach(function(o,n){if(o.v===S.look[g2])k2=n});if(n2){k2=(k2+d2+n2)%n2;S.look[g2]=l2[k2].v;var sv=$('sv-'+g2);if(sv)sv.innerHTML=stepText(g2);updateMirror()}}
   else if(a==='looksave'){var f=Object.assign({},S.look);persist(f).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
   else if(a==='jobs'){confirmJob=null;editName=false;confirmName=null;openSheet('jobs')}
   else if(a==='tree'){treeSel=S.jobSn;openSheet('tree')}
