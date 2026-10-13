@@ -340,6 +340,13 @@ html,body,*{touch-action:manipulation}
 .nmchk input:focus-visible+.bx{outline:2px solid #fff;outline-offset:2px}
 .tags.hn .tag:not(.pet){display:none}
 .hit{position:absolute;transform:translate(-50%,0);pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pcard .pet{width:100%;margin-top:4px;padding-top:8px;border-top:2px dashed rgba(70,40,15,.45);display:flex;flex-direction:column;gap:5px}
+.pcard .pet[hidden]{display:none!important}
+.pcard .pet h3{margin:0;font-size:13px;font-weight:900;color:#3b2713;display:flex;justify-content:space-between}
+.pcard .pet .pips{display:flex;gap:3px}.pcard .pet .pips i{flex:1;height:8px;background:rgba(70,40,15,.22);box-shadow:inset 0 0 0 1px rgba(70,40,15,.35)}.pcard .pet .pips i.on{background:#c8604a}
+.pcard .pet .tr{font-size:13px;font-weight:700;line-height:1.45;color:#2e1d0e}.pcard .pet .tr small{display:block;font-weight:400;color:#5a3a1a;font-size:12px}
+.pcard .pet .fd{font:inherit;font-size:13px;font-weight:900;border:0;background:#4a2a12;color:#f0dfb8;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
+.pcard .pet .fd:disabled{opacity:.5;cursor:default}.pcard .pet .pm{font-size:12px;min-height:1.3em;color:#7a2a1a}
 .pcard .say{width:100%;margin-top:4px;padding-top:8px;border-top:2px dashed rgba(70,40,15,.45);display:flex;flex-direction:column;gap:6px}
 .pcard .say h3{margin:0;font-size:13px;font-weight:900;color:#3b2713}
 .pcard .say .txt{font-size:14px;font-weight:700;line-height:1.45;color:#2e1d0e;word-break:break-all;min-height:1.45em}
@@ -366,7 +373,7 @@ html,body,*{touch-action:manipulation}
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
+<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=18"></script>
@@ -779,8 +786,23 @@ function bubble(a,now){var bob=Math.round(Math.sin((now+a.phase)/380)),n=1+Math.
   for(var d=0;d<3;d++){sx.fillStyle=d<n?'#3b2713':'#c9b78d';sx.fillRect(bx+3+d*3,by+3,2,2)}}
 /* ---------- detail card ---------- */
 var CARD=null;
-function openCard(a){CARD=a;var p=a.p;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;document.getElementById('pcSayBox').hidden=true;
-  if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
+var PETINFO={},ME_P=null,FEEDARM=0;
+var STATN={m_reduce_rate:'魔法減傷',p_reduce_rate:'物理減傷',eva_rate:'閃避率',crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害'};
+function petOf(name){var k=null;Object.keys(PETINFO).forEach(function(id){if(PETINFO[id].name===name)k=id});return k?PETINFO[k]:null}
+function petLv(id){var d=ME_P&&ME_P.pets&&ME_P.pets[id];return Math.max(0,Math.min(10,d?d.lv|0:0))}
+function renderPet(){var box=document.getElementById('pcPet');if(!CARD||!CARD.pet){box.hidden=true;return}var pi=petOf(CARD.pet.name);if(!pi||!ME_P){box.hidden=true;return}
+  var lv=petLv(pi.id),max=pi.max,per=pi.per,ck=ME_P.cookies|0,need=lv<max?pi.cost[lv]:0,pips='';for(var i=0;i<max;i++)pips+='<i'+(i<lv?' class="on"':'')+'></i>';
+  box.hidden=false;box.innerHTML='<h3><span>好感等級</span><span>Lv '+lv+' / '+max+'</span></h3><div class="pips">'+pips+'</div><div class="tr">'+esc2(pi.trait)+'<small>每級 '+(STATN[pi.stat]||pi.stat)+' +'+pi.perTxt+'（目前 +'+Math.round(per*lv*1000)/10+'%）</small></div>'+
+    (lv<max?'<button class="fd" id="pcFeed" type="button"'+(ck>=need?'':' disabled')+'>餵食寵物餅乾（需要 '+need+' 塊，持有 '+ck+' 塊）</button>':'<div class="tr"><small>好感已達最高等級</small></div>')+'<div class="pm" id="pcPm"></div>';
+  var b=document.getElementById('pcFeed');if(b)b.addEventListener('click',function(){feedPet(pi,b)})}
+function esc2(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function feedPet(pi,b){var lv=petLv(pi.id),need=pi.cost[lv],ck=ME_P.cookies|0,pm=document.getElementById('pcPm');if(lv>=pi.max||ck<need)return;
+  if(!FEEDARM||Date.now()-FEEDARM>3000){FEEDARM=Date.now();b.textContent='再按一次確定餵食';return}FEEDARM=0;
+  var done=function(){ME_P.cookies=ck-need;ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]={lv:lv+1};renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=pi.name+' 的好感提升到 Lv '+(lv+1)+'！'};
+  if(demo){done();return}b.disabled=true;
+  withFB(function(FB){FB.feedPet(pi.id,lv+1,ck-need).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'餵食失敗（權限尚未開放）':'餵食失敗，請稍後再試'})})}
+function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;document.getElementById('pcSayBox').hidden=true;
+  if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
   document.getElementById('pcSub').textContent=(JOBN[p.job|0]||'冒險者')+(on?'・'+on:'');
@@ -825,18 +847,18 @@ document.getElementById('plaza').addEventListener('click',function(e){var r=scen
 function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=localStorage.getItem('camp.showNames')!=='0'}catch(e){}
   cb.checked=v;tagsEl.classList.toggle('hn',!v);
   cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
-function start(me,others){ME_UID=me.uid;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
+function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
   document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
   scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
 var demo=/[?&]demo=1/.test(location.search);
 window.addEventListener('pagehide',function(){STOP=true});window.addEventListener('pageshow',function(e){if(e.persisted&&STOP){STOP=false;last=0;requestAnimationFrame(tick)}});
-Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV)).then(buildData).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
-  if(demo){var d=demoPlayers();start(d[0],d.slice(1));return}
+Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
+  if(demo){var d=demoPlayers();d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){return FB.listPlayers(30).then(function(all){
     var me=Object.assign({uid:who.user.uid},who.player,{lastSeen:Date.now()});
     start(me,all.filter(function(p){return p.uid!==me.uid&&!p.disabled}));res()})})})})
 }).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=6"></script>
+<script type="module" src="../common/fb.js?v=7"></script>
 </body></html>

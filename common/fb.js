@@ -64,6 +64,8 @@ const FB = {
   // Saves fields on the signed-in player's own document (appearance, weapon, job, point allocation ...).
   // 營地「想說的話」(最多 50 字);時間用伺服器時間
   async saySet(text) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const t = String(text).slice(0, 50); await updateDoc(doc(db, 'players', u.uid), { say: t, sayAt: serverTimestamp() }); mePatch({ say: t, sayAt: Date.now() }); },
+  // 餵寵物：好感等級 +1、餅乾減少（cookies 與 pets.<id>.lv 一起寫入；規則檢查等級只能 +1、餅乾只能減少）
+  async feedPet(id, lv, cookiesLeft) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), { cookies: cookiesLeft, ['pets.' + id + '.lv']: lv }); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { lv }); mePatch({ cookies: cookiesLeft, pets }); },
   async updatePlayer(fields) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), fields); mePatch(fields); },
   // Rename: names must stay unique; at most 3 renames; the old name is released after success.
   async renamePlayer(newName) {

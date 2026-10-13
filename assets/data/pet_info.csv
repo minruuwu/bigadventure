@@ -1,0 +1,4 @@
+pet_id,pet_name,species,trait_name,bonus_stat,bonus_per_level,max_level,cost_lv1,cost_lv2,cost_lv3,cost_lv4,cost_lv5,cost_lv6,cost_lv7,cost_lv8,cost_lv9,cost_lv10
+gm_pet_02,阿果,鼠,鼠天使的福音,m_reduce_rate,0.50%,10,1,1,2,2,3,3,4,4,5,5
+gm_pet_01,阿梅,鼠,鼠的美食家天性,p_reduce_rate,0.50%,10,1,1,2,2,3,3,4,4,5,5
+gm_pet_03,庫奇,貓,貓的捉摸不定,eva_rate,0.50%,10,1,1,2,2,3,3,4,4,5,5
