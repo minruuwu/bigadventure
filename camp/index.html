@@ -800,7 +800,7 @@ function feedPet(pi,b){var lv=petLv(pi.id),need=pi.cost[lv],ck=ME_P.cookies|0,pm
   if(!FEEDARM||Date.now()-FEEDARM>3000){FEEDARM=Date.now();b.textContent='再按一次確定餵食';return}FEEDARM=0;
   var done=function(){ME_P.cookies=ck-need;ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]={lv:lv+1};renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=pi.name+' 的好感提升到 Lv '+(lv+1)+'！'};
   if(demo){done();return}b.disabled=true;
-  withFB(function(FB){FB.feedPet(pi.id,lv+1,ck-need).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'餵食失敗（權限尚未開放）':'餵食失敗，請稍後再試'})})}
+  withFB(function(FB){FB.feedPet(pi.id,lv+1,ck-need).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'餵食失敗（權限尚未開放）':(er&&er.code==='timeout')?'連線逾時，請檢查網路後再試':'餵食失敗，請稍後再試'})})}
 function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;document.getElementById('pcSayBox').hidden=true;
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name));
@@ -860,5 +860,5 @@ Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv']
 }).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=8"></script>
+<script type="module" src="../common/fb.js?v=9"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

@@ -418,7 +418,7 @@ function lockedChosen(){var bad=[];Object.keys(OPT).forEach(function(k){OPT[k].l
 
 /* ================= saving ================= */
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
-function errMsg(e){var c=e&&(e.code||e.message)||'';return c==='permission-denied'?'儲存失敗：資料庫規則還沒開放這個欄位（permission-denied）':'儲存失敗（'+c+'）'}
+function errMsg(e){var c=e&&(e.code||e.message)||'';return c==='timeout'?'連線逾時：手機網路沒有回應，請換網路或稍後再試':c==='permission-denied'?'儲存失敗：資料庫規則還沒開放這個欄位（permission-denied）':'儲存失敗（'+c+'）'}
 function persist(fields){if(demo)return Promise.resolve();return new Promise(function(res,rej){withFB(function(FB){FB.updatePlayer(fields).then(res,rej)})})}
 
 /* ================= sheets ================= */
@@ -597,5 +597,5 @@ Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=8"></script>
+<script type="module" src="../common/fb.js?v=9"></script>
 </body></html>

@@ -16,6 +16,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let firstUser;
+const tmo = (pr, ms = 10000) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), ms))]);
 const ready = new Promise(res => { const off = onAuthStateChanged(auth, u => { firstUser = u; off(); res(u); }); });
 
 // ---- speed-ups: local copy of my player doc (page switches show instantly, then re-check in the background), timeouts ----
@@ -65,11 +66,11 @@ const FB = {
   // 營地「想說的話」(最多 50 字);時間用伺服器時間
   async saySet(text) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const t = String(text).slice(0, 50); await updateDoc(doc(db, 'players', u.uid), { say: t, sayAt: serverTimestamp() }); mePatch({ say: t, sayAt: Date.now() }); },
   // 餵寵物：好感等級 +1、餅乾減少（cookies 與 pets.<id>.lv 一起寫入；規則檢查等級只能 +1、餅乾只能減少）
-  async feedPet(id, lv, cookiesLeft) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), { cookies: cookiesLeft, ['pets.' + id + '.lv']: lv }); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { lv }); mePatch({ cookies: cookiesLeft, pets }); },
+  async feedPet(id, lv, cookiesLeft) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { cookies: cookiesLeft, ['pets.' + id + '.lv']: lv })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { lv }); mePatch({ cookies: cookiesLeft, pets }); },
   // 管理後台（admin/ 頁面用；寫入是否允許由 Firestore 規則依管理者 email 決定）
   async adminList(n) { await ready; const s = await withTimeout(getDocs(query(collection(db, 'players'), orderBy('lastSeen', 'desc'), limit(n || 200))), 15000); return s.docs.map(d => Object.assign({ uid: d.id }, ser(d.data()))); },
   async adminUpdate(uid, fields) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', uid), fields); },
-  async updatePlayer(fields) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), fields); mePatch(fields); },
+  async updatePlayer(fields) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), fields)); mePatch(fields); },
   // Rename: names must stay unique; at most 3 renames; the old name is released after success.
   async renamePlayer(newName) {
     await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
