@@ -14,8 +14,8 @@ var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(
 function pxs(k){return k==='forge'?PXSF:PXS}
 
 /* processed icons are kept for the browser session so the next page shows them straight away */
-function ssGet(k){try{return JSON.parse(sessionStorage.getItem('navicon:'+k)||'null')}catch(e){return null}}
-function ssSet(k,v){try{sessionStorage.setItem('navicon:'+k,JSON.stringify(v))}catch(e){}}
+function ssGet(k){try{return JSON.parse(sessionStorage.getItem('navicon2:'+k)||'null')}catch(e){return null}}
+function ssSet(k,v){try{sessionStorage.setItem('navicon2:'+k,JSON.stringify(v))}catch(e){}}
 function save(k,c){try{ssSet(k,{u:c.toDataURL(),css:c.__css,px:!!c.__pixel,hd:!!c.__head,key:c.__key||''})}catch(e){}}
 function restore(k,cb){var v=ssGet(k);if(!v)return;var im=new Image();im.onload=function(){var c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
   c.getContext('2d').drawImage(im,0,0);c.__css=v.css;c.__pixel=v.px;c.__head=v.hd;c.__key=v.key;cb(c)};im.src=v.u}
@@ -30,7 +30,7 @@ function processIcon(img,ol){
   var w=img.naturalWidth,h=img.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(img,0,0);
   var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-  if(x1<0)return null;var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch)*(ol?1.09:1),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
+  if(x1<0)return null;var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch)*(ol?1.09*1.15:1),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
   var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(img,x0,y0,cw,ch,0,0,W,H);
   var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
   var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
@@ -172,7 +172,7 @@ function processLitIcon(src,mask,orig,ol){
   var w=orig.naturalWidth,h=orig.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(orig,0,0);
   var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
   for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-  var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch)*(ol?1.09:1),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
+  var cw=x1-x0+1,ch=y1-y0+1,sc=Math.min(BOX_W/cw,BOX_H/ch)*(ol?1.09*1.15:1),W=Math.round(cw*sc*DPR),H=Math.round(ch*sc*DPR),P=OUT*DPR;
   var s=document.createElement('canvas');s.width=W;s.height=H;var sx=s.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(src,x0,y0,cw,ch,0,0,W,H);
   var sd=sx.getImageData(0,0,W,H);for(var i=3;i<sd.data.length;i+=4)sd.data[i]=sd.data[i]>=120?255:0;sx.putImageData(sd,0,0);
   var sil=document.createElement('canvas');sil.width=W;sil.height=H;var lx=sil.getContext('2d');lx.drawImage(olScaled(ol,x0,y0,cw,ch,W,H)||s,0,0);lx.globalCompositeOperation='source-in';lx.fillStyle='#080503';lx.fillRect(0,0,W,H);
