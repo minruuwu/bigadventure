@@ -45,14 +45,15 @@ canvas{image-rendering:pixelated;display:block}
 .card span{font-size:clamp(10px,3cqw,13px)}
 
 /* ===== parchment sheets ===== */
-.back{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.72);display:flex;align-items:flex-end;justify-content:center}
+.back{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.72);display:flex;align-items:center;justify-content:center;padding:16px 0 calc(16px + env(safe-area-inset-bottom,0px))}
 .back[hidden]{display:none}
-.sw{position:relative;width:min(100%,460px);max-height:90%;display:flex;filter:drop-shadow(0 -3px 0 rgba(0,0,0,.55))}
+.swo{width:min(100%,460px);max-height:100%;display:flex;filter:drop-shadow(3px 0 0 #3b2713) drop-shadow(-3px 0 0 #3b2713) drop-shadow(0 3px 0 #3b2713) drop-shadow(0 -3px 0 #3b2713) drop-shadow(0 4px 0 rgba(0,0,0,.45))}
+.sw{position:relative;flex:1;min-width:0;max-height:100%;display:flex}
 .sw .edge{flex:0 0 24px;background-size:24px 192px;background-repeat:repeat-y;image-rendering:pixelated}
 .sw .edge.l{background-image:var(--edgeL)}.sw .edge.r{background-image:var(--edgeR)}
-.sheet{position:relative;flex:1;min-width:0;overflow:auto;color:var(--pink);padding:18px 6px calc(16px + env(safe-area-inset-bottom,0px));
- background-color:#d9c08a;background-image:linear-gradient(#3b2713 0 3px,#6e4a26 3px 6px,#a07b45 6px 8px,transparent 8px),linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stainP),var(--wearP);
- background-size:auto,auto,576px 576px,288px 288px;background-repeat:no-repeat,no-repeat,repeat,repeat;background-position:0 0,0 0,0 0,0 0}
+.sheet{position:relative;flex:1;min-width:0;min-height:0;overflow:auto;color:var(--pink);padding:26px 6px 24px;
+ background-color:#d9c08a;background-image:linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stainP),var(--wearP);
+ background-size:auto,576px 576px,288px 288px;background-repeat:no-repeat,repeat,repeat;background-position:0 0,0 0,0 0}
 .sheet h2{margin:0 0 2px;font-size:18px;letter-spacing:.06em}
 .sheet .hint{margin:0 0 12px;font-size:12px;color:var(--pink2)}
 .sheet .x{position:absolute;right:10px;top:10px;font:inherit;font-size:12px;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:3px 10px;cursor:pointer;z-index:6}
@@ -69,7 +70,7 @@ canvas{image-rendering:pixelated;display:block}
 .step button:disabled,.b:disabled{opacity:.4;cursor:default}
 .b.alt{background:var(--paper2);color:var(--pink)}
 .b.go{background:var(--seal)}
-.bar{position:sticky;bottom:-16px;margin:14px -6px -16px;padding:10px 6px calc(10px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.bar{position:sticky;bottom:-24px;margin:14px -6px -24px;padding:10px 6px calc(10px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .bar .t{margin-right:auto;font-size:12px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -81,7 +82,7 @@ canvas{image-rendering:pixelated;display:block}
 .meter i{display:block;height:100%;background:var(--seal)}
 input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:4px 8px;min-width:0;width:100%}
 .msgline{font-size:12px;min-height:1.4em;color:var(--seal)}
-.sheet.m{padding-top:0}
+.sheet.m{padding-top:6px}
 .ic{width:16px;height:16px;flex:none;image-rendering:pixelated;display:inline-block;vertical-align:-3px;margin-right:6px}
 .dl{color:var(--ok);margin-left:6px;font-variant-numeric:tabular-nums}
 .ask{flex:1 1 100%;font-size:12px;color:var(--seal)}
@@ -117,7 +118,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="back" id="back" hidden><div class="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i></div></div>
+<div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i></div></div></div>
 <script src="../common/paper.js?v=1"></script>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=13"></script>
@@ -420,7 +421,13 @@ function updateMirror(){var bad=lockedChosen(),dirty=Object.keys(OPT).some(funct
   Object.keys(OPT).forEach(function(g){var o=OPT[g].list().filter(function(x){return x.v===S.look[g]})[0],lk=!!(o&&o.lock),t=$('tg-'+g),sl=$('sel-'+g);if(t)t.hidden=!lk;if(sl)sl.classList.toggle('bad',lk)});
   var st=$('mstat');if(st){st.textContent=bad.length?'有未解鎖的選項：'+bad.join('、')+'，無法儲存':(dirty?'有尚未儲存的變更':'已是儲存的外觀');st.style.color=bad.length?'var(--seal)':'inherit'}
   var sv=$('msave'),rv=$('mrevert');if(sv)sv.disabled=!(dirty&&!bad.length);if(rv)rv.disabled=!dirty}
-function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
+function jag(){var w=$('sw');if(!w||back.hidden)return;var W=w.offsetWidth,H=w.offsetHeight;if(!W||!H)return;var sd=7;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+  function line(){var pts=[],x=0,y=Math.floor(r()*3)*3;while(x<W){pts.push([x,y]);x+=8+Math.floor(r()*5)*4;var d=r();y=d<.35?Math.max(0,y-3):d<.7?Math.min(9,y+3):y;if(r()<.12)y=Math.floor(r()*4)*3}pts.push([W,y]);return pts}
+  var t=line(),b=line(),P=[];t.forEach(function(q,i){if(i)P.push(q[0]+'px '+t[i-1][1]+'px');P.push(q[0]+'px '+q[1]+'px')});
+  for(var i=b.length-1;i>=0;i--){var q=b[i],yy=H-q[1];P.push(q[0]+'px '+yy+'px');if(i)P.push(b[i-1][0]+'px '+yy+'px')}
+  w.style.clipPath='polygon('+P.join(',')+')'}
+window.addEventListener('resize',jag);
+function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;jag();if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
 function openSheet(k){cur=k;open={};sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper');if(p)p.innerHTML='屬性'+(u>0?'<i class="dot"></i>':'');$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
