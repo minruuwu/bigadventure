@@ -51,12 +51,14 @@ canvas{image-rendering:pixelated;display:block}
 .sw{position:relative;flex:1;min-width:0;max-height:100%;display:flex}
 .sw .edge{position:absolute;top:0;bottom:0;width:30px;z-index:3;pointer-events:none;background-size:30px 192px;background-repeat:repeat-y;image-rendering:pixelated}
 .sw .edge.l{left:0;background-image:var(--edgeL2)}.sw .edge.r{right:0;background-image:var(--edgeR2)}
-.sheet{position:relative;flex:1;min-width:0;min-height:0;overflow:auto;color:var(--pink);margin:0 6px;padding:31px 28px 29px;
+.sw .edge.t,.sw .edge.b{left:0;right:0;width:auto;height:30px;background-size:192px 30px;background-repeat:repeat-x}
+.sw .edge.t{top:0;bottom:auto;background-image:var(--edgeT2)}.sw .edge.b{top:auto;bottom:0;background-image:var(--edgeB2)}
+.sheet{position:relative;flex:1;min-width:0;min-height:0;overflow:auto;color:var(--pink);margin:0 6px;padding:40px 28px 36px;
  background-color:#d9c08a;background-image:linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stainP),var(--wearP);
  background-size:auto,576px 576px,288px 288px;background-repeat:no-repeat,repeat,repeat;background-position:0 0,0 0,0 0}
 .sheet h2{margin:0 0 2px;font-size:18px;letter-spacing:.06em}
 .sheet .hint{margin:0 0 12px;font-size:12px;color:var(--pink2)}
-.sheet .x{position:absolute;right:34px;top:18px;z-index:6;width:30px;height:30px;padding:0;border:0;cursor:pointer;background:#4a2a12;color:#f0dfb8;font:inherit;font-size:16px;font-weight:700;line-height:30px;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
+.sheet .x{position:absolute;right:34px;top:30px;z-index:6;width:30px;height:30px;padding:0;border:0;cursor:pointer;background:#4a2a12;color:#f0dfb8;font:inherit;font-size:16px;font-weight:700;line-height:30px;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
 .sheet .x:active{transform:translateY(2px)}
 .sheet button:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
 .sec{font-size:12px;letter-spacing:.08em;color:var(--pink2);margin:14px 0 6px;border-bottom:1px dashed var(--pink2);padding-bottom:2px}
@@ -71,7 +73,7 @@ canvas{image-rendering:pixelated;display:block}
 .step button:disabled,.b:disabled{opacity:.4;cursor:default}
 .b.alt{background:var(--paper2);color:var(--pink)}
 .b.go{background:var(--seal)}
-.bar{position:sticky;bottom:-29px;margin:14px -28px -29px;padding:10px 28px calc(10px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.bar{position:sticky;bottom:-36px;margin:14px -28px -36px;padding:10px 28px calc(80px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .bar .t{margin-right:auto;font-size:12px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -83,7 +85,7 @@ canvas{image-rendering:pixelated;display:block}
 .meter i{display:block;height:100%;background:var(--seal)}
 input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:4px 8px;min-width:0;width:100%}
 .msgline{font-size:12px;min-height:1.4em;color:var(--seal)}
-.sheet.m{padding-top:6px}
+.sheet.m{padding-top:30px}
 .ic{width:16px;height:16px;flex:none;image-rendering:pixelated;display:inline-block;vertical-align:-3px;margin-right:6px}
 .dl{color:var(--ok);margin-left:6px;font-variant-numeric:tabular-nums}
 .ask{flex:1 1 100%;font-size:12px;color:var(--seal)}
@@ -119,8 +121,8 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i></div></div></div>
-<script src="../common/paper.js?v=3"></script>
+<div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div></div>
+<script src="../common/paper.js?v=4"></script>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=14"></script>
 <script>
