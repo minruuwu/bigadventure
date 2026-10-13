@@ -619,7 +619,7 @@ function placeAll(list){ACT=[];list.forEach(function(p,i){var sl=SLOTS[i%SLOTS.l
   var t=document.createElement('div');t.className='tag'+(p.uid===ME_UID?' me':'');var im=new Image();im.src=jobIcon(p);im.alt=JOBN[p.job|0]||'';t.appendChild(im);
   var nm=document.createElement('span');nm.textContent=p.name;t.appendChild(nm);
   if(p.uid!==ME_UID&&p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS){var d=document.createElement('i');d.className='on';d.title='線上';t.appendChild(d)}
-  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;var h=document.createElement('div');h.className='hit';h.setAttribute('aria-hidden','true');h.style.left=(x/SW*100)+'%';h.style.top=((y-50)/SH*100)+'%';h.style.width=(40/SW*100)+'%';h.style.height=(54/SH*100)+'%';h.style.zIndex=Math.round(y);h.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(h);a.hit=h;
+  t.addEventListener('click',function(e){e.stopPropagation();openCard(a)});tagsEl.appendChild(t);a.tag=t;
   ACT.push(a)})}
 /* background: chunky pixel art drawn on a half-resolution grid (1 art pixel = 2 scene pixels) */
 var STARS=[],FG=null;
@@ -707,7 +707,7 @@ function kuqiReady(){var c=document.createElement('canvas');c.width=c.height=16;
   var P={name:'庫奇',img:c,frames:1,fw:16,fh:16,dw:16,dh:16},a={pet:P,p:{name:P.name},still:true};
   var t=document.createElement('div');t.className='tag pet';var nm=document.createElement('span');nm.textContent=P.name;t.appendChild(nm);
   t.style.left=((KUQI.x+8)/SW*100)+'%';t.style.top=((KUQI.y+3)/SH*100)+'%';t.style.zIndex=1;
-  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);KUQI.ok=true}
+  t.addEventListener('click',function(e){e.stopPropagation();openCard(a)});tagsEl.appendChild(t);KUQI.ok=true}
 function kuqi(now){if(!KUQI.ok)return;var step=Math.round(Math.sin(now/1100)*3);sx.drawImage(kuqiTail(step),KUQI.x+KUQI.tx,KUQI.y);sx.drawImage(KUQI.img.gm_pet_03,KUQI.x,KUQI.y)}
 /* irregular stones around the fire (no outline): each one is a few rows of varying width */
 /* irregular stones around the fire (no outline). Back ones sit behind the logs; front ones are bigger,
@@ -817,7 +817,10 @@ function loadPets(){return Promise.all(PETS.map(function(d){return new Promise(f
 function placePets(list){list.forEach(function(P,i){if(!P)return;var x,y;do{x=rnd(50,SW-50);y=rnd(90,SH-20)}while(inFire(x,y));
   var a={pet:P,p:{name:P.name},x:x,y:y,tx:x,ty:y,face:Math.random()<.5?-1:1,wait:rnd(.5,3),phase:rnd(0,4000)};
   var t=document.createElement('div');t.className='tag pet';var nm=document.createElement('span');nm.textContent=P.name;t.appendChild(nm);
-  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
+  t.addEventListener('click',function(e){e.stopPropagation();openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
+/* tap on a character: pick the front-most body (largest feet y) whose body box holds the point */
+document.getElementById('plaza').addEventListener('click',function(e){var r=scene.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*SW,py=(e.clientY-r.top)/r.height*SH,best=null;
+  ACT.forEach(function(a){if(a.pet)return;if(Math.abs(px-a.x)<=10&&py>=a.y-42&&py<=a.y+2&&(!best||a.y>best.y))best=a});if(best)openCard(best)});
 function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=localStorage.getItem('camp.showNames')!=='0'}catch(e){}
   cb.checked=v;tagsEl.classList.toggle('hn',!v);
   cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
