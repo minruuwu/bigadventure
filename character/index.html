@@ -155,7 +155,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <div class="toast" id="toast"></div>
 </div>
 <div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div></div>
-<script src="../common/paper.js?v=5"></script>
+<script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=18"></script>
 <script>
@@ -517,7 +517,9 @@ function jag(){var w=$('sw');if(!w||back.hidden)return;var W=w.offsetWidth,H=w.o
   for(var i=b.length-1;i>=0;i--){var q=b[i],yy=H-q[1];P.push(q[0]+'px '+yy+'px');if(i)P.push(b[i-1][0]+'px '+yy+'px')}
   w.style.clipPath='polygon('+P.join(',')+')'}
 window.addEventListener('resize',jag);
-function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;jag();if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
+function paintSheetPaper(){if(!window.PaperLit)return;var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
+window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
+function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
 function openSheet(k){cur=k;open={};sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper');if(p)p.innerHTML='屬性'+(u>0?'<i class="dot"></i>':'');$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}

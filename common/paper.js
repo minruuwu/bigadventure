@@ -36,8 +36,14 @@
     var P=[[1,2,0.0],[2,1,1.7],[3,2,3.1],[2,3,4.4],[4,1,5.5],[1,4,2.2]];
     function nz(cc,rr){var v=0;for(var i=0;i<P.length;i++){v+=Math.sin(2*Math.PI*(P[i][0]*cc+P[i][1]*rr)/N+P[i][2])}return (v/P.length)*0.5+0.5}
     var T=[];for(var rr=0;rr<N;rr++){T[rr]=[];for(var cc=0;cc<N;cc++){var n=nz(cc,rr),t=Math.round(n*2.2+(BAY[(rr&3)*4+(cc&3)]/16-0.5)*0.9);var q=r();if(q<.035)t++;else if(q>.988)t--;T[rr][cc]=t}}
-    for(var k=0;k<3;k++){var sx=Math.floor(r()*N),sy=Math.floor(r()*N),sr=5+Math.floor(r()*8);
-      for(var yy=-sr-1;yy<=sr+1;yy++)for(var xx=-sr-1;xx<=sr+1;xx++){var dd=Math.sqrt(xx*xx+yy*yy);if(Math.abs(dd-sr)<0.7&&r()<0.75){var X=(sx+xx+N)%N,Y=(sy+yy+N)%N;T[Y][X]++}}}
     for(var y=0;y<N;y++)for(var x2=0;x2<N;x2++){var v=Math.max(0,Math.min(4,T[y][x2]));x.fillStyle=PAL[v];x.fillRect(x2*B,y*B,B,B)}
     return 'url('+c.toDataURL()+')'}
+  /* 創角頁式的紙：左上提亮、右下偏暗的像素分帶（每格 4px），回傳 background-image 用的 url() */
+  window.PaperLit=function(W,H,seed,lx,ly){var B=4,cols=Math.ceil(W/B),rows=Math.ceil(H/B),PAL=['#e0c795','#d3b480','#c4a06c','#b08a56','#97723f'].map(function(h){var n=parseInt(h.slice(1),16);return [n>>16&255,n>>8&255,n&255]}),BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+    var sd=seed|0;function rng(){sd=sd+0x6D2B79F5|0;var t=Math.imul(sd^sd>>>15,1|sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+    var c=document.createElement('canvas');c.width=cols;c.height=rows;var x=c.getContext('2d'),img=x.createImageData(cols,rows),d=img.data,LX=lx/B,LY=ly/B,LR=Math.max(cols,rows)*1.2;
+    for(var r=0;r<rows;r++)for(var cc=0;cc<cols;cc++){var dd=Math.sqrt((cc-LX)*(cc-LX)+((r-LY)*1.1)*((r-LY)*1.1))/LR,lc=Math.max(0,1-dd),bay=BAY[(r&3)*4+(cc&3)]/16;
+      var tone=3-Math.max(0,Math.min(3,Math.round(lc*3.2+(bay-0.5)*0.9))),q=rng();if(q<0.035)tone++;else if(q>0.988)tone--;tone=Math.max(0,Math.min(4,tone));
+      var col=PAL[tone],o=(r*cols+cc)*4;d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=255}
+    x.putImageData(img,0,0);return 'url('+c.toDataURL()+')'};
   var R=document.documentElement.style;R.setProperty('--paperT',paperTile());R.setProperty('--wearP',tile('paper'));R.setProperty('--edgeL',edgeTile('l'));R.setProperty('--edgeR',edgeTile('r'));R.setProperty('--edgeT2',edgeTileH('t'));R.setProperty('--edgeB2',edgeTileH('b'));R.setProperty('--edgeL2',edgeTile2('l'));R.setProperty('--edgeR2',edgeTile2('r'));R.setProperty('--stainP',stainTile())}catch(e){}})();
