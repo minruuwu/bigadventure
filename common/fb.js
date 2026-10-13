@@ -52,6 +52,8 @@ const FB = {
     });
   },
   // Saves fields on the signed-in player's own document (appearance, weapon, job, point allocation ...).
+  // 營地「想說的話」(最多 50 字);時間用伺服器時間
+  async saySet(text) { const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), { say: String(text).slice(0, 50), sayAt: serverTimestamp() }); },
   async updatePlayer(fields) { const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', u.uid), fields); },
   // Rename: names must stay unique; at most 3 renames; the old name is released after success.
   async renamePlayer(newName) {

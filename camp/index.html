@@ -333,6 +333,24 @@ html,body,*{touch-action:manipulation}
 .pcard .nm img{width:26px;height:26px;image-rendering:pixelated}
 .pcard .sub{font-size:13px;font-weight:700;color:#5a3a1a}
 .pcard .soon{margin-top:6px;font-size:12px;color:#6a4a2a}
+.nmchk{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:900;text-shadow:1px 1px 0 #000;cursor:pointer;user-select:none}
+.nmchk input{position:absolute;opacity:0;width:1px;height:1px}
+.nmchk .bx{width:16px;height:16px;background:#2b1d13;box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;display:inline-flex;align-items:center;justify-content:center;color:#ffd76a;font-size:13px;line-height:1}
+.nmchk input:checked+.bx::after{content:'✓'}
+.nmchk input:focus-visible+.bx{outline:2px solid #fff;outline-offset:2px}
+.tags.hn .tag:not(.pet){display:none}
+.hit{position:absolute;transform:translate(-50%,0);pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pcard .say{width:100%;margin-top:4px;padding-top:8px;border-top:2px dashed rgba(70,40,15,.45);display:flex;flex-direction:column;gap:6px}
+.pcard .say h3{margin:0;font-size:13px;font-weight:900;color:#3b2713}
+.pcard .say .txt{font-size:14px;font-weight:700;line-height:1.45;color:#2e1d0e;word-break:break-all;min-height:1.45em}
+.pcard .say .txt.none{color:#7a5a38;font-weight:400}
+.pcard .say .when{font-size:11px;color:#6a4a2a}
+.pcard .say textarea{width:100%;box-sizing:border-box;min-height:62px;resize:none;font:inherit;font-size:14px;line-height:1.4;color:#2e1d0e;background:#e3d3aa;border:2px solid #3b2713;padding:6px 8px;border-radius:0}
+.pcard .say .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pcard .say .cnt{font-size:12px;color:#5a3a1a}
+.pcard .say .sv{font:inherit;font-size:13px;font-weight:900;border:0;background:#4a2a12;color:#f0dfb8;padding:6px 14px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
+.pcard .say .sv:disabled{opacity:.5}
+.pcard .say .msg{font-size:12px;min-height:1.3em;color:#7a2a1a}
 </style></head>
 <body>
 <div class="grain" id="grain" aria-hidden="true"></div>
@@ -340,14 +358,14 @@ html,body,*{touch-action:manipulation}
 <div class="app">
   <div class="top"><h1>營地</h1></div>
   <div class="main">
-    <div class="phead"><h2>營火廣場</h2><span id="pcount"></span></div>
+    <div class="phead"><label class="nmchk"><input type="checkbox" id="showNames" checked><span class="bx"></span>顯示玩家姓名</label><span id="pcount"></span></div>
     <div class="shd"><div class="plaza" id="plaza"><canvas id="scene" aria-label="營地裡的冒險者"></canvas><div class="tags" id="tags"></div></div></div>
-    <p class="note">這裡會顯示最近上線的 15 位冒險者和你自己。名牌旁的綠點代表 10 分鐘內有上線。點名牌可以看詳細資料。</p>
+    <p class="note">這裡會顯示最近上線的 15 位冒險者和你自己。名牌旁的綠點代表 10 分鐘內有上線，頭上的對話泡泡代表 24 小時內留了想說的話。點冒險者可以看詳細資料。</p>
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
+<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
 <script src="../common/paper.js?v=5"></script>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=16"></script>
@@ -591,13 +609,17 @@ function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:90,y:122}; /* fire centre x, base line y */
 var SLOTS=[[66,170],[112,166],[52,140],[101,96],[124,112],[70,90],[90,181],[132,146],[36,118],[150,126],[156,164],[148,98],[28,160],[44,86],[42,184],[138,194]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
+function tms(v){return v&&v.toMillis?v.toMillis():(typeof v==='number'?v:0)}
+var SAY_MS=24*3600*1000;
+function sayLive(p){return !!(p.say&&Date.now()-tms(p.sayAt)<SAY_MS)}
 function placeAll(list){ACT=[];list.forEach(function(p,i){var sl=SLOTS[i%SLOTS.length],x=sl[0],y=sl[1];
   var a={p:p,x:x,y:y,tx:x,ty:y,face:x<FIRE.x?1:x>FIRE.x?-1:(Math.random()<.5?-1:1),still:true,wait:1,tmp:document.createElement('canvas'),phase:rnd(0,4000)};
   a.tmp.width=a.tmp.height=48;a.look=look(p);
   var t=document.createElement('div');t.className='tag'+(p.uid===ME_UID?' me':'');var im=new Image();im.src=jobIcon(p);im.alt=JOBN[p.job|0]||'';t.appendChild(im);
   var nm=document.createElement('span');nm.textContent=p.name;t.appendChild(nm);
   if(p.uid!==ME_UID&&p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS){var d=document.createElement('i');d.className='on';d.title='線上';t.appendChild(d)}
-  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
+  t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;var h=document.createElement('div');h.className='hit';h.setAttribute('aria-hidden','true');h.style.left=(x/SW*100)+'%';h.style.top=((y-50)/SH*100)+'%';h.style.width=(40/SW*100)+'%';h.style.height=(54/SH*100)+'%';h.style.zIndex=Math.round(y);h.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(h);a.hit=h;
+  ACT.push(a)})}
 /* background: chunky pixel art drawn on a half-resolution grid (1 art pixel = 2 scene pixels) */
 var STARS=[],FG=null;
 function buildBG(){var G=2,GW=SW/G,GH=SH/G,c=document.createElement('canvas');c.width=SW;c.height=SH;var x=c.getContext('2d'),sd=7;
@@ -743,17 +765,39 @@ function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimation
     if(a.pet){var P=a.pet,moving=a.wait<=0,fr=P.frames>1&&moving?Math.floor((now+a.phase)/140)%P.frames:0,hop=P.frames===1&&moving?-Math.round(Math.abs(Math.sin((now+a.phase)/110))*2):0;
       sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);px=0}sx.drawImage(P.img,fr*P.fw,0,P.fw,P.fh,px-Math.round(P.dw/2),py-P.dh+hop,P.dw,P.dh);sx.restore();tagY=a.y-P.dh-4}
     else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore()}
-    a.tag.style.left=(a.x/SW*100)+'%';a.tag.style.top=(tagY/SH*100)+'%';a.tag.style.zIndex=Math.round(a.y)});
+    a.tag.style.left=(a.x/SW*100)+'%';a.tag.style.top=(tagY/SH*100)+'%';a.tag.style.zIndex=Math.round(a.y)+1000});
   if(!fireDone)fire(now);sparks(now,dt);if(LAYER.front)sx.drawImage(LAYER.front,0,0,SW,SH);
   if(FG)sx.drawImage(FG,0,0);
+  ACT.forEach(function(a){if(!a.pet&&sayLive(a.p))bubble(a,now)});
   requestAnimationFrame(tick)}
+/* little speech bubble (11x9 art px) at the top right of the head: bobs 1px, the three dots light up in turn */
+var BUB=['..#########..','.#fffffffff#.','#fffffffffff#','#fffffffffff#','#fffffffffff#','.#fffffffff#.','..#ff#######.','...#f#.......','....#........'];
+function bubble(a,now){var bob=Math.round(Math.sin((now+a.phase)/380)),n=1+Math.floor(now/380)%3,bx=Math.min(SW-14,Math.round(a.x)+5),by=Math.round(a.y)-54+bob;
+  for(var r=0;r<BUB.length;r++)for(var c=0;c<13;c++){var ch=BUB[r].charAt(c);if(ch==='.'||!ch)continue;sx.fillStyle=ch==='#'?'#241610':'#f4e8c8';sx.fillRect(bx+c,by+r,1,1)}
+  for(var d=0;d<3;d++){sx.fillStyle=d<n?'#3b2713':'#c9b78d';sx.fillRect(bx+3+d*3,by+3,2,2)}}
 /* ---------- detail card ---------- */
 var CARD=null;
-function openCard(a){CARD=a;var p=a.p;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;
+function openCard(a){CARD=a;var p=a.p;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;document.getElementById('pcSayBox').hidden=true;
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
-  document.getElementById('pcSub').textContent=(JOBN[p.job|0]||'冒險者')+(on?'・'+on:'');document.getElementById('pcard').hidden=false}
+  document.getElementById('pcSub').textContent=(JOBN[p.job|0]||'冒險者')+(on?'・'+on:'');
+  /* 想說的話：自己可以改，別人只能看 */
+  var mine=p.uid===ME_UID,txt=document.getElementById('pcSayTxt'),ta=document.getElementById('pcSayIn'),row=document.getElementById('pcSayRow'),msg=document.getElementById('pcSayMsg');
+  msg.textContent='';document.getElementById('pcSayBox').hidden=false;ta.hidden=!mine;row.hidden=!mine;txt.hidden=mine;
+  if(mine){ta.value=p.say||'';document.getElementById('pcSayCnt').textContent=ta.value.length+'/50';document.getElementById('pcSaySv').disabled=false}
+  else{txt.textContent=p.say||'（還沒有想說的話）';txt.className='txt'+(p.say?'':' none')}
+  sayWhen(p);document.getElementById('pcard').hidden=false}
+function sayAgo(t){var m=Math.floor((Date.now()-t)/60000);if(m<1)return '剛剛';if(m<60)return m+' 分鐘前';var h=Math.floor(m/60);if(h<24)return h+' 小時前';return Math.floor(h/24)+' 天前'}
+function sayWhen(p){document.getElementById('pcSayWhen').textContent=p.say&&tms(p.sayAt)?'更新於 '+sayAgo(tms(p.sayAt)):''}
+(function(){var ta=document.getElementById('pcSayIn'),cnt=document.getElementById('pcSayCnt'),sv=document.getElementById('pcSaySv'),msg=document.getElementById('pcSayMsg');
+  ta.addEventListener('input',function(){var v=ta.value.replace(/[\r\n]+/g,' ');if(v!==ta.value)ta.value=v;cnt.textContent=ta.value.length+'/50';msg.textContent=''});
+  sv.addEventListener('click',function(){if(!CARD||CARD.pet||CARD.p.uid!==ME_UID)return;var p=CARD.p,v=ta.value.replace(/\s+/g,' ').trim().slice(0,50);ta.value=v;cnt.textContent=v.length+'/50';
+    if(v===(p.say||'')){msg.style.color='#5a3a1a';msg.textContent='內容沒有變動';return}
+    sv.disabled=true;msg.style.color='#5a3a1a';msg.textContent='儲存中…';
+    var done=function(){p.say=v;p.sayAt=Date.now();msg.style.color='#2f6a2a';msg.textContent=v?'已儲存':'已清除';sayWhen(p);sv.disabled=false};
+    if(demo){done();return}
+    withFB(function(FB){FB.saySet(v).then(done).catch(function(e){sv.disabled=false;msg.style.color='#7a2a1a';msg.textContent='儲存失敗'+(e&&e.code?'（'+e.code+'）':'')})})})})();
 function ago(t){var m=Math.round((Date.now()-t)/60000);if(m<60)return m+' 分鐘前';var h=Math.round(m/60);if(h<48)return h+' 小時前';return Math.round(h/24)+' 天前'}
 function closeCard(){CARD=null;document.getElementById('pcard').hidden=true}
 document.getElementById('pcBg').addEventListener('click',closeCard);document.getElementById('pcX').addEventListener('click',closeCard);
@@ -763,7 +807,7 @@ document.getElementById('pcBg').addEventListener('click',closeCard);document.get
 /* ---------- start ---------- */
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function demoPlayers(){var names=['阿明','小美','阿傑','雞湯','B豪','老楊','賤賤','康哥','Mia','Leo','阿花','胖虎','小魚','Kevin','阿凱'],ws=['劍','斧','匕','弓','槍','錘','杖','書'],now=Date.now();
-  return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3,4,6,7,5][i%8],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i%8],lastSeen:now-(i<5?i*60000:i*3600000)}})}
+  return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3,4,6,7,5][i%8],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i%8],lastSeen:now-(i<5?i*60000:i*3600000),say:i%4===1?'今天也要準時下班！':(i===6?'有人要組隊嗎':''),sayAt:i%4===1?now-3600000*(i+1):(i===6?now-3600000*40:0)}})}
 /* camp pets: assets/pets/gm_pet_NN.png — single image, or a horizontal strip of square frames */
 var PETS=[['gm_pet_01','阿梅'],['gm_pet_02','阿果']];
 function loadPets(){return Promise.all(PETS.map(function(d){return new Promise(function(res){var im=new Image();im.onload=function(){
@@ -773,7 +817,10 @@ function placePets(list){list.forEach(function(P,i){if(!P)return;var x,y;do{x=rn
   var a={pet:P,p:{name:P.name},x:x,y:y,tx:x,ty:y,face:Math.random()<.5?-1:1,wait:rnd(.5,3),phase:rnd(0,4000)};
   var t=document.createElement('div');t.className='tag pet';var nm=document.createElement('span');nm.textContent=P.name;t.appendChild(nm);
   t.addEventListener('click',function(){openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
-function start(me,others){ME_UID=me.uid;NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
+function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=localStorage.getItem('camp.showNames')!=='0'}catch(e){}
+  cb.checked=v;tagsEl.classList.toggle('hn',!v);
+  cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
+function start(me,others){ME_UID=me.uid;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
   document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
   scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
 var demo=/[?&]demo=1/.test(location.search);
@@ -786,5 +833,5 @@ Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv'].map(getCSV)).t
 }).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=3"></script>
+<script type="module" src="../common/fb.js?v=5"></script>
 </body></html>
