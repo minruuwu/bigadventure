@@ -389,9 +389,10 @@ function getCSV(n){return fetch(BASE+'data/'+n+'?v='+V+'.'+Math.floor(Date.now()
 function loadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
 function buildData(R){
   R[0].forEach(function(r){var k=r.u_sn;if(!k)return;ORDER.push(k);var au=[],tm=[];
-    [1,2].forEach(function(n){var s=r['auto_stat_'+n];if(s)au.push({l:STATL[s]||s,per:pct(r['auto_per_level_'+n]),u:'%'})});
+    var ph=parseFloat(r.p_atk_lv100)||0,mg=parseFloat(r.m_atk_lv100)||0;
+    [1,2,3,4,5,6].forEach(function(n){var s=r['auto_stat_'+n];if(!s)return;var v=r['auto_per_level_'+n];if(s==='p_atk')ph=(parseFloat(v)||0)*100;else if(s==='m_atk')mg=(parseFloat(v)||0)*100;else au.push({l:STATL[s]||s,per:pct(v),u:'%'})});
     [1,2,3].forEach(function(n){var s=r['temper_stat_'+n];if(s)tm.push({l:STATL[s]||s,per:pct(r['temper_per_point_'+n]),u:'%'})});
-    W[k]={n:r.weapon_name,phys:parseFloat(r.p_atk_lv100)||0,mag:parseFloat(r.m_atk_lv100)||0,auto:au,temper:tm,
+    W[k]={n:r.weapon_name,phys:ph,mag:mg,auto:au,temper:tm,
       sname:[r.stage_1_name,r.stage_2_name,r.stage_3_name,r.stage_4_name],img:[],off:r.offhand||'',offImg:null,ench:[[],[],[]]}});
   R[1].forEach(function(r){if(!r.u_sn)return;RUNE[r.u_sn]={id:r.u_sn,name:r.rune_name,en:r.rune_e_name,glyph:r.rune_glyph,cat:r.category,color:r.color||'#d0a0ff',
     desc:fixT(r.rune_desc),detail:fixT(r.rule_detail),restr:r.restriction,img:null}});
