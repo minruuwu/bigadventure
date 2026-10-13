@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="../common/font.css?v=1">
-<style>html,body,*{touch-action:manipulation}</style>
+<style>html,body,*{touch-action:manipulation}.wic{display:inline-block;flex:none;width:32px;height:32px;background-size:32px 32px;image-rendering:pixelated;margin:4px}.wic img{display:block;width:32px;height:32px;image-rendering:pixelated}.chips .wic{width:36px;height:36px;background-size:36px 36px}.chips .wic img{width:36px;height:36px}</style>
 <title>冒險者登記</title>
 </head>
 <body>
@@ -133,7 +133,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .wchip{margin:4px;padding:0 12px;background:var(--fill);box-shadow:var(--pxb)}
 .opts{display:grid;gap:8px}
-.opt{all:unset;box-sizing:border-box;width:calc(100% - 8px);cursor:pointer;margin:4px;display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:center;padding:4px 12px;background:var(--fill);box-shadow:var(--pxb),inset 4px 4px 0 0 var(--hi),inset -4px -4px 0 0 var(--lo)}
+.opt{all:unset;box-sizing:border-box;width:calc(100% - 8px);cursor:pointer;margin:4px;display:grid;grid-template-columns:32px 32px minmax(0,1fr);gap:10px;align-items:center;padding:4px 12px;background:var(--fill);box-shadow:var(--pxb),inset 4px 4px 0 0 var(--hi),inset -4px -4px 0 0 var(--lo)}
 .opt:hover{background:var(--fill-hover)}
 .opt .n{font-size:32px;line-height:40px;text-align:center}
 .opt .d{color:var(--ink-soft)}
@@ -679,6 +679,16 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     b.addEventListener('click', function(e){ e.stopPropagation(); var was = openTip && openTip.btn === b; closeTip(); if(!was){ tip.hidden = false; b.setAttribute('aria-expanded','true'); openTip = {h:h, btn:b, tip:tip}; } });
     h.appendChild(b); h.appendChild(tip); return h;
   }
+  var WFRAME = null;
+  function wframeURL(){ if(WFRAME) return WFRAME; var c = document.createElement('canvas'); c.width = c.height = 16; var x = c.getContext('2d'); x.fillStyle = '#120a05'; x.fillRect(1,1,14,14);
+    var R = ['#dfe5ec','#aab2bc','#6b7482','#444b56'];
+    for(var i = 0; i < 16; i++) for(var j = 0; j < 16; j++){ var m = Math.min(i,j,15-i,15-j); if(m > 1) continue; var f = (i+j)/30, k = f < .27 ? 0 : f < .5 ? 1 : f < .73 ? 2 : 3, col = R[k];
+      if(m === 0 && (i===0||i===15) && (j===0||j===15)) continue;
+      if(m === 1){ var n = parseInt(col.slice(1),16); col = 'rgb('+Math.round((n>>16&255)*.8)+','+Math.round((n>>8&255)*.8)+','+Math.round((n&255)*.8)+')'; }
+      x.fillStyle = col; x.fillRect(i,j,1,1); }
+    return WFRAME = c.toDataURL(); }
+  function wicon(w, label){ var d = el('span','wic'); d.style.backgroundImage = 'url('+wframeURL()+')'; if(label){ d.setAttribute('role','img'); d.setAttribute('aria-label', w.n); d.title = w.n; } else d.setAttribute('aria-hidden','true');
+    var im = document.createElement('img'); im.alt = ''; im.src = '../assets/icons/weapons/' + w.sn + '.png?v=2'; im.onerror = function(){ im.remove(); }; d.appendChild(im); return d; }
   function jobDetail(j, wrap){
     wrap.textContent = '';
     wrap.appendChild(el('p','desc', j.desc + '（' + j.ename + '）'));
@@ -694,7 +704,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     j.bonus.forEach(function(b){ var li = el('li'); li.appendChild(el('span',null,b[0])); li.appendChild(el('span',null,'+'+b[1])); ul.appendChild(li); });
     wrap.appendChild(ul);
     wrap.appendChild(el('h3',null,'可用武器'));
-    var ch = el('div','chips'); ALLOW[j.name].forEach(function(w){ ch.appendChild(el('span','wchip',w)); }); wrap.appendChild(ch);
+    var ch = el('div','chips'); ALLOW[j.name].forEach(function(w){ var wo = weaponByName(w); ch.appendChild(wo ? wicon(wo, true) : el('span','wchip',w)); }); wrap.appendChild(ch);
   }
   function jobSheet(p){
     var pick = p == null ? st.job :  p, body = el('div'), tabs = el('div','tabs'), detail = el('div');
@@ -749,7 +759,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
 
 
   var ICONS = {"job01": ["...........##", "..........###", ".........#.#.", "........#.#..", ".......#.#...", "......#.#....", ".....#.#.....", ".#..#.#......", "..####.......", "...##........", "..#.#........", ".#...#.......", "............."], "job02": [".......#.....", "......##.....", ".....###.....", ".....####....", "..#..#####...", "..##.######..", ".###.#######.", ".####.######.", ".####..#####.", ".####...####.", "..###...###..", "..####.####..", "....#####...."], "job03": [".............", "..........#..", ".........##..", "........###..", ".......###...", "...#..####...", "....#####....", ".....###.....", "....#.#......", "..##...#.....", "..##.........", ".............", "............."], "job04": ["......#......", "..#...#...#..", "....#####....", "...##.#.##...", "...#..#..#...", "#############", "...#..#..#...", "...##.#.##...", "....#####....", "..#...#...#..", "......#......", "......#......", "......#......"], "job05": [".....#..#....", "......#......", "....#####....", ".....###.....", ".....###.....", "...#######...", "...###.###...", "..###...###..", "..##.....##..", "..###...###..", "..####.####..", "...#######...", "....#####...."], "job06": [".....###.....", "..#..###..#..", ".....###.....", "....#####....", ".#.#######.#.", "..#########..", "..#...#...#..", "..##..#..##..", "..##..#..##..", "...#..#..#...", "...#.....#...", "....#...#....", "....#...#...."], "job07": ["..##...#..#..", ".##...##..##.", "..#..###...##", ".#...###....#", "..#..##..#...", "..####..###..", ".####..#####.", ".####....###.", ".######..###.", ".#####..####.", "..###..####..", "..##.######..", "....#####...."], "job08": [".......#..#..", "......##..#..", ".....##...#..", "....##....#..", "..#.#.....#..", ".#..#.....#.#", "#############", ".#..#.....#.#", "..#.#.....#..", "....##....#..", ".....##...#..", "......##..#..", ".......#..#.."], "job09": ["......#......", ".....###.....", "..#..###..#..", "...#######...", "...##.#.##...", ".###..#..###.", "#############", ".###..#..###.", "...##.#.##...", "...#######...", "..#..###..#..", ".....###.....", "......#......"], "job10": ["....#####....", "..##..#..##..", ".#...#.#...#.", ".#...#.#...#.", "#...#...#...#", "#...#...#...#", "#..#.###.#..#", "#..##.#.##..#", "#.#..###..#.#", ".##.......##.", ".###########.", "..##.....##..", "....#####...."], "job11": [".......#....#", "......##...##", ".....###..##.", ".....##..##..", "..#..#..##...", "....#..##....", "..#...##..##.", "...#.##..###.", ".#..#...####.", "...#.#..####.", "..#...#.###..", "##..#...###..", "##..#####...."], "job12": [".......#....#", "..........##.", "....#....###.", "...###..###..", "....#..###...", "......###....", "..#..###....#", "..##.##...#..", "...##......#.", "...###.......", "..#..##......", "##...........", "##..........."], "job13": ["..####.####..", "..#.##.##.#..", "..##.#.#.##..", "#.###...###.#", "..#.......#..", "..###...###..", "..##.#.#.##..", "...###.###...", "...###.###...", "#...##.##...#", ".....###.....", ".#....#....#.", "............."], "job14": ["...#.....#...", ".....##......", ".#...####..#.", ".....#####...", ".....######..", "......######.", ".....#####.##", "....###.####.", "...###...###.", "..###........", ".###.....#...", "###..........", "##..........."], "job15": ["..#..........", "..#......#...", "##.##...#.#..", "..#.....#..#.", "..#....#...#.", ".......#..#..", "......#......", "......#......", ".###.#.....#.", ".#####....###", "..###......#.", ".............", "............."], "job16": [".#..#####..#.", "#####...##...", ".##.#.....#..", ".###...#..##.", ".#.#...#...#.", ".#...##.##.#.", ".#.....#...#.", ".##....#..##.", "..#.......#.#", "#..##...##...", "....#####....", "...#######.#.", "..#########.."], "job17": ["#...........#", "....#####....", "..####.####..", ".####...####.", ".##..#.#..##.", ".##..###..##.", ".#...###...#.", ".##...#...##.", "..####.####..", "...#######...", "...#.#.#.#...", "....#####....", "#...........#"], "job18": ["......#......", "#.....#.....#", ".##...#...##.", "...#.....#...", "....#####....", "##.#.....#.##", "..#...#...#..", "##.#.....#.##", "....#####....", "...#.....#...", ".##...#...##.", "#.....#.....#", "......#......"], "job19": ["......#......", ".....###.....", ".....#.#.....", "....#...#....", "...##...##...", "...#.....#...", "..#.......#..", "..#.......#..", ".#.#.....#.#.", "...##...##...", ".##.......##.", "..###.#.###..", "....#####...."], "job20": ["...#.....####", "......######.", ".#..######.#.", "...######.##.", "..######.###.", "..#####.####.", "..####.####..", "..###.#####..", "...#.######.#", "...#.#####...", "...#####..#..", "..#..........", ".##.........."]};
-  var PALS = {iron:[[196,202,210],[150,158,168],[106,114,126],[66,72,84]], silver:[[250,252,255],[205,214,226],[150,160,178],[92,102,122]], gold:[[255,240,170],[240,196,64],[190,134,28],[122,78,18]]};
+  var PALS = {iron:[[207,156,98],[180,122,62],[134,78,36],[98,54,26]], silver:[[250,252,255],[205,214,226],[150,160,178],[92,102,122]], gold:[[255,240,170],[240,196,64],[190,134,28],[122,78,18]]};
   function iconRoot(n){ var m = n; while(m.par && m.par.length && m.tier === 4){ m = TREE.filter(function(t){ return t.sn === m.par[0]; })[0]; } return m; }
   function framedIcon(n, px){
     var NS = 'http://www.w3.org/2000/svg', N = 13, svg = document.createElementNS(NS,'svg');
@@ -876,10 +886,10 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     WEAPONS.forEach(function(w){
       var ok = allow.indexOf(w.n) >= 0, b = el('button','opt'); b.type='button'; b.setAttribute('role','radio');
       b.setAttribute('aria-checked', ok && w.n===st.weapon); if(!ok) b.setAttribute('aria-disabled','true');
-      b.appendChild(el('span','n',w.n)); b.appendChild(el('span','d', w.t + (ok ? '' : '（' + job.name + '不能使用）')));
+      b.setAttribute('data-n', w.n); b.appendChild(wicon(w, false)); b.appendChild(el('span','n',w.n)); b.appendChild(el('span','d', w.t + (ok ? '' : '（' + job.name + '不能使用）')));
       b.addEventListener('click', function(){
         if(!ok) return; st.weapon = w.n; refreshSlots();
-        Array.prototype.forEach.call(body.children, function(c){ c.setAttribute('aria-checked', c.firstChild.textContent === w.n); });
+        Array.prototype.forEach.call(body.children, function(c){ c.setAttribute('aria-checked', c.getAttribute('data-n') === w.n); });
       });
       body.appendChild(b);
     });
