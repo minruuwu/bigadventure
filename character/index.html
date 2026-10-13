@@ -109,6 +109,8 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .wr .im img{display:block;width:32px;height:32px;image-rendering:pixelated}
 .wr .t{font-weight:700;font-size:15px}.wr .t small{font-weight:400;-webkit-text-stroke:0;color:var(--pink2);font-size:11px;margin-left:6px}
 .wr .a{font-size:12px;line-height:1.5;margin-top:2px}.wr .a i{font-style:normal;color:var(--pink2)}
+.wr .rn{display:flex;gap:4px;margin-top:4px}.wr .rn img,.wr .rn span{width:20px;height:20px;image-rendering:pixelated;background:#2b1a0d;box-shadow:0 0 0 1px #1d1008}
+.wr .rn span{background:transparent;box-shadow:inset 0 0 0 1px rgba(58,38,22,.4)}
 .eqb{font:inherit;font-size:13px;font-weight:700;color:#f0dfb8;background:#4a2a12;border:0;padding:8px 12px;min-width:62px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
 .eqb:active{transform:translateY(2px)}
 .eqb[disabled]{background:var(--paper2);color:var(--pink2);box-shadow:0 0 0 2px var(--lo);cursor:default;transform:none}
@@ -420,7 +422,8 @@ function wframe(t){if(WFR[t])return WFR[t];var c=document.createElement('canvas'
     if(m===1){var n=parseInt(col.slice(1),16);col='rgb('+Math.round((n>>16&255)*.8)+','+Math.round((n>>8&255)*.8)+','+Math.round((n&255)*.8)+')'}
     x.fillStyle=col;x.fillRect(i,j,1,1)}
   return WFR[t]=c.toDataURL()}
-function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1))}}
+function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1)),en:Array.isArray(d.ench)?d.ench:[]}}
+function wRunes(en){var h='';for(var i=0;i<3;i++){var r=en[i];h+=(r&&/^rune\d+$/.test(r))?'<img alt="" src="../assets/icons/runes/'+r+'.png?v=1" onerror="this.outerHTML=\'<span></span>\'">':'<span></span>'}return '<div class="rn">'+h+'</div>'}
 function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
 var confirmWeapon=null;
@@ -463,7 +466,7 @@ function sheetHTML(k){
     h2+='<div class="sec">被動技能</div>'+[1,2,3].map(function(n){return '<div class="slot"><span>被動技能 '+n+'</span><span>無法點擊</span></div>'}).join('');return h2}
   if(k==='rack'){var us=usableList(S.jobSn),h3=head('武器架','只能裝備目前職業可用的武器；其餘灰色。').replace('<h2>','<h2 class="bold">');
     WORDER.forEach(function(sn){var w=WEAPON[sn],ok=us.indexOf(w.n)>=0,on=S.weapon===w.n,wi=wInfo(sn),tx=wStatText(w,wi.lv);
-      h3+='<div class="wr'+(ok?'':' off')+'"><div class="im" style="background-image:url('+wframe(wi.st-1)+')"><img alt="" src="../assets/icons/weapons/'+sn+'.png?v=1" onerror="this.remove()"></div><div><div class="t bold">'+esc(w.n)+'<small>'+WSTAGE[wi.st-1]+'　Lv '+wi.lv+'</small></div><div class="a">'+(tx.atk?esc(tx.atk):'')+(tx.atk&&tx.au?'<br>':'')+(tx.au?'<i>'+esc(tx.au)+'</i>':'')+'</div></div><button class="eqb" type="button" data-a="wpick" data-sn="'+sn+'" '+(ok&&!on?'':'disabled')+'>'+(on?'裝備中':ok?'裝備':'不可用')+'</button></div>'});
+      h3+='<div class="wr'+(ok?'':' off')+'"><div class="im" style="background-image:url('+wframe(wi.st-1)+')"><img alt="" src="../assets/icons/weapons/'+sn+'.png?v=1" onerror="this.remove()"></div><div><div class="t bold">'+esc(w.n)+'<small>'+WSTAGE[wi.st-1]+'　Lv '+wi.lv+'</small></div><div class="a">'+(tx.atk?esc(tx.atk):'')+(tx.atk&&tx.au?'<br>':'')+(tx.au?'<i>'+esc(tx.au)+'</i>':'')+'</div>'+wRunes(wi.en)+'</div><button class="eqb" type="button" data-a="wpick" data-sn="'+sn+'" '+(ok&&!on?'':'disabled')+'>'+(on?'裝備中':ok?'裝備':'不可用')+'</button></div>'});
     h3+='<p class="hint" style="margin-top:12px">轉職後，不能用的武器會自動換成新職業的預設武器。</p><div class="msgline" id="wmsg"></div>';
     if(confirmWeapon){var cw=WEAPON[confirmWeapon];h3+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要切換為「<b class="bold">'+esc(cw.n)+'</b>」嗎？</p><p class="sub">目前裝備：'+esc(S.weapon)+'。</p><div class="acts"><button class="b alt" data-a="wno" type="button">取消</button><button class="b go" data-a="wyes" type="button">確定切換</button></div><div class="msgline" id="wcmsg"></div></div></div>'}
     return h3}
@@ -572,7 +575,7 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 
 /* ================= start ================= */
 function start(p){S=fromPlayer(p);updateWeaponSprites();drawBack();drawFront();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
-var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',skin:0,style:0,hair:0,eyes:5,outfit:0};
+var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
 Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv'].map(getCSV)).then(buildData).then(function(){return Doll.load(BASE,V)}).then(function(){
   if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
