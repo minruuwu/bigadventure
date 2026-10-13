@@ -346,6 +346,7 @@ html,body,*{touch-action:manipulation}
 .pcard .say .txt.none{color:#7a5a38;font-weight:400}
 .pcard .say .when{font-size:11px;color:#6a4a2a}
 .pcard .say textarea{width:100%;box-sizing:border-box;min-height:62px;resize:none;font:inherit;font-size:14px;line-height:1.4;color:#2e1d0e;background:#e3d3aa;border:2px solid #3b2713;padding:6px 8px;border-radius:0}
+.pcard .say [hidden]{display:none!important}
 .pcard .say .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .pcard .say .cnt{font-size:12px;color:#5a3a1a}
 .pcard .say .sv{font:inherit;font-size:13px;font-weight:900;border:0;background:#4a2a12;color:#f0dfb8;padding:6px 14px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
@@ -771,8 +772,8 @@ function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimation
   ACT.forEach(function(a){if(!a.pet&&sayLive(a.p))bubble(a,now)});
   requestAnimationFrame(tick)}
 /* little speech bubble (11x9 art px) at the top right of the head: bobs 1px, the three dots light up in turn */
-var BUB=['..#########..','.#fffffffff#.','#fffffffffff#','#fffffffffff#','#fffffffffff#','.#fffffffff#.','..#ff#######.','...#f#.......','....#........'];
-function bubble(a,now){var bob=Math.round(Math.sin((now+a.phase)/380)),n=1+Math.floor(now/380)%3,bx=Math.min(SW-14,Math.round(a.x)+5),by=Math.round(a.y)-54+bob;
+var BUB=['..#########..','.#fffffffff#.','#fffffffffff#','#fffffffffff#','#fffffffffff#','.#fffffffff#.','..###ff#####.','..#ff#.......','.##..........'];
+function bubble(a,now){var bob=Math.round(Math.sin((now+a.phase)/380)),n=1+Math.floor(now/380)%3,bx=Math.min(SW-14,Math.round(a.x)+8),by=Math.round(a.y)-34+bob;
   for(var r=0;r<BUB.length;r++)for(var c=0;c<13;c++){var ch=BUB[r].charAt(c);if(ch==='.'||!ch)continue;sx.fillStyle=ch==='#'?'#241610':'#f4e8c8';sx.fillRect(bx+c,by+r,1,1)}
   for(var d=0;d<3;d++){sx.fillStyle=d<n?'#3b2713':'#c9b78d';sx.fillRect(bx+3+d*3,by+3,2,2)}}
 /* ---------- detail card ---------- */
