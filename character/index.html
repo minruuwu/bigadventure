@@ -54,8 +54,8 @@ canvas{image-rendering:pixelated;display:block}
 .sw .edge.t,.sw .edge.b{left:0;right:0;width:auto;height:30px;background-size:192px 30px;background-repeat:repeat-x}
 .sw .edge.t{top:0;bottom:auto;background-image:var(--edgeT2)}.sw .edge.b{top:auto;bottom:0;background-image:var(--edgeB2)}
 .sheet{position:relative;flex:1;min-width:0;min-height:0;overflow:auto;color:var(--pink);margin:0 6px;padding:40px 28px 36px;
- background-color:#d9c08a;background-image:linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stainP),var(--wearP);
- background-size:auto,576px 576px,288px 288px;background-repeat:no-repeat,repeat,repeat;background-position:0 0,0 0,0 0}
+ background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px;
+ background-repeat:repeat;background-position:0 0}
 .sheet h2{margin:0 0 2px;font-size:18px;letter-spacing:.06em}
 .sheet .hint{margin:0 0 12px;font-size:12px;color:var(--pink2)}
 .sheet .x{position:absolute;right:34px;top:30px;z-index:6;width:30px;height:30px;padding:0;border:0;cursor:pointer;background:#4a2a12;color:#f0dfb8;font:inherit;font-size:16px;font-weight:700;line-height:30px;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
@@ -122,7 +122,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <div class="toast" id="toast"></div>
 </div>
 <div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div></div>
-<script src="../common/paper.js?v=4"></script>
+<script src="../common/paper.js?v=5"></script>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=14"></script>
 <script>

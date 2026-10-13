@@ -128,8 +128,8 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .edge.l{background-image:var(--edgeL)}
 .edge.r{background-image:var(--edgeR)}
 .pbody{flex:1;min-width:0;padding:16px 4px 18px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:12px;
- background-color:#d9c08a;background-image:linear-gradient(#3b2713 0 3px,#6e4a26 3px 6px,#a07b45 6px 8px,transparent 8px),linear-gradient(0deg,#3b2713 0 3px,#6e4a26 3px 6px,#a07b45 6px 8px,transparent 8px),linear-gradient(rgba(217,192,138,.7),rgba(217,192,138,.7)),var(--stain),var(--wear);
- background-size:auto,auto,auto,576px 576px,288px 288px;background-repeat:no-repeat,no-repeat,no-repeat,repeat,repeat;background-position:0 0,0 100%,0 0,0 0,0 0}
+ background-color:#d3b480;background-image:linear-gradient(#3b2713 0 3px,#6e4a26 3px 6px,#a07b45 6px 8px,transparent 8px),linear-gradient(0deg,#3b2713 0 3px,#6e4a26 3px 6px,#a07b45 6px 8px,transparent 8px),var(--paperT);
+ background-size:auto,auto,256px 256px;background-repeat:no-repeat,no-repeat,repeat;background-position:0 0,0 100%,0 0}
 .phead{display:flex;align-items:center;gap:12px}
 .plate{flex:0 0 auto;background:#2b1d13;padding:4px;box-shadow:0 0 0 2px #3b2713,3px 3px 0 2px rgba(60,30,10,.4);transform:rotate(-3deg)}
 .ptitle{min-width:0;flex:1}
@@ -704,6 +704,7 @@ function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requ
   if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
   last=now;lastT=t},{passive:false})})();
 </script>
+<script src="../common/paper.js?v=5"></script>
 <script src="../common/doll.js?v=9"></script>
 <script src="../common/nav.js?v=14"></script>
 <script type="module" src="../common/fb.js?v=3"></script>

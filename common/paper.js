@@ -28,4 +28,16 @@
     var d=3;for(var xx=0;xx<W2;xx++){var q=r();if(q<.28)d=Math.max(2,d-1);else if(q<.56)d=Math.min(4,d+1);var dd=d;if(r()<.07)dd=Math.max(2,d-1);
       for(var yy=0;yy<H2;yy++){var py=side==='t'?yy:H2-1-yy;if(py>dd)continue;x.fillStyle=py===0?'#241610':py===dd?'#5a3a1c':(r()<.12?'#5a3a1c':'#3b2713');x.fillRect(xx,yy,1,1)}}
     return 'url('+c.toDataURL()+')'}
-  var R=document.documentElement.style;R.setProperty('--wearP',tile('paper'));R.setProperty('--edgeL',edgeTile('l'));R.setProperty('--edgeR',edgeTile('r'));R.setProperty('--edgeT2',edgeTileH('t'));R.setProperty('--edgeB2',edgeTileH('b'));R.setProperty('--edgeL2',edgeTile2('l'));R.setProperty('--edgeR2',edgeTile2('r'));R.setProperty('--stainP',stainTile())}catch(e){}})();
+
+  /* 創角頁風格的像素紙：5 階色、Bayer 抖動、細碎斑點、水漬圈；256px 可無縫平鋪，每格 4px */
+  function paperTile(){var N=64,B=4,PAL=['#e0c795','#d3b480','#c4a06c','#b08a56','#97723f'],c=document.createElement('canvas');c.width=c.height=N*B;var x=c.getContext('2d');
+    var sd=7;function r(){sd=(sd*16807)%2147483647;return sd/2147483647}
+    var BAY=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+    var P=[[1,2,0.0],[2,1,1.7],[3,2,3.1],[2,3,4.4],[4,1,5.5],[1,4,2.2]];
+    function nz(cc,rr){var v=0;for(var i=0;i<P.length;i++){v+=Math.sin(2*Math.PI*(P[i][0]*cc+P[i][1]*rr)/N+P[i][2])}return (v/P.length)*0.5+0.5}
+    var T=[];for(var rr=0;rr<N;rr++){T[rr]=[];for(var cc=0;cc<N;cc++){var n=nz(cc,rr),t=Math.round(n*2.2+(BAY[(rr&3)*4+(cc&3)]/16-0.5)*0.9);var q=r();if(q<.035)t++;else if(q>.988)t--;T[rr][cc]=t}}
+    for(var k=0;k<3;k++){var sx=Math.floor(r()*N),sy=Math.floor(r()*N),sr=5+Math.floor(r()*8);
+      for(var yy=-sr-1;yy<=sr+1;yy++)for(var xx=-sr-1;xx<=sr+1;xx++){var dd=Math.sqrt(xx*xx+yy*yy);if(Math.abs(dd-sr)<0.7&&r()<0.75){var X=(sx+xx+N)%N,Y=(sy+yy+N)%N;T[Y][X]++}}}
+    for(var y=0;y<N;y++)for(var x2=0;x2<N;x2++){var v=Math.max(0,Math.min(4,T[y][x2]));x.fillStyle=PAL[v];x.fillRect(x2*B,y*B,B,B)}
+    return 'url('+c.toDataURL()+')'}
+  var R=document.documentElement.style;R.setProperty('--paperT',paperTile());R.setProperty('--wearP',tile('paper'));R.setProperty('--edgeL',edgeTile('l'));R.setProperty('--edgeR',edgeTile('r'));R.setProperty('--edgeT2',edgeTileH('t'));R.setProperty('--edgeB2',edgeTileH('b'));R.setProperty('--edgeL2',edgeTile2('l'));R.setProperty('--edgeR2',edgeTile2('r'));R.setProperty('--stainP',stainTile())}catch(e){}})();
