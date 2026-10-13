@@ -53,7 +53,7 @@ restore('head',function(c){if(!headCv){headCv=c;headKey='';if(lastTabs)apply(las
 function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
   if(!(D.assets.skins&&D.assets.skins.length&&D.assets.hairT&&D.assets.hairT.length)){
     if(!dollLoading){dollLoading=true;D.load(BASE,'1').then(function(){if(lastTabs)apply(lastTabs)})}return headCv}
-  var look={skin:player.skin|0,style:player.style|0,hair:player.hair|0,eyes:player.eyes==null?5:player.eyes,outfit:player.outfit==null?(player.job|0):player.outfit,weapon:null,shield:null,halo:[],breath:false};
+  var look={skin:D.val(player.skin,0),style:D.val(player.style,0),hair:player.hair|0,eyes:D.val(player.eyes,5),outfit:player.outfit==null?(player.job|0):D.val(player.outfit,0),weapon:null,shield:null,halo:[],breath:false};
   var key=JSON.stringify(look);if(headCv&&(key===headKey||key===headCv.__key)){headKey=key;headCv.__look=look;return headCv}
   var c=document.createElement('canvas');c.width=24;c.height=25;renderHead(look,1000,c);
   c.__css=[24*3,25*3];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head',c);return c}
@@ -72,7 +72,7 @@ function eyePixels(i){if(eyeCache[i])return eyeCache[i];var c=document.createEle
   var d=x.getImageData(0,0,40,40).data,list=[];for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++){var k=(y*40+xx)*4;if(d[k+3]===255)list.push([xx,y,d[k],d[k+1],d[k+2]])}
   return(eyeCache[i]=list)}
 function eyeGlow(o,src,e,W,H,ow){
-  var eyes=HA.look&&HA.look.eyes;if(eyes==null||!g.Doll.assets.eyes[eyes])return;
+  var eyes=HA.look&&g.Doll.ix('eyes',HA.look.eyes);if(eyes==null||!g.Doll.assets.eyes[eyes])return;
   var vis=[],mark={},add=new Float32Array(ow*(H+1)),d=o.data,n,k;
   eyePixels(eyes).forEach(function(p){var i=p[0]-8,j=p[1]-1;if(i<0||j<0||i>=W||j>=H)return;var s=(j*W+i)*4;
     if(src[s]!==p[2]||src[s+1]!==p[3]||src[s+2]!==p[4]||src[s+3]!==255)return;vis.push([i+1,j+1]);mark[(j+1)*ow+i+1]=1});

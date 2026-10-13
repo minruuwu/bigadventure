@@ -123,7 +123,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 </div>
 <div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div></div>
 <script src="../common/paper.js?v=5"></script>
-<script src="../common/doll.js?v=9"></script>
+<script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=18"></script>
 <script>
 (function(){
@@ -331,7 +331,8 @@ var S=null;
 function fromPlayer(p){var s={uid:p.uid||'',name:p.name||'冒險者',lv:Math.max(1,p.lv|0||1),exp:p.exp|0,job:p.job|0,jobSn:p.jobSn||('job'+('0'+((p.job|0)+1)).slice(-2)),
   jobLvs:Object.assign({},p.jobLv||{}),jobExp:p.jobExp|0,alloc:Object.assign({str:0,int:0,agi:0,vit:0,luk:0},p.alloc||{}),pend:{str:0,int:0,agi:0,vit:0,luk:0},
   renames:p.renames|0,weapon:p.weapon||'劍',saved:null,look:null};
-  s.saved={skin:p.skin|0,style:p.style|0,hair:p.hair|0,eyes:p.eyes==null?5:p.eyes|0,outfit:p.outfit==null?(p.job|0):(p.outfit|0)};s.look=Object.assign({},s.saved);return s}
+  s.unlocks=(Array.isArray(p.unlocks)?p.unlocks:[]).map(function(x){return String(x).toLowerCase()});
+  s.saved={skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0)};s.look=Object.assign({},s.saved);return s}
 function totalPts(){return 5*(S.lv-1)}
 function spent(){var t=0;KEYS.forEach(function(k){t+=S.alloc[k]+S.pend[k]});return t}
 function unspent(){return Math.max(0,totalPts()-spent())}
@@ -355,13 +356,21 @@ function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.t
 function resOf(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])}
 
 /* ================= appearance options ================= */
-function outfitUnlocked(i){var sn='job'+('0'+(i+1)).slice(-2);return i===S.job||(S.jobLvs[sn]|0)>0||i===S.saved.outfit||reqMet(sn)}
+/* ownership = unlocks saved on the player + the grant list in data/look_grants.csv (by player name); jobs you can switch to unlock their outfit too */
+function owned(code){code=String(code).toLowerCase();if(S.unlocks.indexOf(code)>=0)return true;var g=Doll.GRANTS[String(S.name||'').trim().toLowerCase()];return !!(g&&g.indexOf(code)>=0)}
+function outfitUnlocked(i){var sn='job'+('0'+(i+1)).slice(-2);return i===S.job||(S.jobLvs[sn]|0)>0||i===S.saved.outfit||reqMet(sn)||owned(sn)}
+function pad2(n){return (n<10?'0':'')+n}
+/* file code of a numbered base look; locked ones (look_info.csv, locked=1) stay hidden until the player owns them */
+function codeOf(g,i){if(g==='style')return i<=4?'hair_'+pad2(i+1):(i>=6?'hair_'+pad2(i):null);if(g==='eyes')return 'eyes_'+(i+1);if(g==='skin')return 'body_'+'abc'.charAt(i);return null}
+function shown(g,i){var c=codeOf(g,i),f=c&&Doll.INFO[c];return !(f&&f.locked)||owned(c)||i===S.saved[g]}
+function extras(g){return (Doll.EX[g]||[]).filter(function(x){return !x.locked||owned(x.code)||x.code===S.saved[g]}).map(function(x){return{v:x.code,n:x.name,lock:false}})}
+function infoName(g,i,def){var c=codeOf(g,i),f=c&&Doll.INFO[c];return f&&f.name?f.name:def}
 var OPT={
-  outfit:{label:'衣服',list:function(){return Doll.OUTFIT_ORDER.map(function(i){return{v:i,n:(Doll.JOBN[i]||('外觀 '+(i+1)))+'裝',lock:!outfitUnlocked(i)}})}},
-  style:{label:'髮型',list:function(){return Doll.STYLE_ORDER.map(function(i){return{v:i,n:Doll.STYLEN[i],lock:false}})}},
+  outfit:{label:'衣服',list:function(){return Doll.OUTFIT_ORDER.map(function(i){return{v:i,n:(Doll.JOBN[i]||('外觀 '+(i+1)))+'裝',lock:!outfitUnlocked(i)}}).concat(extras('outfit'))}},
+  style:{label:'髮型',list:function(){return Doll.STYLE_ORDER.filter(function(i){return shown('style',i)}).map(function(i){return{v:i,n:Doll.STYLEN[i],lock:false}}).concat(extras('style'))}},
   hair:{label:'髮色',list:function(){return Doll.HAIR.map(function(h,i){return{v:i,n:h.n,lock:false}})}},
-  skin:{label:'膚色',list:function(){return Doll.SKINN.map(function(n,i){return{v:i,n:n,lock:false}})}},
-  eyes:{label:'眼色',list:function(){var o=[];Doll.assets.eyes.forEach(function(im,i){if(im)o.push({v:i,n:'眼睛 '+(i+1),lock:false})});return o}}};
+  skin:{label:'膚色',list:function(){return Doll.SKINN.map(function(n,i){return{v:i,n:n,lock:false}}).filter(function(o){return shown('skin',o.v)}).concat(extras('skin'))}},
+  eyes:{label:'眼色',list:function(){var o=[];Doll.assets.eyes.forEach(function(im,i){if(im&&i<100&&shown('eyes',i))o.push({v:i,n:infoName('eyes',i,'眼睛 '+(i+1)),lock:false})});return o.concat(extras('eyes'))}}};
 function lockedChosen(){var bad=[];Object.keys(OPT).forEach(function(k){OPT[k].list().forEach(function(o){if(o.v===S.look[k]&&o.lock)bad.push(OPT[k].label+'「'+o.n+'」')})});return bad}
 
 /* ================= saving ================= */
@@ -458,7 +467,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
     if(v===S.name){msg('nmsg','這已經是你的名字了。');return}
     if(demo){S.name=v;S.renames++;render();refresh();return}
     b.disabled=true;withFB(function(FB){FB.renamePlayer(v).then(function(){S.name=v;S.renames++;render();refresh();toast('改名完成')},function(er){b.disabled=false;msg('nmsg',er&&er.code==='name-taken'?'這個名字已經有人用了。':er&&er.code==='no-renames'?'改名次數已經用完。':errMsg(er))})})}});
-sheet.addEventListener('change',function(e){var t=e.target;if(t.tagName==='SELECT'&&t.getAttribute('data-g')){S.look[t.getAttribute('data-g')]=+t.value;updateMirror()}});
+sheet.addEventListener('change',function(e){var t=e.target;if(t.tagName==='SELECT'&&t.getAttribute('data-g')){S.look[t.getAttribute('data-g')]=/^\d+$/.test(t.value)?+t.value:t.value;updateMirror()}});
 back.addEventListener('click',function(e){if(e.target===back)closeSheet()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&cur)closeSheet()});
 var HS=[{k:'mirror',l:'外觀：換外觀',x:5,y:36,w:19,h:25,p:'外觀',px:14},{k:'book',l:'書本：技能',x:13,y:77,w:31,h:14,p:'技能書',px:28},

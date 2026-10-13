@@ -38,13 +38,31 @@ function makeHair(img,t){var c=mk(40,40),x=c.getContext('2d',{willReadFrequently
  x.putImageData(d,0,0);x.drawImage(clean,0,0);return c}
 
 var A={skins:[],eyes:[],styles:[],outfits:[],backs:[],hairT:[]};
+/* ---- extra looks by code (assets/character/<category>_<name>.png), listed in data/look_info.csv (code,name,locked) ----
+   extras get slot numbers from 100 up; saved values are either a number (base looks) or the code string (extras) */
+var EX={outfit:[],style:[],eyes:[],skin:[]},IDX={outfit:{},style:{},eyes:{},skin:{}},INFO={},GRANTS={},EXBASE=100;
+function ix(cat,v){var d=cat==='eyes'?5:0;if(v==null)return d;if(typeof v==='string'){if(/^\d+$/.test(v))return +v;var k=IDX[cat][v];return k==null?d:k}return v}
+function val(v,d){if(v==null)return d;if(typeof v==='string'&&!/^\d+$/.test(v))return v;return (+v)|0}
+function fetchText(url){return fetch(url).then(function(r){if(!r.ok)return '';return r.arrayBuffer()}).then(function(b){if(!b)return '';try{return new TextDecoder('utf-8',{fatal:true}).decode(b)}catch(e){try{return new TextDecoder('big5').decode(b)}catch(e2){return ''}}}).catch(function(){return ''})}
+function csvRows(t){var out=[];t.replace(/^\uFEFF/,'').split(/\r?\n/).slice(1).forEach(function(l){if(!l.trim())return;var c=[],cur='',q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"'){q=!q}else if(ch===','&&!q){c.push(cur);cur=''}else cur+=ch}c.push(cur);out.push(c.map(function(x){return x.trim()}))});return out}
+function loadLooks(base,q){return Promise.all([fetchText(base+'data/look_info.csv'+q),fetchText(base+'data/look_grants.csv'+q)]).then(function(r){
+  var jobs=[];csvRows(r[1]).forEach(function(c){if(c[0]&&c[1]){var k=c[0].toLowerCase();(GRANTS[k]=GRANTS[k]||[]).push(c[1].toLowerCase())}});
+  csvRows(r[0]).forEach(function(c){var code=(c[0]||'').toLowerCase();if(!code)return;INFO[code]={name:c[1]||'',locked:c[2]==='1'};
+    var cat=null;if(/^outfit_/.test(code))cat='outfit';else if(/^hair_(?!\d+$)/.test(code))cat='style';else if(/^eyes_(?!\d+$)/.test(code))cat='eyes';else if(/^body_(?![abc]$)/.test(code))cat='skin';
+    if(!cat)return;var idx=EXBASE+EX[cat].length;EX[cat].push({code:code,name:c[1]||code,locked:c[2]==='1',idx:idx});IDX[cat][code]=idx;
+    var arr=cat==='outfit'?A.outfits:cat==='style'?A.styles:cat==='eyes'?A.eyes:A.skins;
+    jobs.push(loadImg(base+'character/'+code+'.png'+q).then(function(im){arr[idx]=im}));
+    if(cat==='outfit')jobs.push(loadImg(base+'character/'+code+'_b.png'+q).then(function(im){A.backs[idx]=im||null}))});
+  return Promise.all(jobs)})}
+function applyNames(){Object.keys(INFO).forEach(function(code){var m,n=INFO[code].name;if(!n)return;
+  if((m=/^hair_(\d+)$/.exec(code))){var k=+m[1];STYLEN[k<=5?k-1:k]=n}else if((m=/^body_([abc])$/.exec(code))){SKINN['abc'.indexOf(m[1])]=n}})}
 /* outfit indexes in menu order: job01–05, then job06… as they are found */
 var OUTFIT_ORDER=[0,1,2,3,4];
 function load(base,v){var q='?v='+(v||'1'),jobs=[];
  ['body_a','body_b','body_c'].forEach(function(n,i){jobs.push(loadImg(base+'character/'+n+'.png'+q).then(function(im){A.skins[i]=im}))});
  for(var i=1;i<=8;i++)(function(i){jobs.push(loadImg(base+'character/eyes_'+i+'.png'+q).then(function(im){A.eyes[i-1]=im}))})(i);
  for(i=1;i<=5;i++)(function(i){jobs.push(loadImg(base+'character/hair_0'+i+'.png'+q).then(function(im){A.styles[i-1]=im}));jobs.push(loadImg(base+'character/job0'+i+'.png'+q).then(function(im){A.outfits[i-1]=im}))})(i);
- jobs.push(loadJobs(base,q));
+ jobs.push(loadJobs(base,q));jobs.push(loadLooks(base,q));
  /* outfits job06+ are detected automatically; job06+ may have a back layer jobNN_b.png (drawn under the weapon). job01-05 have none, so they are not requested (avoids 404 noise); to give one a back layer, change the i<5 check */
  var outfitsDone=Promise.all(jobs.slice()).then(function(){return probeRun(function(n){return base+'character/job'+pad2(n)+'.png'+q},'jobMax',6)}).then(function(list){
    OUTFIT_ORDER.length=0;[0,1,2,3,4].forEach(function(i){OUTFIT_ORDER.push(i)});list.forEach(function(o){A.outfits[o.n-1]=o.im;OUTFIT_ORDER.push(o.n-1)});
@@ -52,7 +70,7 @@ function load(base,v){var q='?v='+(v||'1'),jobs=[];
  jobs.push(outfitsDone);
  jobs.push(probeHairs(base,q,6).then(function(list){STYLE_ORDER.length=0;[0,1,2,3,4].forEach(function(i){STYLE_ORDER.push(i)});
    list.forEach(function(h){A.styles[h.n]=h.im;STYLEN[h.n]='髮型 '+h.n;STYLE_ORDER.push(h.n)});STYLE_ORDER.push(5)}));
- return Promise.all(jobs).then(function(){A.styles[5]=mk(40,40);A.styles.forEach(function(h,si){if(h)A.hairT[si]=HAIR.map(function(t){return si===5?h:makeHair(h,t)})})})}
+ return Promise.all(jobs).then(function(){applyNames();A.styles[5]=mk(40,40);A.styles.forEach(function(h,si){if(h)A.hairT[si]=HAIR.map(function(t){return si===5?h:makeHair(h,t)})})})}
 
 /* swatch color sampled from an image (most common opaque, non-outline color) */
 function swatch(img){var c=mk(40,40),x=c.getContext('2d');x.drawImage(img,0,0);var d=x.getImageData(0,0,40,40).data,cnt={},best=null,bn=0;
@@ -92,7 +110,7 @@ function tinted(mask,key,col){var k=key+col;if(!TC[k]){var c=mk(N,N),x=c.getCont
    s = {skin,style,hair,eyes,outfit, weapon:{img,key,cut,ox,oy}|null, shield:{img,key}|null, halo:[colors], breath, outline} */
 var off=mk(N,N),octx=off.getContext('2d');
 function squash(img,d){octx.drawImage(img,0,CUTROW,40,40-CUTROW,PAD,PAD+CUTROW,40,40-CUTROW);if(CUTROW-d>0)octx.drawImage(img,0,0,40,CUTROW-d,PAD,PAD+d,40,CUTROW-d)}
-function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=Math.floor(u);return Math.round(u<.5?2*u:2*(1-u))})(),closed=(now%4000)<130,ol=s.outline!==false;
+function frame(s,now){var sk=ix('skin',s.skin),sy2=ix('style',s.style),ey=ix('eyes',s.eyes),of=ix('outfit',s.outfit);if(!A.skins[sk])sk=0;if(!A.hairT[sy2])sy2=0;if(!A.eyes[ey])ey=0;if(!A.outfits[of])of=0;var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=Math.floor(u);return Math.round(u<.5?2*u:2*(1-u))})(),closed=(now%4000)<130,ol=s.outline!==false;
  octx.clearRect(0,0,N,N);
  octx.fillStyle='rgba(0,0,0,.38)';var sy=PAD;octx.fillRect(PAD+14,sy+34,7,1);octx.fillRect(PAD+12,sy+35,11,1);octx.fillRect(PAD+11,sy+36,13,1);octx.fillRect(PAD+10,sy+37,15,1);octx.fillRect(PAD+12,sy+38,11,1);
  var w=s.weapon,pc=w&&w.img?pieces(w.img,w.key,w.cut,ol,true):null,sh=s.shield&&s.shield.img?pieces(s.shield.img,s.shield.key,0,ol,false):null;
@@ -101,15 +119,15 @@ function frame(s,now){var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=M
    octx.drawImage(tinted(hm.s[L],hk+'|s'+L,col),0,d); /* shield halo: free */
    octx.save();octx.beginPath();octx.rect(0,0,N,PAD+34);octx.clip();octx.drawImage(tinted(hm.w[L],hk+'|w'+L,col),0,d);octx.restore()} /* weapon halo stops at the feet line */
   octx.globalAlpha=1}
- if(A.backs[s.outfit])squash(A.backs[s.outfit],d);
+ if(A.backs[of])squash(A.backs[of],d);
  if(pc)octx.drawImage(pc.under,w.ox,w.oy+d);
- squash(A.skins[s.skin],d);squash(A.outfits[s.outfit],d);
+ squash(A.skins[sk],d);squash(A.outfits[of],d);
  if(pc)octx.drawImage(pc.over,w.ox,w.oy+d);
- if(!closed)octx.drawImage(A.eyes[s.eyes],PAD,PAD+d);
- octx.drawImage(A.hairT[s.style][s.hair],PAD,PAD+d);
+ if(!closed)octx.drawImage(A.eyes[ey],PAD,PAD+d);
+ octx.drawImage(A.hairT[sy2][s.hair],PAD,PAD+d);
  if(sh)octx.drawImage(sh.under,0,d);
  return off}
 function draw(canvas,s,now){var f=frame(s,now),x=canvas.getContext('2d');x.clearRect(0,0,canvas.width,canvas.height);x.imageSmoothingEnabled=false;x.drawImage(f,0,0,N,N,0,0,canvas.width,canvas.height)}
 
-global.Doll={makeHair:makeHair,N:N,HAIR:HAIR,SKINN:SKINN,STYLEN:STYLEN,STYLE_ORDER:STYLE_ORDER,OUTFIT_ORDER:OUTFIT_ORDER,JOBN:JOBN,JOBSN:JOBSN,assets:A,load:load,draw:draw,swatch:swatch,hairColor:hairColor,loadImg:loadImg};
+global.Doll={makeHair:makeHair,N:N,HAIR:HAIR,SKINN:SKINN,STYLEN:STYLEN,STYLE_ORDER:STYLE_ORDER,OUTFIT_ORDER:OUTFIT_ORDER,JOBN:JOBN,JOBSN:JOBSN,assets:A,EX:EX,INFO:INFO,GRANTS:GRANTS,ix:ix,val:val,load:load,draw:draw,swatch:swatch,hairColor:hairColor,loadImg:loadImg};
 })(window);
