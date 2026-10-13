@@ -127,7 +127,7 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
   var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.__navFrom=src;
   c.style.width=src.__css[0]+'px';c.style.height=src.__css[1]+'px';
   c.style.flex='none';
-  if(src.__head||src.__pixel){c.style.imageRendering='pixelated';c.style.marginTop=(48-src.__css[1])+'px';c.style.position='relative';c.style.zIndex='2';btn.style.overflow='visible'}
+  if(src.__head||src.__pixel){c.style.imageRendering='pixelated';c.style.marginTop=(48-src.__css[1])+'px';c.style.position='relative';c.style.zIndex='2';if(btn.getAttribute('data-k')==='forge')c.style.top='1px';btn.style.overflow='visible'}
   else{c.style.margin=((48-src.__css[1])/2)+'px -6px';}
   old.replaceWith(c);
   if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src);
@@ -227,7 +227,7 @@ function sparksOn(btn,icon,src){var W=src.width+2*SPX,H=src.height+SPY+2;
   if(!SP.cv){SP.cv=document.createElement('canvas');SP.cv.style.cssText='position:absolute;pointer-events:none;z-index:3;image-rendering:pixelated'}
   SP.cv.width=W;SP.cv.height=H;SP.cv.style.width=W*SPS+'px';SP.cv.style.height=H*SPS+'px';SP.w=src.width;SP.h=src.height;
   btn.appendChild(SP.cv);
-  requestAnimationFrame(function(){if(!icon.isConnected)return;SP.cv.style.left=(icon.offsetLeft-SPX*SPS)+'px';SP.cv.style.top=(icon.offsetTop-SPY*SPS)+'px'});
+  requestAnimationFrame(function(){if(!icon.isConnected)return;SP.cv.style.left=(icon.offsetLeft-SPX*SPS)+'px';SP.cv.style.top=(icon.offsetTop+1-SPY*SPS)+'px'});
   if(!SP.run){SP.run=true;requestAnimationFrame(sparkTick)}}
 function sparkTick(now){if(!SP.cv||!SP.cv.isConnected){SP.run=false;return}
   if(SP.last&&now-SP.last<48){requestAnimationFrame(sparkTick);return}var dt=Math.min(.1,(now-SP.last)/1000||0);SP.last=now;
