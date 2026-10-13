@@ -87,7 +87,7 @@ canvas{image-rendering:pixelated;display:block}
 input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:4px 8px;min-width:0;width:100%}
 .msgline{font-size:12px;min-height:1.4em;color:var(--seal)}
 .sheet.m{padding-top:30px}
-.ic{width:16px;height:16px;flex:none;image-rendering:pixelated;display:inline-block;vertical-align:-3px;margin-right:6px}
+.ic{width:32px;height:32px;flex:none;image-rendering:pixelated;display:inline-block;margin:0 4px 0 0}.row .nm,.grid2 .row>span:first-child{display:inline-flex;align-items:center}.row .nm small{margin-left:8px}.grid2 .ic{width:24px;height:24px}
 .dl{color:var(--ok);margin-left:6px;font-variant-numeric:tabular-nums}
 .ask{flex:1 1 100%;font-size:12px;color:var(--seal)}
 .mirror-wrap{position:sticky;top:0;z-index:4;margin:0 -28px 12px;padding:18px 0 14px;display:flex;justify-content:center;border-bottom:3px solid var(--lo);background:radial-gradient(ellipse 70% 60% at 50% 45%,#3a2616 0,#1c120b 75%)}
@@ -382,8 +382,8 @@ function persist(fields){if(demo)return Promise.resolve();return new Promise(fun
 /* ================= sheets ================= */
 var back=$('back'),sheet=$('sheet'),cur=null,open={};
 function head(t,h){return '<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
-var HAS_ICONS=false,DKEYS=['hp','patk','matk','eva','crit','critdmg','pdef','mdef'],askReset=false;
-function ic(id){return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=1">':''}
+var HAS_ICONS=true,DKEYS=['hp','patk','matk','eva','crit','critdmg','pdef','mdef'],askReset=false;
+function ic(id){return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=2" onerror="this.remove()">':''}
 function derivedBase(){var sv={};KEYS.forEach(function(x){sv[x]=S.pend[x];S.pend[x]=0});var r=derived();KEYS.forEach(function(x){S.pend[x]=sv[x]});return r}
 function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="dl">'+(d>0?'+':'')+d+'</span>':''}
   var bn=parseFloat(b),nn=parseFloat(n),dd=Math.round((nn-bn)*10)/10;return dd?'<span class="dl">'+(dd>0?'+':'')+dd+'%</span>':''}
@@ -396,7 +396,7 @@ function sheetHTML(k){
         (o?'<div class="src"><div>天生 10</div>'+(d.jobParts.length?d.jobParts.map(function(l){return '<div>職業永久加成：'+esc(l)+'</div>'}).join(''):'<div>職業永久加成 +0</div>')+'<div>自由配點 +'+d.alloc+'</div><div>其他加成 +0</div></div>':'')+'</div>'});
     h+='<div class="sec">其他屬性</div>';
     var db=derivedBase();derived().forEach(function(r,i){var o=open['d'+i];h+='<div class="row"><button class="nm" data-a="open" data-id="d'+i+'" type="button">'+ic(DKEYS[i])+r[0]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+r[1]+(ps?diffStr(db[i][1],r[1]):'')+'</span>'+(o?'<div class="src">'+r[2].map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>':'')+'</div>'});
-    h+='<div class="sec">屬性抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+ic(r[0])+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
+    h+='<div class="sec">屬性抗性</div><div class="grid2">'+RES.map(function(r){var v=resOf(r[0]);return '<div class="row"><span>'+ic('res_'+r[0])+r[1]+'</span><span class="v">'+pct(v)+'</span></div>'}).join('')+'</div>';
     if(askReset)h+='<div class="bar"><span class="ask">確定要重置全部配點？已配的點數會全部退回，可以重新分配。</span><button class="b alt" data-a="resetno" type="button">不要</button><button class="b go" data-a="resetyes" type="button">確定重置</button></div>';
     else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置配點</button><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
     return h}
