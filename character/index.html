@@ -401,7 +401,7 @@ function persist(fields){if(demo)return Promise.resolve();return new Promise(fun
 var back=$('back'),sheet=$('sheet'),cur=null,open={};
 function jobIcon(sn){return '<img class="ji" alt="" src="../assets/icons/jobs/framed/'+sn+'.png?v=1" onerror="this.remove()">'}
 var PEN='<svg width="18" height="18" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="#2b1a0d" d="M6 0h2v1h1v2H8v1H7V3H6V2H5V1h1zM1 6h1V5h1V4h1v1h1v1H4v1H3v1H1zM0 8h1v1H0z"/><path fill="#c9a23a" d="M6 1h1v1H6zM7 2h1v1H7zM2 6h1V5h1v1H3v1H2z"/></svg>';
-var editName=false,confirmName=null,draftName='';
+var editName=false,confirmName=null,draftName='',confirmJob=null;
 var treeSel=null;
 function treeModel(){var by={},bi={},base=[];JOBORDER.forEach(function(sn){var j=JOB[sn];j.par=[1,2].map(function(n){return j['required_job_'+n]}).filter(Boolean);by[sn]=j;if(!j.par.length){bi[sn]=base.length;base.push(sn)}});
   function dep(sn){var j=by[sn];return j.par.length?dep(j.par[0])+1:1}
@@ -460,7 +460,9 @@ function sheetHTML(k){
     JOBORDER.forEach(function(sn){var j=JOB[sn],ok=reqMet(sn),now=sn===S.jobSn,lv=S.jobLvs[sn]|0;
       h6+='<div class="jobrow"><span class="who">'+jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b><span>Lv '+lv+'</span></span><button class="b '+(now||!ok?'alt':'go')+'" type="button" data-a="setjob" data-sn="'+sn+'" '+(now||!ok?'disabled':'')+'>'+(now?'目前職業':ok?'轉職':'條件未達成')+'</button>'+
         '<small>'+esc(j.job_desc||'')+(j.required_desc?'　需要：'+esc(j.required_desc):'')+'</small></div>'});
-    h6+='<div class="msgline" id="jmsg"></div>';return h6}
+    h6+='<div class="msgline" id="jmsg"></div>';
+    if(confirmJob){var cj=JOB[confirmJob];h6+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要轉職為「<b class="bold">'+esc(cj.job_name)+'</b>」嗎？</p><p class="sub">各職業等級會保留；不能用的武器會自動換成新職業的預設武器。</p><div class="acts"><button class="b alt" data-a="jobno" type="button">取消</button><button class="b go" data-a="jobyes" type="button">確定轉職</button></div><div class="msgline" id="jcmsg"></div></div></div>'}
+    return h6}
   return ''}
 function drawMirrorFrame(){var cv=$('mframe');if(!cv)return;var c=cv.getContext('2d');c.clearRect(0,0,60,70);
   ell(c,30,36,29.6,34.6,'#241508');ell(c,30,36,28.6,33.6,'#b0802f');ell(c,30,36,27.2,32.2,'#8a5f20');ell(c,30,36,25.8,30.8,'#3b2a14');
@@ -481,7 +483,7 @@ function jag(){var w=$('sw');if(!w||back.hidden)return;var W=w.offsetWidth,H=w.o
 window.addEventListener('resize',jag);
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;jag();if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
 function openSheet(k){cur=k;open={};sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
-function closeSheet(){askReset=false;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
+function closeSheet(){askReset=false;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper');if(p)p.innerHTML='屬性'+(u>0?'<i class="dot"></i>':'');$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
 function zeroAlloc(){return {str:0,int:0,agi:0,vit:0,luk:0}}
@@ -498,15 +500,17 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='weapon'){var w=b.getAttribute('data-w');persist({weapon:w}).then(function(){S.weapon=w;render();refresh();pushNavPlayer()},function(er){msg('wmsg',errMsg(er))})}
   else if(a==='lookcancel'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]});render()}
   else if(a==='looksave'){var f=Object.assign({},S.look);persist(f).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
-  else if(a==='jobs'){editName=false;confirmName=null;openSheet('jobs')}
+  else if(a==='jobs'){confirmJob=null;editName=false;confirmName=null;openSheet('jobs')}
   else if(a==='tree'){treeSel=S.jobSn;openSheet('tree')}
   else if(a==='node'){treeSel=b.getAttribute('data-sn');$('tcap').innerHTML=treeCap(treeSel)}
   else if(a==='pen'){editName=true;draftName='';render();var ni=$('nin');if(ni)ni.focus()}
   else if(a==='pencancel'){editName=false;draftName='';render()}
   else if(a==='renameno'){confirmName=null;render()}
-  else if(a==='setjob'){var sn=b.getAttribute('data-sn'),idx=parseInt(sn.slice(3),10)-1,f2={job:idx,jobSn:sn},us=usableList(sn),nw=S.weapon;
+  else if(a==='setjob'){confirmJob=b.getAttribute('data-sn');render()}
+  else if(a==='jobno'){confirmJob=null;render()}
+  else if(a==='jobyes'){var sn=confirmJob,idx=parseInt(sn.slice(3),10)-1,f2={job:idx,jobSn:sn},us=usableList(sn),nw=S.weapon;
     if(us.indexOf(nw)<0){nw=defaultWeaponName(sn)||us[0]||nw;f2.weapon=nw}
-    persist(f2).then(function(){S.job=idx;S.jobSn=sn;S.weapon=nw;openSheet('card');refresh();pushNavPlayer();toast('已轉職為 '+jobName(sn))},function(er){msg('jmsg',errMsg(er))})}
+    b.disabled=true;persist(f2).then(function(){S.job=idx;S.jobSn=sn;S.weapon=nw;confirmJob=null;openSheet('card');refresh();pushNavPlayer();toast('已轉職為 '+jobName(sn))},function(er){b.disabled=false;msg('jcmsg',errMsg(er))})}
   else if(a==='renamego'){var v=$('nin').value.trim();draftName=v;
     var bad=(window.FB&&window.FB.validName)?window.FB.validName(v):(v?'':'請先寫下新名字。');if(bad){msg('nmsg',bad);return}
     if(v===S.name){msg('nmsg','這已經是你的名字了。');return}
