@@ -446,10 +446,11 @@ function treeModel(){var by={},bi={},base=[];JOBORDER.forEach(function(sn){var j
   JOBORDER.forEach(function(sn){if(by[sn].depth===3)slot[sn]=slot[by[sn].par[0]]});
   JOBORDER.forEach(function(sn){var d=by[sn].depth,a,r;if(d===1){a=(-90+72*bi[sn])*Math.PI/180;pos[sn]=[150+40*Math.cos(a),150+40*Math.sin(a)]}else{a=(-90+24*slot[sn])*Math.PI/180;r=d===2?90:134;pos[sn]=[150+r*Math.cos(a),150+r*Math.sin(a)]}});
   return {by:by,pos:pos}}
+function selRect(x,y,z){return '<rect class="selr" x="'+(x-6)+'" y="'+(y-6)+'" width="'+(z+12)+'" height="'+(z+12)+'" fill="none" stroke="#fff" stroke-width="2"/>'}
 function treeSVG(){var M=treeModel(),h='<svg class="tree" viewBox="0 0 300 300" role="group" aria-label="轉職樹" shape-rendering="crispEdges">';
   JOBORDER.forEach(function(sn){M.by[sn].par.forEach(function(p){var a=M.pos[p],b=M.pos[sn];h+='<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="#3b2713" stroke-width="1" opacity=".5"/>'})});
   JOBORDER.forEach(function(sn){var d=M.by[sn].depth,z=d===1?26:20,x=M.pos[sn][0]-z/2,y=M.pos[sn][1]-z/2,now=sn===S.jobSn,ok=reqMet(sn);
-    h+='<g class="n" data-a="node" data-sn="'+sn+'" opacity="'+(ok?1:.35)+'"><rect x="'+(x-3)+'" y="'+(y-3)+'" width="'+(z+6)+'" height="'+(z+6)+'" fill="transparent"/>'+(now?'<rect x="'+(x-3)+'" y="'+(y-3)+'" width="'+(z+6)+'" height="'+(z+6)+'" fill="none" stroke="#9c2f1f" stroke-width="2.5"/>':'')+'<image href="../assets/icons/jobs/framed/'+sn+'.png?v=1" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+z+'" height="'+z+'"/></g>'});
+    h+='<g class="n" data-a="node" data-sn="'+sn+'" opacity="'+(ok?1:.35)+'">'+(sn===(treeSel||S.jobSn)?selRect(x,y,z):'')+'<rect x="'+(x-3)+'" y="'+(y-3)+'" width="'+(z+6)+'" height="'+(z+6)+'" fill="transparent"/>'+(now?'<rect x="'+(x-3)+'" y="'+(y-3)+'" width="'+(z+6)+'" height="'+(z+6)+'" fill="none" stroke="#9c2f1f" stroke-width="2.5"/>':'')+'<image href="../assets/icons/jobs/framed/'+sn+'.png?v=1" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+z+'" height="'+z+'"/></g>'});
   return h+'</svg>'}
 function treeCap(sn){var j=JOB[sn];if(!j)return '';var ok=reqMet(sn);return jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b>　'+(sn===S.jobSn?'目前職業':ok?'已可轉職':'未解鎖：'+esc(j.required_desc||''))}
 function head(t,h){return '<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
@@ -495,7 +496,7 @@ function sheetHTML(k){
     if(confirmName!==null)h5+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要把名字改成「<b class="bold">'+esc(confirmName)+'</b>」嗎？</p><p class="sub">確定後還剩 '+(left-1)+' 次改名機會。</p><div class="acts"><button class="b alt" data-a="renameno" type="button">取消</button><button class="b go" data-a="renameyes" type="button">確定改名</button></div><div class="msgline" id="cmsg"></div></div></div>';
     return h5}
   if(k==='tree'){var h7=head('轉職樹','只供查看。點職業圖示可看名稱與條件。').replace('<h2>','<h2 class="bold">');
-    h7+=treeSVG()+'<div class="tcap" id="tcap">'+treeCap(treeSel||S.jobSn)+'</div><p class="tleg">紅框＝目前職業；變暗＝條件未達成。</p><button class="gbtn" data-a="jobs" type="button">返回轉職</button>';return h7}
+    h7+=treeSVG()+'<div class="tcap" id="tcap">'+treeCap(treeSel||S.jobSn)+'</div><p class="tleg">紅框＝目前職業；白框＝正在查看；變暗＝條件未達成。</p><button class="gbtn" data-a="jobs" type="button">返回轉職</button>';return h7}
   if(k==='jobs'){var h6=head('轉職<button class="tbtn" data-a="tree" type="button">轉職樹 ›</button>','職業隨時可以換；各職業的等級會保留。條件未達成的職業會灰掉。').replace('<h2>','<h2 class="bold">');
     JOBORDER.forEach(function(sn){var j=JOB[sn],ok=reqMet(sn),now=sn===S.jobSn,lv=S.jobLvs[sn]|0;
       h6+='<div class="jobrow"><span class="who">'+jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b><span>Lv '+lv+'</span></span><button class="b '+(now||!ok?'alt':'go')+'" type="button" data-a="setjob" data-sn="'+sn+'" '+(now||!ok?'disabled':'')+'>'+(now?'目前職業':ok?'轉職':'條件未達成')+'</button>'+
@@ -546,7 +547,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='looksave'){var f=Object.assign({},S.look);persist(f).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
   else if(a==='jobs'){confirmJob=null;editName=false;confirmName=null;openSheet('jobs')}
   else if(a==='tree'){treeSel=S.jobSn;openSheet('tree')}
-  else if(a==='node'){treeSel=b.getAttribute('data-sn');$('tcap').innerHTML=treeCap(treeSel)}
+  else if(a==='node'){treeSel=b.getAttribute('data-sn');$('tcap').innerHTML=treeCap(treeSel);var old=document.querySelectorAll('.selr');for(var i=0;i<old.length;i++)old[i].parentNode.removeChild(old[i]);var im=b.querySelector('image');if(im){var z=+im.getAttribute('width'),x=+im.getAttribute('x'),y=+im.getAttribute('y');b.insertAdjacentHTML('afterbegin',selRect(x,y,z))}}
   else if(a==='pen'){editName=true;draftName='';render();var ni=$('nin');if(ni)ni.focus()}
   else if(a==='pencancel'){editName=false;draftName='';render()}
   else if(a==='renameno'){confirmName=null;render()}
