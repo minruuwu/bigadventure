@@ -238,7 +238,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     return fetch(DATA + name).then(function(r){ if(!r.ok) throw new Error(name + ' ' + r.status); return r.arrayBuffer(); })
       .then(function(b){ return parseCSV(new TextDecoder('utf-8').decode(b)); });
   }
-  var ATTR = [['hp_bonus','生命'],['p_atk_bonus','物理攻擊'],['m_atk_bonus','魔法攻擊'],['p_def_bonus','物理防禦'],['m_def_bonus','魔法防禦'],['eva_rate_bonus','閃避率'],['crit_rate_bonus','暴擊率'],['crit_damage_rate_bonus','暴擊傷害'],['speed_bonus','速度'],
+  var ATTR = [['hp_bonus','生命'],['p_atk_bonus','物理攻擊'],['m_atk_bonus','魔法攻擊'],['p_def_bonus','物理減傷'],['m_def_bonus','魔法減傷'],['eva_rate_bonus','閃避率'],['crit_rate_bonus','暴擊率'],['crit_damage_rate_bonus','暴擊傷害'],['speed_bonus','速度'],
     ['fire_res_rate_bonus','火焰抗性'],['frost_res_rate_bonus','冰霜抗性'],['lightning_res_rate_bonus','雷電抗性'],['wind_res_rate_bonus','風之抗性'],['nature_res_rate_bonus','自然抗性'],['light_res_rate_bonus','光明抗性'],['dark_res_rate_bonus','黑暗抗性']];
   var STAT_KEYS = ['str','int','agi','vit','luk'];
   var WEAPON_ORDER = ['劍','斧','匕','弓','錘','杖','槍','書'];
@@ -995,89 +995,13 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
 
 
   function paintStamp(c,Z){
-  var W=64,H=64,OFF=0,YOFF=0;c.width=W;c.height=H;c.style.width=W*Z+'px';c.style.height=H*Z+'px';var x=c.getContext('2d');x.clearRect(0,0,W,H);
-  var K={dk:'#5a1c12',wine:'#8c2b1f',wd:'#7c241a',tint:'#aa4331',pale:'#ecd2b0'};
-  var sd=3;function rr(){sd=(sd*16807)%2147483647;return sd/2147483647}
-  var g={};
-  function set(a,b,col){a=Math.round(a)+OFF;b=Math.round(b)+YOFF;if(a>=0&&b>=0&&a<W&&b<H)g[a+','+b]=col}
-  var cx=32,cy=32;
-  function stamp(X,Y,r,col){for(var oy=-Math.ceil(r);oy<=Math.ceil(r);oy++)for(var ox=-Math.ceil(r);ox<=Math.ceil(r);ox++)if(ox*ox+oy*oy<=r*r+0.2)set(X+ox,Y+oy,col)}
-  function line(x0,y0,x1,y1,r,col){var n=Math.ceil(Math.hypot(x1-x0,y1-y0)*3);for(var i=0;i<=n;i++){var t=i/n;stamp(x0+(x1-x0)*t,y0+(y1-y0)*t,r,col)}}
-  function bz(p0,p1,p2,t){var u=1-t;return [u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0],u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]}
-  function tube(p0,p1,p2,r0,r1,col,grow){var n=Math.ceil((Math.hypot(p1[0]-p0[0],p1[1]-p0[1])+Math.hypot(p2[0]-p1[0],p2[1]-p1[1]))*3);
-    for(var i=0;i<=n;i++){var t=i/n,p=bz(p0,p1,p2,t);stamp(p[0],p[1],r0+(r1-r0)*t+grow,col)}}
-  function inside(poly,px,py){var c=false;for(var i=0,j=poly.length-1;i<poly.length;j=i++){var xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))c=!c}return c}
-  function polyFill(poly,col,grow){var x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;poly.forEach(function(p){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
-    for(var y=Math.floor(y0)-2;y<=y1+2;y++)for(var xx=Math.floor(x0)-2;xx<=x1+2;xx++){var px=xx+.5,py=y+.5,ok=inside(poly,px,py);
-      if(!ok&&grow){ok=[[1,0],[-1,0],[0,1],[0,-1]].some(function(d){return inside(poly,px+d[0]*grow,py+d[1]*grow)})}
-      if(ok)set(xx,y,col)}}
-  // ---- two circular frames (behind everything), nearly closed ----
-  for(var y=0;y<H;y++)for(var xx=0;xx<W;xx++){var dx=xx+.5-cx,dy=y+.5-cy,d=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
-    var w1=Math.sin(a*3+0.7)+0.7*Math.sin(a*7+2.1)+0.4*Math.sin(a*13),w2=Math.sin(a*2+2.4)+0.6*Math.sin(a*6+0.3)+0.4*Math.sin(a*11+1);
-    if(Math.abs(d-29.3)<=1.9&&w1>-1.6)set(xx,y,(Math.abs(d-29.3)<1.1)?K.dk:K.wine);
-    if(Math.abs(d-25.0)<=1.3&&w2>-1.7)set(xx,y,K.wine)}
-  // ---- six-pointed star laid over the circles ----
-  (function(){var R=25.2;function V(a){return [cx+Math.cos(a)*R,cy+Math.sin(a)*R]}
-    var t1=[V(-Math.PI/2),V(Math.PI/6),V(Math.PI*5/6)],t2=[V(Math.PI/2),V(Math.PI*7/6),V(-Math.PI/6)];
-    [t1,t2].forEach(function(t){for(var i=0;i<3;i++){var p=t[i],q=t[(i+1)%3];line(p[0],p[1],q[0],q[1],1.5,K.dk)}});
-    [t1,t2].forEach(function(t){for(var i=0;i<3;i++){var p=t[i],q=t[(i+1)%3];line(p[0],p[1],q[0],q[1],0.55,K.wine)}});
-    [t1,t2].forEach(function(t){t.forEach(function(p){stamp(p[0],p[1],1.9,K.dk);stamp(p[0],p[1],0.9,K.pale)})})})();
-  // ---- crossed sword (point down, cross guard) and crook staff, behind the compass ----
-  (function(){
-    var hx=47,hy=12,tx=16,ty=52,vx=tx-hx,vy=ty-hy,L=Math.hypot(vx,vy),ux=vx/L,uy=vy/L,nx=-uy,ny=ux;
-    function at(t){return [hx+vx*t,hy+vy*t]}
-    var gp=at(0.14),g1=[gp[0]-nx*8,gp[1]-ny*8],g2=[gp[0]+nx*8,gp[1]+ny*8];
-    var crook=[[19,16],[19.8,11.5],[17.2,8.4],[13.6,9],[12.4,12.6]];
-    line(hx,hy,tx,ty,3.0,K.dk);line(g1[0],g1[1],g2[0],g2[1],2.6,K.dk);stamp(g1[0],g1[1],3.1,K.dk);stamp(g2[0],g2[1],3.1,K.dk);stamp(hx-ux*2.2,hy-uy*2.2,3.4,K.dk);
-    line(19,16,47,51,2.6,K.dk);crook.reduce(function(p,q){line(p[0],p[1],q[0],q[1],2.6,K.dk);return q});
-    var b0=at(0.14);line(b0[0],b0[1],tx,ty,1.7,K.pale);line(hx,hy,b0[0],b0[1],1.4,K.tint);
-    line(g1[0],g1[1],g2[0],g2[1],1.3,K.pale);stamp(g1[0],g1[1],1.7,K.pale);stamp(g2[0],g2[1],1.7,K.pale);stamp(hx-ux*2.2,hy-uy*2.2,2.1,K.pale);
-    line(19,16,47,51,1.4,K.tint);crook.reduce(function(p,q){line(p[0],p[1],q[0],q[1],1.4,K.tint);return q});
-  })();
-  // ---- large compass rose in front ----
-  var rx=cx,ry=cy;
-  function tri(ax,ay,bx,by,cxx,cyy,col){var minx=Math.floor(Math.min(ax,bx,cxx)),maxx=Math.ceil(Math.max(ax,bx,cxx)),miny=Math.floor(Math.min(ay,by,cyy)),maxy=Math.ceil(Math.max(ay,by,cyy));
-    for(var y=miny;y<=maxy;y++)for(var xx=minx;xx<=maxx;xx++){var px_=xx+.5,py_=y+.5;
-      var d1=(px_-bx)*(ay-by)-(ax-bx)*(py_-by),d2=(px_-cxx)*(by-cyy)-(bx-cxx)*(py_-cyy),d3=(px_-ax)*(cyy-ay)-(cxx-ax)*(py_-ay);
-      var neg=(d1<0)||(d2<0)||(d3<0),pos=(d1>0)||(d2>0)||(d3>0);if(!(neg&&pos))set(xx,y,col)}}
-  var dirs=[[0,-1,23,7.5],[1,0,19,7.0],[0,1,23,7.5],[-1,0,19,7.0],[.7071,-.7071,15,5.0],[.7071,.7071,15,5.0],[-.7071,.7071,15,5.0],[-.7071,-.7071,15,5.0]];
-  // diagonal (short) points first so the main points sit on top
-  var order=dirs.slice(4).concat(dirs.slice(0,4));
-  order.forEach(function(d){var tx=rx+d[0]*d[2],ty=ry+d[1]*d[2],nx=-d[1],ny=d[0],bw=d[3];
-    tri(rx+nx*(bw+1.1),ry+ny*(bw+1.1),tx+d[0]*1.3,ty+d[1]*1.3,rx,ry,K.dk);tri(rx-nx*(bw+1.1),ry-ny*(bw+1.1),tx+d[0]*1.3,ty+d[1]*1.3,rx,ry,K.dk);
-    tri(rx+nx*bw,ry+ny*bw,tx,ty,rx,ry,K.wine);tri(rx-nx*bw,ry-ny*bw,tx,ty,rx,ry,K.pale)});
-  // centre dial: wine disc, dark ring, unprinted hub
-  stamp(rx,ry,9.6,K.dk);stamp(rx,ry,8.4,K.wine);stamp(rx,ry,6.6,K.dk);stamp(rx,ry,5.6,K.pale);stamp(rx,ry,2.6,K.dk);stamp(rx,ry,1.4,K.wine);
-  for(var i=0;i<16;i++){var an=i/16*Math.PI*2,r1=9.0;set(rx+Math.cos(an)*r1,ry+Math.sin(an)*r1,i%2?K.pale:K.pale)}   // tick marks cut into the dial
-  // north marker: a small diamond above the long north point
-  polyFill([[rx,ry-27.5],[rx+2.2,ry-25],[rx,ry-22.5],[rx-2.2,ry-25]],K.dk,1);polyFill([[rx,ry-26.5],[rx+1.2,ry-25],[rx,ry-23.5],[rx-1.2,ry-25]],K.wine,0);
-  // ---- print: one ink colour, uneven pressure, paper showing through ----
-  function nz(X,Y){return Math.sin(X*0.31+1.7)*Math.sin(Y*0.27+0.4)+0.6*Math.sin((X+Y)*0.17+2.1)+0.4*Math.sin(X*0.9)*Math.sin(Y*0.8+1)}
-  var drawn={};
-  // outline every unprinted (paper-coloured) figure with dark ink so it still reads as a shape
-  (function(){var add=[];Object.keys(g).forEach(function(k){if(g[k]===K.pale)return;var p=k.split(',').map(Number);
-    var nearPale=[[1,0],[-1,0],[0,1],[0,-1]].some(function(d){return g[(p[0]+d[0])+','+(p[1]+d[1])]===K.pale});
-    if(nearPale&&g[k]!==K.dk)add.push(k)});add.forEach(function(k){g[k]=K.dk})})();
-  Object.keys(g).forEach(function(k){var p=k.split(',').map(Number),col=g[k],X=p[0],Y=p[1];
-    if(col===K.pale)return;                                   // paper colour: leave it unprinted
-    if(col===K.tint&&((X+Y)%2!==0))return;                    // light tone: halftone dots only
-    var n=nz(X,Y),patch=n>1.5,thin=0;
-    var nb=0;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){if(g[(X+d[0])+','+(Y+d[1])])nb++});
-    if(nb<=2)thin=0.03;                                       // thin lines break up first
-    var drop=0.01+(patch?0.22:0)+thin+(n<-1.0?0.12:0);
-    if(rr()<drop)return;
-    if(col===K.wine){col=n<-0.45?'#963022':(n>0.25?'#84271c':K.wine)}
-    drawn[k]=col;x.fillStyle=col;x.fillRect(X,Y,1,1)});
-  // ink squash: a few dots just outside the dark outline
-  Object.keys(drawn).forEach(function(k){if(drawn[k]!==K.dk)return;var p=k.split(',').map(Number);
-    [[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var kk=(p[0]+d[0])+','+(p[1]+d[1]);if(!g[kk]&&rr()<0.07&&p[0]+d[0]>=0&&p[1]+d[1]>=0&&p[0]+d[0]<W&&p[1]+d[1]<H){x.fillStyle=K.dk;x.fillRect(p[0]+d[0],p[1]+d[1],1,1)}})});
-}
-
-  function drawQuill(){
-    var Z = Math.max(2, scale-1);                 // 3px on desktop, 2px on phone -> keep it small
-    paintStamp($('stamp'), scale<4?2:3);
-    paintQuill($('quill'), 32, 2, Z+0, {rows:[], ends:[]});
-    var q=$('quill'); q.style.width=(32*(scale<4?3:3))+'px'; q.style.height=(32*3)+'px';
+    /* same little red seal as on the guild card in the character room: 12x12 */
+    var W=12,H=12;c.width=W;c.height=H;c.style.width=W*Z+'px';c.style.height=H*Z+'px';var x=c.getContext('2d');x.clearRect(0,0,W,H);
+    function ell(cx,cy,r,col){x.fillStyle=col;for(var y=Math.floor(cy-r);y<=Math.ceil(cy+r);y++)for(var xx=Math.floor(cx-r);xx<=Math.ceil(cx+r);xx++){var a=(xx+.5-cx)/r,b=(y+.5-cy)/r;if(a*a+b*b<=1)x.fillRect(xx,y,1,1)}}
+    function line(x0,y0,x1,y1,col){x.fillStyle=col;var dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,e=dx+dy;for(;;){x.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;var e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
+    ell(6,6,5.6,'#8a3b2a');ell(6,6,4.6,'#d8c28e');ell(6,6,3.6,'#8a3b2a');
+    line(6,1,6,11,'#d8c28e');line(1,6,11,6,'#d8c28e');line(3,3,9,9,'#c39a62');line(9,3,3,9,'#c39a62');
+    x.fillStyle='#efe0b4';x.fillRect(5,5,2,2);
   }
   function relayout(){
     if(relayoutQueued) return; relayoutQueued = true;
