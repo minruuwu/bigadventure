@@ -1003,6 +1003,12 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     line(6,1,6,11,'#d8c28e');line(1,6,11,6,'#d8c28e');line(3,3,9,9,'#c39a62');line(9,3,3,9,'#c39a62');
     x.fillStyle='#efe0b4';x.fillRect(5,5,2,2);
   }
+  function drawQuill(){
+    var Z = Math.max(2, scale-1);
+    paintStamp($('stamp'), scale<4?8:12);
+    paintQuill($('quill'), 32, 2, Z+0, {rows:[], ends:[]});
+    var q=$('quill'); q.style.width=(32*3)+'px'; q.style.height=(32*3)+'px';
+  }
   function relayout(){
     if(relayoutQueued) return; relayoutQueued = true;
     requestAnimationFrame(function(){
