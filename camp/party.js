@@ -8,7 +8,7 @@
 .mk{position:absolute;left:6px;right:6px;bottom:6px;z-index:6;display:flex;gap:8px;line-height:1}\
 .mk .mb{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;font:inherit;font-weight:900;font-size:14px;color:#f0e2c4;background:rgba(61,35,13,.88);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}\
 .mk .mb:active{filter:brightness(.9)}.mk .mb small{font-size:12px;opacity:.85;font-weight:400}\
-.pcard.pw .box{max-width:340px;align-items:stretch}\
+.pcard.pw{align-items:flex-start;padding-top:8vh;padding-bottom:24px;overflow-y:auto}.pcard.pw .box{max-width:340px;align-items:stretch}\
 .pw .box>*{flex:none}.pw h2{margin:0;font-size:18px;text-align:center}.pw h3{margin:6px 0 2px;font-size:13px;font-weight:900;color:#5a3a1a}\
 .rowp{width:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}\
 .pt{position:relative;padding:0;border:0;font:inherit;background:#2b1d13;box-shadow:0 0 0 2px #3b2713;overflow:hidden;display:block;cursor:pointer;min-width:0}\
@@ -23,7 +23,7 @@
 .pw .pbtn:disabled,.cin button:disabled{opacity:.5}\
 .tb2,.sg{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:12px}.tb2{margin:4px 0 2px}\
 .tb2 span,.sg span{display:flex;align-items:center;gap:4px;min-width:0}.tb2 em,.sg em{margin-left:auto;font-style:normal;font-weight:900;white-space:nowrap}\
-.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
+.icf{width:32px;height:32px;flex:none;display:inline-block;background-size:32px 32px;image-rendering:pixelated}.icf img{width:32px;height:32px;display:block;image-rendering:pixelated}.sg{gap:2px 12px!important}.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
 .tbs{display:flex;gap:4px;margin:8px 0 6px}.tbs b{padding:4px 12px;background:#4a2a12;color:#f0dfb8;font-size:12px;font-weight:900;box-shadow:0 0 0 2px #1d1008}\
 .lst{width:100%;display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto}\
 .rw{display:flex;align-items:center;gap:8px;padding:5px 6px;background:rgba(70,40,15,.12);font-size:13px;color:#2e1d0e;min-width:0}\
@@ -38,7 +38,7 @@
 .cin{display:flex;gap:6px;margin-top:6px}.cin input{flex:1;min-width:0;font:inherit;font-size:14px;padding:6px;border:2px solid #3d230d;background:#f4e8c8;color:#2e1d0e;border-radius:0}.cin button{font-size:14px;padding:0 14px;white-space:nowrap}\
 .cmsg{font-size:12px;min-height:1.3em;color:#7a2a1a;text-align:center}\
 .tp{width:100%;margin-top:4px;padding-top:8px;border-top:2px dashed rgba(70,40,15,.45);display:flex;flex-direction:column;gap:4px}\
-.tp h3{margin:0;font-size:13px;font-weight:900;color:#3b2713}.tp .m{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:#2e1d0e}.tp .m img{width:22px;height:22px}';
+.tp[hidden]{display:none}.tp h3{margin:0;font-size:13px;font-weight:900;color:#3b2713}.tp .m{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:#2e1d0e}.tp .m img{width:22px;height:22px}';
 
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] }) }
   function pct(x) { return (x * 100).toFixed(1).replace(/\.0$/, '') + '%' }
@@ -56,6 +56,13 @@
   function wsn(p) { return C.wbyname[p.weapon] || '' }
   function wlv(p) { var s = wsn(p), w = p.weapons && p.weapons[s]; return Math.max(1, (w && w.lv) | 0 || 1) }
   function wicon(p) { var s = wsn(p); return s ? C.base + 'icons/weapons/' + s + '.png?v=2' : '' }
+  var WR = ['#fff3b8', '#f0cd62', '#c9981f', '#8a5f10'], WF = null;
+  function goldFrame() { if (WF) return WF; var c = document.createElement('canvas'); c.width = c.height = 16; var x = c.getContext('2d'); x.fillStyle = '#120a05'; x.fillRect(1, 1, 14, 14);
+    for (var i = 0; i < 16; i++) for (var j = 0; j < 16; j++) { var m = Math.min(i, j, 15 - i, 15 - j); if (m > 1) continue; var f = (i + j) / 30, k = f < .27 ? 0 : f < .5 ? 1 : f < .73 ? 2 : 3, col = WR[k];
+      if (m === 0 && (i === 0 || i === 15) && (j === 0 || j === 15)) continue;
+      if (m === 1) { var n = parseInt(col.slice(1), 16); col = 'rgb(' + Math.round((n >> 16 & 255) * .8) + ',' + Math.round((n >> 8 & 255) * .8) + ',' + Math.round((n & 255) * .8) + ')' }
+      x.fillStyle = col; x.fillRect(i, j, 1, 1) }
+    return WF = c.toDataURL() }
   function me() { return C.me() }
 
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
@@ -153,7 +160,7 @@
       d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span>' + (isMe ? '<span class="tg">隊長</span>' : idx) + '</div>' +
         '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
-        '<div class="tbs"><b>屬性</b></div><div class="sg">' + combat(p).map(function (r) { return '<span><img class="si" alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=4" onerror="this.style.visibility=\'hidden\'">' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>';
+        '<div class="tbs"><b>屬性</b></div><div class="sg">' + combat(p).map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=4" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>';
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
           API.remove(p.uid).then(function () { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== p.uid }); bust(p.uid); sel = 0; syncBtn(); load(); C.toast('已移出 ' + p.name) }, function (e) { C.toast(errText(e, '移出')) })

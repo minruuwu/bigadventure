@@ -377,7 +377,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=19"></script>
-<script src="party.js?v=2"></script>
+<script src="party.js?v=4"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -825,6 +825,12 @@ function sayWhen(p){document.getElementById('pcSayWhen').textContent=p.say&&tms(
     if(demo){done();return}
     withFB(function(FB){FB.saySet(v).then(done).catch(function(e){sv.disabled=false;msg.style.color='#7a2a1a';msg.textContent='儲存失敗'+(e&&e.code?'（'+e.code+'）':'')})})})})();
 function ago(t){var m=Math.round((Date.now()-t)/60000);if(m<60)return m+' 分鐘前';var h=Math.round(m/60);if(h<48)return h+' 小時前';return Math.round(h/24)+' 天前'}
+/* 人像框的像素格圓形光：48×48 的小圖放大 4 倍，三層暖金色＋外圈棋盤點淡出 */
+(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d'),cx=23.5,cy=29.5;
+  for(var j=0;j<48;j++)for(var i=0;i<48;i++){var d=Math.hypot(i-cx,j-cy),col=null,a=0;
+    if(d<6){col='#f6d27a';a=.5}else if(d<11){col='#d99a46';a=.42}else if(d<15){col='#9a6428';a=.36}else if(d<18&&((i+j)&1)===0){col='#9a6428';a=.28}
+    if(col){x.globalAlpha=a;x.fillStyle=col;x.fillRect(i,j,1,1)}}
+  var cv=document.getElementById('pcDoll');cv.style.background='url('+c.toDataURL()+') 0 0/100% 100% no-repeat,#2b1d13'})();
 function closeCard(){CARD=null;document.getElementById('pcard').hidden=true}
 document.getElementById('pcBg').addEventListener('click',closeCard);document.getElementById('pcX').addEventListener('click',closeCard);
 (function cardLoop(now){if(STOP)return;if(CARD&&CARD.pet){var P=CARD.pet,cv=document.getElementById('pcDoll'),cx=cv.getContext('2d'),k=Math.max(1,Math.floor(Math.min(150/P.fw,150/P.fh))),fr=P.frames>1?Math.floor(now/180)%P.frames:0;
