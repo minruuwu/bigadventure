@@ -367,9 +367,8 @@ html,body,*{touch-action:manipulation}
   <div class="top"><h1>營地</h1></div>
   <div class="main">
     <div class="phead"><label class="nmchk"><input type="checkbox" id="showNames" checked><span class="bx"></span>顯示玩家姓名</label><span id="pcount"></span></div>
-    <div class="shd"><div class="plaza" id="plaza"><canvas id="scene" aria-label="營地裡的冒險者"></canvas><div class="tags" id="tags"></div></div></div>
+    <div class="shd"><div class="plaza" id="plaza"><canvas id="scene" aria-label="營地裡的冒險者"></canvas><div class="tags" id="tags"></div><div id="mkHost"></div></div></div>
     <p class="note">這裡會顯示最近上線的 15 位冒險者和你自己。名牌旁的綠點代表 10 分鐘內有上線，頭上的對話泡泡代表 24 小時內留了想說的話。點冒險者可以看詳細資料。</p>
-    <div id="mkHost"></div>
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
@@ -378,7 +377,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=19"></script>
-<script src="party.js?v=1"></script>
+<script src="party.js?v=2"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -619,7 +618,7 @@ function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w];
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:90,y:122}; /* fire centre x, base line y */
-var SLOTS=[[66,170],[112,166],[52,140],[101,96],[124,112],[70,90],[90,181],[132,146],[36,118],[150,126],[156,164],[148,98],[28,160],[44,86],[42,184],[138,194]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
+var SLOTS=[[66,170],[112,166],[52,140],[101,96],[124,112],[70,90],[90,181],[132,146],[36,118],[150,126],[156,164],[148,98],[28,160],[44,86],[42,184],[138,188]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
 function tms(v){return v&&v.toMillis?v.toMillis():(typeof v==='number'?v:0)}
 var SAY_MS=24*3600*1000;
 function sayLive(p){return !!(p.say&&Date.now()-tms(p.sayAt)<SAY_MS)}
@@ -770,7 +769,7 @@ function sparks(now,dt){sparkAcc+=dt*9;while(sparkAcc>1){sparkAcc--;SPARKS.push(
     var k=p.life/p.max;sx.globalAlpha=k<.7?1:Math.max(0,1-(k-.7)/.3);R(k<.3?'#fff3c0':k<.6?'#ffc040':'#ff6a20',Math.round(p.x),Math.round(p.y),1,1);return true});sx.globalAlpha=1}
 var last=0,STOP=false,FRAME_MS=50; /* ~20fps is plenty for pixel art and keeps phones cool */
 function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimationFrame(tick);return}var dt=Math.min(.15,(now-last)/1000||0);last=now;sx.imageSmoothingEnabled=false;sx.drawImage(BG,0,0);stars(now);if(LAYER.blanket)sx.drawImage(LAYER.blanket,0,0,SW,SH);if(LAYER.back)sx.drawImage(LAYER.back,0,0,SW,SH);kuqi(now);lamp(now);lampGlow(now);fireGlow(now);
-  ACT.forEach(function(a){if(a.still)return;if(a.wait>0){a.wait-=dt;if(a.wait<=0){var rg=a.pet?40:24;for(var tr=0;tr<8;tr++){a.tx=Math.max(34,Math.min(SW-34,a.x+rnd(-rg,rg)));a.ty=Math.max(70,Math.min(SH-12,a.y+rnd(-14,14)));if(clearPath(a.x,a.y,a.tx,a.ty))break;a.tx=a.x;a.ty=a.y}}}
+  ACT.forEach(function(a){if(a.still)return;if(a.wait>0){a.wait-=dt;if(a.wait<=0){var rg=a.pet?40:24;for(var tr=0;tr<8;tr++){a.tx=Math.max(34,Math.min(SW-34,a.x+rnd(-rg,rg)));a.ty=Math.max(70,Math.min(SH-22,a.y+rnd(-14,14)));if(clearPath(a.x,a.y,a.tx,a.ty))break;a.tx=a.x;a.ty=a.y}}}
     else{var dx=a.tx-a.x,dy=a.ty-a.y,d=Math.hypot(dx,dy);if(d<.6){a.wait=a.pet?rnd(1,4):rnd(2,7)}else{var sp=(a.pet?16:9)*dt;a.x+=dx/d*Math.min(sp,d);a.y+=dy/d*Math.min(sp,d);if(Math.abs(dx)>.3)a.face=dx<0?-1:1}}});
   var fireDone=false;ACT.slice().sort(function(a,b){return a.y-b.y}).forEach(function(a){if(!fireDone&&a.y>FIRE.y){fire(now);fireDone=true}var px=Math.round(a.x),py=Math.round(a.y),tagY=a.y-36;
     if(a.pet){var P=a.pet,moving=a.wait<=0,fr=P.frames>1&&moving?Math.floor((now+a.phase)/140)%P.frames:0,hop=P.frames===1&&moving?-Math.round(Math.abs(Math.sin((now+a.phase)/110))*2):0;

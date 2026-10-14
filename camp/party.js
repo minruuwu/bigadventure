@@ -5,8 +5,8 @@
   var C = null, API = null, STAT = null, MC = {}, openWin = null;
   var CHAT_GAP = 123 * 1000; /* 規則是 2 分鐘，多留 3 秒給網路與時鐘誤差 */
   var CSS = '\
-.mk{display:flex;gap:10px;margin-top:2px}\
-.mk .mb{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;font:inherit;font-weight:900;font-size:16px;color:#f0e2c4;background:#7a4f22;border:0;cursor:pointer;box-shadow:inset 0 0 0 3px #3d230d,inset 0 3px 0 3px #d49a52;text-shadow:1px 1px 0 #000}\
+.mk{position:absolute;left:6px;right:6px;bottom:6px;z-index:6;display:flex;gap:8px;line-height:1}\
+.mk .mb{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;font:inherit;font-weight:900;font-size:14px;color:#f0e2c4;background:rgba(61,35,13,.88);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}\
 .mk .mb:active{filter:brightness(.9)}.mk .mb small{font-size:12px;opacity:.85;font-weight:400}\
 .pcard.pw .box{max-width:340px;align-items:stretch}\
 .pw .box>*{flex:none}.pw h2{margin:0;font-size:18px;text-align:center}.pw h3{margin:6px 0 2px;font-size:13px;font-weight:900;color:#5a3a1a}\
@@ -76,11 +76,11 @@
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk;
     return [
       ['hp', '生命力', Math.round(v * 5 * (1 + hpb + wsum('hp_rate')))],
-      ['patk', '物理攻擊力', Math.round((s + wsum('p_atk')) * (1 + pb))],
-      ['matk', '魔法攻擊力', Math.round((i + wsum('m_atk')) * (1 + mb))],
       ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate'))],
       ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate'))],
       ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate'))],
+      ['patk', '物理攻擊力', Math.round((s + wsum('p_atk')) * (1 + pb))],
+      ['matk', '魔法攻擊力', Math.round((i + wsum('m_atk')) * (1 + mb))],
       ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate'))],
       ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate'))]]
   }
@@ -243,7 +243,7 @@
       C = ctx; API = ctx.demo ? demoAPI() : realAPI();
       var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
       var host = document.getElementById('mkHost'); if (!host) return;
-      host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button></div>';
+      host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button></div>';
       document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); syncBtn()
     },
     fillTeam: fillTeam, jobName: jobName, jobLv: jobLv, charLv: charLv

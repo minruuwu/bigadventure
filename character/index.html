@@ -462,7 +462,7 @@ function jobDetailHTML(sn,nodesc){var j=JOB[sn];if(!j)return '';var g=GROWTH[sn]
 function treeCap(sn){var j=JOB[sn];if(!j)return '';var ok=reqMet(sn);return jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b>　'+(sn===S.jobSn?'目前職業':ok?'已可轉職':'未解鎖：'+esc(j.required_desc||''))}
 function head(t,h){return '<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
 var HAS_ICONS=true,DKEYS=['hp','patk','matk','eva','crit','critdmg','pdef','mdef'],askReset=false;
-function ic(id){if(HAS_ICONS&&DKEYS.indexOf(id)>=0)return '<span class="ic icf" style="background-image:url('+wframe(2)+')"><img class="ic" style="margin:0" alt="" src="../assets/icons/stats/'+id+'.png?v=4" onerror="this.remove()"></span>';return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=4" onerror="this.remove()">':''}
+function ic(id){if(HAS_ICONS&&(DKEYS.indexOf(id)>=0||/^res_/.test(id)))return '<span class="ic icf" style="background-image:url('+wframe(2)+')"><img class="ic" style="margin:0" alt="" src="../assets/icons/stats/'+id+'.png?v=4" onerror="this.remove()"></span>';return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=4" onerror="this.remove()">':''}
 function derivedBase(){var sv={};KEYS.forEach(function(x){sv[x]=S.pend[x];S.pend[x]=0});var r=derived();KEYS.forEach(function(x){S.pend[x]=sv[x]});return r}
 function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="dl">'+(d>0?'+':'')+d+'</span>':''}
   var bn=parseFloat(b),nn=parseFloat(n),dd=Math.round((nn-bn)*10)/10;return dd?'<span class="dl">'+(dd>0?'+':'')+dd+'%</span>':''}
