@@ -29,12 +29,12 @@ canvas{image-rendering:pixelated;display:block}
 .toast.on{opacity:1}
 
 /* ===== tent room (130 x 112 art pixels, shown scaled) ===== */
-.room{position:relative;width:100%;aspect-ratio:130/112;background:#0c0705;overflow:hidden;container-type:inline-size}
+.room{position:relative;width:100%;aspect-ratio:130/140;background:#0c0705;overflow:hidden;container-type:inline-size}
 .room canvas{position:absolute;display:block;image-rendering:pixelated}
 #bgimg,#tbl{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated}
 #tbl{z-index:5;pointer-events:none}
-#doll{left:21.38%;top:24.6%;width:48%;height:55.7%;z-index:3}
-.glow{position:absolute;left:77.2%;top:43.1%;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:1;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(205,140,255,.85) 0,rgba(160,90,235,.45) 22%,rgba(120,60,200,.18) 48%,rgba(100,50,180,0) 70%);animation:glowbr 3.2s ease-in-out infinite}
+#doll{left:18.31%;top:21.29%;width:48%;height:44.57%;z-index:3}
+.glow{position:absolute;left:77.23%;top:36.64%;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:1;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(205,140,255,.85) 0,rgba(160,90,235,.45) 22%,rgba(120,60,200,.18) 48%,rgba(100,50,180,0) 70%);animation:glowbr 3.2s ease-in-out infinite}
 @keyframes glowbr{0%,100%{opacity:.65;transform:translate(-50%,-50%) scale(.92)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
 @media (prefers-reduced-motion:reduce){.glow{animation:none}}
 .hs{position:absolute;z-index:6;background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit}
@@ -146,10 +146,10 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <div class="top"><h1>角色</h1></div>
   <main class="main">
     <section class="room" id="room" aria-label="角色頁">
-      <img id="bgimg" src="../assets/character/tent_bg.png?v=1" alt="">
+      <img id="bgimg" src="../assets/character/tent_bg.png?v=2" alt="">
       <div class="glow"></div>
       <canvas id="doll" width="48" height="48"></canvas>
-      <img id="tbl" src="../assets/character/tent_table.png?v=1" alt="">
+      <img id="tbl" src="../assets/character/tent_table.png?v=2" alt="">
       <div id="hsHost" style="display:contents"></div>
     </section>
     <div class="card" id="cardText"></div>
@@ -510,14 +510,14 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
 sheet.addEventListener('change',function(e){var t=e.target;if(t.tagName==='SELECT'&&t.getAttribute('data-g')){S.look[t.getAttribute('data-g')]=/^\d+$/.test(t.value)?+t.value:t.value;updateMirror()}});
 back.addEventListener('click',function(e){if(e.target===back)closeSheet()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&cur)closeSheet()});
-var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:44,w:36,h:41,p:'武器架',px:20,py:38,b:'更換武器'},
-  {k:'card',l:'公會證：查看職業',x:38,y:12,w:18,h:16,p:'公會證',px:47,py:11,b:'查看職業'},
-  {k:'paper',l:'人物誌：屬性',x:60,y:77,w:19,h:14,p:'人物誌',px:69.5,py:92,dn:1,id:'pillPaper',b:'屬性',bid:'btnPaper'},
-  {k:'mirror',l:'鏡子：外觀',x:70,y:13,w:27,h:49,p:'鏡子',px:83,py:12,b:'外觀'},
-  {k:'book',l:'技能書：技能',x:99,y:53,w:24,h:16,p:'技能書',px:111,py:47,b:'技能'}];
+var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:47,w:36,h:41,p:'武器架',px:20,py:41,b:'更換武器'},
+  {k:'card',l:'公會證：查看職業',x:38,y:15,w:18,h:16,p:'公會證',px:47,py:14,b:'查看職業'},
+  {k:'paper',l:'人物誌：屬性',x:60,y:80,w:19,h:14,p:'人物誌',px:69.5,py:95,dn:1,id:'pillPaper',b:'屬性',bid:'btnPaper'},
+  {k:'mirror',l:'鏡子：外觀',x:70,y:16,w:27,h:49,p:'鏡子',px:83,py:15,b:'外觀'},
+  {k:'book',l:'技能書：技能',x:99,y:56,w:24,h:16,p:'技能書',px:111,py:50,b:'技能'}];
 (function(){var host=$('hsHost'),bar=$('acts5');HS.forEach(function(h){var b=document.createElement('button');b.className='hs';b.type='button';b.setAttribute('data-k',h.k);b.setAttribute('aria-label',h.l);
-  b.style.cssText='left:'+(h.x/130*100)+'%;top:'+(h.y/112*100)+'%;width:'+(h.w/130*100)+'%;height:'+(h.h/112*100)+'%';b.addEventListener('click',function(){openSheet(h.k)});host.appendChild(b);
-  var sp=document.createElement('span');sp.className='pill'+(h.dn?' dn':'');if(h.id)sp.id=h.id;sp.style.cssText='left:'+(h.px/130*100)+'%;top:'+(h.py/112*100)+'%';sp.textContent=h.p;host.appendChild(sp);
+  b.style.cssText='left:'+(h.x/130*100)+'%;top:'+(h.y/140*100)+'%;width:'+(h.w/130*100)+'%;height:'+(h.h/140*100)+'%';b.addEventListener('click',function(){openSheet(h.k)});host.appendChild(b);
+  var sp=document.createElement('span');sp.className='pill'+(h.dn?' dn':'');if(h.id)sp.id=h.id;sp.style.cssText='left:'+(h.px/130*100)+'%;top:'+(h.py/140*100)+'%';sp.textContent=h.p;host.appendChild(sp);
   var bb=document.createElement('button');bb.type='button';bb.textContent=h.b;if(h.bid)bb.id=h.bid;bb.addEventListener('click',function(){openSheet(h.k)});bar.appendChild(bb)})})();
 
 /* ================= doll + weapon sprite ================= */
