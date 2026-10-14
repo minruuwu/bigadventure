@@ -5,7 +5,7 @@
   var C = null, API = null, STAT = null, MC = {}, openWin = null;
   var CHAT_GAP = 123 * 1000; /* 規則是 2 分鐘，多留 3 秒給網路與時鐘誤差 */
   var CSS = '\
-.mk{position:absolute;left:6px;right:6px;bottom:6px;z-index:6;display:flex;gap:8px;line-height:1}\
+.mk{position:absolute;left:3px;right:3px;bottom:3px;z-index:6;display:flex;gap:8px;line-height:1}\
 .mk .mb{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;font:inherit;font-weight:900;font-size:14px;color:#f0e2c4;background:rgba(61,35,13,.88);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}\
 .mk .mb:active{filter:brightness(.9)}.mk .mb small{font-size:12px;opacity:.85;font-weight:400}\
 .pcard.pw{align-items:flex-start;padding-top:8vh;padding-bottom:24px;overflow-y:auto}.pcard.pw .box{max-width:340px;align-items:stretch}\
