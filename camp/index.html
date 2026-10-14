@@ -607,7 +607,7 @@ function hexA(c,a){var n=parseInt(c.slice(1),16);return 'rgba('+(n>>16&255)+','+
 
 /* ---------- plaza ---------- */
 var JOBN=Doll.JOBN; /* filled from job_info.csv by Doll.load */
-var SW=180,SH=210,SCALE=2,ONLINE_MS=10*60*1000;
+var SW=320,SH=477,SCALE=2,ONLINE_MS=10*60*1000;
 var scene=document.getElementById('scene'),sx=scene.getContext('2d'),tagsEl=document.getElementById('tags');
 var PETLIST=[],ACT=[],ME_UID=null,BG=null,WBYNAME={};
 function jobIcon(p){return BASE+'icons/jobs/framed/'+(p.jobSn||Doll.JOBSN[p.job|0]||'job01')+'.png?v='+V}
@@ -617,8 +617,8 @@ function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w];
     shield:wd&&wd.offImg&&wd.offImg[0]?{img:wd.offImg[0],key:'off_'+w+'_0'}:null,halo:[]}}
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
-var FIRE={x:90,y:122}; /* fire centre x, base line y */
-var SLOTS=[[66,170],[112,166],[52,140],[101,96],[124,112],[70,90],[90,181],[132,146],[36,118],[150,126],[156,164],[148,98],[28,160],[44,86],[42,184],[138,188]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
+var FIRE={x:160,y:282}; /* fire centre x, base line y */
+var SLOTS=[[106,309],[208,306],[146,244],[70,264],[173,345],[186,257],[234,250],[101,235],[254,288],[53,304]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
 function tms(v){return v&&v.toMillis?v.toMillis():(typeof v==='number'?v:0)}
 var SAY_MS=24*3600*1000;
 function sayLive(p){return !!(p.say&&Date.now()-tms(p.sayAt)<SAY_MS)}
@@ -703,7 +703,7 @@ function lampGlow(now){var fl=.88+.08*Math.sin(now/900)+.04*Math.sin(now/370),x=
   sx.fillStyle=g;sx.fillRect(x-24,y-24,48,48)}
 ['blanket','back','front'].forEach(function(k){var im=new Image();im.onload=function(){LAYER[k]=im};im.src=BASE+'camp/camp_'+k+'.png?v='+V});
 /* 庫奇 (assets/pets/gm_pet_03.png + gm_pet_03_tail.png, 16x16 each): lies on top of the red canopy; the tail layer sits behind the body and slowly sways around its root */
-var KUQI={img:{},x:151,y:13,tx:1,tails:{},card:null};
+var KUQI={img:{},x:201,y:164,tx:1,tails:{},card:null};
 ['gm_pet_03','gm_pet_03_tail'].forEach(function(k){var im=new Image();im.onload=function(){KUQI.img[k]=im;if(KUQI.img.gm_pet_03&&KUQI.img.gm_pet_03_tail)kuqiReady()};im.src=BASE+'pets/'+k+'.png?v='+V});
 function kuqiTail(step){if(KUQI.tails[step])return KUQI.tails[step];
   var src=document.createElement('canvas');src.width=src.height=16;var sc=src.getContext('2d');sc.drawImage(KUQI.img.gm_pet_03_tail,0,0);
@@ -735,7 +735,7 @@ var ASH=(function(){var sd=5,out=[];function r(){sd=(sd*9301+49297)%233280;retur
   for(var k=0;k<46;k++){var a=r()*6.283,d=Math.sqrt(r()),x=Math.round(Math.cos(a)*d*14),y=Math.round(Math.sin(a)*d*5)+1;out.push([x,y,C[Math.floor(r()*C.length)],r()<.35?2:1])}
   return out})();
 function stone(st,cx,by){var x=cx+st.x,y=by+st.y;st.rows.forEach(function(r,j){R(j===st.rows.length-1?st.dk:st.c,x+r[0],y+j,r[1],1)});R(st.hi,x+st.rows[0][0]+1,y,Math.max(1,st.rows[0][1]-2),1);if(st.rows.length>3)R(st.hi,x+st.rows[1][0],y+1,1,1)}
-function inFire(x,y){return Math.abs(x-FIRE.x)<22&&Math.abs(y-FIRE.y)<10}
+function inFire(x,y){return Math.abs(x-FIRE.x)<34&&Math.abs(y-FIRE.y)<16}
 function clearPath(x0,y0,x1,y1){for(var k=0;k<=8;k++){if(inFire(x0+(x1-x0)*k/8,y0+(y1-y0)*k/8))return false}return true}
 function fireGlow(now){var fl=.9+.1*Math.sin(now/170)+.06*Math.sin(now/53);
   var g=sx.createRadialGradient(FIRE.x,FIRE.y-6,3,FIRE.x,FIRE.y-6,92);g.addColorStop(0,'rgba(255,150,60,'+(.34*fl)+')');g.addColorStop(.45,'rgba(255,120,40,'+(.14*fl)+')');g.addColorStop(1,'rgba(255,120,40,0)');sx.fillStyle=g;sx.fillRect(0,0,SW,SH);
@@ -768,16 +768,15 @@ function sparks(now,dt){sparkAcc+=dt*9;while(sparkAcc>1){sparkAcc--;SPARKS.push(
   SPARKS=SPARKS.filter(function(p){p.life+=dt;if(p.life>p.max)return false;p.vy*=1-dt*.25;p.x+=(p.vx+Math.sin(p.life*2+p.ph)*4)*dt;p.y+=p.vy*dt;
     var k=p.life/p.max;sx.globalAlpha=k<.7?1:Math.max(0,1-(k-.7)/.3);R(k<.3?'#fff3c0':k<.6?'#ffc040':'#ff6a20',Math.round(p.x),Math.round(p.y),1,1);return true});sx.globalAlpha=1}
 var last=0,STOP=false,FRAME_MS=50; /* ~20fps is plenty for pixel art and keeps phones cool */
-function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimationFrame(tick);return}var dt=Math.min(.15,(now-last)/1000||0);last=now;sx.imageSmoothingEnabled=false;sx.drawImage(BG,0,0);stars(now);if(LAYER.blanket)sx.drawImage(LAYER.blanket,0,0,SW,SH);if(LAYER.back)sx.drawImage(LAYER.back,0,0,SW,SH);kuqi(now);lamp(now);lampGlow(now);fireGlow(now);
-  ACT.forEach(function(a){if(a.still)return;if(a.wait>0){a.wait-=dt;if(a.wait<=0){var rg=a.pet?40:24;for(var tr=0;tr<8;tr++){a.tx=Math.max(34,Math.min(SW-34,a.x+rnd(-rg,rg)));a.ty=Math.max(70,Math.min(SH-22,a.y+rnd(-14,14)));if(clearPath(a.x,a.y,a.tx,a.ty))break;a.tx=a.x;a.ty=a.y}}}
+function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimationFrame(tick);return}var dt=Math.min(.15,(now-last)/1000||0);last=now;sx.imageSmoothingEnabled=false;sx.drawImage(BG,0,0);stars(now);if(SCENE.complete)sx.drawImage(SCENE,0,0);kuqi(now);lamps2(now);fireGlow(now);
+  ACT.forEach(function(a){if(a.still)return;if(a.wait>0){a.wait-=dt;if(a.wait<=0){var rg=a.pet?40:24;for(var tr=0;tr<8;tr++){a.tx=Math.max(68,Math.min(252,a.x+rnd(-rg,rg)));a.ty=Math.max(232,Math.min(358,a.y+rnd(-14,14)));if(clearPath(a.x,a.y,a.tx,a.ty))break;a.tx=a.x;a.ty=a.y}}}
     else{var dx=a.tx-a.x,dy=a.ty-a.y,d=Math.hypot(dx,dy);if(d<.6){a.wait=a.pet?rnd(1,4):rnd(2,7)}else{var sp=(a.pet?16:9)*dt;a.x+=dx/d*Math.min(sp,d);a.y+=dy/d*Math.min(sp,d);if(Math.abs(dx)>.3)a.face=dx<0?-1:1}}});
   var fireDone=false;ACT.slice().sort(function(a,b){return a.y-b.y}).forEach(function(a){if(!fireDone&&a.y>FIRE.y){fire(now);fireDone=true}var px=Math.round(a.x),py=Math.round(a.y),tagY=a.y-36;
     if(a.pet){var P=a.pet,moving=a.wait<=0,fr=P.frames>1&&moving?Math.floor((now+a.phase)/140)%P.frames:0,hop=P.frames===1&&moving?-Math.round(Math.abs(Math.sin((now+a.phase)/110))*2):0;
       sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);px=0}sx.drawImage(P.img,fr*P.fw,0,P.fw,P.fh,px-Math.round(P.dw/2),py-P.dh+hop,P.dw,P.dh);sx.restore();tagY=a.y-P.dh-4}
     else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore()}
     a.tag.style.left=(a.x/SW*100)+'%';a.tag.style.top=(tagY/SH*100)+'%';a.tag.style.zIndex=Math.round(a.y)+1000});
-  if(!fireDone)fire(now);sparks(now,dt);if(LAYER.front)sx.drawImage(LAYER.front,0,0,SW,SH);
-  if(FG)sx.drawImage(FG,0,0);
+  if(!fireDone)fire(now);sparks(now,dt);if(FRONT.complete)sx.drawImage(FRONT,0,0);
   ACT.forEach(function(a){if(!a.pet&&sayLive(a.p))bubble(a,now)});
   requestAnimationFrame(tick)}
 /* little speech bubble (11x9 art px) at the top right of the head: bobs 1px, the three dots light up in turn */
@@ -845,7 +844,7 @@ var PETS=[['gm_pet_01','阿梅'],['gm_pet_02','阿果']];
 function loadPets(){return Promise.all(PETS.map(function(d){return new Promise(function(res){var im=new Image();im.onload=function(){
     var w=im.naturalWidth,h=im.naturalHeight,frames=(w>=h*2&&w%h===0)?w/h:1,fw=w/frames,fh=h,div=Math.max(1,Math.ceil(fh/40));
     res({name:d[1],img:im,frames:frames,fw:fw,fh:fh,dw:Math.round(fw/div),dh:Math.round(fh/div)})};im.onerror=function(){res(null)};im.src=BASE+'pets/'+d[0]+'.png?v='+V})}))}
-function placePets(list){list.forEach(function(P,i){if(!P)return;var x,y;do{x=rnd(50,SW-50);y=rnd(90,SH-20)}while(inFire(x,y));
+function placePets(list){list.forEach(function(P,i){if(!P)return;var x,y;do{x=rnd(81,239);y=rnd(242,348)}while(inFire(x,y));
   var a={pet:P,p:{name:P.name},x:x,y:y,tx:x,ty:y,face:Math.random()<.5?-1:1,wait:rnd(.5,3),phase:rnd(0,4000)};
   var t=document.createElement('div');t.className='tag pet';var nm=document.createElement('span');nm.textContent=P.name;t.appendChild(nm);
   t.addEventListener('click',function(e){e.stopPropagation();openCard(a)});tagsEl.appendChild(t);a.tag=t;ACT.push(a)})}
@@ -855,11 +854,30 @@ document.getElementById('plaza').addEventListener('click',function(e){var r=scen
 function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=localStorage.getItem('camp.showNames')!=='0'}catch(e){}
   cb.checked=v;tagsEl.classList.toggle('hn',!v);
   cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
-function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
+function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,9));
   document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
   Party.init({demo:demo,base:BASE,v:V,me:function(){return ME_P},look:look,withFB:withFB,getCSV:getCSV,rawWeapons:function(){return RAWW},wbyname:WBYNAME,petinfo:PETINFO,toast:toast,
     findLocal:function(u){var r=null;ACT.forEach(function(a){if(!a.pet&&a.p.uid===u)r=a.p});return r},demoList:function(){return window.__DL||[]}});
   scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
+
+var V2='1';var FRONT=new Image();FRONT.src=BASE+'camp/camp_front.png?v='+Date.now();
+var SCENE=new Image();SCENE.src=BASE+'camp/camp_cut.png?v='+Date.now();
+buildBG=function(){var c=document.createElement('canvas');c.width=SW;c.height=SH;var x=c.getContext('2d');
+  for(var y=0;y<SH;y++){var k=Math.min(1,y/191);x.fillStyle='rgb('+(11+k*14|0)+','+(20+k*20|0)+','+(38+k*30|0)+')';x.fillRect(0,y,SW,1)}
+  var sd=5;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+  STARS=[];for(var i=0;i<60;i++)STARS.push({x:Math.floor(r()*SW/2)*2,y:Math.floor(r()*143/2)*2,big:r()<.18,ph:r()*6.28,sp:.8+r()*1.6,col:r()<.3?'#ffe9b0':'#c9d4ff'});
+  for(var yy=-8;yy<=8;yy++)for(var xx=-8;xx<=8;xx++){var d=Math.hypot(xx,yy),d2=Math.hypot(xx-3.5,yy-1);if(d<7.5&&d2>6.6){x.fillStyle=d<5.8?'#fff2c8':'#e6d3a0';x.fillRect(230+xx,29+yy,1,1)}}
+  BG=c};
+var LAMPS=[[115.1, 198.9], [77.4, 230.2], [34.0, 255.8], [269.1, 209.4]];
+function lamps2(now){LAMPS.forEach(function(p,i){var fl=.85+.1*Math.sin(now/700+i*1.7)+.05*Math.sin(now/290+i),R2=20;
+  var g=sx.createRadialGradient(p[0],p[1],0,p[0],p[1],R2);g.addColorStop(0,'rgba(255,236,170,'+(.5*fl)+')');g.addColorStop(.35,'rgba(255,214,130,'+(.19*fl)+')');g.addColorStop(1,'rgba(255,200,110,0)');
+  sx.fillStyle=g;sx.fillRect(p[0]-R2,p[1]-R2,R2*2,R2*2)})}
+fire=function(now){var f=Math.floor(now/130)%6,cx0=FIRE.x,by0=FIRE.y-2;sx.save();sx.translate(cx0,by0);sx.scale(1.4,1.4);var cx=0,by=0;
+  R('#ffb040',cx-4,by-2,8,1);R('#ff7a2a',cx-6,by-1,12,1);R('#c2401c',cx-5,by,10,1);
+  var T=[[-6,6,0],[-3,10,1],[0,13,2],[3,9,3],[6,6,4],[-1,8,5],[2,11,0]];
+  T.forEach(function(t){var ph=(f+t[2])%6,h=t[1]+[0,1,2,1,0,-1][ph],x=cx+t[0]+[0,1,0,-1,0,1][ph],w=t[1]>9?4:3;
+    for(var y=0;y<h;y++){var k=y/h,ww=Math.max(1,Math.round(w*(1-k*k))),xx=x-Math.floor(ww/2)+Math.round(Math.sin((y+ph*2)*.7)*k*1.5);R(k<.35?'#ffd35a':k<.7?'#ff8a2a':'#d8401c',xx,by-3-y,ww,1)}});
+  var ch=6+[0,1,1,0,0,-1][f];for(var y=0;y<ch;y++){var ww=Math.max(1,Math.round(3*(1-y/ch)));R(y<ch*.5?'#fff6c8':'#ffe07a',cx-Math.floor(ww/2),by-3-y,ww,1)}sx.restore()};
 var demo=/[?&]demo=1/.test(location.search);
 window.addEventListener('pagehide',function(){STOP=true});window.addEventListener('pageshow',function(e){if(e.persisted&&STOP){STOP=false;last=0;requestAnimationFrame(tick)}});
 Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){RAWW=R[0];R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
