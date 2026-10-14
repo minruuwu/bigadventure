@@ -67,6 +67,8 @@ const FB = {
   async saySet(text) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const t = String(text).slice(0, 50); await updateDoc(doc(db, 'players', u.uid), { say: t, sayAt: serverTimestamp() }); mePatch({ say: t, sayAt: Date.now() }); },
   // 餵寵物：好感等級 +1、餅乾減少（cookies 與 pets.<id>.lv 一起寫入；規則檢查等級只能 +1、餅乾只能減少）
   async feedPet(id, lv, cookiesLeft) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { cookies: cookiesLeft, ['pets.' + id + '.lv']: lv })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { lv }); mePatch({ cookies: cookiesLeft, pets }); },
+  // 帳棚：寵物「邀請進帳棚」開關（只改 pets.<id>.tent）
+  async setPetTent(id, on) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { ['pets.' + id + '.tent']: !!on })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { tent: !!on }); mePatch({ pets }); },
   // 鍛造存檔：鍛造石（只能減少）與各武器等級（只能增加）同一次寫入；lvs = {武器u_sn: 等級}
   async saveForge(stones, lvs) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { stones }; Object.keys(lvs).forEach(k => { f['weapons.' + k + '.lv'] = lvs[k]; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], { lv: lvs[k] }); }); mePatch({ stones, weapons }); },
   // 管理後台（admin/ 頁面用；寫入是否允許由 Firestore 規則依管理者 email 決定）

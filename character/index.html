@@ -34,6 +34,8 @@ canvas{image-rendering:pixelated;display:block}
 .room canvas{position:absolute;display:block;image-rendering:pixelated}
 #bgimg,#tbl{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated}
 #tbl{z-index:5;pointer-events:none}
+#room .tp{position:absolute;z-index:6;pointer-events:none;image-rendering:pixelated;transform-origin:50% 100%;display:block}
+
 #doll{left:18.31%;top:21.29%;width:48%;height:44.57%;z-index:3}
 .glow{position:absolute;left:77.23%;top:36.64%;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:1;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(205,140,255,.85) 0,rgba(160,90,235,.45) 22%,rgba(120,60,200,.18) 48%,rgba(100,50,180,0) 70%);animation:glowbr 3.2s ease-in-out infinite}
 @keyframes glowbr{0%,100%{opacity:.65;transform:translate(-50%,-50%) scale(.92)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
@@ -564,8 +566,36 @@ function renderTabs(){var h=$('tabs');h.textContent='';
     b.setAttribute('data-k',it[0]);if(it[0]!=='char')b.addEventListener('click',function(){if(!NavIcons.go(it[0]))toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)});NavIcons.apply(h)}
 
 /* ================= start ================= */
-function start(p){S=fromPlayer(p);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
-var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',pets:{gm_pet_02:{lv:5},gm_pet_01:{lv:2},gm_pet_03:{lv:10}},weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
+
+/* 帳棚寵物：好感>=1 且在營地開了「邀請進帳棚」的寵物。阿梅/阿果在 U 型範圍走動，庫奇固定站著、尾巴不動。座標是 130x140 場景的腳底位置 */
+var TENT={x0:32,x1:96,y0:108,y1:128,aw:16,yt:88,kx:84,ky:80,sz:1.3},TP=[];
+function tInU(x,y){if(x<TENT.x0||x>TENT.x1||y>TENT.y1||y<TENT.yt)return false;if(y>=TENT.y0)return true;return x<=TENT.x0+TENT.aw||x>=TENT.x1-TENT.aw}
+function tRnd(a,b){return a+Math.random()*(b-a)}
+function tPt(){for(var i=0;i<60;i++){var x=tRnd(TENT.x0,TENT.x1),y=tRnd(TENT.yt,TENT.y1);if(tInU(x,y))return[x,y]}return[TENT.x0,TENT.y1]}
+function tPlace(p,moving){var s=p.px*TENT.sz,bob=moving?Math.abs(Math.sin(p.t*9))*1.2:0;p.el.style.width=(s/130*100)+'%';p.el.style.left=((p.x-s/2)/130*100)+'%';p.el.style.top=((p.y-s-bob)/140*100)+'%';p.el.style.transform='scaleX('+p.face+')'}
+function initTentPets(pets){
+  var room=$('room'),want=[['gm_pet_01',14,0],['gm_pet_02',14,0],['gm_pet_03',16,1]].filter(function(w){var d=pets&&pets[w[0]];return d&&d.tent&&(d.lv|0)>=1});
+  want.forEach(function(w){
+    var el=document.createElement('img');el.className='tp';el.alt='';
+    var p={el:el,px:w[1],fixed:!!w[2],t:Math.random()*9,face:1,wait:tRnd(.3,2),stuck:0};
+    if(p.fixed){p.x=TENT.kx;p.y=TENT.ky;tPlace(p,false);
+      var a=new Image(),b=new Image(),n=0,go=function(){if(++n<2)return;var c=document.createElement('canvas');c.width=c.height=16;var x=c.getContext('2d');x.drawImage(b,1,0);x.drawImage(a,0,0);el.src=c.toDataURL()};
+      a.onload=b.onload=go;a.src=BASE+'pets/gm_pet_03.png?v='+V;b.src=BASE+'pets/gm_pet_03_tail.png?v='+V}
+    else{var q=tPt();p.x=p.tx=q[0];p.y=p.ty=q[1];el.src=BASE+'pets/'+w[0]+'.png?v='+V;tPlace(p,false);TP.push(p)}
+    room.appendChild(el)});
+  if(!TP.length)return;var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;if(reduce)return;
+  var last=performance.now();
+  (function loop(now){var dt=Math.min(.05,(now-last)/1000);last=now;
+    TP.forEach(function(p){p.t+=dt;var moving=false;
+      if(p.wait>0)p.wait-=dt;else{var dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
+        if(d<.8||p.stuck>1.2){p.wait=tRnd(.8,3);var q=tPt();p.tx=q[0];p.ty=q[1];p.stuck=0}
+        else{var v=15*dt,m=Math.min(v,d),nx=p.x+dx/d*m,ny=p.y+dy/d*m;
+          if(tInU(nx,ny)){p.x=nx;p.y=ny;moving=true;p.stuck=0}else if(tInU(nx,p.y)){p.x=nx;moving=true;p.stuck+=dt}else if(tInU(p.x,ny)){p.y=ny;moving=true;p.stuck+=dt}else p.stuck+=dt*3;
+          if(Math.abs(dx)>.5)p.face=dx<0?-1:1}}
+      tPlace(p,moving)});
+    requestAnimationFrame(loop)})(last)}
+function start(p){S=fromPlayer(p);initTentPets(p.pets);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
+var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',pets:{gm_pet_02:{lv:5,tent:true},gm_pet_01:{lv:2,tent:true},gm_pet_03:{lv:10,tent:true}},weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
 Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv'].map(getCSV)).then(buildData).then(function(){return Doll.load(BASE,V)}).then(function(){
   if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
@@ -573,5 +603,5 @@ Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=10"></script>
+<script type="module" src="../common/fb.js?v=12"></script>
 </body></html>

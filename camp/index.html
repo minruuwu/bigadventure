@@ -345,7 +345,7 @@ html,body,*{touch-action:manipulation}
 .pcard .pet h3{margin:0;font-size:13px;font-weight:900;color:#3b2713;display:flex;justify-content:space-between}
 .pcard .pet .pips{display:flex;gap:3px}.pcard .pet .pips i{flex:1;height:8px;background:rgba(70,40,15,.22);box-shadow:inset 0 0 0 1px rgba(70,40,15,.35)}.pcard .pet .pips i.on{background:#c8604a}
 .pcard .pet .tr{font-size:13px;font-weight:700;line-height:1.45;color:#2e1d0e}.pcard .pet .tr small{display:block;font-weight:400;color:#5a3a1a;font-size:12px}
-.pcard .pet .fd{font:inherit;font-size:13px;font-weight:900;border:0;background:#4a2a12;color:#f0dfb8;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
+.pcard .pet .fd.tg{display:block;margin-top:6px;background:#6b4a2a}.pcard .pet .fd.tg.on{background:#2f6b3a}.pcard .pet .fd{font:inherit;font-size:13px;font-weight:900;border:0;background:#4a2a12;color:#f0dfb8;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
 .pcard .pet .fd:disabled{opacity:.5;cursor:default}.pcard .pet .pm{font-size:12px;min-height:1.3em;color:#7a2a1a}
 .pcard .say{width:100%;margin-top:4px;padding-top:8px;border-top:2px dashed rgba(70,40,15,.45);display:flex;flex-direction:column;gap:6px}
 .pcard .say h3{margin:0;font-size:13px;font-weight:900;color:#3b2713}
@@ -787,12 +787,18 @@ function petLv(id){var d=ME_P&&ME_P.pets&&ME_P.pets[id];return Math.max(0,Math.m
 function renderPet(){var box=document.getElementById('pcPet');if(!CARD||!CARD.pet){box.hidden=true;return}var pi=petOf(CARD.pet.name);if(!pi||!ME_P){box.hidden=true;return}
   var lv=petLv(pi.id),max=pi.max,per=pi.per,ck=ME_P.cookies|0,need=lv<max?pi.cost[lv]:0,pips='';for(var i=0;i<max;i++)pips+='<i'+(i<lv?' class="on"':'')+'></i>';
   box.hidden=false;box.innerHTML='<h3><span>好感等級</span><span>Lv '+lv+' / '+max+'</span></h3><div class="pips">'+pips+'</div><div class="tr">'+esc2(pi.trait)+'<small>每級 '+(STATN[pi.stat]||pi.stat)+' +'+pi.perTxt+'（目前 +'+Math.round(per*lv*1000)/10+'%）</small></div>'+
-    (lv<max?'<button class="fd" id="pcFeed" type="button"'+(ck>=need?'':' disabled')+'>餵食寵物餅乾（需要 '+need+' 塊，持有 '+ck+' 塊）</button>':'<div class="tr"><small>好感已達最高等級</small></div>')+'<div class="pm" id="pcPm"></div>';
-  var b=document.getElementById('pcFeed');if(b)b.addEventListener('click',function(){feedPet(pi,b)})}
+    (lv<max?'<button class="fd" id="pcFeed" type="button"'+(ck>=need?'':' disabled')+'>餵食寵物餅乾（需要 '+need+' 塊，持有 '+ck+' 塊）</button>':'<div class="tr"><small>好感已達最高等級</small></div>')+(lv>=1?'<button class="fd tg'+(tentOn(pi.id)?' on':'')+'" id="pcTent" type="button">邀請進帳棚：'+(tentOn(pi.id)?'已啟用（點擊停用）':'停用中（點擊啟用）')+'</button>':'')+'<div class="pm" id="pcPm"></div>';
+  var b=document.getElementById('pcFeed');if(b)b.addEventListener('click',function(){feedPet(pi,b)});
+  var tb=document.getElementById('pcTent');if(tb)tb.addEventListener('click',function(){toggleTent(pi,tb)})}
+function tentOn(id){var d=ME_P&&ME_P.pets&&ME_P.pets[id];return !!(d&&d.tent)}
+function toggleTent(pi,b){var on=!tentOn(pi.id),pm=document.getElementById('pcPm');
+  var done=function(){ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]=Object.assign({},ME_P.pets[pi.id],{tent:on});renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=on?pi.name+' 會在角色頁的帳棚裡玩耍了。':pi.name+' 不會出現在帳棚了。'};
+  if(demo){done();return}b.disabled=true;
+  withFB(function(FB){FB.setPetTent(pi.id,on).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'設定失敗（權限尚未開放）':(er&&er.code==='timeout')?'連線逾時，請檢查網路後再試':'設定失敗，請稍後再試'})})}
 function esc2(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function feedPet(pi,b){var lv=petLv(pi.id),need=pi.cost[lv],ck=ME_P.cookies|0,pm=document.getElementById('pcPm');if(lv>=pi.max||ck<need)return;
   if(!FEEDARM||Date.now()-FEEDARM>3000){FEEDARM=Date.now();b.textContent='再按一次確定餵食';return}FEEDARM=0;
-  var done=function(){ME_P.cookies=ck-need;ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]={lv:lv+1};renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=pi.name+' 的好感提升到 Lv '+(lv+1)+'！'};
+  var done=function(){ME_P.cookies=ck-need;ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]=Object.assign({},ME_P.pets[pi.id],{lv:lv+1});renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=pi.name+' 的好感提升到 Lv '+(lv+1)+'！'};
   if(demo){done();return}b.disabled=true;
   withFB(function(FB){FB.feedPet(pi.id,lv+1,ck-need).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'餵食失敗（權限尚未開放）':(er&&er.code==='timeout')?'連線逾時，請檢查網路後再試':'餵食失敗，請稍後再試'})})}
 function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcTeam').hidden=true;document.getElementById('pcSayBox').hidden=true;
@@ -881,5 +887,5 @@ Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv']
 }).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=10"></script>
+<script type="module" src="../common/fb.js?v=12"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>
