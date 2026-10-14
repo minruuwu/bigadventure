@@ -28,22 +28,26 @@ canvas{image-rendering:pixelated;display:block}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;box-shadow:0 0 0 2px #e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;max-width:92vw}
 .toast.on{opacity:1}
 
-/* ===== night tent room (92 x 120 art pixels, shown scaled) ===== */
-.room{position:relative;width:100%;aspect-ratio:92/120;background:#0c0705;overflow:hidden;container-type:inline-size}
+/* ===== tent room (130 x 112 art pixels, shown scaled) ===== */
+.room{position:relative;width:100%;aspect-ratio:130/112;background:#0c0705;overflow:hidden;container-type:inline-size}
 .room canvas{position:absolute;display:block;image-rendering:pixelated}
-#bg,#fg{left:0;top:0;width:100%;height:100%}
-#doll{left:23.913%;top:28.333%;width:52.174%;height:40%}
-.light{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(ellipse 62% 46% at 50% 21%,rgba(255,184,96,.42),transparent 74%);animation:flick 3.3s ease-in-out infinite}
-.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 48%,transparent 55%,rgba(0,0,0,.5))}
-@keyframes flick{0%,100%{opacity:.78}35%{opacity:1}60%{opacity:.86}80%{opacity:.97}}
-@media (prefers-reduced-motion:reduce){.light{animation:none}}
-.hs{position:absolute;background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit}
+#bgimg,#tbl{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated}
+#tbl{z-index:5;pointer-events:none}
+#doll{left:21.38%;top:24.6%;width:48%;height:55.7%;z-index:3}
+.glow{position:absolute;left:77.2%;top:43.1%;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;z-index:1;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(205,140,255,.85) 0,rgba(160,90,235,.45) 22%,rgba(120,60,200,.18) 48%,rgba(100,50,180,0) 70%);animation:glowbr 3.2s ease-in-out infinite}
+@keyframes glowbr{0%,100%{opacity:.65;transform:translate(-50%,-50%) scale(.92)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.glow{animation:none}}
+.hs{position:absolute;z-index:6;background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit}
 .hs:hover,.hs:focus-visible{outline:2px dashed var(--gold);outline-offset:2px;background:rgba(255,217,138,.10)}
-.pill{position:absolute;transform:translate(-50%,-50%);font-size:clamp(10px,2.9cqw,12px);padding:1px 7px;color:var(--ink);background:rgba(8,5,3,.82);border:1px solid #000;box-shadow:inset 0 1px 0 var(--hi);pointer-events:none;white-space:nowrap}
+.pill{position:absolute;z-index:9;transform:translate(-50%,-100%);font-size:clamp(10px,3.1cqw,13px);font-weight:700;padding:1px 6px;color:var(--ink);background:rgba(40,22,8,.88);box-shadow:0 0 0 1px #b9823f;pointer-events:none;white-space:nowrap}
+.pill.dn{transform:translate(-50%,0)}
 .dot{display:inline-block;width:7px;height:7px;background:#e0482f;border:1px solid #000;margin-left:5px;vertical-align:1px}
-.card{position:absolute;left:39.13%;top:82.2%;width:34.78%;height:14.5%;color:#3a2616;pointer-events:none;display:flex;flex-direction:column;justify-content:center;gap:1px;line-height:1.25}
-.card b{font-size:clamp(11px,3.4cqw,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card span{font-size:clamp(10px,3cqw,13px)}
+.card{margin:0 18px;text-align:center;color:var(--fg);display:flex;flex-direction:column;gap:1px;line-height:1.3}
+.card b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card span{font-size:12px;color:var(--dim)}
+.acts5{display:flex;gap:4px;margin:0 18px}
+.acts5 button{flex:1;min-width:0;font:inherit;font-weight:900;font-size:13px;white-space:nowrap;padding:11px 0;color:#f0e2c4;background:rgba(61,35,13,.9);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}
+.acts5 button:active{filter:brightness(.9)}
 
 /* ===== parchment sheets ===== */
 .back{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.72);display:flex;align-items:center;justify-content:center;padding:16px 12px calc(16px + env(safe-area-inset-bottom,0px))}
@@ -142,13 +146,14 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <div class="top"><h1>角色</h1></div>
   <main class="main">
     <section class="room" id="room" aria-label="角色頁">
-      <canvas id="bg" width="92" height="120"></canvas>
+      <img id="bgimg" src="../assets/character/tent_bg.png?v=1" alt="">
+      <div class="glow"></div>
       <canvas id="doll" width="48" height="48"></canvas>
-      <canvas id="fg" width="92" height="120"></canvas>
-      <div class="light"></div><div class="vig"></div>
+      <img id="tbl" src="../assets/character/tent_table.png?v=1" alt="">
       <div id="hsHost" style="display:contents"></div>
-      <div class="card" id="cardText"></div>
     </section>
+    <div class="card" id="cardText"></div>
+    <div class="acts5" id="acts5"></div>
     <p class="note" id="demoNote" hidden>示範模式：用範例資料，改了不會存檔。</p>
   </main>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
@@ -255,81 +260,6 @@ var seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
 
 function dot(c,x,y,col){c.fillStyle=col;c.fillRect(x,y,1,1)}
 function gableTop(x){return x<=46?34-(x/46)*31:3+((x-46)/46)*31}
-function drawBack(){var b=$('bg').getContext('2d'),i,x,y;
-  /* night outside: the two roof planes, cool and dark, with seams running along the slope */
-  rect(b,0,0,92,120,'#1d2232');
-  for(i=1;i<=5;i++){line(b,46,3-i*7,0,34-i*7,'#151a27');line(b,46,3-i*7,92,34-i*7,'#151a27')}
-  for(i=0;i<40;i++)dot(b,Math.floor(rnd()*92),Math.floor(rnd()*34),'rgba(120,140,190,.10)');
-  /* back gable wall: canvas panels lit warm from the lamp */
-  var P=[[46,3],[92,34],[92,72],[0,72],[0,34]];
-  for(y=3;y<72;y++)for(x=0;x<92;x++){if(!inside(P,x+.5,y+.5))continue;var pn=Math.floor(x/15.34),r=rnd();b.fillStyle=r<.08?'#4b3827':r<.13?'#634d36':(pn%2?'#5b4731':'#54402c');b.fillRect(x,y,1,1)}
-  [15,31,46,61,77].forEach(function(sx){var yt=Math.ceil(gableTop(sx));rect(b,sx,yt,1,72-yt,'#37281b');for(var yy=yt;yy<72;yy+=3)dot(b,sx+1,yy,'#6e5639')});
-  rect(b,58,48,9,8,'#6a5238');rect(b,58,48,9,1,'#7a6040');for(i=0;i<9;i+=2){dot(b,58+i,48,'#3a2a1c');dot(b,58+i,55,'#3a2a1c')}
-  rect(b,25,40,6,6,'#604a34');
-  /* rafters, tie beam and wall poles */
-  [[46,3,0,34],[46,3,92,34]].forEach(function(l){line(b,l[0],l[1],l[2],l[3],'#3b2614');line(b,l[0],l[1]+1,l[2],l[3]+1,'#3b2614');line(b,l[0],l[1]-1,l[2],l[3]-1,'#6b4a2a')});
-  rect(b,0,34,92,3,'#3b2614');rect(b,0,34,92,1,'#7a5530');for(i=0;i<5;i++)dot(b,8+i*19,35,'#24160a');
-  rect(b,3,37,2,35,'#4a2f1a');rect(b,3,37,1,35,'#6b4a2a');rect(b,87,37,2,35,'#4a2f1a');rect(b,87,37,1,35,'#6b4a2a');
-  /* ground cloth behind the table */
-  rect(b,0,66,92,8,'#1d140d');rect(b,0,66,92,1,'#3a2c1f');for(x=0;x<92;x+=13)rect(b,x,67,1,6,'#120b07');
-  /* hammock slung between the rafters, with a pillow and a blanket */
-  for(x=18;x<=74;x++){var yt=Math.round(24+7*Math.sin(Math.PI*(x-18)/56));rect(b,x,yt,1,3,((x>>1)%2)?'#8a6a44':'#a48058');dot(b,x,yt+3,'#3a2616');dot(b,x,yt-1,'#c0a070')}
-  line(b,18,21,18,25,'#c0a070');line(b,74,21,74,25,'#c0a070');ell(b,18,21,1.6,1.6,'#b0802f');ell(b,74,21,1.6,1.6,'#b0802f');
-  ell(b,31,29,4.4,2,'#d8cdb0');ell(b,58,29.5,8,3,'#7a3a2a');rect(b,52,28,12,1,'#9a4a34');
-  /* oil lamp hanging from the apex */
-  for(y=3;y<13;y+=2)dot(b,46,y,'#8a6a3a');ell(b,46,12.5,2.4,1.6,'#b0802f');rect(b,43,13,7,2,'#b0802f');rect(b,44,15,5,9,'#e8d8a0');rect(b,45,16,3,7,'#f7e9bd');
-  rect(b,45,18,3,5,'#ffd070');rect(b,46,17,1,5,'#fff6c8');rect(b,43,24,7,3,'#b0802f');rect(b,43,24,7,1,'#d9a84a');
-  /* food hanging from the tie beam: garlic, chillies, sausages */
-  line(b,28,36,28,47,'#7a5a3a');for(i=0;i<4;i++){ell(b,28+(i%2?1.4:-0.6),39+i*2.8,1.8,1.7,'#e8dcc0');dot(b,28,37+i*2.8,'#cbbf9c')}
-  line(b,33,36,33,39,'#7a5a3a');[[-2,7],[0,8],[2,7],[-1,6]].forEach(function(d){line(b,33,39,33+d[0],39+d[1],'#b03a2a')});dot(b,33,39,'#7a5a3a');
-  line(b,64,36,64,39,'#7a5a3a');ell(b,64,42,1.9,2.8,'#8a3b2a');ell(b,64,48,1.9,2.8,'#7a3322');dot(b,64,45,'#d8c8a0');
-  line(b,69,36,69,38,'#7a5a3a');ell(b,69,41,1.7,2.4,'#8a3b2a');ell(b,60,38.5,2,2.4,'#6b8a3a');line(b,60,36,60,37,'#7a5a3a');
-  /* chest behind the table, left */
-  rect(b,2,66,22,6,'#6b4a2a');rect(b,2,62,22,5,'#7d5833');rect(b,3,61,20,1,'#7d5833');rect(b,2,62,22,1,'#9a7040');rect(b,2,66,22,1,'#3a2616');
-  rect(b,6,61,2,11,'#2a2a2e');rect(b,18,61,2,11,'#2a2a2e');rect(b,12,64,4,4,'#b0802f');dot(b,13,66,'#3a2616');dot(b,14,66,'#3a2616');
-  /* mirror hung from the tie beam */
-  line(b,10,36,12,40,'#8a6a3a');line(b,18,36,16,40,'#8a6a3a');
-  ell(b,14,49,8.6,11.6,'#241508');ell(b,14,49,8,11,'#b0802f');ell(b,14,49,6.8,9.8,'#3b2a14');ell(b,14,49,6,9,'#5f7584');
-  for(i=0;i<8;i++)dot(b,10+Math.floor(i*.7),43+i,'#a9bcc4');for(i=0;i<4;i++)dot(b,12+Math.floor(i*.7),42+i,'#8fa5b0');rect(b,13,38,2,1,'#e0b25a');
-  /* weapon rack (right): a frame with a sword, a staff and an axe */
-  rect(b,65,62,24,2,'#4a2f1a');rect(b,65,62,24,1,'#7a5530');rect(b,67,37,2,25,'#6b4a2a');rect(b,86,37,2,25,'#6b4a2a');rect(b,67,37,1,25,'#8a6038');rect(b,86,37,1,25,'#8a6038');
-  rect(b,67,45,21,2,'#5a3a1c');rect(b,67,54,21,2,'#5a3a1c');
-  rect(b,73,36,2,20,'#c9ced4');rect(b,73,36,1,20,'#eef1f4');dot(b,73,35,'#c9ced4');rect(b,71,56,6,1,'#b0802f');rect(b,73,57,2,5,'#4a2f1a');
-  rect(b,79,32,1,30,'#7a5530');ell(b,79.5,30.5,2.4,2.4,'#6fd8ff');dot(b,79,30,'#d8f4ff');
-  rect(b,82,38,1,24,'#7a5530');poly(b,[[80,38],[85,38],[85.5,42],[80,43]],'#aab0b8');rect(b,80,38,5,1,'#d0d5da');
-  /* sack and a crate of apples, right, behind the table */
-  poly(b,[[68,72],[67,66],[70,62],[76,62],[78,66],[77,72]],'#b09a70');rect(b,70,62,6,1,'#7a5530');rect(b,74,64,3,8,'#8f7a54');dot(b,72,66,'#cbb98c');
-  rect(b,79,64,12,8,'#6b4a2a');rect(b,79,67,12,1,'#3a2616');rect(b,79,64,12,1,'#8a6038');ell(b,82,63,1.8,1.5,'#b03a2a');ell(b,86,62.6,1.8,1.5,'#c04a30');ell(b,89.2,63,1.6,1.4,'#a8332a')}
-
-function drawFront(){var c=$('fg').getContext('2d'),i;
-  /* table top, front lip and front panel */
-  rect(c,0,72,92,19,'#70492a');
-  for(i=0;i<8;i++){var xb=i*13-2,xf=46+(xb-46)*1.16;line(c,Math.round(xb),72,Math.round(xf),90,'#5a3a20')}
-  for(i=0;i<46;i++)rect(c,Math.floor(rnd()*92),73+Math.floor(rnd()*17),1+Math.floor(rnd()*3),1,'rgba(40,22,10,.35)');
-  for(i=0;i<22;i++)rect(c,Math.floor(rnd()*92),73+Math.floor(rnd()*17),2,1,'rgba(255,205,150,.10)');
-  rect(c,0,72,92,1,'#3f2814');rect(c,0,91,92,1,'#8a6038');rect(c,0,92,92,2,'#4a3019');
-  rect(c,0,94,92,26,'#3a2616');rect(c,0,94,92,2,'#1d1209');
-  for(i=1;i<4;i++)rect(c,i*23,96,1,24,'#26180d');
-  for(i=0;i<30;i++)rect(c,Math.floor(rnd()*92),97+Math.floor(rnd()*22),1+Math.floor(rnd()*3),1,'rgba(15,8,3,.45)');
-  rect(c,0,119,92,1,'#150c06');
-  /* book (front left): open, two pages, a red ribbon */
-  poly(c,[[14,89],[28,88],[42,89],[42,90],[28,89.5],[14,90]],'#4a2f1a');
-  poly(c,[[15,81],[28,80],[28,87],[14,88]],'#e8dab2');poly(c,[[28,80],[41,81],[42,88],[28,87]],'#dccda2');line(c,28,80,28,87,'#8a7650');
-  for(i=0;i<4;i++){line(c,17,(82+i*1.6)|0,26,(81+i*1.6)|0,'#9a8658');line(c,30,(81+i*1.6)|0,39,(82+i*1.6)|0,'#9a8658')}
-  rect(c,27,87,2,4,'#9a2f2a');
-  /* paper (kraft sheet with writing and a seal) */
-  poly(c,[[47,81],[69,80],[72,88],[44,88.5]],'#c4a265');poly(c,[[44,88.5],[72,88],[72,89],[44,89.5]],'#8a6a3a');
-  for(i=0;i<4;i++){var wy=(82+i*1.8)|0;line(c,50,wy,50+11+(i%2)*5,wy,'#7a5a2f')}
-  ell(c,65,85,2.2,2.2,'#9a3a2a');dot(c,65,85,'#c05a44');
-  /* a mug and a loaf, only for looks */
-  rect(c,77,83,5,6,'#9aa0a8');rect(c,77,83,5,1,'#3a2616');rect(c,82,84,1,3,'#9aa0a8');rect(c,77,83,1,6,'#c4c9d0');
-  ell(c,8,87,5,2.6,'#c0873f');line(c,5,85,6,88,'#9a6a2a');line(c,8,85,9,88,'#9a6a2a');line(c,11,85,12,88,'#9a6a2a');
-  /* guild card nailed to the front panel */
-  rect(c,22,96,48,22,'#150c06');rect(c,23,97,46,20,'#6b4a2a');rect(c,23,97,46,1,'#8a6038');
-  rect(c,25,99,42,16,'#d8c28e');rect(c,25,99,42,1,'#efe0b4');rect(c,25,114,42,1,'#b79f6c');
-  [[24,98],[66,98],[24,115],[66,115]].forEach(function(p){rect(c,p[0],p[1],2,2,'#8a8f96');rect(c,p[0],p[1],1,1,'#cfd3d8')});
-  ell(c,32,107,5.6,5.6,'#8a3b2a');ell(c,32,107,4.6,4.6,'#d8c28e');ell(c,32,107,3.6,3.6,'#8a3b2a');
-  line(c,32,102,32,112,'#d8c28e');line(c,27,107,37,107,'#d8c28e');line(c,29,104,35,110,'#c39a62');line(c,35,104,29,110,'#c39a62');rect(c,31,106,2,2,'#efe0b4')}
 var $=function(id){return document.getElementById(id)};
 var BASE='../assets/',V='3';
 var dollCv=$('doll');
@@ -538,7 +468,7 @@ window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
 function openSheet(k){cur=k;open={};jobOpen=null;sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
-function refresh(){var u=unspent(),p=$('pillPaper');if(p)p.innerHTML='屬性'+(u>0?'<i class="dot"></i>':'');$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
+function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
 function zeroAlloc(){return {str:0,int:0,agi:0,vit:0,luk:0}}
 sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b||b.disabled)return;var a=b.getAttribute('data-a'),k=b.getAttribute('data-k');
@@ -580,12 +510,15 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
 sheet.addEventListener('change',function(e){var t=e.target;if(t.tagName==='SELECT'&&t.getAttribute('data-g')){S.look[t.getAttribute('data-g')]=/^\d+$/.test(t.value)?+t.value:t.value;updateMirror()}});
 back.addEventListener('click',function(e){if(e.target===back)closeSheet()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&cur)closeSheet()});
-var HS=[{k:'mirror',l:'外觀：換外觀',x:5,y:36,w:19,h:25,p:'外觀',px:14},{k:'book',l:'書本：技能',x:13,y:77,w:31,h:14,p:'技能書',px:28},
-  {k:'paper',l:'牛皮紙頁：屬性',x:44,y:77,w:29,h:14,p:'屬性',px:58.5,id:'pillPaper'},{k:'rack',l:'武器架：換武器類型',x:66,y:33,w:24,h:30,p:'武器架',px:78},
-  {k:'card',l:'冒險者公會證：姓名、等級、職業',x:22,y:96,w:48,h:22}];
-(function(){var host=$('hsHost');HS.forEach(function(h){var b=document.createElement('button');b.className='hs';b.type='button';b.setAttribute('data-k',h.k);b.setAttribute('aria-label',h.l);
-  b.style.cssText='left:'+(h.x/92*100)+'%;top:'+(h.y/120*100)+'%;width:'+(h.w/92*100)+'%;height:'+(h.h/120*100)+'%';b.addEventListener('click',function(){openSheet(h.k)});host.appendChild(b);
-  if(h.p){var sp=document.createElement('span');sp.className='pill';if(h.id)sp.id=h.id;sp.style.cssText='left:'+h.px+'%;top:'+(93/120*100)+'%';sp.textContent=h.p;host.appendChild(sp)}})})();
+var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:44,w:36,h:41,p:'武器架',px:20,py:38,b:'更換武器'},
+  {k:'card',l:'公會證：查看職業',x:38,y:12,w:18,h:16,p:'公會證',px:47,py:11,b:'查看職業'},
+  {k:'paper',l:'人物誌：屬性',x:60,y:77,w:19,h:14,p:'人物誌',px:69.5,py:92,dn:1,id:'pillPaper',b:'屬性',bid:'btnPaper'},
+  {k:'mirror',l:'鏡子：外觀',x:70,y:13,w:27,h:49,p:'鏡子',px:83,py:12,b:'外觀'},
+  {k:'book',l:'技能書：技能',x:99,y:53,w:24,h:16,p:'技能書',px:111,py:47,b:'技能'}];
+(function(){var host=$('hsHost'),bar=$('acts5');HS.forEach(function(h){var b=document.createElement('button');b.className='hs';b.type='button';b.setAttribute('data-k',h.k);b.setAttribute('aria-label',h.l);
+  b.style.cssText='left:'+(h.x/130*100)+'%;top:'+(h.y/112*100)+'%;width:'+(h.w/130*100)+'%;height:'+(h.h/112*100)+'%';b.addEventListener('click',function(){openSheet(h.k)});host.appendChild(b);
+  var sp=document.createElement('span');sp.className='pill'+(h.dn?' dn':'');if(h.id)sp.id=h.id;sp.style.cssText='left:'+(h.px/130*100)+'%;top:'+(h.py/112*100)+'%';sp.textContent=h.p;host.appendChild(sp);
+  var bb=document.createElement('button');bb.type='button';bb.textContent=h.b;if(h.bid)bb.id=h.bid;bb.addEventListener('click',function(){openSheet(h.k)});bar.appendChild(bb)})})();
 
 /* ================= doll + weapon sprite ================= */
 var WSPEC=null,SSPEC=null;
@@ -601,7 +534,7 @@ function renderTabs(){var h=$('tabs');h.textContent='';
     b.setAttribute('data-k',it[0]);if(it[0]!=='char')b.addEventListener('click',function(){if(!NavIcons.go(it[0]))toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)});NavIcons.apply(h)}
 
 /* ================= start ================= */
-function start(p){S=fromPlayer(p);updateWeaponSprites();drawBack();drawFront();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
+function start(p){S=fromPlayer(p);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
 var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',pets:{gm_pet_02:{lv:5},gm_pet_01:{lv:2},gm_pet_03:{lv:10}},weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
 Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv'].map(getCSV)).then(buildData).then(function(){return Doll.load(BASE,V)}).then(function(){
   if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');
