@@ -369,7 +369,8 @@ var BASE='../assets/',V='4';
 var W={},ORDER=[],RUNE={};
 var USABLE={weapon01:1,weapon02:1,weapon05:1,weapon06:1}; /* 範例:目前職業「戰士・攻」可用 */
 var EQUIPPED='weapon01';
-var S={stones:92000,cur:'weapon01',tab:'up'};
+var demo=/[?&]demo=1/.test(location.search);
+var S={stones:0,cur:'weapon01',tab:'up'};
 var ST={};
 var TN=['一','二','三'],REQ=[30,60,90];
 var STATL={crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害',p_damage_rate:'物理增傷',m_damage_rate:'魔法增傷',hp_rate:'生命',eva_rate:'閃避率',p_reduce_rate:'物理減傷',m_reduce_rate:'魔法減傷'};
@@ -594,7 +595,14 @@ function applySheet(){var k=SHEET.k,s=ST[k],P=SHEET.pick.slice();if(sameSet(P,s.
   closeSheet();renderPanel();refreshDots()}
 document.getElementById('sheetBg').addEventListener('click',closeSheet);document.getElementById('detBg').addEventListener('click',closeDetail);document.getElementById('detX').addEventListener('click',closeDetail);document.getElementById('detGo').addEventListener('click',toggleDetail);document.getElementById('sheetX').addEventListener('click',applySheet);document.getElementById('sheetClose').addEventListener('click',closeSheet);
 /* ---------- upgrade logic ---------- */
-function upOne(k){var s=ST[k];if(s.lv>=100)return false;var c=cost(s.lv);if(S.stones<c)return false;S.stones-=c;s.lv++;return true}
+var DIRTY={},saveT=null,saving=false;
+function markDirty(k){DIRTY[k]=1;clearTimeout(saveT);saveT=setTimeout(flush,800)}
+function flush(){clearTimeout(saveT);if(demo)return;var ks=Object.keys(DIRTY);if(!ks.length)return;if(saving){saveT=setTimeout(flush,800);return}
+  var lvs={};ks.forEach(function(k){lvs[k]=ST[k].lv});var stones=S.stones;DIRTY={};saving=true;
+  withFB(function(FB){FB.saveForge(stones,lvs).then(function(){saving=false},function(e){saving=false;ks.forEach(function(k){DIRTY[k]=1});var c=e&&(e.code||e.message)||'';
+    toast(c==='permission-denied'?'存檔失敗：資料庫規則還沒開放鍛造存檔（permission-denied）':'存檔失敗，稍後會再試（'+c+'）');saveT=setTimeout(flush,6000)})})}
+window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flush()});
+function upOne(k){var s=ST[k];if(s.lv>=100)return false;var c=cost(s.lv);if(S.stones<c)return false;S.stones-=c;s.lv++;markDirty(k);return true}
 function costTo(k,target){var s=ST[k],t=0;for(var l=s.lv;l<target;l++)t+=cost(l);return t}
 function nextTemperLv(k){var l=ST[k].lv;return Math.min(100,(Math.floor(l/5)+1)*5)}
 function upToNext(k){var t=nextTemperLv(k),n=0;if(ST[k].lv>=100)return 0;while(ST[k].lv<t&&upOne(k))n++;return n}
@@ -686,14 +694,14 @@ function render(scroll){renderTop();renderChips();renderCard();renderActs();rend
 var _r=render;render=function(sc){_r(sc)};
 getCSVs();
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
-function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})});
-  Promise.all([Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','job_info.csv'].map(getCSV)),who]).then(function(X){var R=X[0],me=X[1].player;
+function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weapons:{}}}):new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})});
+  Promise.all([Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','job_info.csv'].map(getCSV)),who]).then(function(X){var R=X[0],me=X[1].player;S.stones=demo?92000:Math.max(0,me.stones|0);
     NavIcons.setPlayer(me);return buildData(R.slice(0,3)).then(function(){
     if(!ORDER.length)throw new Error('weapon_info.csv 沒有資料');
     var en={};R[0].forEach(function(r){en[r.u_sn]=String(r.weapon_e_name||'').toLowerCase()});
     var job=R[3][me.job|0]||R[3][0];USABLE={};ORDER.forEach(function(k){if(job&&job['usable_'+en[k]])USABLE[k]=1});
     ORDER.forEach(function(k){if(W[k].n===me.weapon)EQUIPPED=k});
-    ORDER.forEach(function(k){ST[k]={lv:1,pts:[0,0,0],ench:[]}});
+    ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};ST[k]={lv:Math.min(100,Math.max(1,d.lv|0||1)),pts:[0,0,0],ench:[]}});
     if(!W[EQUIPPED])EQUIPPED=ORDER[0];S.cur=EQUIPPED;
     document.getElementById('loading').remove();render(true)})})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
@@ -708,5 +716,5 @@ function getCSVs(){var who=new Promise(function(res){withFB(function(FB){FB.requ
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=19"></script>
-<script type="module" src="../common/fb.js?v=10"></script>
+<script type="module" src="../common/fb.js?v=11"></script>
 </body></html>

@@ -46,12 +46,12 @@ function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
   var list=PL.filter(function(p){return !q||String(p.name||'').toLowerCase().indexOf(q)>=0});
   h+='<p class="note">共 '+PL.length+' 位玩家（依最近上線排序，最多 200 位）。點名字展開。</p>';
   list.forEach(function(p){var j=JOBS[p.job|0],on=open[p.uid];
-    h+='<div class="pl" data-u="'+p.uid+'"><div class="hd" data-a="tg"><span class="nm">'+esc(p.name||'(無名)')+'</span><span class="mt">Lv '+(p.lv|0||1)+'　'+esc(j?j.job_name:'')+'　餅乾 '+(p.cookies|0)+'</span></div>';
+    h+='<div class="pl" data-u="'+p.uid+'"><div class="hd" data-a="tg"><span class="nm">'+esc(p.name||'(無名)')+'</span><span class="mt">Lv '+(p.lv|0||1)+'　'+esc(j?j.job_name:'')+'　餅乾 '+(p.cookies|0)+'　鍛造石 '+(p.stones|0)+'</span></div>';
     if(on)h+=body(p);h+='</div>'});
   $('box').innerHTML=h;var qi=$('q');qi.addEventListener('input',function(){var pos=qi.selectionStart;draw();var n=$('q');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}});
   $('rf').onclick=function(){reload()};$('so').onclick=function(){FB.signOut().then(function(){location.reload()})}}
 function body(p){var h='<div class="bd"><h3>寵物餅乾</h3><div class="rw"><label>持有</label><input type="number" min="0" step="1" id="ck-'+p.uid+'" value="'+(p.cookies|0)+'"><button type="button" data-a="ckset">設成</button></div>'+
-   '<div class="rw"><label>增加</label><input type="number" min="1" step="1" id="ca-'+p.uid+'" value="10"><button type="button" data-a="ckadd">加上去</button></div><h3>寵物好感等級（0～10）</h3>';
+   '<div class="rw"><label>增加</label><input type="number" min="1" step="1" id="ca-'+p.uid+'" value="10"><button type="button" data-a="ckadd">加上去</button></div><h3>鍛造石</h3><div class="rw"><label>持有</label><input type="number" min="0" step="1" id="sk-'+p.uid+'" value="'+(p.stones|0)+'"><button type="button" data-a="skset">設成</button></div><div class="rw"><label>增加</label><input type="number" min="1" step="1" id="sa-'+p.uid+'" value="1000"><button type="button" data-a="skadd">加上去</button></div><h3>寵物好感等級（0～10）</h3>';
   PETS.forEach(function(pt){var lv=((p.pets||{})[pt.pet_id]||{}).lv|0;h+='<div class="rw"><label>'+esc(pt.pet_name)+'</label><input type="number" min="0" max="10" step="1" id="pt-'+p.uid+'-'+pt.pet_id+'" value="'+lv+'"><button type="button" data-a="pet" data-id="'+pt.pet_id+'">儲存</button></div>'});
   var wsn=WSEL[p.uid]||(WPN[0]&&WPN[0].u_sn),wd=((p.weapons||{})[wsn])||{};
   h+='<h3>武器等級與外觀階</h3><div class="rw"><select id="ws-'+p.uid+'" data-a="wsel">'+WPN.map(function(w){return '<option value="'+w.u_sn+'"'+(w.u_sn===wsn?' selected':'')+'>'+esc(w.weapon_name)+'</option>'}).join('')+'</select></div><div class="rw"><label>Lv</label><input type="number" min="1" step="1" id="wl-'+p.uid+'" value="'+Math.max(1,wd.lv|0||1)+'"><label>外觀階</label><input type="number" min="1" max="4" step="1" id="wt-'+p.uid+'" value="'+Math.min(4,Math.max(1,wd.stage|0||1))+'"><button type="button" data-a="wpn">儲存</button></div>';
@@ -65,6 +65,8 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-a]')
   if(a==='tg'){open[u]=!open[u];draw();return}
   if(a==='ckset'){var v=num('ck-'+u,0);if(v==null)return toast('請輸入 0 以上的整數',1);save(u,{cookies:v},'餅乾已設成 '+v)}
   else if(a==='ckadd'){var d=num('ca-'+u,1);if(d==null)return toast('請輸入 1 以上的整數',1);var nv=(p.cookies|0)+d;save(u,{cookies:nv},'餅乾 +'+d+'，現在 '+nv)}
+  else if(a==='skset'){var v2=num('sk-'+u,0);if(v2==null)return toast('請輸入 0 以上的整數',1);save(u,{stones:v2},'鍛造石已設成 '+v2)}
+  else if(a==='skadd'){var d2=num('sa-'+u,1);if(d2==null)return toast('請輸入 1 以上的整數',1);var nv2=(p.stones|0)+d2;save(u,{stones:nv2},'鍛造石 +'+d2+'，現在 '+nv2)}
   else if(a==='pet'){var id=b.getAttribute('data-id'),lv=num('pt-'+u+'-'+id,0,10);if(lv==null)return toast('等級要是 0～10',1);var f={};f['pets.'+id+'.lv']=lv;save(u,f,'寵物好感已設成 Lv '+lv)}
   else if(a==='wpn'){var sn=$('ws-'+u).value,lv2=num('wl-'+u,1),st=num('wt-'+u,1,4);if(lv2==null||st==null)return toast('Lv 要 1 以上，外觀階 1～4',1);var f2={};f2['weapons.'+sn+'.lv']=lv2;f2['weapons.'+sn+'.stage']=st;WSEL[u]=sn;save(u,f2,'武器已更新')}
 });
