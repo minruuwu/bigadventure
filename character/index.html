@@ -16,7 +16,7 @@ canvas{image-rendering:pixelated;display:block}
 .app{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
 .top{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#1f262e;border-bottom:4px solid #06080b;box-shadow:inset 0 -3px 0 #5d6b7c,0 4px 0 rgba(0,0,0,.4)}
 .top h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.3em;text-shadow:2px 2px 0 #000}
-.main{flex:1;padding:0 0 92px;display:flex;flex-direction:column;gap:10px}
+.main{flex:1;padding:16px 18px 92px;display:flex;flex-direction:column;gap:10px}
 .note{font-size:11px;color:var(--dim);margin:0 18px}
 #loading{position:fixed;left:12px;right:12px;top:40%;z-index:99;text-align:center;font-size:14px;color:var(--dim)}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
@@ -42,6 +42,13 @@ canvas{image-rendering:pixelated;display:block}
 @media (prefers-reduced-motion:reduce){.glow{animation:none}}
 .hs{position:absolute;z-index:6;background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit}
 .hs:hover,.hs:focus-visible{outline:2px dashed var(--gold);outline-offset:2px;background:rgba(255,217,138,.10)}
+.phead{display:flex;align-items:center;min-height:28px}
+.nmchk{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:900;text-shadow:1px 1px 0 #000;cursor:pointer;user-select:none}
+.nmchk input{position:absolute;opacity:0;width:1px;height:1px}
+.nmchk .bx{width:16px;height:16px;background:#2b1d13;box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;display:inline-flex;align-items:center;justify-content:center;color:#ffd76a;font-size:13px;line-height:1}
+.nmchk input:checked+.bx::after{content:'✓'}
+.nmchk input:focus-visible+.bx{outline:2px solid #fff;outline-offset:2px}
+.room.hn .pill{display:none}
 .pill{position:absolute;z-index:9;transform:translate(-50%,-100%);font-size:clamp(10px,3.1cqw,13px);font-weight:700;padding:1px 6px;color:var(--ink);background:rgba(40,22,8,.88);box-shadow:0 0 0 1px #b9823f;cursor:pointer;white-space:nowrap}
 .pill.dn{transform:translate(-50%,0)}
 .dot{display:inline-block;width:7px;height:7px;background:#e0482f;border:1px solid #000;margin-left:5px;vertical-align:1px}
@@ -177,6 +184,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <div class="app">
   <div class="top"><h1>角色</h1></div>
   <main class="main">
+    <div class="phead"><label class="nmchk"><input type="checkbox" id="showNames" checked><span class="bx"></span>顯示帳篷內物件名稱</label></div>
     <section class="room" id="room" aria-label="角色頁">
       <img id="bgimg" src="../assets/character/tent_bg.png?v=3" alt="">
       <div class="glow"></div>
@@ -184,7 +192,6 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
       <img id="tbl" src="../assets/character/tent_table.png?v=2" alt="">
       <div id="hsHost" style="display:contents"></div>
     </section>
-    <div class="card" id="cardText"></div>
     <div class="acts5" id="acts5"></div>
     <p class="note" id="demoNote" hidden>示範模式：用範例資料，改了不會存檔。</p>
   </main>
@@ -500,7 +507,7 @@ window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}}
 function openSheet(k){cur=k;open={};jobOpen=null;sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
-function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;$('cardText').innerHTML='<div class="c1"><b>'+esc(S.name)+'</b><b>Lv '+S.lv+'</b></div><div class="c2">'+jobIcon(S.jobSn)+'<b>'+esc(jobName(S.jobSn))+'</b><b class="jl">Lv '+(S.jobLvs[S.jobSn]|0)+'</b></div>';updateWeaponSprites()}
+function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
 function zeroAlloc(){return {str:0,int:0,agi:0,vit:0,luk:0}}
 sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b||b.disabled)return;var a=b.getAttribute('data-a'),k=b.getAttribute('data-k');
@@ -582,6 +589,9 @@ function kTail(step){if(K.tails[step])return K.tails[step];
     if(u<0||v<0||u>15||v>15)continue;var i=(v*16+u)*4,o=(y*16+X)*4;if(sd[i+3]>0){od.data[o]=sd[i];od.data[o+1]=sd[i+1];od.data[o+2]=sd[i+2];od.data[o+3]=255}}
   cx.putImageData(od,0,0);return(K.tails[step]=c)}
 function kDraw(step){if(!K||K.step===step)return;K.step=step;var x=K.cv.getContext('2d');x.clearRect(0,0,16,16);x.drawImage(kTail(step),1,0);x.drawImage(K.body,0,0)}
+(function(){var cb=$('showNames'),v=true;try{v=localStorage.getItem('char.showNames')!=='0'}catch(e){}
+  cb.checked=v;$('room').classList.toggle('hn',!v);
+  cb.addEventListener('change',function(){$('room').classList.toggle('hn',!cb.checked);try{localStorage.setItem('char.showNames',cb.checked?'1':'0')}catch(e){}})})();
 function initTentPets(pets){
   var room=$('room'),want=[['gm_pet_01',14,0],['gm_pet_02',14,0],['gm_pet_03',16,1]].filter(function(w){var d=pets&&pets[w[0]];return d&&d.tent&&(d.lv|0)>=1});
   want.forEach(function(w){
