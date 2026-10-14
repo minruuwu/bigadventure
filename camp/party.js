@@ -17,7 +17,7 @@
 .pt.em{background:rgba(70,40,15,.12);box-shadow:none;border:2px dashed rgba(70,40,15,.5);color:#6a4a2a;font-size:22px;font-weight:900;height:100%;min-height:52px;display:flex;align-items:center;justify-content:center}\
 .pt i{position:absolute;left:0;right:0;bottom:0;font-style:normal;font-size:9px;line-height:1.3;text-align:center;color:#f0e2c4;background:rgba(0,0,0,.65);padding:1px 2px;box-sizing:border-box;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}\
 .dtl{width:100%;box-sizing:border-box;margin-top:8px;padding:8px;background:rgba(70,40,15,.12);font-size:12px;color:#2e1d0e;line-height:1.5;text-align:left}\
-.d1{display:flex;align-items:center;gap:6px;margin-bottom:4px}.d1 .nn{font-size:15px;font-weight:900;max-width:150px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.d1 .lv{font-size:14px;font-weight:900}\
+.d1{display:flex;align-items:center;gap:6px;margin-bottom:4px;height:30px;box-sizing:border-box}.d1 .nn{font-size:15px;font-weight:900;max-width:150px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.d1 .lv{font-size:14px;font-weight:900}\
 .d1 .tg{font-size:11px;color:#f0dfb8;background:#7a4f22;padding:1px 6px;box-shadow:0 0 0 2px #3d230d}.d1 .pbtn{margin-left:auto}\
 .pw .pbtn,.pw .rw button,.cf button,.cin button{font:inherit;font-weight:900;font-size:12px;color:#f0e2c4;background:#7a4f22;border:0;padding:5px 10px;cursor:pointer;box-shadow:inset 0 0 0 2px #3d230d}\
 .pw .pbtn:disabled,.cin button:disabled{opacity:.5}\
