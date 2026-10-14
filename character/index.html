@@ -301,7 +301,7 @@ var seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
 function dot(c,x,y,col){c.fillStyle=col;c.fillRect(x,y,1,1)}
 function gableTop(x){return x<=46?34-(x/46)*31:3+((x-46)/46)*31}
 var $=function(id){return document.getElementById(id)};
-var BASE='../assets/',V='4';
+var BASE='../assets/',V='5';
 var dollCv=$('doll');
 var demo=/[?&]demo=1/.test(location.search);
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
