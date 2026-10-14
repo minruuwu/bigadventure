@@ -39,12 +39,14 @@ canvas{image-rendering:pixelated;display:block}
 @media (prefers-reduced-motion:reduce){.glow{animation:none}}
 .hs{position:absolute;z-index:6;background:none;border:0;padding:0;margin:0;cursor:pointer;color:inherit}
 .hs:hover,.hs:focus-visible{outline:2px dashed var(--gold);outline-offset:2px;background:rgba(255,217,138,.10)}
-.pill{position:absolute;z-index:9;transform:translate(-50%,-100%);font-size:clamp(10px,3.1cqw,13px);font-weight:700;padding:1px 6px;color:var(--ink);background:rgba(40,22,8,.88);box-shadow:0 0 0 1px #b9823f;pointer-events:none;white-space:nowrap}
+.pill{position:absolute;z-index:9;transform:translate(-50%,-100%);font-size:clamp(10px,3.1cqw,13px);font-weight:700;padding:1px 6px;color:var(--ink);background:rgba(40,22,8,.88);box-shadow:0 0 0 1px #b9823f;cursor:pointer;white-space:nowrap}
 .pill.dn{transform:translate(-50%,0)}
 .dot{display:inline-block;width:7px;height:7px;background:#e0482f;border:1px solid #000;margin-left:5px;vertical-align:1px}
 .card{margin:0 18px;text-align:center;color:var(--fg);display:flex;flex-direction:column;gap:1px;line-height:1.3}
-.card b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card span{font-size:12px;color:var(--dim)}
+.card b{font-size:19px;font-weight:900;-webkit-text-stroke:.9px currentColor;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .c1,.card .c2{display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}
+.card .c2{gap:6px}.card .c2 .ji{width:28px;height:28px;margin:0}.card .c1 b:first-child{min-width:0}
+.card .c2 .jl{color:var(--dim)}
 .acts5{display:flex;gap:4px;margin:0 18px}
 .acts5 button{flex:1;min-width:0;font:inherit;font-weight:900;font-size:13px;white-space:nowrap;padding:11px 0;color:#f0e2c4;background:rgba(61,35,13,.9);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}
 .acts5 button:active{filter:brightness(.9)}
@@ -90,15 +92,39 @@ canvas{image-rendering:pixelated;display:block}
 .meter i{display:block;height:100%;background:var(--seal)}
 input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:4px 8px;min-width:0;width:100%}
 .msgline{font-size:12px;min-height:1.4em;color:var(--seal)}
-.sheet.m{padding-top:30px}
 .ic{width:32px;height:32px;flex:none;image-rendering:pixelated;display:inline-block;margin:0 4px 0 0}.row .nm,.grid2 .row>span:first-child{display:inline-flex;align-items:center}.row .nm small{margin-left:8px}.grid2 .ic{width:24px;height:24px}
 .dl{color:var(--ok);margin-left:6px;font-variant-numeric:tabular-nums}
 .ask{flex:1 1 100%;font-size:12px;color:var(--seal)}
-.mirror-wrap{position:sticky;top:0;z-index:4;margin:0 -28px 12px;padding:18px 0 14px;display:flex;justify-content:center;border-bottom:3px solid var(--lo);background:radial-gradient(ellipse 70% 60% at 50% 45%,#3a2616 0,#1c120b 75%)}
-.mbox{position:relative;width:240px;height:280px}
-.mbox canvas{position:absolute;image-rendering:pixelated}
-#mframe{left:0;top:0;width:240px;height:280px}
-#mdoll{left:24px;top:52px;width:192px;height:192px}
+/* ===== mirror popup (bricks + pixel light) ===== */
+.back.mir{bottom:calc(76px + env(safe-area-inset-bottom,0px));padding-bottom:8px}
+.back.mir .swo{filter:none;width:min(100%,440px)}
+.back.mir .sw .edge{display:none}
+.back.mir .sw{box-shadow:0 0 0 3px #080503,0 0 0 5px #7a5a30,0 6px 24px rgba(0,0,0,.7)}
+.back.mir .sheet{margin:0;padding:0;background:none!important;color:#eadbbd}
+.mwrap{position:relative;padding:8px 8px 12px;background:#120c08 var(--wall,none);background-size:96px 48px;image-rendering:pixelated;overflow:hidden}
+#mfx{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;z-index:0;pointer-events:none}
+.mwrap h2,.mrow,.mwrap .msg{position:relative;z-index:1}
+.mwrap h2{margin:6px 0 8px;font-size:18px;letter-spacing:.1em;color:#eadbbd;-webkit-text-stroke:.8px currentColor}
+.mwrap .x{right:10px;top:10px}
+.mrow{display:flex;gap:8px;align-items:flex-start;margin-top:6px;padding-bottom:50px}
+.mbox{position:relative;flex:none;width:216px;height:408px}
+.mbox img{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+.mbox #mback{filter:brightness(.68)}
+.mbox #mdoll{position:absolute;image-rendering:pixelated;left:16px;top:112px;width:192px;height:192px}
+.mopts{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding-top:24px}
+.mopts .fl{font-size:14px;font-weight:900;color:#d8c49a;letter-spacing:.06em}
+.mopts .tag{color:#ff9a8a}
+.mopts .stp{gap:0;padding:0;border:2px solid #080503;background:rgba(40,26,16,.9)}
+.mopts .stp.bad{border-color:#e0482f}
+.mopts .stp button{width:26px;min-height:32px;border:0;background:#4a2a12;color:#f0dfb8;font-size:14px;font-weight:900;padding:0}
+.mopts .stp .stv{font-size:14px;font-weight:900;color:#f0e2c4;-webkit-text-stroke:.4px currentColor}
+.mopts .stp.bad .stv{color:#ff9a8a}
+.mopts .stp .stv small{font-size:10px;font-weight:400;-webkit-text-stroke:0}
+.mb{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;z-index:5}
+.mb button{flex:1;font:inherit;font-weight:700;font-size:14px;color:#f0dfb8;background:#4a2a12;border:0;padding:10px 0;cursor:pointer;-webkit-text-stroke:.6px currentColor;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608,3px 3px 0 2px rgba(60,30,10,.35)}
+.mb button:active{transform:translateY(2px)}
+.mb button:disabled{opacity:.45;cursor:default;transform:none}
+.mwrap .msg{font-size:12px;min-height:1.4em;margin-top:2px;text-align:center}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .fields label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;color:var(--pink2);letter-spacing:.06em}
 select.sel{font:inherit;font-size:13px;width:100%;min-width:0;color:var(--pink);background:var(--paper2);border:2px solid var(--lo);padding:7px 6px}
@@ -146,7 +172,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
   <div class="top"><h1>角色</h1></div>
   <main class="main">
     <section class="room" id="room" aria-label="角色頁">
-      <img id="bgimg" src="../assets/character/tent_bg.png?v=2" alt="">
+      <img id="bgimg" src="../assets/character/tent_bg.png?v=3" alt="">
       <div class="glow"></div>
       <canvas id="doll" width="48" height="48"></canvas>
       <img id="tbl" src="../assets/character/tent_table.png?v=2" alt="">
@@ -422,10 +448,9 @@ function sheetHTML(k){
     h3+='<p class="hint" style="margin-top:12px">轉職後，不能用的武器會自動換成新職業的預設武器。</p><div class="msgline" id="wmsg"></div>';
     if(confirmWeapon){var cw=WEAPON[confirmWeapon];h3+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要切換為「<b class="bold">'+esc(cw.n)+'</b>」嗎？</p><p class="sub">目前裝備：'+esc(S.weapon)+'。</p><div class="acts"><button class="b alt" data-a="wno" type="button">取消</button><button class="b go" data-a="wyes" type="button">確定切換</button></div><div class="msgline" id="wcmsg"></div></div></div>'}
     return h3}
-  if(k==='mirror'){var h4='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><div class="mirror-wrap"><div class="mbox"><canvas id="mframe" width="60" height="70"></canvas><canvas id="mdoll" width="48" height="48"></canvas></div></div>';
-    h4+='<h2>外觀</h2><p class="hint">改了選項，鏡子裡的人偶會立刻跟著變。只要有一項是未解鎖的，就不能儲存。</p><div class="fields">';
+  if(k==='mirror'){var h4='<div class="mwrap"><canvas id="mfx"></canvas><button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>外觀</h2><div class="mrow"><div class="mbox"><img id="mback" alt="" src="../assets/character/mirror_back.png?v=1"><canvas id="mdoll" width="48" height="48"></canvas><img alt="" src="../assets/character/mirror_shine.png?v=1"><img alt="" src="../assets/character/mirror_frame.png?v=1"></div><div class="mopts">';
     Object.keys(OPT).forEach(function(g){h4+='<div class="fl"><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><div class="stp" id="sel-'+g+'"><button type="button" data-a="lstep" data-g="'+g+'" data-d="-1" aria-label="上一個'+OPT[g].label+'">◀</button><span class="stv" id="sv-'+g+'">'+stepText(g)+'</span><button type="button" data-a="lstep" data-g="'+g+'" data-d="1" aria-label="下一個'+OPT[g].label+'">▶</button></div></div>'});
-    h4+='</div><div class="bar"><span class="t" id="mstat"></span><button class="b alt" id="mrevert" data-a="lookcancel" type="button">還原</button><button class="b go" id="msave" data-a="looksave" type="button">儲存</button></div>';return h4}
+    h4+='</div><div class="mb"><button id="mrevert" data-a="lookcancel" type="button">還原</button><button id="msave" data-a="looksave" type="button">儲存</button></div></div><div class="msg" id="mstat"></div></div>';return h4}
   if(k==='card'){var left=MAXREN-S.renames,h5=head('冒險者公會證','姓名、等級、職業與轉職都在這裡。').replace('<h2>','<h2 class="bold">');
     h5+='<div class="sec gs">姓名</div>';
     if(!editName)h5+='<div class="row gc"><span class="who"><span class="bold nmbig">'+esc(S.name)+'</span><button class="pen" data-a="pen" type="button" aria-label="修改名字" '+(left>0?'':'disabled')+'>'+PEN+'</button></span><span class="hint" style="margin:0">剩餘改名 '+left+' 次</span></div>';
@@ -445,30 +470,35 @@ function sheetHTML(k){
     if(confirmJob){var cj=JOB[confirmJob];h6+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要轉職為「<b class="bold">'+esc(cj.job_name)+'</b>」嗎？</p><p class="sub">各職業等級會保留；不能用的武器會自動換成新職業的預設武器。</p><div class="acts"><button class="b alt" data-a="jobno" type="button">取消</button><button class="b go" data-a="jobyes" type="button">確定轉職</button></div><div class="msgline" id="jcmsg"></div></div></div>'}
     return h6}
   return ''}
-function drawMirrorFrame(){var cv=$('mframe');if(!cv)return;var c=cv.getContext('2d');c.clearRect(0,0,60,70);
-  ell(c,30,36,29.6,34.6,'#241508');ell(c,30,36,28.6,33.6,'#b0802f');ell(c,30,36,27.2,32.2,'#8a5f20');ell(c,30,36,25.8,30.8,'#3b2a14');
-  var bands=['#7a93a3','#6f8898','#657f90','#5b7686','#516878'];
-  for(var y=7;y<66;y++){var dy=(y+.5-36)/29.6;if(Math.abs(dy)>=1)continue;var w=Math.round(24.8*Math.sqrt(1-dy*dy)),t=Math.min(4,Math.floor((y-7)/12));rect(c,30-w,y,w*2,1,bands[t])}
-  line(c,14,24,27,10,'#a9bcc4');line(c,15,24,28,10,'#a9bcc4');line(c,12,32,20,22,'#8fa5b0');line(c,13,32,21,22,'#8fa5b0');
-  ell(c,30,3,3.2,2.4,'#2a1a0c');ell(c,30,3,2.4,1.8,'#b03a2e');rect(c,29,2,1,1,'#f0a090');
-  rect(c,10,60,2,1,'#c9a25a');rect(c,48,60,2,1,'#c9a25a');rect(c,6,34,1,2,'#d8b268')}
+var BRICK=null;
+function brickTile(){if(BRICK)return BRICK;try{var c=document.createElement('canvas');c.width=32;c.height=16;var x=c.getContext('2d');x.fillStyle='#0c0705';x.fillRect(0,0,32,16);
+  var pal=['#2a1d17','#30221a','#26191a','#2d2019','#22171a'],seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
+  for(var r=0;r<2;r++){var off=r?8:0;for(var b=-1;b<3;b++){var bx=off+b*16;x.fillStyle=pal[Math.floor(rnd()*pal.length)];x.fillRect(bx+1,r*8+1,14,7);x.fillStyle='rgba(255,200,140,.07)';x.fillRect(bx+1,r*8+1,14,1);
+    if(rnd()<.5){x.fillStyle='rgba(0,0,0,.25)';x.fillRect(bx+3+Math.floor(rnd()*8),r*8+3+Math.floor(rnd()*3),2,1)}}}
+  BRICK='url('+c.toDataURL()+')'}catch(e){BRICK='none'}return BRICK}
+function mirrorFx(){var c=$('mfx'),w=c&&c.parentNode,box=$('mdoll');if(!c||!w)return;w.style.setProperty('--wall',brickTile());
+  var pr=w.getBoundingClientRect(),P=4,W=Math.ceil(pr.width/P),H=Math.ceil(pr.height/P);c.width=W;c.height=H;var x=c.getContext('2d'),r=box.getBoundingClientRect(),
+  dx=(r.left-pr.left+r.width/2)/P,dy=(r.top-pr.top+r.height*0.35)/P;
+  for(var y=0;y<H;y++)for(var i=0;i<W;i++){var d=Math.hypot(i-dx,(y-dy)*1.15),a=0,col='#f6d27a';
+    if(d<14){a=.26}else if(d<26){a=.19;col='#d99a46'}else if(d<38){a=.14;col='#9a6428'}else if(d<50){a=((i+y)%2==0)?.07:0;col='#7a4a1e'}
+    if(a){x.globalAlpha=a;x.fillStyle=col;x.fillRect(i,y,1,1)}}}
 function stepText(g){var l=OPT[g].list(),k=-1;l.forEach(function(o,n){if(o.v===S.look[g])k=n});if(k<0)return '—';var o=l[k];return esc(o.n)+(o.lock?'（未解鎖）':'')+'<small>'+(k+1)+'/'+l.length+'</small>'}
 function updateMirror(){var bad=lockedChosen(),dirty=Object.keys(OPT).some(function(g){return S.look[g]!==S.saved[g]});
   Object.keys(OPT).forEach(function(g){var o=OPT[g].list().filter(function(x){return x.v===S.look[g]})[0],lk=!!(o&&o.lock),t=$('tg-'+g),sl=$('sel-'+g);if(t)t.hidden=!lk;if(sl)sl.classList.toggle('bad',lk)});
   var st=$('mstat');if(st){st.textContent=bad.length?'有未解鎖的選項：'+bad.join('、')+'，無法儲存':(dirty?'有尚未儲存的變更':'已是儲存的外觀');st.style.color=bad.length?'var(--seal)':'inherit'}
   var sv=$('msave'),rv=$('mrevert');if(sv)sv.disabled=!(dirty&&!bad.length);if(rv)rv.disabled=!dirty}
-function jag(){var w=$('sw');if(!w||back.hidden)return;var W=w.offsetWidth,H=w.offsetHeight;if(!W||!H)return;var sd=7;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
+function jag(){var w=$('sw');if(!w||back.hidden)return;if(cur==='mirror'){w.style.clipPath='none';return}var W=w.offsetWidth,H=w.offsetHeight;if(!W||!H)return;var sd=7;function r(){sd=(sd*9301+49297)%233280;return sd/233280}
   function line(){var pts=[],x=0,y=Math.floor(r()*3)*3;while(x<W){pts.push([x,y]);x+=8+Math.floor(r()*5)*4;var d=r();y=d<.35?Math.max(0,y-3):d<.7?Math.min(9,y+3):y;if(r()<.12)y=Math.floor(r()*4)*3}pts.push([W,y]);return pts}
   var t=line(),b=line(),P=[];t.forEach(function(q,i){if(i)P.push(q[0]+'px '+t[i-1][1]+'px');P.push(q[0]+'px '+q[1]+'px')});
   for(var i=b.length-1;i>=0;i--){var q=b[i],yy=H-q[1];P.push(q[0]+'px '+yy+'px');if(i)P.push(b[i-1][0]+'px '+yy+'px')}
   w.style.clipPath='polygon('+P.join(',')+')'}
 window.addEventListener('resize',jag);
-function paintSheetPaper(){if(!window.PaperLit)return;var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
+function paintSheetPaper(){if(!window.PaperLit)return;if(cur==='mirror'){sheet.style.backgroundImage='none';sheet.__pw=0;return}var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
 window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
-function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){drawMirrorFrame();updateMirror()}}
-function openSheet(k){cur=k;open={};jobOpen=null;sheet.className='sheet'+(k==='mirror'?' m':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
+function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}}
+function openSheet(k){cur=k;open={};jobOpen=null;sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
-function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;$('cardText').innerHTML='<b>'+esc(S.name)+'</b><span>Lv '+S.lv+'　'+esc(jobName(S.jobSn))+' Lv '+(S.jobLvs[S.jobSn]|0)+'</span>';updateWeaponSprites()}
+function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;$('cardText').innerHTML='<div class="c1"><b>'+esc(S.name)+'</b><b>Lv '+S.lv+'</b></div><div class="c2">'+jobIcon(S.jobSn)+'<b>'+esc(jobName(S.jobSn))+'</b><b class="jl">Lv '+(S.jobLvs[S.jobSn]|0)+'</b></div>';updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
 function zeroAlloc(){return {str:0,int:0,agi:0,vit:0,luk:0}}
 sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b||b.disabled)return;var a=b.getAttribute('data-a'),k=b.getAttribute('data-k');
@@ -517,7 +547,7 @@ var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:47,w:36,h:41,p:'武器架',
   {k:'book',l:'技能書：技能',x:99,y:56,w:24,h:16,p:'技能書',px:111,py:50,b:'技能'}];
 (function(){var host=$('hsHost'),bar=$('acts5');HS.forEach(function(h){var b=document.createElement('button');b.className='hs';b.type='button';b.setAttribute('data-k',h.k);b.setAttribute('aria-label',h.l);
   b.style.cssText='left:'+(h.x/130*100)+'%;top:'+(h.y/140*100)+'%;width:'+(h.w/130*100)+'%;height:'+(h.h/140*100)+'%';b.addEventListener('click',function(){openSheet(h.k)});host.appendChild(b);
-  var sp=document.createElement('span');sp.className='pill'+(h.dn?' dn':'');if(h.id)sp.id=h.id;sp.style.cssText='left:'+(h.px/130*100)+'%;top:'+(h.py/140*100)+'%';sp.textContent=h.p;host.appendChild(sp);
+  var sp=document.createElement('span');sp.className='pill'+(h.dn?' dn':'');if(h.id)sp.id=h.id;sp.style.cssText='left:'+(h.px/130*100)+'%;top:'+(h.py/140*100)+'%';sp.textContent=h.p;sp.addEventListener('click',function(){openSheet(h.k)});host.appendChild(sp);
   var bb=document.createElement('button');bb.type='button';bb.textContent=h.b;if(h.bid)bb.id=h.bid;bb.addEventListener('click',function(){openSheet(h.k)});bar.appendChild(bb)})})();
 
 /* ================= doll + weapon sprite ================= */
