@@ -618,7 +618,7 @@ function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w];
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:95,y:157}; /* fire centre x, base line y */
-var SLOTS=[[66,185],[121,186],[92,133],[40,151],[143,139],[60,133],[159,163],[25,180],[116,144],[94,198]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
+var SLOTS=[[66,185],[121,188],[92,133],[40,151],[143,139],[60,131],[159,163],[25,180],[116,144],[94,198]]; /* you first, then the 15 most recently online (order chosen by Matthew: MLHCEBNIFGKDJAOP) */ /* loose ring around the fire, nearest first */
 function tms(v){return v&&v.toMillis?v.toMillis():(typeof v==='number'?v:0)}
 var SAY_MS=24*3600*1000;
 function sayLive(p){return !!(p.say&&Date.now()-tms(p.sayAt)<SAY_MS)}
@@ -703,7 +703,7 @@ function lampGlow(now){var fl=.88+.08*Math.sin(now/900)+.04*Math.sin(now/370),x=
   sx.fillStyle=g;sx.fillRect(x-24,y-24,48,48)}
 ['blanket','back','front'].forEach(function(k){var im=new Image();im.onload=function(){LAYER[k]=im};im.src=BASE+'camp/camp_'+k+'.png?v='+V});
 /* 庫奇 (assets/pets/gm_pet_03.png + gm_pet_03_tail.png, 16x16 each): lies on top of the red canopy; the tail layer sits behind the body and slowly sways around its root */
-var KUQI={img:{},x:118,y:86,tx:1,tails:{},card:null};
+var KUQI={img:{},x:117,y:84,tx:1,tails:{},card:null};
 ['gm_pet_03','gm_pet_03_tail'].forEach(function(k){var im=new Image();im.onload=function(){KUQI.img[k]=im;if(KUQI.img.gm_pet_03&&KUQI.img.gm_pet_03_tail)kuqiReady()};im.src=BASE+'pets/'+k+'.png?v='+V});
 function kuqiTail(step){if(KUQI.tails[step])return KUQI.tails[step];
   var src=document.createElement('canvas');src.width=src.height=16;var sc=src.getContext('2d');sc.drawImage(KUQI.img.gm_pet_03_tail,0,0);
