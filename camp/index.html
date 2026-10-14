@@ -603,10 +603,11 @@ var SW=190,SH=222,SCALE=2,ONLINE_MS=10*60*1000;
 var scene=document.getElementById('scene'),sx=scene.getContext('2d'),tagsEl=document.getElementById('tags');
 var PETLIST=[],ACT=[],ME_UID=null,BG=null,WBYNAME={};
 function jobIcon(p){return BASE+'icons/jobs/framed/'+(p.jobSn||Doll.JOBSN[p.job|0]||'job01')+'.png?v='+V}
-function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w];
+function wst(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1);return Math.min(3,Math.max(0,(d.stage|0)-1,stage(lv)))}
+function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),
-    weapon:wd&&wd.img[0]?{img:wd.img[0],key:w+'_0',cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
-    shield:wd&&wd.offImg&&wd.offImg[0]?{img:wd.offImg[0],key:'off_'+w+'_0'}:null,halo:[]}}
+    weapon:wd&&(wd.img[s]||wd.img[0])?{img:wd.img[s]||wd.img[0],key:w+'_'+s,cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
+    shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:[]}}
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:95,y:157}; /* fire centre x, base line y */

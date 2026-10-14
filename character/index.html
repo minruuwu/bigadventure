@@ -314,9 +314,9 @@ function buildData(R){
   R[1].forEach(function(r){if(r.u_sn)ATTR[r.u_sn]=r});
   R[2].forEach(function(r){if(r.u_sn)GROWTH[r.u_sn]=r});
   R[3].forEach(function(r){if(!r.u_sn)return;var st=[];for(var q=1;q<=6;q++){var sk=r['auto_stat_'+q];if(sk)st.push({k:sk,per:String(r['auto_per_level_'+q]||'').trim()})}
-    WEAPON[r.u_sn]={sn:r.u_sn,n:r.weapon_name,desc:r.weapon_desc||'',stats:st,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0,off:r.offhand||'',img:null,offImg:null};WORDER.push(r.u_sn);WNAME2K[r.weapon_name]=r.u_sn});
-  var jobs=[];WORDER.forEach(function(k){var w=WEAPON[k];jobs.push(loadImg(BASE+'weapons/'+k+'_1.png?v='+V).then(function(im){w.img=im}));
-    if(w.off)jobs.push(loadImg(BASE+'weapons/'+w.off+'.png?v='+V).then(function(im){w.offImg=im}))});
+    WEAPON[r.u_sn]={sn:r.u_sn,n:r.weapon_name,desc:r.weapon_desc||'',stats:st,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0,off:r.offhand||'',img:[],offImg:[]};WORDER.push(r.u_sn);WNAME2K[r.weapon_name]=r.u_sn});
+  var jobs=[];WORDER.forEach(function(k){var w=WEAPON[k];[0,1,2,3].forEach(function(st){jobs.push(loadImg(BASE+'weapons/'+k+'_'+(st+1)+'.png?v='+V).then(function(im){w.img[st]=im}));
+      if(w.off){var names=st===0?[w.off]:[w.off.replace(/\d+$/,'')+'_'+(st+1),w.off+'_'+(st+1)];jobs.push(names.reduce(function(pr,n){return pr.then(function(im){return im||loadImg(BASE+'weapons/'+n+'.png?v='+V)})},Promise.resolve(null)).then(function(im){w.offImg[st]=im}))}})});
   return Promise.all(jobs)}
 function usableList(sn){var j=JOB[sn],o=[];if(!j)return o;Object.keys(UCOL).forEach(function(c){if(String(j['usable_'+c]||'').trim()==='1')o.push(UCOL[c])});return WORDER.map(function(k){return WEAPON[k].n}).filter(function(n){return o.indexOf(n)>=0})}
 function defaultWeaponName(sn){var j=JOB[sn],w=j&&WEAPON[j.default_weapon];return w?w.n:null}
@@ -394,7 +394,8 @@ function wframe(t){if(WFR[t])return WFR[t];var c=document.createElement('canvas'
     if(m===1){var n=parseInt(col.slice(1),16);col='rgb('+Math.round((n>>16&255)*.8)+','+Math.round((n>>8&255)*.8)+','+Math.round((n&255)*.8)+')'}
     x.fillStyle=col;x.fillRect(i,j,1,1)}
   return WFR[t]=c.toDataURL()}
-function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1)),en:Array.isArray(d.ench)?d.ench:[]}}
+function stageOf(lv){return lv>=90?4:lv>=60?3:lv>=30?2:1}
+function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1,stageOf(Math.max(1,d.lv|0||1)))),en:Array.isArray(d.ench)?d.ench:[]}}
 function wRunes(en){var h='';for(var i=0;i<3;i++){var r=en[i];h+=(r&&/^rune\d+$/.test(r))?'<img alt="" src="../assets/icons/runes/'+r+'.png?v=1" onerror="this.outerHTML=\'<span></span>\'">':'<span></span>'}return '<div class="rn">'+h+'</div>'}
 function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
@@ -551,7 +552,7 @@ var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:47,w:36,h:41,p:'武器架',
 
 /* ================= doll + weapon sprite ================= */
 var WSPEC=null,SSPEC=null;
-function updateWeaponSprites(){var w=WEAPON[WNAME2K[S.weapon]];WSPEC=w&&w.img?{img:w.img,key:w.sn+'_0',cut:w.cut,ox:w.ox,oy:w.oy}:null;SSPEC=w&&w.offImg?{img:w.offImg,key:'off_'+w.sn+'_0'}:null}
+function updateWeaponSprites(){var w=WEAPON[WNAME2K[S.weapon]],s=w?wInfo(w.sn).st-1:0,im=w&&(w.img[s]||w.img[0]),oi=w&&(w.offImg[s]||w.offImg[0]);WSPEC=im?{img:im,key:w.sn+'_'+s,cut:w.cut,ox:w.ox,oy:w.oy}:null;SSPEC=oi?{img:oi,key:'off_'+w.sn+'_'+s}:null}
 function tick(now){var L=S.look,lk={skin:L.skin,style:L.style,hair:L.hair,eyes:L.eyes,outfit:L.outfit,weapon:WSPEC,shield:SSPEC,halo:[],breath:true};Doll.draw(dollCv,lk,now);var m=$('mdoll');if(m&&cur==='mirror')Doll.draw(m,Object.assign({},lk,{weapon:null,shield:null}),now);requestAnimationFrame(tick)}
 function pushNavPlayer(){if(window.NavIcons)NavIcons.setPlayer(Object.assign({uid:S.uid,name:S.name,job:S.job,jobSn:S.jobSn,weapon:S.weapon},S.saved))}
 
