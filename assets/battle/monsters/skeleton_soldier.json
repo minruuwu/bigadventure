@@ -1,0 +1,16 @@
+{
+ "_說明": "骷髏士兵(已左右翻轉,面向左邊隊友)。40×40 像素,1 倍顯示,腳底貼圖片最下緣。skeleton_soldier.png=睜眼(黃色眼睛),skeleton_soldier_blink.png=閉眼,約每 3.2 秒眨 0.18 秒。待機動作:第 34 列(膝蓋)以下固定,以上整體上下 1 像素,約 0.66 秒一個週期。陰影寬=身體寬×0.6,上移 2 格貼腳底,出場時跟著怪物一起移動。",
+ "size": [
+  40,
+  40
+ ],
+ "scale": 1,
+ "feetRow": 39,
+ "kneeRow": 34,
+ "blinkPeriodMs": 3200,
+ "blinkMs": 180,
+ "bobPx": 1,
+ "bobPeriodMs": 660,
+ "shadowWidthRatio": 0.6,
+ "shadowUpPx": 2
+}
