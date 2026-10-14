@@ -367,7 +367,7 @@ function show(state,data,user){box.textContent='';foot.textContent='';cancelAnim
   else if(state==='new'){box.appendChild(el('p','motto','歡迎，新的冒險者！'));box.appendChild(el('div','state dots','帶你前往冒險者登記處'))}
   else if(state==='back'){var wl=el('div','welcome'),db=el('div','dollbox'),c=el('canvas');c.width=c.height=48*4;c.style.width=c.style.height='192px';db.appendChild(c);wl.appendChild(db);
     wl.appendChild(el('div','hi','歡迎回來，'+data.name+'（'+(JOBN[data.job]||'冒險者')+'）'));box.appendChild(wl);box.appendChild(el('div','state dots','前往營地'));
-    Doll.load('assets/','1').then(function(){var s={skin:Doll.val(data.skin,0),style:Doll.val(data.style,0),hair:data.hair|0,eyes:Doll.val(data.eyes,5),outfit:data.outfit==null?(data.job|0):Doll.val(data.outfit,0),weapon:null,shield:null,halo:[]};
+    Doll.load('assets/','4').then(function(){var s={skin:Doll.val(data.skin,0),style:Doll.val(data.style,0),hair:data.hair|0,eyes:Doll.val(data.eyes,5),outfit:data.outfit==null?(data.job|0):Doll.val(data.outfit,0),weapon:null,shield:null,halo:[]};
       (function lp(t){Doll.draw(c,s,t);RAF=requestAnimationFrame(lp)})(0)})}
   else if(state==='disabled'){box.appendChild(el('p','motto','這個帳號已停用'));box.appendChild(el('div','state','冒險者公會暫時收回了你的通行證。如果有疑問，請聯絡遊戲管理員。'))}
   else if(state==='error'){box.appendChild(motto());box.appendChild(el('div','err',data||'登入沒有成功，請再試一次。'));box.appendChild(btn('btn2','再試一次',function(){location.reload()}))}
