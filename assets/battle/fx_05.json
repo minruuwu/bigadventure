@@ -1,0 +1,5 @@
+{
+ "_說明": "冰原(bg_05)的特效參數。座標單位=背景像素(圖寬 564、高 140)。",
+ "clouds": {"shapes": "clouds.json", "palette": ["226,236,252", "188,206,238", "150,172,216"], "scale": 0.6, "maxRow": 13, "mask": "sky_mask_05.png", "說明": "雲只在最上方的天空,經過山峰時被 sky_mask_05 擋住(躲在山後面)"},
+ "snow": {"count": 96, "layers": [{"size": 1, "speed": 0.05, "sway": 5, "wind": 3, "parallax": 0.12, "alpha": 0.55}, {"size": 1, "speed": 0.085, "sway": 9, "wind": 6, "parallax": 0.25, "alpha": 0.7}, {"size": 2, "speed": 0.14, "sway": 14, "wind": 10, "parallax": 0.45, "alpha": 0.9}], "color": "255,255,255"}
+}
