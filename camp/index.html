@@ -376,6 +376,7 @@ html,body,*{touch-action:manipulation}
 <div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="tp" id="pcTeam" hidden></div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
+<script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=19"></script>
 <script src="party.js?v=6"></script>
 <script>
@@ -587,15 +588,6 @@ function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cl
         if(d<rad*.7){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad&&(xx+y)%2===0){x.fillStyle=col+'.20)';x.fillRect(X,Y,1,1)}else if(d<rad+1.5&&d>=rad&&r()<.5){x.fillStyle='rgba(70,40,15,.26)';x.fillRect(X,Y,1,1)}}}
     return 'url('+c.toDataURL()+')'}
   document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})());document.body.style.setProperty('--wear',tile('steel'));document.body.style.setProperty('--wearB',tile('wood'));document.getElementById('sheet').style.setProperty('--wear',tile('paper'));document.getElementById('sheet').style.setProperty('--wearS',tile('steel'));document.getElementById('sheet').style.setProperty('--edgeL',edgeTile('l'));document.getElementById('sheet').style.setProperty('--edgeR',edgeTile('r'));document.getElementById('sheet').style.setProperty('--stain',stainTile());document.getElementById('sheet').style.setProperty('--wearC',tile('copper'))}catch(e){}})();
-(function(){try{var c=document.createElement('canvas');c.width=c.height=80;var x=c.getContext('2d');var seed=5;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
-  for(var y=0;y<80;y++)for(var xx=0;xx<80;xx++){var r=rnd();if(r<.20){x.fillStyle='rgba(0,0,0,.16)';x.fillRect(xx,y,1,1)}else if(r<.30){x.fillStyle='rgba(255,235,200,.075)';x.fillRect(xx,y,1,1)}else if(r<.305){x.fillStyle='rgba(255,220,160,.20)';x.fillRect(xx,y,1,1)}}
-  document.getElementById('grain').style.backgroundImage='url('+c.toDataURL()+')'}catch(e){}})();
-/* ---------- wall texture (brick tile) ---------- */
-(function(){try{var c=document.createElement('canvas');c.width=32;c.height=16;var x=c.getContext('2d');x.fillStyle='#0c0705';x.fillRect(0,0,32,16);
-  var pal=['#2a1d17','#30221a','#26191a','#2d2019','#22171a'],seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
-  for(var r=0;r<2;r++){var off=r?8:0;for(var b=-1;b<3;b++){var bx=off+b*16;x.fillStyle=pal[Math.floor(rnd()*pal.length)];x.fillRect(bx+1,r*8+1,14,7);x.fillStyle='rgba(255,200,140,.07)';x.fillRect(bx+1,r*8+1,14,1);
-    if(rnd()<.5){x.fillStyle='rgba(0,0,0,.25)';x.fillRect(bx+3+Math.floor(rnd()*8),r*8+3+Math.floor(rnd()*3),2,1)}}}
-  document.body.style.setProperty('--wall','url('+c.toDataURL()+')')}catch(e){}})();
 
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
   var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','設定','scroll']];

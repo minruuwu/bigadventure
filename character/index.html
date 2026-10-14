@@ -10,7 +10,7 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
   --font:'Cubic 11','Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:#120c08;color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5;font-weight:500}
+body{background:#120c08 var(--wall,none);background-size:96px 48px;image-rendering:pixelated;color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5;font-weight:500}
 button{font-family:inherit}
 canvas{image-rendering:pixelated;display:block}
 .app{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
@@ -29,6 +29,7 @@ canvas{image-rendering:pixelated;display:block}
 .toast.on{opacity:1}
 
 /* ===== tent room (130 x 112 art pixels, shown scaled) ===== */
+.grain{position:fixed;inset:0;pointer-events:none;z-index:-1;background-size:480px 480px;image-rendering:pixelated}
 .room{position:relative;width:100%;aspect-ratio:130/140;background:#0c0705;overflow:hidden;container-type:inline-size}
 .room canvas{position:absolute;display:block;image-rendering:pixelated}
 #bgimg,#tbl{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated}
@@ -101,7 +102,7 @@ input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px s
 .back.mir .sw .edge{display:none}
 .back.mir .sw{box-shadow:0 0 0 3px #080503,0 0 0 5px #7a5a30,0 6px 24px rgba(0,0,0,.7)}
 .back.mir .sheet{margin:0;padding:0;background:none!important;color:#eadbbd}
-.mwrap{position:relative;padding:8px 8px 12px;background:#120c08 var(--wall,none);background-size:96px 48px;image-rendering:pixelated;overflow:hidden}
+.mwrap{position:relative;padding:8px 8px 12px;background:var(--grain,none) 0 0/480px 480px,var(--wall,none) 0 0/96px 48px,#120c08;image-rendering:pixelated;overflow:hidden}
 #mfx{position:absolute;left:0;top:0;width:100%;height:100%;image-rendering:pixelated;z-index:0;pointer-events:none}
 .mwrap h2,.mrow,.mwrap .msg{position:relative;z-index:1}
 .mwrap h2{margin:6px 0 8px;font-size:18px;letter-spacing:.1em;color:#eadbbd;-webkit-text-stroke:.8px currentColor}
@@ -114,6 +115,8 @@ input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px s
 .mopts{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding-top:24px}
 .mopts .fl{font-size:14px;font-weight:900;color:#d8c49a;letter-spacing:.06em}
 .mopts .tag{color:#ff9a8a}
+.mopts select.sel{width:100%;min-width:0;font:inherit;font-size:14px;font-weight:900;color:#f0e2c4;background:rgba(40,26,16,.95);border:2px solid #080503;padding:7px 4px;min-height:36px;text-overflow:ellipsis}
+.mopts select.sel.bad{color:#ff9a8a;border-color:#e0482f}
 .mopts .stp{gap:0;padding:0;border:2px solid #080503;background:rgba(40,26,16,.9)}
 .mopts .stp.bad{border-color:#e0482f}
 .mopts .stp button{width:26px;min-height:32px;border:0;background:#4a2a12;color:#f0dfb8;font-size:14px;font-weight:900;padding:0}
@@ -123,7 +126,7 @@ input.nm-in{font:inherit;color:var(--pink);background:var(--paper2);border:2px s
 .mb{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;z-index:5}
 .mb button{flex:1;font:inherit;font-weight:700;font-size:14px;color:#f0dfb8;background:#4a2a12;border:0;padding:10px 0;cursor:pointer;-webkit-text-stroke:.6px currentColor;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608,3px 3px 0 2px rgba(60,30,10,.35)}
 .mb button:active{transform:translateY(2px)}
-.mb button:disabled{opacity:.45;cursor:default;transform:none}
+.mb button:disabled{background:#241508;color:#6e5a3e;-webkit-text-stroke:0;cursor:default;transform:none;box-shadow:0 0 0 2px #100a05,inset 0 2px 0 #3a2a18,inset 0 -2px 0 #170d05}
 .mwrap .msg{font-size:12px;min-height:1.4em;margin-top:2px;text-align:center}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .fields label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;color:var(--pink2);letter-spacing:.06em}
@@ -167,6 +170,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .tleg{font-size:11px;color:var(--pink2);margin:4px 0 0}
 .icf{background-size:32px 32px;image-rendering:pixelated}.fl{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;color:var(--pink2);letter-spacing:.06em}.stp{display:flex;align-items:stretch;gap:4px;border:2px solid var(--lo);background:var(--paper2);padding:2px}.stp.bad{border-color:var(--seal)}.stp button{flex:none;width:34px;min-height:34px;font:inherit;font-size:14px;color:#f0e2c4;background:var(--pink);border:2px solid var(--lo);cursor:pointer;touch-action:manipulation}.stp .stv{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:var(--pink);text-align:center;line-height:1.15;letter-spacing:0}.stp .stv small{font-size:10px;opacity:.7}.stp.bad .stv{color:var(--seal)}.dbtn{margin-left:8px;font:inherit;font-size:11px;color:var(--pink);background:transparent;border:2px solid var(--lo);padding:0 6px;cursor:pointer;touch-action:manipulation}.jdet{grid-column:1/-1;margin:6px 0 2px;padding:6px 8px 8px;border:2px solid var(--lo);background:rgba(60,35,15,.07);font-size:12px;text-align:left}.jdet h4{margin:6px 0 4px;font-size:12px;color:var(--pink2);letter-spacing:.06em;font-weight:700}.jg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.jg>div{text-align:center;border:2px solid var(--lo);padding:2px 0;font-size:11px}.jg b{display:block;color:var(--seal);font-size:13px}.jb{display:flex;flex-wrap:wrap;gap:2px 14px}.jb b{color:var(--seal);margin-left:4px}.jw{display:flex;gap:6px;flex-wrap:wrap}.jwi{display:inline-block;width:32px;height:32px;background-size:32px 32px;image-rendering:pixelated}.jwi img{display:block;width:32px;height:32px;image-rendering:pixelated}.jdsc{margin-top:8px;font-size:11px;opacity:.85}#tdet .jdet{margin-top:2px}</style></head>
 <body>
+<div class="grain" id="grain" aria-hidden="true"></div>
 <div id="loading">讀取資料中…</div>
 <div class="app">
   <div class="top"><h1>角色</h1></div>
@@ -188,6 +192,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
+<script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=19"></script>
 <script>
 (function(){
@@ -449,7 +454,7 @@ function sheetHTML(k){
     if(confirmWeapon){var cw=WEAPON[confirmWeapon];h3+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要切換為「<b class="bold">'+esc(cw.n)+'</b>」嗎？</p><p class="sub">目前裝備：'+esc(S.weapon)+'。</p><div class="acts"><button class="b alt" data-a="wno" type="button">取消</button><button class="b go" data-a="wyes" type="button">確定切換</button></div><div class="msgline" id="wcmsg"></div></div></div>'}
     return h3}
   if(k==='mirror'){var h4='<div class="mwrap"><canvas id="mfx"></canvas><button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>外觀</h2><div class="mrow"><div class="mbox"><img id="mback" alt="" src="../assets/character/mirror_back.png?v=1"><canvas id="mdoll" width="48" height="48"></canvas><img alt="" src="../assets/character/mirror_shine.png?v=1"><img alt="" src="../assets/character/mirror_frame.png?v=1"></div><div class="mopts">';
-    Object.keys(OPT).forEach(function(g){h4+='<div class="fl"><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><div class="stp" id="sel-'+g+'"><button type="button" data-a="lstep" data-g="'+g+'" data-d="-1" aria-label="上一個'+OPT[g].label+'">◀</button><span class="stv" id="sv-'+g+'">'+stepText(g)+'</span><button type="button" data-a="lstep" data-g="'+g+'" data-d="1" aria-label="下一個'+OPT[g].label+'">▶</button></div></div>'});
+    Object.keys(OPT).forEach(function(g){if(g==='outfit'){h4+='<div class="fl"><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><select class="sel" id="sel-outfit" data-g="outfit" aria-label="衣服">'+OPT.outfit.list().map(function(o){return '<option value="'+o.v+'"'+(o.v===S.look.outfit?' selected':'')+'>'+esc(o.n)+(o.lock?'（未解鎖）':'')+'</option>'}).join('')+'</select></div>';return}h4+='<div class="fl"><span>'+OPT[g].label+'<span class="tag" id="tg-'+g+'" hidden>未解鎖</span></span><div class="stp" id="sel-'+g+'"><button type="button" data-a="lstep" data-g="'+g+'" data-d="-1" aria-label="上一個'+OPT[g].label+'">◀</button><span class="stv" id="sv-'+g+'">'+stepText(g)+'</span><button type="button" data-a="lstep" data-g="'+g+'" data-d="1" aria-label="下一個'+OPT[g].label+'">▶</button></div></div>'});
     h4+='</div><div class="mb"><button id="mrevert" data-a="lookcancel" type="button">還原</button><button id="msave" data-a="looksave" type="button">儲存</button></div></div><div class="msg" id="mstat"></div></div>';return h4}
   if(k==='card'){var left=MAXREN-S.renames,h5=head('冒險者公會證','姓名、等級、職業與轉職都在這裡。').replace('<h2>','<h2 class="bold">');
     h5+='<div class="sec gs">姓名</div>';
@@ -470,13 +475,7 @@ function sheetHTML(k){
     if(confirmJob){var cj=JOB[confirmJob];h6+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p>確定要轉職為「<b class="bold">'+esc(cj.job_name)+'</b>」嗎？</p><p class="sub">各職業等級會保留；不能用的武器會自動換成新職業的預設武器。</p><div class="acts"><button class="b alt" data-a="jobno" type="button">取消</button><button class="b go" data-a="jobyes" type="button">確定轉職</button></div><div class="msgline" id="jcmsg"></div></div></div>'}
     return h6}
   return ''}
-var BRICK=null;
-function brickTile(){if(BRICK)return BRICK;try{var c=document.createElement('canvas');c.width=32;c.height=16;var x=c.getContext('2d');x.fillStyle='#0c0705';x.fillRect(0,0,32,16);
-  var pal=['#2a1d17','#30221a','#26191a','#2d2019','#22171a'],seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
-  for(var r=0;r<2;r++){var off=r?8:0;for(var b=-1;b<3;b++){var bx=off+b*16;x.fillStyle=pal[Math.floor(rnd()*pal.length)];x.fillRect(bx+1,r*8+1,14,7);x.fillStyle='rgba(255,200,140,.07)';x.fillRect(bx+1,r*8+1,14,1);
-    if(rnd()<.5){x.fillStyle='rgba(0,0,0,.25)';x.fillRect(bx+3+Math.floor(rnd()*8),r*8+3+Math.floor(rnd()*3),2,1)}}}
-  BRICK='url('+c.toDataURL()+')'}catch(e){BRICK='none'}return BRICK}
-function mirrorFx(){var c=$('mfx'),w=c&&c.parentNode,box=$('mdoll');if(!c||!w)return;w.style.setProperty('--wall',brickTile());
+function mirrorFx(){var c=$('mfx'),w=c&&c.parentNode,box=$('mdoll');if(!c||!w)return;
   var pr=w.getBoundingClientRect(),P=4,W=Math.ceil(pr.width/P),H=Math.ceil(pr.height/P);c.width=W;c.height=H;var x=c.getContext('2d'),r=box.getBoundingClientRect(),
   dx=(r.left-pr.left+r.width/2)/P,dy=(r.top-pr.top+r.height*0.35)/P;
   for(var y=0;y<H;y++)for(var i=0;i<W;i++){var d=Math.hypot(i-dx,(y-dy)*1.15),a=0,col='#f6d27a';
