@@ -1,0 +1,252 @@
+{
+ "_說明": "王座廳(bg_07,282×140)特效。背景圖已把原本靜態火焰擦掉,火焰由程式即時畫(會晃動),座標=背景像素。",
+ "candles": [
+  {
+   "x": 49.5,
+   "baseY": 26,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 57,
+   "baseY": 26,
+   "height": 7,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 62.5,
+   "baseY": 25,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 69,
+   "baseY": 26,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 76,
+   "baseY": 25,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 128.5,
+   "baseY": 24,
+   "height": 5,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 134,
+   "baseY": 26,
+   "height": 5,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 142,
+   "baseY": 24,
+   "height": 7,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 155,
+   "baseY": 25,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 209.5,
+   "baseY": 26,
+   "height": 7,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 217,
+   "baseY": 26,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 223,
+   "baseY": 25,
+   "height": 6,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 228.5,
+   "baseY": 26,
+   "height": 4,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  },
+  {
+   "x": 235.5,
+   "baseY": 26,
+   "height": 7,
+   "maxWidth": 3,
+   "sway": 1.1,
+   "glow": {
+    "radius": 7,
+    "color": "90,255,150",
+    "alpha": 0.26
+   }
+  }
+ ],
+ "braziers": [
+  {
+   "x": 110.5,
+   "baseY": 76,
+   "height": 14,
+   "maxWidth": 9,
+   "sway": 2.3,
+   "sparks": 3,
+   "glow": [
+    {
+     "radius": 15,
+     "color": "90,255,150",
+     "alpha": 0.34
+    },
+    {
+     "radius": 8,
+     "color": "160,255,170",
+     "alpha": 0.22
+    }
+   ]
+  },
+  {
+   "x": 174.5,
+   "baseY": 76,
+   "height": 14,
+   "maxWidth": 9,
+   "sway": 2.3,
+   "sparks": 3,
+   "glow": [
+    {
+     "radius": 15,
+     "color": "90,255,150",
+     "alpha": 0.34
+    },
+    {
+     "radius": 8,
+     "color": "160,255,170",
+     "alpha": 0.22
+    }
+   ]
+  }
+ ],
+ "flamePalette": {
+  "outer": "#39aa6f",
+  "mid": "#6ff582",
+  "light": "#c4fb94",
+  "bright": "#f1ffc8",
+  "spark": "#a8ff9a"
+ },
+ "gargoyleEyes": {
+  "pixels": [
+   [
+    26,
+    14
+   ],
+   [
+    29,
+    14
+   ],
+   [
+    252,
+    14
+   ],
+   [
+    255,
+    14
+   ]
+  ],
+  "pixelColor": "#e83024",
+  "pixelAlpha": "0.3~0.75 隨呼吸明暗",
+  "glow": {
+   "radius": 4,
+   "color": "255,50,35",
+   "alpha": 0.13
+  },
+  "pulseSpeed": 1.5,
+  "說明": "左右各一對,同側兩眼同步、左右兩隻相位錯開"
+ },
+ "紅毯": "道路拉高:刪除 14 列低細節牆面,在紅毯均勻處補 14 列(離群像素用中位數)。刪除列(原圖座標):[6,12,17,23,41,48,53,60,66,75,80,86,91,98]。"
+}
