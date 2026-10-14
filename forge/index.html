@@ -284,7 +284,7 @@ html,body,*{touch-action:manipulation}
     <div class="acts" id="acts"></div>
     <div class="seg" role="tablist" id="seg"></div>
     <div class="panel" id="panel"></div><div id="pnote"></div>
-    <p class="note">模擬頁：武器與符文資料讀自 assets，鍛造石為測試用；資料只存在目前畫面，重新整理會重置。裝備與角色切換不在此頁。</p>
+    <p class="note" id="demoNote">鍛造石、武器等級、淬火點數與附魔都會自動存檔。裝備與角色切換不在此頁。</p>
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
@@ -592,13 +592,13 @@ function toggleDetail(){var P=SHEET.pick,M=slots(ST[SHEET.k].lv),i=P.indexOf(DET
 function applySheet(){var k=SHEET.k,s=ST[k],P=SHEET.pick.slice();if(sameSet(P,s.ench))return;
   var added=P.filter(function(id){return s.ench.indexOf(id)<0});s.ench=P;
   if(added.length){FX={t0:performance.now(),col:RUNE[added[added.length-1]].color};toast('已注入「'+added.map(function(id){return RUNE[id].name}).join('、')+'」')}else toast('已更新符文');
-  closeSheet();renderPanel();refreshDots()}
+  markDirty(k);closeSheet();renderPanel();refreshDots()}
 document.getElementById('sheetBg').addEventListener('click',closeSheet);document.getElementById('detBg').addEventListener('click',closeDetail);document.getElementById('detX').addEventListener('click',closeDetail);document.getElementById('detGo').addEventListener('click',toggleDetail);document.getElementById('sheetX').addEventListener('click',applySheet);document.getElementById('sheetClose').addEventListener('click',closeSheet);
 /* ---------- upgrade logic ---------- */
 var DIRTY={},saveT=null,saving=false;
 function markDirty(k){DIRTY[k]=1;clearTimeout(saveT);saveT=setTimeout(flush,800)}
 function flush(){clearTimeout(saveT);if(demo)return;var ks=Object.keys(DIRTY);if(!ks.length)return;if(saving){saveT=setTimeout(flush,800);return}
-  var lvs={};ks.forEach(function(k){lvs[k]=ST[k].lv});var stones=S.stones;DIRTY={};saving=true;
+  var lvs={};ks.forEach(function(k){lvs[k]={lv:ST[k].lv,pts:ST[k].pts.slice(),ench:ST[k].ench.slice()}});var stones=S.stones;DIRTY={};saving=true;
   withFB(function(FB){FB.saveForge(stones,lvs).then(function(){saving=false},function(e){saving=false;ks.forEach(function(k){DIRTY[k]=1});var c=e&&(e.code||e.message)||'';
     toast(c==='permission-denied'?'存檔失敗：資料庫規則還沒開放鍛造存檔（permission-denied）':'存檔失敗，稍後會再試（'+c+'）');saveT=setTimeout(flush,6000)})})}
 window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flush()});
@@ -661,8 +661,8 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
     var rs=el('button','ghost','重洗(免費)');rs.type='button';rs.disabled=used===0;rs.addEventListener('click',function(){s.pts=[0,0,0];toast('已重洗');renderPanel();refreshDots()});p.appendChild(rs);h.appendChild(p);
     w.temper.forEach(function(o,i){var r=el('div','temper');r.appendChild(el('div','t',o.l+'(每點 +'+fmt(o.per)+o.u+')'));
       var b=el('div','b');b.appendChild(document.createTextNode('Lv '+s.pts[i]+' = '));var em=el('em',null,'+'+fmt(o.per*s.pts[i])+o.u);b.appendChild(em);r.appendChild(b);
-      var st=el('div','step');var m=el('button',null,'−');m.type='button';m.setAttribute('aria-label',o.l+' 減一點');m.disabled=s.pts[i]<=0;m.addEventListener('click',function(){s.pts[i]--;renderPanel();refreshDots()});
-      var n=el('span','n',String(s.pts[i]));var pl=el('button',null,'+');pl.type='button';pl.setAttribute('aria-label',o.l+' 加一點');pl.disabled=left<=0;pl.addEventListener('click',function(){s.pts[i]++;renderPanel();refreshDots()});
+      var st=el('div','step');var m=el('button',null,'−');m.type='button';m.setAttribute('aria-label',o.l+' 減一點');m.disabled=s.pts[i]<=0;m.addEventListener('click',function(){s.pts[i]--;markDirty(k);renderPanel();refreshDots()});
+      var n=el('span','n',String(s.pts[i]));var pl=el('button',null,'+');pl.type='button';pl.setAttribute('aria-label',o.l+' 加一點');pl.disabled=left<=0;pl.addEventListener('click',function(){s.pts[i]++;markDirty(k);renderPanel();refreshDots()});
       st.appendChild(n);st.appendChild(pl);r.appendChild(st);h.appendChild(r)});
     pn.appendChild(el('p','note','每 5 級得 1 點,滿級共 20 點。單一選項沒有上限,可以全部投同一個。'));
   }else{
@@ -701,9 +701,9 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
     var en={};R[0].forEach(function(r){en[r.u_sn]=String(r.weapon_e_name||'').toLowerCase()});
     var job=R[3][me.job|0]||R[3][0];USABLE={};ORDER.forEach(function(k){if(job&&job['usable_'+en[k]])USABLE[k]=1});
     ORDER.forEach(function(k){if(W[k].n===me.weapon)EQUIPPED=k});
-    ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};ST[k]={lv:Math.min(100,Math.max(1,d.lv|0||1)),pts:[0,0,0],ench:[]}});
+    ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};var lv0=Math.min(100,Math.max(1,d.lv|0||1)),pp=Array.isArray(d.pts)?d.pts.slice(0,3).map(function(n){return Math.max(0,n|0)}):[0,0,0];while(pp.length<3)pp.push(0);if(pp[0]+pp[1]+pp[2]>totalPts(lv0))pp=[0,0,0];ST[k]={lv:lv0,pts:pp,ench:(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return RUNE[id]}).slice(0,slots(lv0))}});
     if(!W[EQUIPPED])EQUIPPED=ORDER[0];S.cur=EQUIPPED;
-    document.getElementById('loading').remove();render(true)})})
+    if(demo)document.getElementById('demoNote').textContent='示範模式：鍛造石為測試用，資料只存在目前畫面，重新整理會重置。';document.getElementById('loading').remove();render(true)})})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
 })();
 </script>
@@ -716,5 +716,5 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=19"></script>
-<script type="module" src="../common/fb.js?v=11"></script>
+<script type="module" src="../common/fb.js?v=12"></script>
 </body></html>

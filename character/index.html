@@ -573,19 +573,29 @@ function tInU(x,y){if(x<TENT.x0||x>TENT.x1||y>TENT.y1||y<TENT.yt)return false;if
 function tRnd(a,b){return a+Math.random()*(b-a)}
 function tPt(){for(var i=0;i<60;i++){var x=tRnd(TENT.x0,TENT.x1),y=tRnd(TENT.yt,TENT.y1);if(tInU(x,y))return[x,y]}return[TENT.x0,TENT.y1]}
 function tPlace(p,moving){var s=p.px*TENT.sz,bob=moving?Math.abs(Math.sin(p.t*9))*1.2:0;p.el.style.width=(s/130*100)+'%';p.el.style.left=((p.x-s/2)/130*100)+'%';p.el.style.top=((p.y-s-bob)/140*100)+'%';p.el.style.transform='scaleX('+p.face+')'}
+var K=null;
+function kTail(step){if(K.tails[step])return K.tails[step];
+  var src=document.createElement('canvas');src.width=src.height=16;var sc=src.getContext('2d');sc.drawImage(K.tail,0,0);
+  var sd=sc.getImageData(0,0,16,16).data,c=document.createElement('canvas');c.width=c.height=16;var cx=c.getContext('2d'),od=cx.createImageData(16,16),
+  ang=step/3*0.42,ca=Math.cos(ang),sa=Math.sin(ang),bx=3.5,by=10;
+  for(var y=0;y<16;y++)for(var X=0;X<16;X++){var dx=X+.5-bx,dy=y+.5-by,u=Math.floor(bx+dx*ca+dy*sa),v=Math.floor(by-dx*sa+dy*ca);
+    if(u<0||v<0||u>15||v>15)continue;var i=(v*16+u)*4,o=(y*16+X)*4;if(sd[i+3]>0){od.data[o]=sd[i];od.data[o+1]=sd[i+1];od.data[o+2]=sd[i+2];od.data[o+3]=255}}
+  cx.putImageData(od,0,0);return(K.tails[step]=c)}
+function kDraw(step){if(!K||K.step===step)return;K.step=step;var x=K.cv.getContext('2d');x.clearRect(0,0,16,16);x.drawImage(kTail(step),1,0);x.drawImage(K.body,0,0)}
 function initTentPets(pets){
   var room=$('room'),want=[['gm_pet_01',14,0],['gm_pet_02',14,0],['gm_pet_03',16,1]].filter(function(w){var d=pets&&pets[w[0]];return d&&d.tent&&(d.lv|0)>=1});
   want.forEach(function(w){
-    var el=document.createElement('img');el.className='tp';el.alt='';
+    var el=document.createElement(w[2]?'canvas':'img');el.className='tp';if(!w[2])el.alt='';
     var p={el:el,px:w[1],fixed:!!w[2],t:Math.random()*9,face:1,wait:tRnd(.3,2),stuck:0};
-    if(p.fixed){p.x=TENT.kx;p.y=TENT.ky;tPlace(p,false);
-      var a=new Image(),b=new Image(),n=0,go=function(){if(++n<2)return;var c=document.createElement('canvas');c.width=c.height=16;var x=c.getContext('2d');x.drawImage(b,1,0);x.drawImage(a,0,0);el.src=c.toDataURL()};
+    if(p.fixed){el.width=el.height=16;p.x=TENT.kx;p.y=TENT.ky;tPlace(p,false);
+      var a=new Image(),b=new Image(),n=0,go=function(){if(++n<2)return;K={body:a,tail:b,tails:{},cv:el,step:null};kDraw(0)};
       a.onload=b.onload=go;a.src=BASE+'pets/gm_pet_03.png?v='+V;b.src=BASE+'pets/gm_pet_03_tail.png?v='+V}
     else{var q=tPt();p.x=p.tx=q[0];p.y=p.ty=q[1];el.src=BASE+'pets/'+w[0]+'.png?v='+V;tPlace(p,false);TP.push(p)}
     room.appendChild(el)});
-  if(!TP.length)return;var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;if(reduce)return;
+  if(!want.length)return;var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;if(reduce)return;
   var last=performance.now();
   (function loop(now){var dt=Math.min(.05,(now-last)/1000);last=now;
+    kDraw(Math.round(Math.sin(now/1100)*3));
     TP.forEach(function(p){p.t+=dt;var moving=false;
       if(p.wait>0)p.wait-=dt;else{var dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy);
         if(d<.8||p.stuck>1.2){p.wait=tRnd(.8,3);var q=tPt();p.tx=q[0];p.ty=q[1];p.stuck=0}
