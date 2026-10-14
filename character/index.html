@@ -580,11 +580,11 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 /* ================= start ================= */
 
 /* 帳棚寵物：好感>=1 且在營地開了「邀請進帳棚」的寵物。阿梅/阿果在 U 型範圍走動，庫奇固定站著、尾巴不動。座標是 130x140 場景的腳底位置 */
-var TENT={x0:32,x1:96,y0:108,y1:128,aw:16,yt:88,kx:84,ky:80,sz:1.3},TP=[];
+var TENT={x0:32,x1:96,y0:108,y1:128,aw:16,yt:88,kx:84,ky:80,sz:1.3,ty:103},TP=[];
 function tInU(x,y){if(x<TENT.x0||x>TENT.x1||y>TENT.y1||y<TENT.yt)return false;if(y>=TENT.y0)return true;return x<=TENT.x0+TENT.aw||x>=TENT.x1-TENT.aw}
 function tRnd(a,b){return a+Math.random()*(b-a)}
 function tPt(){for(var i=0;i<60;i++){var x=tRnd(TENT.x0,TENT.x1),y=tRnd(TENT.yt,TENT.y1);if(tInU(x,y))return[x,y]}return[TENT.x0,TENT.y1]}
-function tPlace(p,moving){p.el.style.zIndex=10+Math.round(p.y);var s=p.px*TENT.sz,bob=moving?Math.abs(Math.sin(p.t*9))*1.2:0;p.el.style.width=(s/130*100)+'%';p.el.style.left=((p.x-s/2)/130*100)+'%';p.el.style.top=((p.y-s-bob)/140*100)+'%';p.el.style.transform='scaleX('+p.face+')'}
+function tPlace(p,moving){p.el.style.zIndex=p.y<=TENT.ty?4:10+Math.round(p.y);var s=p.px*TENT.sz,bob=moving?Math.abs(Math.sin(p.t*9))*1.2:0;p.el.style.width=(s/130*100)+'%';p.el.style.left=((p.x-s/2)/130*100)+'%';p.el.style.top=((p.y-s-bob)/140*100)+'%';p.el.style.transform='scaleX('+p.face+')'}
 var K=null;
 function kTail(step){if(K.tails[step])return K.tails[step];
   var src=document.createElement('canvas');src.width=src.height=16;var sc=src.getContext('2d');sc.drawImage(K.tail,0,0);
