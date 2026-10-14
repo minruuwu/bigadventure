@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -70,6 +70,25 @@ const FB = {
   // 管理後台（admin/ 頁面用；寫入是否允許由 Firestore 規則依管理者 email 決定）
   async adminList(n) { await ready; const s = await withTimeout(getDocs(query(collection(db, 'players'), orderBy('lastSeen', 'desc'), limit(n || 200))), 15000); return s.docs.map(d => Object.assign({ uid: d.id }, ser(d.data()))); },
   async adminUpdate(uid, fields) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', uid), fields); },
+  // ---- 組隊：leader doc `party`(最多 5 個隊員 uid)、member doc `leaders`(把我放進隊伍的隊長 uid，最多 5 個)，兩邊用 batch 一起寫 ----
+  async getPlayers(uids) { await ready; return Promise.all((uids || []).map(u => withTimeout(getDoc(doc(db, 'players', u)), 10000).then(s => s.exists() ? Object.assign({ uid: u }, ser(s.data())) : null).catch(() => null))); },
+  async partyAdd(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayUnion(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayUnion(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid).concat(uid) }); },
+  async partyRemove(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayRemove(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayRemove(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid) }); },
+  async partyLeave(leaderUid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { leaders: arrayRemove(leaderUid) }); b.update(doc(db, 'players', leaderUid), { party: arrayRemove(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ leaders: ((c && c.player.leaders) || []).filter(x => x !== leaderUid) }); },
+  // ---- 營地聊天：chat/s00..s29 輪流覆蓋(只留 30 則)，chat/meta.n 是已發言總數；聊天視窗開著才監聽 ----
+  chatListen(cb, onErr) { return onSnapshot(query(collection(db, 'chat'), orderBy('at', 'desc'), limit(30)), s => cb(s.docs.map(d => { const v = d.data(); return { id: d.id, uid: v.uid, name: v.name, jobSn: v.jobSn, text: v.text, at: v.at && v.at.toMillis ? v.at.toMillis() : Date.now() }; })), e => onErr && onErr(e)); },
+  async chatSend(text, name, jobSn) {
+    await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
+    const t = String(text).replace(/\s+/g, ' ').trim().slice(0, 50); if (!t) return;
+    const metaRef = doc(db, 'chat', 'meta'), pRef = doc(db, 'players', u.uid);
+    await tmo(runTransaction(db, async tx => {
+      const m = await tx.get(metaRef), n = m.exists() ? (m.data().n | 0) : 0, id = 's' + String(n % 30).padStart(2, '0');
+      tx.set(doc(db, 'chat', id), { uid: u.uid, name, jobSn: jobSn || '', text: t, at: serverTimestamp() });
+      tx.set(metaRef, { n: n + 1 });
+      tx.update(pRef, { chatAt: serverTimestamp() });
+    }));
+    mePatch({ chatAt: Date.now() });
+  },
   async updatePlayer(fields) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), fields)); mePatch(fields); },
   // Rename: names must stay unique; at most 3 renames; the old name is released after success.
   async renamePlayer(newName) {

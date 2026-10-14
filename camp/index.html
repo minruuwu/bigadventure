@@ -369,14 +369,16 @@ html,body,*{touch-action:manipulation}
     <div class="phead"><label class="nmchk"><input type="checkbox" id="showNames" checked><span class="bx"></span>顯示玩家姓名</label><span id="pcount"></span></div>
     <div class="shd"><div class="plaza" id="plaza"><canvas id="scene" aria-label="營地裡的冒險者"></canvas><div class="tags" id="tags"></div></div></div>
     <p class="note">這裡會顯示最近上線的 15 位冒險者和你自己。名牌旁的綠點代表 10 分鐘內有上線，頭上的對話泡泡代表 24 小時內留了想說的話。點冒險者可以看詳細資料。</p>
+    <div id="mkHost"></div>
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="soon" id="pcSoon">組隊功能準備中</div></div></div>
+<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="tp" id="pcTeam" hidden></div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=10"></script>
 <script src="../common/nav.js?v=19"></script>
+<script src="party.js?v=1"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -786,7 +788,7 @@ function bubble(a,now){var bob=Math.round(Math.sin((now+a.phase)/380)),n=1+Math.
   for(var d=0;d<3;d++){sx.fillStyle=d<n?'#3b2713':'#c9b78d';sx.fillRect(bx+3+d*3,by+3,2,2)}}
 /* ---------- detail card ---------- */
 var CARD=null;
-var PETINFO={},ME_P=null,FEEDARM=0;
+var PETINFO={},ME_P=null,FEEDARM=0,RAWW=[];
 var STATN={m_reduce_rate:'魔法減傷',p_reduce_rate:'物理減傷',eva_rate:'閃避率',crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害'};
 function petOf(name){var k=null;Object.keys(PETINFO).forEach(function(id){if(PETINFO[id].name===name)k=id});return k?PETINFO[k]:null}
 function petLv(id){var d=ME_P&&ME_P.pets&&ME_P.pets[id];return Math.max(0,Math.min(10,d?d.lv|0:0))}
@@ -801,11 +803,12 @@ function feedPet(pi,b){var lv=petLv(pi.id),need=pi.cost[lv],ck=ME_P.cookies|0,pm
   var done=function(){ME_P.cookies=ck-need;ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]={lv:lv+1};renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=pi.name+' 的好感提升到 Lv '+(lv+1)+'！'};
   if(demo){done();return}b.disabled=true;
   withFB(function(FB){FB.feedPet(pi.id,lv+1,ck-need).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'餵食失敗（權限尚未開放）':(er&&er.code==='timeout')?'連線逾時，請檢查網路後再試':'餵食失敗，請稍後再試'})})}
-function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcSoon').hidden=!!a.pet;document.getElementById('pcSayBox').hidden=true;
+function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcTeam').hidden=true;document.getElementById('pcSayBox').hidden=true;
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
-  document.getElementById('pcName').appendChild(document.createTextNode(p.name));
+  document.getElementById('pcName').appendChild(document.createTextNode(p.name+' Lv.'+Party.charLv(p)));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
-  document.getElementById('pcSub').textContent=(JOBN[p.job|0]||'冒險者')+(on?'・'+on:'');
+  document.getElementById('pcSub').textContent=Party.jobName(p)+' Lv.'+Party.jobLv(p)+(on?'・'+on:'');
+  Party.fillTeam(document.getElementById('pcTeam'),p,function(){return CARD===a});
   /* 想說的話：自己可以改，別人只能看 */
   var mine=p.uid===ME_UID,txt=document.getElementById('pcSayTxt'),ta=document.getElementById('pcSayIn'),row=document.getElementById('pcSayRow'),msg=document.getElementById('pcSayMsg');
   msg.textContent='';document.getElementById('pcSayBox').hidden=false;ta.hidden=!mine;row.hidden=!mine;txt.hidden=mine;
@@ -849,16 +852,18 @@ function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=lo
   cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
 function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,15));
   document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
+  Party.init({demo:demo,base:BASE,v:V,me:function(){return ME_P},look:look,withFB:withFB,getCSV:getCSV,rawWeapons:function(){return RAWW},wbyname:WBYNAME,petinfo:PETINFO,toast:toast,
+    findLocal:function(u){var r=null;ACT.forEach(function(a){if(!a.pet&&a.p.uid===u)r=a.p});return r},demoList:function(){return window.__DL||[]}});
   scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
 var demo=/[?&]demo=1/.test(location.search);
 window.addEventListener('pagehide',function(){STOP=true});window.addEventListener('pageshow',function(e){if(e.persisted&&STOP){STOP=false;last=0;requestAnimationFrame(tick)}});
-Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
-  if(demo){var d=demoPlayers();d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
+Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){RAWW=R[0];R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
+  if(demo){var d=demoPlayers();window.__DL=d;d.forEach(function(q,i){q.lv=5+i*3;q.jobLv={['job0'+(q.job+1)]:2+i};q.alloc={str:i,int:2,agi:i%3,vit:3,luk:1}});d[0].party=['d1','d2','d3'];d[0].leaders=['d6'];d[2].party=['d1','d4','d7'];d[3].leaders=['d1','d2'];d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){return FB.listPlayers(30).then(function(all){
     var me=Object.assign({uid:who.user.uid},who.player,{lastSeen:Date.now()});
     start(me,all.filter(function(p){return p.uid!==me.uid&&!p.disabled}));res()})})})})
 }).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=9"></script>
+<script type="module" src="../common/fb.js?v=10"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>
