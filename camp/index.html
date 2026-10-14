@@ -607,7 +607,8 @@ function wst(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1);r
 function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),
     weapon:wd&&(wd.img[s]||wd.img[0])?{img:wd.img[s]||wd.img[0],key:w+'_'+s,cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
-    shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:[]}}
+    shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:w?haloOf(p,w):[]}}
+function haloOf(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1),n=lv>=90?3:lv>=60?2:lv>=30?1:0;return(Array.isArray(d.ench)?d.ench:[]).slice(0,n).map(function(id){return RUNE[id]?RUNE[id].color:null})}
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:95,y:157}; /* fire centre x, base line y */
@@ -880,7 +881,7 @@ fire=function(now){var f=Math.floor(now/130)%6,cx0=FIRE.x,by0=FIRE.y-2;sx.save()
 var demo=/[?&]demo=1/.test(location.search);
 window.addEventListener('pagehide',function(){STOP=true});window.addEventListener('pageshow',function(e){if(e.persisted&&STOP){STOP=false;last=0;requestAnimationFrame(tick)}});
 Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){RAWW=R[0];R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
-  if(demo){var d=demoPlayers();window.__DL=d;d.forEach(function(q,i){q.lv=5+i*3;q.jobLv={['job0'+(q.job+1)]:2+i};q.alloc={str:i,int:2,agi:i%3,vit:3,luk:1}});d[0].party=['d1','d2','d3'];d[0].leaders=['d6'];d[2].party=['d1','d4','d7'];d[3].leaders=['d1','d2'];d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
+  if(demo){var d=demoPlayers();window.__DL=d;d.forEach(function(q,i){q.lv=5+i*3;q.jobLv={['job0'+(q.job+1)]:2+i};q.alloc={str:i,int:2,agi:i%3,vit:3,luk:1}});[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});d[0].party=['d1','d2','d3'];d[0].leaders=['d6'];d[2].party=['d1','d4','d7'];d[3].leaders=['d1','d2'];d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){return FB.listPlayers(30).then(function(all){
     var me=Object.assign({uid:who.user.uid},who.player,{lastSeen:Date.now()});
     start(me,all.filter(function(p){return p.uid!==me.uid&&!p.disabled}));res()})})})})
