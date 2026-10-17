@@ -47,7 +47,7 @@ function load(k){if(k in cache)return;cache[k]=null;var im=new Image(),tn=null;
   im.src=BASE+'icons/nav/'+FILES[k]+'.png?v=3'}
 /* warm start from this session's saved copies (fresh files still load and replace them) */
 Object.keys(FILES).forEach(function(k){restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
-restore('head',function(c){if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
+restore('head',function(c){c.__css=[24*PXS,25*PXS];if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
 
 /* head-and-chest portrait: 22x24 crop of the 48px doll, 1px outline, shown at 3x and allowed to poke above the bar */
 function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
@@ -56,7 +56,7 @@ function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
   var look={skin:D.val(player.skin,0),style:D.val(player.style,0),hair:player.hair|0,eyes:D.val(player.eyes,5),outfit:player.outfit==null?(player.job|0):D.val(player.outfit,0),weapon:null,shield:null,halo:[],breath:false};
   var key=JSON.stringify(look);if(headCv&&(key===headKey||key===headCv.__key)){headKey=key;headCv.__look=look;return headCv}
   var c=document.createElement('canvas');c.width=24;c.height=25;renderHead(look,1000,c);
-  c.__css=[24*3,25*3];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head',c);return c}
+  c.__css=[24*PXS,25*PXS];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head',c);return c}
 var HD=document.createElement('canvas');HD.width=HD.height=48;
 function renderHead(look,now,c,glow){var D=g.Doll;D.draw(HD,look,now);
   var X0=12,Y0=5,W=22,H=24,src=HD.getContext('2d').getImageData(X0,Y0,W,H).data;
