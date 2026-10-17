@@ -18,7 +18,7 @@ job16,靈能使,Psychic,魔法師LV.20+牧師LV.20,2,job02,20,job04,20,以意志
 job17,咒術師,Warlock,魔法師LV.20+鍊金士LV.20,2,job02,20,job05,20,擅長調和咒文與藥劑，以各種咒術削弱敵人。,,,,,,,1,1,weapon07
 job18,審判官,Inquisitor,遊蕩者LV.20+牧師LV.20,2,job03,20,job04,20,遊走在黑暗之中，專門追捕異端份子的制裁者。,,1,1,,,1,,,weapon06
 job19,暗殺者,Assassin,遊蕩者LV.20+鍊金士LV.20,2,job03,20,job05,20,精於毒藥與暗器，行動悄然無聲的致命殺手。,,,1,1,,,,,weapon03
-job20,巫醫,WitchDoctor,牧師LV.20+鍊金士LV.20,2,job04,20,job05,20,草藥與祈禱並用的治療者，擅長增益與恢復。,,,,,,1,1,1,weapon07
+job20,聖療師,DivineHealer,牧師LV.20+鍊金士LV.20,2,job04,20,job05,20,草藥與祈禱並用的治療者，擅長增益與恢復。,,,,,,1,1,1,weapon07
 job21,冠軍勇士,Champion,角鬥士LV.50,1,job06,50,,,在無數戰鬥中奪得榮耀的頂尖戰士，是眾人仰望的標竿。,1,1,1,1,1,1,,,weapon02
 job22,魔導精靈使,MagusElementalist,魔導師LV.50,1,job07,50,,,與元素精靈締結契約，能駕馭毀天滅地的元素之力。,,,,,,,1,1,weapon07
 job23,狩魔獵人,Demon Hunter,遊俠LV.50,1,job08,50,,,專門獵殺強大魔物的獵人，擅長精準而致命的攻擊。,1,,1,1,1,,,,weapon04
@@ -33,4 +33,4 @@ job31,真理導師,TruthMentor,靈能使LV.50,1,job16,50,,,探尋靈能與世界
 job32,妖術領主,SorcererLord,咒術師LV.50,1,job17,50,,,以強大的妖術與詛咒掌控戰場的施法者。,,,,,,,1,1,weapon07
 job33,斷罪裁決官,CondemningArbitrator,審判官LV.50,1,job18,50,,,以神聖之力與暗影鋒刃宣判罪惡的最高審判者。,,1,1,,,1,,,weapon06
 job34,暗刃刺客,UmbralStalker,暗殺者LV.50,1,job19,50,,,潛行於暗影之中一擊必殺，被稱為死神的傳說。,,,1,1,,,,,weapon03
-job35,綴命祭祀,SoulstitchRitualist,巫醫LV.50,1,job20,50,,,以祭祀與秘藥延續生命的巫者，能將瀕死的同伴拉回戰場。,,,,,,1,1,1,weapon07
+job35,綴命祭祀,SoulstitchRitualist,聖療師LV.50,1,job20,50,,,以祭祀與秘藥延續生命的聖者，能將瀕死的同伴拉回戰場。,,,,,,1,1,1,weapon07
