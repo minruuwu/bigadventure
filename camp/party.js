@@ -160,7 +160,7 @@
       d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span>' + (isMe ? '<span class="tg">隊長</span>' : idx) + '</div>' +
         '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
-        '<div class="tbs"><b>屬性</b></div><div class="sg">' + combat(p).map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=4" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>';
+        '<div class="tbs"><b>屬性</b></div><div class="sg">' + combat(p).map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>';
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
           API.remove(p.uid).then(function () { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== p.uid }); bust(p.uid); sel = 0; syncBtn(); load(); C.toast('已移出 ' + p.name) }, function (e) { C.toast(errText(e, '移出')) })
