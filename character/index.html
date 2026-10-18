@@ -366,7 +366,8 @@ function buildData(R){
   R[1].forEach(function(r){if(r.u_sn)ATTR[r.u_sn]=r});
   R[2].forEach(function(r){if(r.u_sn)GROWTH[r.u_sn]=r});
   R[3].forEach(function(r){if(!r.u_sn)return;var st=[];for(var q=1;q<=6;q++){var sk=r['auto_stat_'+q];if(sk)st.push({k:sk,per:String(r['auto_per_level_'+q]||'').trim()})}
-    WEAPON[r.u_sn]={sn:r.u_sn,n:r.weapon_name,desc:r.weapon_desc||'',stats:st,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0,off:r.offhand||'',img:[],offImg:[]};WORDER.push(r.u_sn);WNAME2K[r.weapon_name]=r.u_sn});
+    var tp=[];for(var q2=1;q2<=3;q2++){var tk=r['temper_stat_'+q2];tp.push(tk?{k:tk,per:String(r['temper_per_point_'+q2]||'').trim()}:null)}
+    WEAPON[r.u_sn]={sn:r.u_sn,n:r.weapon_name,desc:r.weapon_desc||'',stats:st,temper:tp,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0,off:r.offhand||'',img:[],offImg:[]};WORDER.push(r.u_sn);WNAME2K[r.weapon_name]=r.u_sn});
   var jobs=[];WORDER.forEach(function(k){var w=WEAPON[k];[0,1,2,3].forEach(function(st){jobs.push(loadImg(BASE+'weapons/'+k+'_'+(st+1)+'.png?v='+V).then(function(im){w.img[st]=im}));
       if(w.off){var names=st===0?[w.off]:[w.off.replace(/\d+$/,'')+'_'+(st+1),w.off+'_'+(st+1)];jobs.push(names.reduce(function(pr,n){return pr.then(function(im){return im||loadImg(BASE+'weapons/'+n+'.png?v='+V)})},Promise.resolve(null)).then(function(im){w.offImg[st]=im}))}})});
   return Promise.all(jobs)}
@@ -400,8 +401,8 @@ function rOn(id){var sn=WNAME2K[S.weapon];return !!sn&&wInfo(sn).en.indexOf(id)>
 function A(){var r={};KEYS.forEach(function(k){var j=0,parts=[];JOBORDER.forEach(function(sn){var lv=S.jobLvs[sn]|0;if(lv>0){var g=growthOf(sn,k);if(g){j+=g*lv;parts.push(jobName(sn)+' Lv'+lv+' × '+g+' = +'+g*lv)}}});
   var a=S.alloc[k]+S.pend[k];var bs=10+j+a,rb=rOn('rune08')?Math.round(bs*0.1):0;r[k]={job:j,jobParts:parts,alloc:a,rune:rb,total:bs+rb}});return r}
 function wEq(){var sn=WNAME2K[S.weapon],w=sn&&WEAPON[sn];return w?{w:w,lv:wInfo(sn).lv}:null}
-function wsum(key){var e=wEq(),t=0;if(!e)return 0;e.w.stats.forEach(function(x){if(x.k!==key)return;var pc=/%/.test(x.per),v=(parseFloat(x.per)||0)*e.lv;t+=pc?v/100:v});return t}
-function wline(key,label){var e=wEq(),o=[];if(!e)return o;e.w.stats.forEach(function(x){if(x.k!==key)return;var pc=/%/.test(x.per),v=(parseFloat(x.per)||0)*e.lv;o.push('武器 '+e.w.n+' Lv '+e.lv+'：'+label+' '+x.per+' × '+e.lv+' = +'+(pc?wNum(v)+'%':wNum(v)))});return o}
+function wsum(key){var e=wEq(),t=0;if(!e)return 0;e.w.stats.forEach(function(x){if(x.k!==key)return;var pc=/%/.test(x.per),v=(parseFloat(x.per)||0)*e.lv;t+=pc?v/100:v});var pt=wInfo(WNAME2K[S.weapon]).pts;(e.w.temper||[]).forEach(function(x,q){if(!x||x.k!==key||!pt[q])return;t+=(parseFloat(x.per)||0)*pt[q]/100});return t}
+function wline(key,label){var e=wEq(),o=[];if(!e)return o;e.w.stats.forEach(function(x){if(x.k!==key)return;var pc=/%/.test(x.per),v=(parseFloat(x.per)||0)*e.lv;o.push('武器 '+e.w.n+' Lv '+e.lv+'：'+label+' '+x.per+' × '+e.lv+' = +'+(pc?wNum(v)+'%':wNum(v)))});var pt=wInfo(WNAME2K[S.weapon]).pts;(e.w.temper||[]).forEach(function(x,q){if(!x||x.k!==key||!pt[q])return;var per=parseFloat(x.per)||0;o.push('淬火 '+e.w.n+'：'+label+' '+x.per+' × '+pt[q]+' 點 = +'+wNum(per*pt[q])+'%')});return o}
 function petSum(stat){var t=0;Object.keys(PETINFO).forEach(function(id){var pi=PETINFO[id];if(pi.stat!==stat)return;var lv=Math.max(0,Math.min(10,((S.pets||{})[id]||{}).lv|0));t+=pi.per*lv});return t}
 function petLine(stat){var o=[];Object.keys(PETINFO).forEach(function(id){var pi=PETINFO[id];if(pi.stat!==stat)return;var lv=Math.max(0,Math.min(10,((S.pets||{})[id]||{}).lv|0));if(lv>0)o.push('寵物 '+pi.name+' 好感 Lv '+lv+'：每級 '+pi.perTxt+' × '+lv+' = +'+wNum(pi.per*lv*100)+'%')});return o}
 function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.total,l=a.luk.total,at=ATTR[S.jobSn]||{},jn=jobName(S.jobSn);
@@ -414,6 +415,8 @@ function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.t
   L.push(['生命力',Math.round(v*5*(1+hpb+wh)),['體質 '+v+' × 5 = '+v*5].concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat((hpb||wh)?['百分比加成合計 +'+pct(hpb+wh)+' → +'+Math.round(v*5*(hpb+wh))]:[])]);
   L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(balL(true))]);
   L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(balL(false))]);
+  L.push(['物理傷害加成',pct(wsum('p_damage_rate')),wline('p_damage_rate','物理傷害加成').length?wline('p_damage_rate','物理傷害加成'):['基礎 0%']]);
+  L.push(['魔法傷害加成',pct(wsum('m_damage_rate')),wline('m_damage_rate','魔法傷害加成').length?wline('m_damage_rate','魔法傷害加成'):['基礎 0%']]);
   L.push(['閃避率',pct(g/(g+800)+eb+we+petSum('eva_rate')),['敏捷 '+g+' ÷ ('+g+' + 800) = '+pct(g/(g+800))].concat(eb?[jn+'職業加成 +'+pct(eb)]:[]).concat(wline('eva_rate','閃避率')).concat(petLine('eva_rate'))]);
   var r5=rOn('rune05')?0.2:0;
   L.push(['暴擊率',pct(g/(g+500)+cb+wc+r5),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[]).concat(wline('crit_rate','暴擊率')).concat(r5?['符文 狼之野性 +20%']:[])]);
@@ -460,7 +463,7 @@ function wframe(t){if(WFR[t])return WFR[t];var c=document.createElement('canvas'
     x.fillStyle=col;x.fillRect(i,j,1,1)}
   return WFR[t]=c.toDataURL()}
 function stageOf(lv){return lv>=90?4:lv>=60?3:lv>=30?2:1}
-function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1,stageOf(Math.max(1,d.lv|0||1)))),en:Array.isArray(d.ench)?d.ench:[]}}
+function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1,stageOf(Math.max(1,d.lv|0||1)))),en:Array.isArray(d.ench)?d.ench:[],pts:[0,1,2].map(function(q){return Array.isArray(d.pts)?Math.max(0,d.pts[q]|0):0})}}
 function wRunes(en){var h='';for(var i=0;i<3;i++){var r=en[i];h+=(r&&/^rune\d+$/.test(r))?'<img alt="" src="../assets/icons/runes/'+r+'.png?v=1" onerror="this.outerHTML=\'<span></span>\'">':'<span></span>'}return '<div class="rn">'+h+'</div>'}
 function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
@@ -488,7 +491,7 @@ function jobDetailHTML(sn,nodesc){var j=JOB[sn];if(!j)return '';var g=GROWTH[sn]
   if(j.job_desc&&!nodesc)h+='<div class="jdsc">'+esc(j.job_desc)+'</div>';return h+'</div>'}
 function treeCap(sn){var j=JOB[sn];if(!j)return '';var ok=reqMet(sn);return jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b>　'+(sn===S.jobSn?'目前職業':ok?'已可轉職':'未解鎖：'+esc(j.required_desc||''))}
 function head(t,h){return '<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
-var HAS_ICONS=true,DKEYS=['hp','patk','matk','eva','crit','critdmg','pdef','mdef'],askReset=false;
+var HAS_ICONS=true,DKEYS=['hp','patk','matk','pdmg','mdmg','eva','crit','critdmg','pdef','mdef'],askReset=false;
 function ic(id){if(HAS_ICONS&&(DKEYS.indexOf(id)>=0||/^res_/.test(id)))return '<span class="ic icf" style="background-image:url('+wframe(2)+')"><img class="ic" style="margin:0" alt="" src="../assets/icons/stats/'+id+'.png?v=5" onerror="this.remove()"></span>';return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=5" onerror="this.remove()">':''}
 function derivedBase(){var sv={};KEYS.forEach(function(x){sv[x]=S.pend[x];S.pend[x]=0});var r=derived();KEYS.forEach(function(x){S.pend[x]=sv[x]});return r}
 function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="dl">'+(d>0?'+':'')+d+'</span>':''}
