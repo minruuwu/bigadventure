@@ -619,8 +619,12 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
     if(l2>=JMAX)upMsg='這個職業已滿級。';else if(jobSum()+upJobSum()+1>(S.lv+UP.char)*2)upMsg='職業等級已達上限，請先提升人物等級。';else if(S.exp-upCost()<n2)upMsg='經驗不夠，'+jobName(us2)+'升到下一級需要 '+n2.toLocaleString('en-US')+'。';else{UP.job[us2]=(UP.job[us2]|0)+1;upMsg=''}render()}
   else if(a==='ujm'){var us3=b.getAttribute('data-sn');if(UP.job[us3]>0){UP.job[us3]--;if(!UP.job[us3])delete UP.job[us3];upMsg=''}render()}
   else if(a==='ucancel'){UP={char:0,job:{}};upMsg='';render()}
-  else if(a==='uok'){var pc=upCost(),nl=S.lv+UP.char,nj=Object.assign({},S.jobLvs);Object.keys(UP.job).forEach(function(s){nj[s]=(nj[s]|0)+UP.job[s]});var ne=S.exp-pc;
-    b.disabled=true;persist({lv:nl,exp:ne,jobLv:nj}).then(function(){S.lv=nl;S.exp=ne;S.jobLvs=nj;UP={char:0,job:{}};upMsg='已升級完成。';render();refresh();pushNavPlayer()},function(er){upMsg=errMsg(er);render()})}
+  else if(a==='uok'){var steps=[],e=S.exp,lvC=S.lv;
+    if(UP.char>0){e-=expCost(S.lv,S.lv+UP.char);steps.push({f:{lv:S.lv+UP.char,exp:e},ok:function(){S.lv+=UP.char}})}
+    Object.keys(UP.job).forEach(function(k){var l=S.jobLvs[k]|0,n=l+UP.job[k];e-=expCost(l,n);var f={exp:e,jobUp:k};f['jobLv.'+k]=n;steps.push({f:f,ok:function(){S.jobLvs[k]=n}})});
+    b.disabled=true;
+    /* 規則限制每次只能升一個項目,所以一項一項寫入(人物先、職業後) */
+    steps.reduce(function(pr,st){return pr.then(function(){return persist(st.f).then(function(){S.exp=st.f.exp;st.ok()})})},Promise.resolve()).then(function(){UP={char:0,job:{}};upMsg='已升級完成。';render();refresh();pushNavPlayer()},function(er){UP={char:0,job:{}};upMsg=errMsg(er)+'（已完成的部分已儲存）';render();refresh();pushNavPlayer()})}
   else if(a==='urs'){confirmRst=true;render()}
   else if(a==='urn'){confirmRst=false;render()}
   else if(a==='ury'){var rf=jobRefund(),ne2=S.exp+rf,f3={exp:ne2,jobLv:{},job:0,jobSn:'job01',jobSeen:[]},nw3=S.weapon,oldLv=S.jobLvs,oldJ=S.job,oldSn=S.jobSn,oldSeen=S.seen;
