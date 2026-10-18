@@ -918,7 +918,10 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   }
   function confirmCreate(ev, name){
     var b = ev.currentTarget; b.disabled = true; b.textContent = '登記中…';
-    window.FB.createPlayer({name:name, job:st.job, jobSn:JOBS[st.job].sn, skin:st.skin, style:st.style, hair:st.hair, eyes:st.eyes, outfit:st.outfit, weapon:st.weapon})
+    /* 初始選定的武器從 Lv5 開始 */
+    var START_WEAPON_LV = 5, wsel = weaponByName(st.weapon), weapons = {};
+    if(wsel && wsel.sn) weapons[wsel.sn] = {lv:START_WEAPON_LV};
+    window.FB.createPlayer({name:name, job:st.job, jobSn:JOBS[st.job].sn, skin:st.skin, style:st.style, hair:st.hair, eyes:st.eyes, outfit:st.outfit, weapon:st.weapon, weapons:weapons})
       .then(function(){ location.replace('../camp/'); })
       .catch(function(err){ closeSheet(); var c = err && err.code;
         $('msg').textContent = c === 'full' ? '冒險者公會名額已滿，請等待開放名額。'
