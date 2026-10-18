@@ -83,7 +83,7 @@ function eyeGlow(o,src,e,W,H,ow){
 
 /* 角色 tab (current page): while selected the portrait stops breathing and blinking; the eyes glow slowly and a grainy halo rises from the shoulders.
    The halo is the portrait's own outline pulled upward, fading out before the top edge. Values tuned in the simulation: height 40px, zoom 1.0, strength 1.3, 5.1 s cycle. */
-var HA={el:null,look:null,run:false,last:0,t0:0,halo:null,fkey:null,f0:null,f1:null},HH={H:40,zoom:1,power:1.3,period:5.1,W:34,CELL:3};
+var HA={el:null,look:null,run:false,last:0,t0:0,halo:null,fkey:null,f0:null,f1:null},HH={H:40,zoom:1,power:1.3,period:5.1,W:34,CELL:PXS};
 var HB4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],HAL=[0,48,92,138,184,226],HSC=document.createElement('canvas');HSC.width=24;HSC.height=25;
 function hHash(n){var s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)}
 function hSmooth(a,b,x){x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x)}
@@ -99,7 +99,7 @@ function hBuild(W,Hc){
     var ex=Math.abs((cx+.5-W/2)/(W/2)),tp=(1-hSmooth(0.55,1,ex))*hSmooth(0,0.28,(cy+.5)/Hc),i=cy*W+cx;
     f0[i]=a0*tp;f1[i]=a1*tp}
   HA.f0=f0;HA.f1=f1}
-function haloDraw(t,e){var h=HA.halo,el=HA.el,W=HH.W,C=HH.CELL,Hc=Math.round((HH.H+48)/C);if(!h||!el.parentNode)return;
+function haloDraw(t,e){var h=HA.halo,el=HA.el,W=HH.W,C=HH.CELL,Hc=29;if(!h||!el.parentNode)return;
   if(h.parentNode!==el.parentNode)el.parentNode.appendChild(h);
   if(h.width!==W||h.height!==Hc){h.width=W;h.height=Hc;h.style.width=W*C+'px';h.style.height=Hc*C+'px';HA.fkey=null}
   h.style.left=(el.offsetLeft+el.offsetWidth/2-W*C/2)+'px';h.style.top=(el.offsetTop+el.offsetHeight-Hc*C)+'px';
