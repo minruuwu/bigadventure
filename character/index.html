@@ -185,7 +185,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .sheet .secrow{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px}
 .sheet .secrow span{font-size:17px;font-weight:900;color:var(--pink);letter-spacing:.1em;-webkit-text-stroke:.6px currentColor}
 .sheet .secrow .rb{font:inherit;font-size:12px;color:#fff;background:#9a3a2a;border:0;padding:3px 12px;margin-bottom:3px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #c8644f,inset 0 -2px 0 #6a2418}
-.sheet .secrow .rb:active{transform:translateY(2px)}
+.sheet .secrow .rb:active{transform:translateY(2px)}.sheet .secrow .rb:disabled{opacity:.45;cursor:default;transform:none}.sheet .secrow.sm{margin-top:14px;align-items:center}.sheet .secrow.sm span{font-size:12px;font-weight:400;letter-spacing:.08em;-webkit-text-stroke:0;color:var(--pink2)}.umsg2{color:var(--seal);font-weight:700}
 .stp2{display:flex;align-items:center;gap:6px}.stp2 .v{min-width:46px;text-align:center;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}.stp2 .v em{font-style:normal;color:#3f6a2c;font-size:12px;margin-left:2px}
 .stp2 button{font:inherit;font-size:16px;color:#f0dfb8;background:#4a2a12;border:0;width:36px;height:34px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
 .stp2 button:active{transform:translateY(2px)}.stp2 button.off{background:var(--paper2);color:var(--pink2);box-shadow:0 0 0 2px var(--lo);cursor:default;transform:none}
@@ -498,7 +498,7 @@ function jobInfoHTML(sn){var j=JOB[sn],g=GROWTH[sn]||{},at=ATTR[sn]||{},bl=BONUS
 function drawJobPrev(){var c=$('jprev');if(!c||!window.Doll)return;var sn=jobSel||S.jobSn,idx=parseInt(sn.slice(3),10)-1,L=Object.assign({},S.saved,{outfit:idx,weapon:null,shield:null,halo:[],breath:false,bare:!Doll.assets.outfits[idx]});Doll.draw(c,L,1000)}
 function sheetHTML(k){
   if(k==='paper'){var a=A(),u=unspent(),ps=pendingSum(),h=head('屬性','點屬性名稱看加成來源；加號只是暫存，按「確定」才會寫入。');
-    h+='<div class="sec">基礎屬性　剩餘自由點數 <b>'+u+'</b></div>';
+    h+='<div class="sec secrow sm"><span>基礎屬性　剩餘自由點數 <b>'+u+'</b></span><button class="rb" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置</button></div>';
     KEYS.forEach(function(k2){var d=a[k2],o=open['a'+k2];
       h+='<div class="row"><button class="nm" data-a="open" data-id="a'+k2+'" type="button">'+ic(k2)+NAMES[k2]+'<small>'+(o?'收起':'來源')+'</small></button><div class="step"><span class="v">'+d.total+(S.pend[k2]?'<span class="dl">+'+S.pend[k2]+'</span>':'')+'</span>'+
         '<button data-a="sub" data-k="'+k2+'" type="button" '+(S.pend[k2]?'':'disabled')+' aria-label="減少">−</button><button data-a="add" data-k="'+k2+'" type="button" '+(u>0?'':'disabled')+' aria-label="增加">＋</button></div>'+
@@ -510,7 +510,7 @@ function sheetHTML(k){
       h+='<div class="row"><button class="nm" data-a="open" data-id="r'+r[0]+'" type="button">'+ic('res_'+r[0])+r[1]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+pct(v)+'</span>'+
         (o?'<div class="src"><div>基礎 0%</div>'+(raw?'<div>'+esc(jn)+'職業加成 '+r[1]+'抗性 '+(raw>0?'+':'')+pct(raw)+'</div>':'')+'<div>（另有符文與狀態加成）</div><div>抗性上限 75%</div></div>':'')+'</div>'});
     if(askReset)h+='<div class="bar"><span class="ask">確定要重置全部配點？已配的點數會全部退回，可以重新分配。</span><button class="b alt" data-a="resetno" type="button">不要</button><button class="b go" data-a="resetyes" type="button">確定重置</button></div>';
-    else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="reset" type="button" '+(spent()?'':'disabled')+'>重置配點</button><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
+    else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
     return h}
   if(k==='book'){var h2=head('技能','目前先顯示，之後再開放裝備。');
     h2+='<div class="sec">戰鬥技能（依序循環）</div>'+[1,2,3,4].map(function(n){return '<div class="slot"><span>戰鬥技能 '+n+'</span><span>無法點擊</span></div>'}).join('');
@@ -547,7 +547,7 @@ function sheetHTML(k){
     JOBORDER.filter(function(sn){return tierOf(sn)===0||(S.jobLvs[sn]|0)>0||sn===S.jobSn}).forEach(function(sn){var l=(S.jobLvs[sn]|0)+(UP.job[sn]|0),nc=expNext(l),can=left>=nc&&ntot+1<=capN&&l<JMAX;
       h8+='<div class="urow"><div class="nm2">'+esc(jobName(sn))+(sn===S.jobSn?'<span class="cu">目前職業</span>':'')+'<small>'+(l>=JMAX?'已滿級':'下一級需 '+nc.toLocaleString('en-US')+' 經驗')+'</small></div><div class="stp2"><button type="button" data-a="ujm" data-sn="'+sn+'" class="'+((UP.job[sn]|0)>0?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+l+((UP.job[sn]|0)?'<em>+'+UP.job[sn]+'</em>':'')+'</span><button type="button" data-a="ujp" data-sn="'+sn+'" class="'+(can?'':'off')+'" aria-label="增加">＋</button></div></div>'});
     var dirty=UP.char>0||pj>0;
-    h8+='<p class="umsg">'+esc(upMsg)+'</p><div class="uacts"><button class="b alt" data-a="ucancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="uok" type="button" '+(dirty?'':'disabled')+'>確定</button></div>';
+    h8+='<div class="bar"><span class="t'+(upMsg?' umsg2':'')+'">'+esc(upMsg||(dirty?'尚未確定的升級':'沒有暫存的升級'))+'</span><button class="b alt" data-a="ucancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="uok" type="button" '+(dirty?'':'disabled')+'>確定</button></div>';
     if(confirmRst)h8+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">確定要重置所有職業嗎？</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px"><li>所有職業等級歸零，退還 <b>'+jobRefund().toLocaleString('en-US')+'</b> 經驗（已花職業經驗的 50%）</li><li>職業技能與外觀鎖回，技能書全部清空</li><li>人物等級不變，職業轉回戰士</li></ul><div class="acts"><button class="b alt" data-a="urn" type="button">先不要</button><button class="b go" data-a="ury" type="button">確定重置</button></div><div class="msgline" id="rmsg"></div></div></div>';
     return h8}
   if(k==='jobs'){var sel=jobSel||S.jobSn,js=jobStatus(sel),jj=JOB[sel],h6='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><button class="bk" data-a="card" type="button">‹ 返回</button><h2 class="bold">轉職<button class="tbtn" data-a="tree" type="button">轉職樹 ›</button></h2><p class="hint">點選職業，預覽你的角色穿上該職業的樣子。</p>';
