@@ -406,10 +406,13 @@ function petLine(stat){var o=[];Object.keys(PETINFO).forEach(function(id){var pi
 function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.total,l=a.luk.total,at=ATTR[S.jobSn]||{},jn=jobName(S.jobSn);
   var hpb=pctNum(at.hp_bonus),pb=pctNum(at.p_atk_bonus),mb=pctNum(at.m_atk_bonus),eb=pctNum(at.eva_rate_bonus),cb=pctNum(at.crit_rate_bonus),db=pctNum(at.crit_damage_rate_bonus),pd=pctNum(at.p_def_bonus),md=pctNum(at.m_def_bonus);
   var wh=wsum('hp_rate'),wp=wsum('p_atk'),wm=wsum('m_atk'),we=wsum('eva_rate'),wc=wsum('crit_rate'),wd=wsum('crit_damage_rate'),wpr=wsum('p_reduce_rate'),wmr=wsum('m_reduce_rate');
+  var P0=Math.round((s+wp)*(1+pb)),M0=Math.round((i+wm)*(1+mb)),sn0=WNAME2K[S.weapon],bal=sn0&&wInfo(sn0).en.indexOf('rune09')>=0,balP=0,balM=0;
+  if(bal){var hi=Math.max(P0,M0),lo=Math.min(P0,M0),ad=Math.max(0,Math.min(Math.round(hi*0.5),hi-lo));if(P0>M0)balM=ad;else if(M0>P0)balP=ad}
+  var balL=function(isP){var x=isP?balP:balM;return x?['符文 平衡之機會：較高者（'+(isP?'魔攻 '+M0:'物攻 '+P0)+'）的 50% 補到這邊 → +'+x]:[]};
   var L=[];
   L.push(['生命力',Math.round(v*5*(1+hpb+wh)),['體質 '+v+' × 5 = '+v*5].concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat((hpb||wh)?['百分比加成合計 +'+pct(hpb+wh)+' → +'+Math.round(v*5*(hpb+wh))]:[])]);
-  L.push(['物理攻擊力',Math.round((s+wp)*(1+pb)),['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[])]);
-  L.push(['魔法攻擊力',Math.round((i+wm)*(1+mb)),['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[])]);
+  L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(balL(true))]);
+  L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(balL(false))]);
   L.push(['閃避率',pct(g/(g+800)+eb+we+petSum('eva_rate')),['敏捷 '+g+' ÷ ('+g+' + 800) = '+pct(g/(g+800))].concat(eb?[jn+'職業加成 +'+pct(eb)]:[]).concat(wline('eva_rate','閃避率')).concat(petLine('eva_rate'))]);
   L.push(['暴擊率',pct(g/(g+500)+cb+wc),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[]).concat(wline('crit_rate','暴擊率'))]);
   L.push(['暴擊傷害',pct(0.5+l*0.01+db+wd),['基礎 50%','幸運 '+l+' × 1% = '+l+'%'].concat(db?[jn+'職業加成 +'+pct(db)]:[]).concat(wline('crit_damage_rate','暴擊傷害'))]);
