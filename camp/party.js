@@ -82,7 +82,7 @@
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(C.petinfo).forEach(function (id) { var pi = C.petinfo[id]; if (pi.stat !== stat) return; t += pi.per * Math.max(0, Math.min(10, ((pe[id] || {}).lv) | 0)) }); return t }
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk;
     return [
-      ['hp', '生命力', Math.round(v * 5 * (1 + hpb + wsum('hp_rate')))],
+      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1)) * (1 + hpb + wsum('hp_rate')))],
       ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate'))],
       ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate'))],
       ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate'))],

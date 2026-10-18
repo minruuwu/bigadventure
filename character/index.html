@@ -412,7 +412,8 @@ function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.t
   if(bal){var hi=Math.max(P0,M0),lo=Math.min(P0,M0),ad=Math.max(0,Math.min(Math.round(hi*0.5),hi-lo));if(P0>M0)balM=ad;else if(M0>P0)balP=ad}
   var balL=function(isP){var x=isP?balP:balM;return x?['符文 平衡之機會：較高者（'+(isP?'魔攻 '+M0:'物攻 '+P0)+'）的 50% 補到這邊 → +'+x]:[]};
   var L=[];
-  L.push(['生命力',Math.round(v*5*(1+hpb+wh)),['體質 '+v+' × 5 = '+v*5].concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat((hpb||wh)?['百分比加成合計 +'+pct(hpb+wh)+' → +'+Math.round(v*5*(hpb+wh))]:[])]);
+  var hpL=10*Math.max(0,S.lv-1),hpBase=v*5+hpL;
+  L.push(['生命力',Math.round(hpBase*(1+hpb+wh)),['體質 '+v+' × 5 = '+v*5].concat(hpL?['人物等級 Lv '+S.lv+'：10 × '+(S.lv-1)+' = +'+hpL]:[]).concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat((hpb||wh)?['百分比加成合計 +'+pct(hpb+wh)+' → +'+Math.round(hpBase*(hpb+wh))]:[])]);
   L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(balL(true))]);
   L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(balL(false))]);
   L.push(['物理傷害加成',pct(wsum('p_damage_rate')),wline('p_damage_rate','物理傷害加成').length?wline('p_damage_rate','物理傷害加成'):['基礎 0%']]);
