@@ -176,7 +176,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .gcard{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .gcard .cell{padding:8px 2px}.gcard .cell small{display:block;font-size:11px;color:var(--pink2);letter-spacing:.06em}
 .gcard .cell b{font-size:20px;font-variant-numeric:tabular-nums;-webkit-text-stroke:.5px currentColor}.gcard .cell b i{font-style:normal;font-size:13px;color:#3f6a2c}
-.gcard .cell.full{grid-column:1/-1}.gcard .cell.warn b{color:var(--seal)}
+.qm{font:inherit;font-size:11px;font-weight:900;line-height:16px;width:18px;height:18px;padding:0;margin-left:6px;vertical-align:1px;color:#f0dfb8;background:#4a2a12;border:0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 1px 0 #7a5a30}.qtip{margin-top:6px;padding:6px 8px;font-size:12px;line-height:1.5;color:#f0e2c4;background:#3a2414;box-shadow:0 0 0 2px #1d1008;-webkit-text-stroke:0;font-weight:500}.gcard .cell.full{grid-column:1/-1}.gcard .cell.warn b{color:var(--seal)}
 .meter{height:10px;background:rgba(58,38,22,.25);margin-top:6px;position:relative;box-shadow:inset 0 0 0 2px rgba(58,38,22,.3)}
 .meter i{position:absolute;left:0;top:0;bottom:0;background:#8a6a3a}.meter u{position:absolute;top:0;bottom:0;background:#4f7a3a;opacity:.85}
 .bigacts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.bigacts .gbtn{margin-top:0;font-size:15px}
@@ -460,7 +460,7 @@ function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
 var confirmWeapon=null;
 var editName=false,confirmName=null,draftName='',confirmJob=null;
-var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',confirmRst=false,jobToast='';
+var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',confirmRst=false,jobToast='',capTip=false;
 function treeModel(){var by={},bi={},base=[];JOBORDER.forEach(function(sn){var j=JOB[sn];j.par=[1,2].map(function(n){return j['required_job_'+n]}).filter(Boolean);by[sn]=j;if(!j.par.length){bi[sn]=base.length;base.push(sn)}});
   function dep(sn){var j=by[sn];return j.par.length?dep(j.par[0])+1:1}
   var slot={},pos={};JOBORDER.forEach(function(sn){var j=by[sn],d=dep(sn);j.depth=d;if(d===2){if(j.par.length===1){slot[sn]=3*bi[j.par[0]]}else{var a=bi[j.par[0]],b=bi[j.par[1]];if(a>b){var t=a;a=b;b=t}var df=b-a;slot[sn]=df===1?3*a+1:df===4?3*4+1:df===2?3*a+2:3*b+2}}});
@@ -540,7 +540,7 @@ function sheetHTML(k){
   if(k==='up'){var pj=0,pcst=upCost(),left=S.exp-pcst,ntot=jobSum()+upJobSum(),lvN=S.lv+UP.char,capN=lvN*2,wsave=Math.min(100,jobSum()/capN*100);
     Object.keys(UP.job).forEach(function(s){pj+=UP.job[s]});
     var h8='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><button class="bk" data-a="card" type="button">‹ 返回</button><h2 class="bold">升級</h2><p class="hint">加減只是暫存，按「確定」才會寫入。</p>';
-    h8+='<div class="gcard"><div class="cell"><small>人物等級</small><b>'+lvN+(UP.char?' <i>+'+UP.char+'</i>':'')+'</b></div><div class="cell'+(ntot>=capN?' warn':'')+'"><small>職業總和 / 上限</small><b>'+ntot+' / '+capN+'</b></div><div class="cell full"><small>經驗池（剩餘）</small><b>'+left.toLocaleString('en-US')+(pcst?' <i>−'+pcst.toLocaleString('en-US')+'</i>':'')+'</b><div class="meter"><i style="width:'+wsave+'%"></i><u style="left:'+wsave+'%;width:'+Math.min(100-wsave,pj/capN*100)+'%"></u></div></div></div>';
+    h8+='<div class="gcard"><div class="cell"><small>人物等級</small><b>'+lvN+(UP.char?' <i>+'+UP.char+'</i>':'')+'</b></div><div class="cell'+(ntot>=capN?' warn':'')+'"><small>職業總和 / 上限<button class="qm" data-a="captip" type="button" aria-label="說明">?</button></small><b>'+ntot+' / '+capN+'</b>'+(capTip?'<div class="qtip">各職業等級的總和，不能超過人物等級的兩倍。想繼續升職業，先把人物等級升上去。</div>':'')+'</div><div class="cell full"><small>經驗池（剩餘）</small><b>'+left.toLocaleString('en-US')+(pcst?' <i>−'+pcst.toLocaleString('en-US')+'</i>':'')+'</b><div class="meter"><i style="width:'+wsave+'%"></i><u style="left:'+wsave+'%;width:'+Math.min(100-wsave,pj/capN*100)+'%"></u></div></div></div>';
     var cc=expNext(lvN);
     h8+='<div class="urow"><div class="nm2">人物<small>下一級需 '+cc.toLocaleString('en-US')+' 經驗</small></div><div class="stp2"><button type="button" data-a="ucm" class="'+(UP.char>0&&ntot<=(lvN-1)*2?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+lvN+(UP.char?'<em>+'+UP.char+'</em>':'')+'</span><button type="button" data-a="ucp" class="'+(left>=cc?'':'off')+'" aria-label="增加">＋</button></div></div>';
     h8+='<div class="sec secrow"><span>職業</span><button class="rb" data-a="urs" type="button">重置</button></div>';
@@ -580,7 +580,7 @@ window.addEventListener('resize',jag);
 function paintSheetPaper(){if(!window.PaperLit)return;if(cur==='mirror'){sheet.style.backgroundImage='none';sheet.__pw=0;return}var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
 window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
-function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';confirmRst=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
+function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';confirmRst=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
@@ -618,6 +618,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='ujp'){var us2=b.getAttribute('data-sn'),l2=(S.jobLvs[us2]|0)+(UP.job[us2]|0),n2=expNext(l2);
     if(l2>=JMAX)upMsg='這個職業已滿級。';else if(jobSum()+upJobSum()+1>(S.lv+UP.char)*2)upMsg='職業等級已達上限，請先提升人物等級。';else if(S.exp-upCost()<n2)upMsg='經驗不夠，'+jobName(us2)+'升到下一級需要 '+n2.toLocaleString('en-US')+'。';else{UP.job[us2]=(UP.job[us2]|0)+1;upMsg=''}render()}
   else if(a==='ujm'){var us3=b.getAttribute('data-sn');if(UP.job[us3]>0){UP.job[us3]--;if(!UP.job[us3])delete UP.job[us3];upMsg=''}render()}
+  else if(a==='captip'){capTip=!capTip;render()}
   else if(a==='ucancel'){UP={char:0,job:{}};upMsg='';render()}
   else if(a==='uok'){var steps=[],e=S.exp,lvC=S.lv;
     if(UP.char>0){e-=expCost(S.lv,S.lv+UP.char);steps.push({f:{lv:S.lv+UP.char,exp:e},ok:function(){S.lv+=UP.char}})}
