@@ -47,7 +47,7 @@ function load(k){if(k in cache)return;cache[k]=null;var im=new Image(),tn=null;
   im.src=BASE+'icons/nav/'+FILES[k]+'.png?v=3'}
 /* warm start from this session's saved copies (fresh files still load and replace them) */
 Object.keys(FILES).forEach(function(k){restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
-restore('head',function(c){c.__css=[24*PXS,25*PXS];if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
+restore('head2',function(c){c.__css=[34*PXS,25*PXS];if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
 
 /* head-and-chest portrait: 22x24 crop of the 48px doll, 1px outline, shown at 3x and allowed to poke above the bar */
 function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
@@ -55,11 +55,11 @@ function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
     if(!dollLoading){dollLoading=true;D.load(BASE,'1').then(function(){if(lastTabs)apply(lastTabs)})}return headCv}
   var look={skin:D.val(player.skin,0),style:D.val(player.style,0),hair:player.hair|0,eyes:D.val(player.eyes,5),outfit:player.outfit==null?(player.job|0):D.val(player.outfit,0),weapon:null,shield:null,halo:[],breath:false};
   var key=JSON.stringify(look);if(headCv&&(key===headKey||key===headCv.__key)){headKey=key;headCv.__look=look;return headCv}
-  var c=document.createElement('canvas');c.width=24;c.height=25;renderHead(look,1000,c);
-  c.__css=[24*PXS,25*PXS];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head',c);return c}
+  var c=document.createElement('canvas');c.width=34;c.height=25;renderHead(look,1000,c);
+  c.__css=[34*PXS,25*PXS];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head2',c);return c}
 var HD=document.createElement('canvas');HD.width=HD.height=48;
 function renderHead(look,now,c,glow){var D=g.Doll;D.draw(HD,look,now);
-  var X0=12,Y0=5,W=22,H=24,src=HD.getContext('2d').getImageData(X0,Y0,W,H).data;
+  var X0=6,Y0=5,W=32,H=24,src=HD.getContext('2d').getImageData(X0,Y0,W,H).data;
   var x=c.getContext('2d'),o=x.createImageData(W+2,H+1);function A(i,j){return i>=0&&j>=0&&i<W&&j<H?src[(j*W+i)*4+3]:0}
   for(var j=-1;j<H;j++)for(var i=-1;i<=W;i++){var k=((j+1)*(W+2)+(i+1))*4;
     if(A(i,j)>0){var s=(j*W+i)*4;o.data[k]=src[s];o.data[k+1]=src[s+1];o.data[k+2]=src[s+2];o.data[k+3]=255}
@@ -74,7 +74,7 @@ function eyePixels(i){if(eyeCache[i])return eyeCache[i];var c=document.createEle
 function eyeGlow(o,src,e,W,H,ow){
   var eyes=HA.look&&g.Doll.ix('eyes',HA.look.eyes);if(eyes==null||!g.Doll.assets.eyes[eyes])return;
   var vis=[],mark={},add=new Float32Array(ow*(H+1)),d=o.data,n,k;
-  eyePixels(eyes).forEach(function(p){var i=p[0]-8,j=p[1]-1;if(i<0||j<0||i>=W||j>=H)return;var s=(j*W+i)*4;
+  eyePixels(eyes).forEach(function(p){var i=p[0]-2,j=p[1]-1;if(i<0||j<0||i>=W||j>=H)return;var s=(j*W+i)*4;
     if(src[s]!==p[2]||src[s+1]!==p[3]||src[s+2]!==p[4]||src[s+3]!==255)return;vis.push([i+1,j+1]);mark[(j+1)*ow+i+1]=1});
   vis.forEach(function(v){for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;var nx=v[0]+dx,ny=v[1]+dy;if(nx<0||ny<0||nx>=ow||ny>H)continue;n=ny*ow+nx;if(mark[n])continue;
     var f=(dx&&dy?0.09:0.2)*e;if(f>add[n])add[n]=f}});
@@ -84,17 +84,17 @@ function eyeGlow(o,src,e,W,H,ow){
 /* 角色 tab (current page): while selected the portrait stops breathing and blinking; the eyes glow slowly and a grainy halo rises from the shoulders.
    The halo is the portrait's own outline pulled upward, fading out before the top edge. Values tuned in the simulation: height 40px, zoom 1.0, strength 1.3, 5.1 s cycle. */
 var HA={el:null,look:null,run:false,last:0,t0:0,halo:null,fkey:null,f0:null,f1:null},HH={H:40,zoom:1,power:1.3,period:5.1,W:34,CELL:PXS};
-var HB4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],HAL=[0,48,92,138,184,226],HSC=document.createElement('canvas');HSC.width=24;HSC.height=25;
+var HB4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],HAL=[0,48,92,138,184,226],HSC=document.createElement('canvas');HSC.width=34;HSC.height=25;
 function hHash(n){var s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)}
 function hSmooth(a,b,x){x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x)}
-function hSilhouette(){renderHead(Object.assign({},HA.look,{breath:false}),1000,HSC,0);var d=HSC.getContext('2d').getImageData(0,0,24,25).data,m=new Uint8Array(600);for(var i=0;i<600;i++)m[i]=d[i*4+3]>0?1:0;return m}
+function hSilhouette(){renderHead(Object.assign({},HA.look,{breath:false}),1000,HSC,0);var d=HSC.getContext('2d').getImageData(0,0,34,25).data,m=new Uint8Array(850);for(var i=0;i<850;i++)m[i]=d[i*4+3]>0?1:0;return m}
 /* f0 = steady glow hugging the outline, f1 = the part pulled upward (it gets the rising ripple) */
 function hBuild(W,Hc){
   var S=hSilhouette(),k=HH.zoom,f0=new Float32Array(W*Hc),f1=new Float32Array(W*Hc),Sm=Math.max(5,Math.floor(Hc/k-25-1)),cx,cy,s,dx,dy;
   for(cy=0;cy<Hc;cy++)for(cx=0;cx<W;cx++){
-    var sx=(cx+.5-W/2)/k+12,sy=25-(Hc-cy-.5)/k,a0=0,a1=0;
+    var sx=(cx+.5-W/2)/k+17,sy=25-(Hc-cy-.5)/k,a0=0,a1=0;
     for(s=0;s<=Sm;s++){var yy=sy+s,v=0;
-      for(dy=-1;dy<=1;dy++)for(dx=-1;dx<=1;dx++){var ix=Math.floor(sx)+dx,iy=Math.floor(yy)+dy;if(ix>=0&&ix<24&&iy>=0&&iy<25&&S[iy*24+ix]){var q=(dx||dy)?0.6:1;if(q>v)v=q}}
+      for(dy=-1;dy<=1;dy++)for(dx=-1;dx<=1;dx++){var ix=Math.floor(sx)+dx,iy=Math.floor(yy)+dy;if(ix>=0&&ix<34&&iy>=0&&iy<25&&S[iy*34+ix]){var q=(dx||dy)?0.6:1;if(q>v)v=q}}
       if(!v)continue;var w=v*Math.pow(1-s/Sm,1.5);if(s<=1){if(w>a0)a0=w}else if(w>a1)a1=w}
     var ex=Math.abs((cx+.5-W/2)/(W/2)),tp=(1-hSmooth(0.55,1,ex))*hSmooth(0,0.28,(cy+.5)/Hc),i=cy*W+cx;
     f0[i]=a0*tp;f1[i]=a1*tp}
