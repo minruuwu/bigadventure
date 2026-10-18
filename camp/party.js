@@ -70,13 +70,20 @@
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
   function statData() {
     if (STAT) return Promise.resolve(STAT);
-    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] })]).then(function (R) {
+    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] })]).then(function (R) {
       var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element } });
-      STAT = { attr: A, grow: G, sk: K }; return STAT
-    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {} }; return STAT })
+      var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
+      STAT = { attr: A, grow: G, sk: K, eff: E }; return STAT
+    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {}, eff: {} }; return STAT })
   }
   var RES = [['fire', '火炎'], ['frost', '冰霜'], ['lightning', '雷電'], ['wind', '疾風'], ['nature', '自然'], ['light', '光明'], ['dark', '黑暗']];
   var SKEL = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' }, PSLOT = [1, 30, 60, 90];
+  /* 已配置的被動技能加成（跟角色頁相同：有開放的格子、已學會、武器條件符合才算） */
+  function skPas(p, key) {
+    var D = STAT || {}, K = D.sk || {}, E = D.eff || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, pa = Array.isArray(sv.passive) ? sv.passive : [], ws = wsn(p), t = 0;
+    for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || (jl[k.j] | 0) < k.lv) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
+    return t
+  }
   function combat(p) {
     var D = STAT || { attr: {}, grow: {} }, sn = jobSn(p), K = ['str', 'int', 'agi', 'vit', 'luk'], T = {}, jl = p.jobLv || {}, al = p.alloc || {};
     var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, en = Array.isArray(wd.ench) ? wd.ench : [], pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
@@ -88,22 +95,22 @@
       for (var u = 1; u <= 3; u++) { if (row['temper_stat_' + u] !== key || !pts[u - 1]) continue; t += (parseFloat(row['temper_per_point_' + u]) || 0) * pts[u - 1] / 100 } return t }
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(C.petinfo).forEach(function (id) { var pi = C.petinfo[id]; if (pi.stat !== stat) return; t += pi.per * Math.max(0, Math.min(10, ((pe[id] || {}).lv) | 0)) }); return t }
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk;
-    var P0 = Math.round((s + wsum('p_atk')) * (1 + pb)), M0 = Math.round((i + wsum('m_atk')) * (1 + mb)), balP = 0, balM = 0;
+    var P0 = Math.round((s + wsum('p_atk')) * (1 + pb + skPas(p, 'p_atk_rate'))), M0 = Math.round((i + wsum('m_atk')) * (1 + mb + skPas(p, 'm_atk_rate'))), balP = 0, balM = 0;
     if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * 0.5), hi - lo)); if (P0 > M0) balM = ad; else if (M0 > P0) balP = ad }
     var r5 = rOn('rune05') ? 0.2 : 0;
     return [
-      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1)) * (1 + hpb + wsum('hp_rate')))],
+      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1)) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate')))],
       ['patk', '物理攻擊力', P0 + balP],
       ['matk', '魔法攻擊力', M0 + balM],
-      ['pdmg', '物理傷害加成', pct(wsum('p_damage_rate'))],
-      ['mdmg', '魔法傷害加成', pct(wsum('m_damage_rate'))],
-      ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate'))],
-      ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5)],
-      ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + (r5 ? 1 : 0))],
-      ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? 0.2 : 0))],
-      ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0))]]
+      ['pdmg', '物理傷害加成', pct(wsum('p_damage_rate') + skPas(p, 'p_damage_rate'))],
+      ['mdmg', '魔法傷害加成', pct(wsum('m_damage_rate') + skPas(p, 'm_damage_rate'))],
+      ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate') + skPas(p, 'eva_rate'))],
+      ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5 + skPas(p, 'crit_rate'))],
+      ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + (r5 ? 1 : 0) + skPas(p, 'crit_damage_rate'))],
+      ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? 0.2 : 0) + skPas(p, 'p_reduce_rate'))],
+      ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0) + skPas(p, 'm_reduce_rate'))]]
   }
-  function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']), 0.75))] }) }
+  function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']) + skPas(p, r[0] + '_res_rate'), 0.75))] }) }
   function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>' }
   function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
   function skillsHtml(p) {
