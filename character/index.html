@@ -388,13 +388,17 @@ function reqMet(sn){var j=JOB[sn];if(!j)return false;if((j.required_condition||'
   [1,2].forEach(function(n){var r=j['required_job_'+n];if(r){var need=parseInt(j['required_job_'+n+'_level'],10)||0;if((S.jobLvs[r]|0)<need)ok=false}});return ok}
 
 /* ================= 技能書 ================= */
-var SKILL={},SKORDER=[],SKST={},SKNA={id:'atk',n:'普通攻擊',k:'combat',ty:'damage'},PSLOT=[1,30,60,90];
+var SKILL={},SKORDER=[],SKST={},SKEFF={},SKNA={id:'atk',n:'普通攻擊',k:'combat',ty:'damage'},PSLOT=[1,30,60,90];
 function buildSkills(info,eff){(info||[]).forEach(function(r){if(!r.skill_id)return;SKILL[r.skill_id]={id:r.skill_id,n:r.skill_name,j:r.job,lv:parseInt(r.job_level,10)||0,k:r.kind,t:r.target,p:r.pick,ty:r.type,cr:r.extra_crit_rate,cd:r.extra_crit_damage,d:r.part1_dmg,e:r.part1_element,r:r.part1_ratio,ds:r.skill_desc||''};SKORDER.push(r.skill_id)});
-  (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns}});
+  (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns};if(r.effect_kind==='passive'&&r.effect)(SKEFF[r.skill_id]=SKEFF[r.skill_id]||[]).push({k:r.effect,v:parseFloat(r.value)||0,c:r.condition||''})});
   SKORDER.sort(function(a,b){var x=SKILL[a],y=SKILL[b];return x.j<y.j?-1:x.j>y.j?1:x.lv-y.lv})}
 function normSkills(v){v=v&&typeof v==='object'?v:{};var c=Array.isArray(v.combat)?v.combat.slice(0,4):[],pa=Array.isArray(v.passive)?v.passive.slice(0,4):[];while(c.length<4)c.push('atk');while(pa.length<4)pa.push('');return{combat:c.map(function(x){return x||'atk'}),reaction:typeof v.reaction==='string'?v.reaction:'',passive:pa.map(function(x){return x||''})}}
 function skLearned(sk){return !!sk&&(S.jobLvs[sk.j]|0)>=sk.lv}
 function skGet(id){return id==='atk'?SKNA:SKILL[id]}
+/* 已配置的被動技能加成（屬性頁用）：回傳 {v:生效合計, L:來源說明}；條件不符的也列出但不算 */
+function skPas(key){var r={v:0,L:[]};if(!S||!S.skills)return r;var wsn=WNAME2K[S.weapon];
+  skValid(S.skills).passive.forEach(function(id){if(!id)return;(SKEFF[id]||[]).forEach(function(e){if(e.k!==key)return;var t='技能 '+SKILL[id].n+' +'+pct(e.v);
+    if(e.c&&e.c!==wsn){var wn=WEAPON[e.c]?WEAPON[e.c].n:e.c;r.L.push(t+'（未裝備'+wn+'，未生效）')}else{r.v+=e.v;r.L.push(t)}})});return r}
 /* 已失效（還沒學會或資料不存在）的技能，畫面上當成空格／普通攻擊 */
 function skValid(set){return{combat:set.combat.map(function(x){return x==='atk'||skLearned(SKILL[x])?x:'atk'}),reaction:skLearned(SKILL[set.reaction])?set.reaction:'',passive:set.passive.map(function(x,i){return S.lv>=PSLOT[i]&&skLearned(SKILL[x])?x:''})}}
 var SKT={enemy_single:'敵方單體',enemy_all:'敵方全體',self:'自身',ally_single:'我方單體',ally_all:'我方全體'},SKP={random:'隨機',lowest_hp:'生命力最低',prefer_without_status:'優先沒有此狀態者'},SKEL={fire:'火焰',frost:'冰霜',lightning:'雷電',wind:'疾風',nature:'自然',light:'光明',dark:'黑暗'},SKKN={combat:'戰鬥',reaction:'反應',passive:'被動'};
@@ -465,25 +469,27 @@ function petSum(stat){var t=0;Object.keys(PETINFO).forEach(function(id){var pi=P
 function petLine(stat){var o=[];Object.keys(PETINFO).forEach(function(id){var pi=PETINFO[id];if(pi.stat!==stat)return;var lv=Math.max(0,Math.min(10,((S.pets||{})[id]||{}).lv|0));if(lv>0)o.push('寵物 '+pi.name+' 好感 Lv '+lv+'：每級 '+pi.perTxt+' × '+lv+' = +'+wNum(pi.per*lv*100)+'%')});return o}
 function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.total,l=a.luk.total,at=ATTR[S.jobSn]||{},jn=jobName(S.jobSn);
   var hpb=pctNum(at.hp_bonus),pb=pctNum(at.p_atk_bonus),mb=pctNum(at.m_atk_bonus),eb=pctNum(at.eva_rate_bonus),cb=pctNum(at.crit_rate_bonus),db=pctNum(at.crit_damage_rate_bonus),pd=pctNum(at.p_def_bonus),md=pctNum(at.m_def_bonus);
+  var kH=skPas('hp_rate'),kP=skPas('p_atk_rate'),kM=skPas('m_atk_rate'),kPD=skPas('p_damage_rate'),kMD=skPas('m_damage_rate'),kE=skPas('eva_rate'),kC=skPas('crit_rate'),kCD=skPas('crit_damage_rate'),kPR=skPas('p_reduce_rate'),kMR=skPas('m_reduce_rate');
   var wh=wsum('hp_rate'),wp=wsum('p_atk'),wm=wsum('m_atk'),we=wsum('eva_rate'),wc=wsum('crit_rate'),wd=wsum('crit_damage_rate'),wpr=wsum('p_reduce_rate'),wmr=wsum('m_reduce_rate');
-  var P0=Math.round((s+wp)*(1+pb)),M0=Math.round((i+wm)*(1+mb)),sn0=WNAME2K[S.weapon],bal=sn0&&wInfo(sn0).en.indexOf('rune09')>=0,balP=0,balM=0;
+  var P0=Math.round((s+wp)*(1+pb+kP.v)),M0=Math.round((i+wm)*(1+mb+kM.v)),sn0=WNAME2K[S.weapon],bal=sn0&&wInfo(sn0).en.indexOf('rune09')>=0,balP=0,balM=0;
   if(bal){var hi=Math.max(P0,M0),lo=Math.min(P0,M0),ad=Math.max(0,Math.min(Math.round(hi*0.5),hi-lo));if(P0>M0)balM=ad;else if(M0>P0)balP=ad}
   var balL=function(isP){var x=isP?balP:balM;return x?['符文 平衡之機會：較高者（'+(isP?'魔攻 '+M0:'物攻 '+P0)+'）的 50% 補到這邊 → +'+x]:[]};
   var L=[];
   var hpL=10*Math.max(0,S.lv-1),hpBase=v*5+hpL;
-  L.push(['生命力',Math.round(hpBase*(1+hpb+wh)),['體質 '+v+' × 5 = '+v*5].concat(hpL?['人物等級 Lv '+S.lv+'：10 × '+(S.lv-1)+' = +'+hpL]:[]).concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat((hpb||wh)?['百分比加成合計 +'+pct(hpb+wh)+' → +'+Math.round(hpBase*(hpb+wh))]:[])]);
-  L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(balL(true))]);
-  L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(balL(false))]);
-  L.push(['物理傷害加成',pct(wsum('p_damage_rate')),wline('p_damage_rate','物理傷害加成').length?wline('p_damage_rate','物理傷害加成'):['基礎 0%']]);
-  L.push(['魔法傷害加成',pct(wsum('m_damage_rate')),wline('m_damage_rate','魔法傷害加成').length?wline('m_damage_rate','魔法傷害加成'):['基礎 0%']]);
-  L.push(['閃避率',pct(g/(g+800)+eb+we+petSum('eva_rate')),['敏捷 '+g+' ÷ ('+g+' + 800) = '+pct(g/(g+800))].concat(eb?[jn+'職業加成 +'+pct(eb)]:[]).concat(wline('eva_rate','閃避率')).concat(petLine('eva_rate'))]);
+  L.push(['生命力',Math.round(hpBase*(1+hpb+wh+kH.v)),['體質 '+v+' × 5 = '+v*5].concat(hpL?['人物等級 Lv '+S.lv+'：10 × '+(S.lv-1)+' = +'+hpL]:[]).concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat(kH.L).concat((hpb||wh||kH.v)?['百分比加成合計 +'+pct(hpb+wh+kH.v)+' → +'+Math.round(hpBase*(hpb+wh+kH.v))]:[])]);
+  L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(kP.L).concat(kP.v?['技能加成合計 +'+pct(kP.v)+' → +'+Math.round((s+wp)*kP.v)]:[]).concat(balL(true))]);
+  L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(kM.L).concat(kM.v?['技能加成合計 +'+pct(kM.v)+' → +'+Math.round((i+wm)*kM.v)]:[]).concat(balL(false))]);
+  L.push(['物理傷害加成',pct(wsum('p_damage_rate')+kPD.v),['基礎 0%'].concat(wline('p_damage_rate','物理傷害加成')).concat(kPD.L)]);
+  L.push(['魔法傷害加成',pct(wsum('m_damage_rate')+kMD.v),['基礎 0%'].concat(wline('m_damage_rate','魔法傷害加成')).concat(kMD.L)]);
+  L.push(['閃避率',pct(g/(g+800)+eb+we+petSum('eva_rate')+kE.v),['敏捷 '+g+' ÷ ('+g+' + 800) = '+pct(g/(g+800))].concat(eb?[jn+'職業加成 +'+pct(eb)]:[]).concat(wline('eva_rate','閃避率')).concat(petLine('eva_rate')).concat(kE.L)]);
   var r5=rOn('rune05')?0.2:0;
-  L.push(['暴擊率',pct(g/(g+500)+cb+wc+r5),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[]).concat(wline('crit_rate','暴擊率')).concat(r5?['符文 狼之野性 +20%']:[])]);
-  L.push(['暴擊傷害',pct(0.5+l*0.01+db+wd+(r5?1:0)),['基礎 50%','幸運 '+l+' × 1% = '+l+'%'].concat(db?[jn+'職業加成 +'+pct(db)]:[]).concat(wline('crit_damage_rate','暴擊傷害')).concat(r5?['符文 狼之野性 +100%']:[])]);
-  L.push(['物理減傷',pct(pd+wpr+petSum('p_reduce_rate')+(rOn('rune06')?0.2:0)),['基礎 0%'].concat(pd?[jn+'職業加成 +'+pct(pd)]:[]).concat(wline('p_reduce_rate','物理減傷')).concat(petLine('p_reduce_rate')).concat(rOn('rune06')?['符文 紫杉之堅韌 +20%']:[]).concat(['（另有狀態加成）'])]);
-  L.push(['魔法減傷',pct(md+wmr+petSum('m_reduce_rate')+(rOn('rune07')?0.2:0)),['基礎 0%'].concat(md?[jn+'職業加成 +'+pct(md)]:[]).concat(wline('m_reduce_rate','魔法減傷')).concat(petLine('m_reduce_rate')).concat(rOn('rune07')?['符文 逆境之意志 +20%']:[]).concat(['（另有狀態加成）'])]);
+  L.push(['暴擊率',pct(g/(g+500)+cb+wc+r5+kC.v),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[]).concat(wline('crit_rate','暴擊率')).concat(r5?['符文 狼之野性 +20%']:[]).concat(kC.L)]);
+  L.push(['暴擊傷害',pct(0.5+l*0.01+db+wd+(r5?1:0)+kCD.v),['基礎 50%','幸運 '+l+' × 1% = '+l+'%'].concat(db?[jn+'職業加成 +'+pct(db)]:[]).concat(wline('crit_damage_rate','暴擊傷害')).concat(r5?['符文 狼之野性 +100%']:[]).concat(kCD.L)]);
+  L.push(['物理減傷',pct(pd+wpr+petSum('p_reduce_rate')+(rOn('rune06')?0.2:0)+kPR.v),['基礎 0%'].concat(pd?[jn+'職業加成 +'+pct(pd)]:[]).concat(wline('p_reduce_rate','物理減傷')).concat(petLine('p_reduce_rate')).concat(rOn('rune06')?['符文 紫杉之堅韌 +20%']:[]).concat(kPR.L).concat(['（另有狀態加成）'])]);
+  L.push(['魔法減傷',pct(md+wmr+petSum('m_reduce_rate')+(rOn('rune07')?0.2:0)+kMR.v),['基礎 0%'].concat(md?[jn+'職業加成 +'+pct(md)]:[]).concat(wline('m_reduce_rate','魔法減傷')).concat(petLine('m_reduce_rate')).concat(rOn('rune07')?['符文 逆境之意志 +20%']:[]).concat(kMR.L).concat(['（另有狀態加成）'])]);
   return L}
-function resOf(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])}
+function resOf(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])+skPas(key+'_res_rate').v}
+function resJob(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])}
 
 /* ================= appearance options ================= */
 /* ownership = unlocks saved on the player + the grant list in data/look_grants.csv (by player name); jobs you can switch to unlock their outfit too */
@@ -576,7 +582,7 @@ function sheetHTML(k){
     h+='<div class="sec">元素抗性</div>';
     RES.forEach(function(r){var raw=resOf(r[0]),v=Math.min(raw,0.75),o=open['r'+r[0]],jn=jobName(S.jobSn);
       h+='<div class="row"><button class="nm" data-a="open" data-id="r'+r[0]+'" type="button">'+ic('res_'+r[0])+r[1]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+pct(v)+'</span>'+
-        (o?'<div class="src"><div>基礎 0%</div>'+(raw?'<div>'+esc(jn)+'職業加成 '+r[1]+'抗性 '+(raw>0?'+':'')+pct(raw)+'</div>':'')+'<div>抗性上限 75%</div></div>':'')+'</div>'});
+        (o?'<div class="src"><div>基礎 0%</div>'+(resJob(r[0])?'<div>'+esc(jn)+'職業加成 '+r[1]+'抗性 '+(resJob(r[0])>0?'+':'')+pct(resJob(r[0]))+'</div>':'')+skPas(r[0]+'_res_rate').L.map(function(t){return '<div>'+esc(t)+'</div>'}).join('')+'<div>抗性上限 75%</div></div>':'')+'</div>'});
     if(askReset)h+='<div class="bar"><span class="ask">確定要重置全部配點？已配的點數會全部退回，可以重新分配。</span><button class="b alt" data-a="resetno" type="button">不要</button><button class="b go" data-a="resetyes" type="button">確定重置</button></div>';
     else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
     return h}
