@@ -35,7 +35,7 @@ function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function toast(t,err){var m=$('msg');m.textContent=t;m.className='on'+(err?' err':'');clearTimeout(toast.t);toast.t=setTimeout(function(){m.className=''},2600)}
 function csv(n){return fetch(BASE+n+'?v='+Math.floor(Date.now()/300000)).then(function(r){return r.ok?r.arrayBuffer():new ArrayBuffer(0)}).then(function(b){var t=new TextDecoder('utf-8').decode(b).replace(/^\ufeff/,''),L=t.split(/\r?\n/).filter(Boolean);if(!L.length)return[];var h=L[0].split(',');return L.slice(1).map(function(l){var c=l.split(','),o={};h.forEach(function(k,i){o[k.trim()]=(c[i]||'').trim()});return o})})}
-var FB,ME=null,PL=[],JOBS=[],WPN=[],PETS=[],open={},WSEL={};
+var FB,ME=null,PL=[],JOBS=[],WPN=[],PETS=[],open={},WSEL={},JSEL={};
 function boot(){withFB(function(f){FB=f;FB.ready.then(function(u){if(!u)return login();gate(u)})})}
 function login(){$('box').innerHTML='<p>請先用管理者的 Google 帳號登入。</p><button id="go" type="button">用 Google 登入</button>';$('go').onclick=function(){FB.signIn().then(function(u){gate(u)},function(){toast('登入失敗',1)})}}
 function gate(u){if(String(u.email||'').toLowerCase()!==ADMIN){$('box').innerHTML='<p>這個帳號（'+esc(u.email||'')+'）沒有管理權限。</p><button id="so" type="button" class="alt">登出</button>';$('so').onclick=function(){FB.signOut().then(function(){location.reload()})};return}
@@ -49,7 +49,11 @@ function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
     if(on)h+=body(p);h+='</div>'});
   $('box').innerHTML=h;var qi=$('q');qi.addEventListener('input',function(){var pos=qi.selectionStart;draw();var n=$('q');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}});
   $('rf').onclick=function(){reload()};$('so').onclick=function(){FB.signOut().then(function(){location.reload()})}}
-function body(p){var h='<div class="bd"><h3>寵物餅乾</h3><div class="rw"><label>持有</label><input type="number" min="0" step="1" id="ck-'+p.uid+'" value="'+(p.cookies|0)+'"><button type="button" data-a="ckset">設成</button></div>'+
+function body(p){var jsn=JSEL[p.uid]||(JOBS[0]&&JOBS[0].u_sn),jl=((p.jobLv||{})[jsn])|0;
+  var h='<div class="bd"><h3>人物等級與經驗池（人物、職業共用）</h3><div class="rw"><label>人物 Lv</label><input type="number" min="1" step="1" id="cl-'+p.uid+'" value="'+Math.max(1,p.lv|0||1)+'"><button type="button" data-a="clset">設成</button></div>'+
+   '<div class="rw"><label>經驗池</label><input type="number" min="0" step="1" id="ex-'+p.uid+'" value="'+(p.exp|0)+'"><button type="button" data-a="exset">設成</button></div><div class="rw"><label>增加</label><input type="number" min="1" step="1" id="ea-'+p.uid+'" value="1000"><button type="button" data-a="exadd">加上去</button></div>'+
+   '<h3>職業等級（0～50）</h3><div class="rw"><select id="js-'+p.uid+'" data-a="jsel">'+JOBS.map(function(j){return '<option value="'+j.u_sn+'"'+(j.u_sn===jsn?' selected':'')+'>'+esc(j.job_name)+'</option>'}).join('')+'</select><input type="number" min="0" max="50" step="1" id="jl-'+p.uid+'" value="'+jl+'"><button type="button" data-a="jlset">儲存</button></div>'+
+   '<h3>寵物餅乾</h3><div class="rw"><label>持有</label><input type="number" min="0" step="1" id="ck-'+p.uid+'" value="'+(p.cookies|0)+'"><button type="button" data-a="ckset">設成</button></div>'+
    '<div class="rw"><label>增加</label><input type="number" min="1" step="1" id="ca-'+p.uid+'" value="10"><button type="button" data-a="ckadd">加上去</button></div><h3>鍛造石</h3><div class="rw"><label>持有</label><input type="number" min="0" step="1" id="sk-'+p.uid+'" value="'+(p.stones|0)+'"><button type="button" data-a="skset">設成</button></div><div class="rw"><label>增加</label><input type="number" min="1" step="1" id="sa-'+p.uid+'" value="1000"><button type="button" data-a="skadd">加上去</button></div><h3>寵物好感等級（0～10）</h3>';
   PETS.forEach(function(pt){var lv=((p.pets||{})[pt.pet_id]||{}).lv|0;h+='<div class="rw"><label>'+esc(pt.pet_name)+'</label><input type="number" min="0" max="10" step="1" id="pt-'+p.uid+'-'+pt.pet_id+'" value="'+lv+'"><button type="button" data-a="pet" data-id="'+pt.pet_id+'">儲存</button></div>'});
   var wsn=WSEL[p.uid]||(WPN[0]&&WPN[0].u_sn),wd=((p.weapons||{})[wsn])||{};
@@ -59,13 +63,17 @@ function reload(){FB.adminList(200).then(function(l){PL=l;draw();toast('已重�
 function find(u){return PL.filter(function(p){return p.uid===u})[0]}
 function save(u,fields,ok){var b=document.activeElement;FB.adminUpdate(u,fields).then(function(){var p=find(u);if(p){Object.keys(fields).forEach(function(k){var path=k.split('.'),o=p;for(var i=0;i<path.length-1;i++){o[path[i]]=o[path[i]]||{};o=o[path[i]]}o[path[path.length-1]]=fields[k]})}draw();toast(ok||'已儲存')},function(e){toast('寫入失敗：'+(e&&(e.code||e.message)||''),1)})}
 function num(id,min,max){var v=parseInt($(id).value,10);if(isNaN(v)||v<min||(max!=null&&v>max))return null;return v}
-document.addEventListener('change',function(e){var s=e.target;if(!s||s.getAttribute('data-a')!=='wsel')return;var card=s.closest('.pl'),u=card&&card.getAttribute('data-u'),p=u&&find(u);if(!p)return;WSEL[u]=s.value;var d=((p.weapons||{})[s.value])||{};$('wl-'+u).value=Math.max(1,d.lv|0||1);$('wt-'+u).value=Math.min(4,Math.max(1,d.stage|0||1))});
+document.addEventListener('change',function(e){var s=e.target;if(s&&s.getAttribute('data-a')==='jsel'){var c0=s.closest('.pl'),u0=c0&&c0.getAttribute('data-u');if(u0){JSEL[u0]=s.value;draw()}return}if(!s||s.getAttribute('data-a')!=='wsel')return;var card=s.closest('.pl'),u=card&&card.getAttribute('data-u'),p=u&&find(u);if(!p)return;WSEL[u]=s.value;var d=((p.weapons||{})[s.value])||{};$('wl-'+u).value=Math.max(1,d.lv|0||1);$('wt-'+u).value=Math.min(4,Math.max(1,d.stage|0||1))});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var card=b.closest('.pl');if(!card)return;var u=card.getAttribute('data-u'),a=b.getAttribute('data-a'),p=find(u);
   if(a==='tg'){open[u]=!open[u];draw();return}
   if(a==='ckset'){var v=num('ck-'+u,0);if(v==null)return toast('請輸入 0 以上的整數',1);save(u,{cookies:v},'餅乾已設成 '+v)}
   else if(a==='ckadd'){var d=num('ca-'+u,1);if(d==null)return toast('請輸入 1 以上的整數',1);var nv=(p.cookies|0)+d;save(u,{cookies:nv},'餅乾 +'+d+'，現在 '+nv)}
   else if(a==='skset'){var v2=num('sk-'+u,0);if(v2==null)return toast('請輸入 0 以上的整數',1);save(u,{stones:v2},'鍛造石已設成 '+v2)}
   else if(a==='skadd'){var d2=num('sa-'+u,1);if(d2==null)return toast('請輸入 1 以上的整數',1);var nv2=(p.stones|0)+d2;save(u,{stones:nv2},'鍛造石 +'+d2+'，現在 '+nv2)}
+  else if(a==='clset'){var vl=num('cl-'+u,1);if(vl==null)return toast('人物等級要 1 以上',1);save(u,{lv:vl},'人物等級已設成 '+vl)}
+  else if(a==='exset'){var ve=num('ex-'+u,0);if(ve==null)return toast('請輸入 0 以上的整數',1);save(u,{exp:ve},'經驗池已設成 '+ve)}
+  else if(a==='exadd'){var de=num('ea-'+u,1);if(de==null)return toast('請輸入 1 以上的整數',1);var ne=(p.exp|0)+de;save(u,{exp:ne},'經驗池 +'+de+'，現在 '+ne)}
+  else if(a==='jlset'){var js=$('js-'+u).value,vj=num('jl-'+u,0,50);if(vj==null)return toast('職業等級要 0～50',1);var fj={};fj['jobLv.'+js]=vj;JSEL[u]=js;save(u,fj,'職業等級已設成 '+vj)}
   else if(a==='pet'){var id=b.getAttribute('data-id'),lv=num('pt-'+u+'-'+id,0,10);if(lv==null)return toast('等級要是 0～10',1);var f={};f['pets.'+id+'.lv']=lv;save(u,f,'寵物好感已設成 Lv '+lv)}
   else if(a==='wpn'){var sn=$('ws-'+u).value,lv2=num('wl-'+u,1),st=num('wt-'+u,1,4);if(lv2==null||st==null)return toast('Lv 要 1 以上，外觀階 1～4',1);var f2={};f2['weapons.'+sn+'.lv']=lv2;f2['weapons.'+sn+'.stage']=st;WSEL[u]=sn;save(u,f2,'武器已更新')}
 });
