@@ -625,8 +625,7 @@ function renderCard(){var k=S.cur,s=ST[k],w=W[k],t=TIER[stage(s.lv)],a=atk(k,s.l
   var st=el('div','stat');st.appendChild(el('span',null,'固定攻擊 '));st.appendChild(document.createTextNode(grp(at)));i.appendChild(st);
   var st2=el('div','stat auto');st2.appendChild(el('span',null,'自動屬性 '));st2.appendChild(document.createTextNode(autoText(k)));i.appendChild(st2);
   var ns=stage(s.lv)<3?STAGE_AT[stage(s.lv)+1]:null;
-  if(ns){var from=STAGE_AT[stage(s.lv)];var bar=el('div','bar');var f=el('i');f.style.width=((s.lv-from)/(ns-from)*100)+'%';bar.appendChild(f);i.appendChild(bar);i.appendChild(el('div','barcap','Lv'+ns+' 外觀進化'))}
-  else{var bar2=el('div','bar');var f2=el('i');f2.style.width='100%';bar2.appendChild(f2);i.appendChild(bar2);i.appendChild(el('div','barcap','已是最終外觀'))}
+  i.appendChild(el('div','barcap',ns?'Lv'+ns+' 解鎖外觀進化、符文':'外觀與符文已全部解鎖'));
   h.appendChild(i)}
 function renderActs(){var k=S.cur,s=ST[k],h=document.getElementById('acts');h.textContent='';
   function mk(label,sub,dis,fn,hold){var b=el('button','btn');b.type='button';b.appendChild(el('span',null,label));b.appendChild(el('small',null,sub));b.disabled=dis;
