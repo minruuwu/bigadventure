@@ -8,6 +8,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:'PingFang TC','N
 h1{font-size:20px;margin:6px 0 2px}.sub{color:var(--dim);font-size:12px;margin:0 0 12px}
 button,input,select{font:inherit;color:var(--ink)}
 button{background:#4a2a12;border:0;padding:8px 12px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
+button.danger{background:#7a1f14}
 button:active{transform:translateY(1px)}button:disabled{opacity:.5}
 button.alt{background:#2b241a;box-shadow:0 0 0 2px var(--line)}
 input,select{background:#14110d;border:2px solid var(--line);padding:7px 8px;min-width:0}
@@ -58,6 +59,7 @@ function body(p){var jsn=JSEL[p.uid]||(JOBS[0]&&JOBS[0].u_sn),jl=((p.jobLv||{})[
   PETS.forEach(function(pt){var lv=((p.pets||{})[pt.pet_id]||{}).lv|0;h+='<div class="rw"><label>'+esc(pt.pet_name)+'</label><input type="number" min="0" max="10" step="1" id="pt-'+p.uid+'-'+pt.pet_id+'" value="'+lv+'"><button type="button" data-a="pet" data-id="'+pt.pet_id+'">儲存</button></div>'});
   var wsn=WSEL[p.uid]||(WPN[0]&&WPN[0].u_sn),wd=((p.weapons||{})[wsn])||{};
   h+='<h3>武器等級與外觀階</h3><div class="rw"><select id="ws-'+p.uid+'" data-a="wsel">'+WPN.map(function(w){return '<option value="'+w.u_sn+'"'+(w.u_sn===wsn?' selected':'')+'>'+esc(w.weapon_name)+'</option>'}).join('')+'</select></div><div class="rw"><label>Lv</label><input type="number" min="1" step="1" id="wl-'+p.uid+'" value="'+Math.max(1,wd.lv|0||1)+'"><label>外觀階</label><input type="number" min="1" max="4" step="1" id="wt-'+p.uid+'" value="'+Math.min(4,Math.max(1,wd.stage|0||1))+'"><button type="button" data-a="wpn">儲存</button></div>';
+  h+='<h3>一鍵重置</h3><div class="rw"><button type="button" data-a="reset" class="danger">重置角色進度</button><span class="note">人物 Lv1、經驗 0、所有武器 Lv1（含淬火、附魔、外觀階）、鍛造石 0</span></div>';
   return h+'<p class="note" id="wn-'+p.uid+'"></p></div>'}
 function reload(){FB.adminList(200).then(function(l){PL=l;draw();toast('已重新載入')},function(){toast('載入失敗',1)})}
 function find(u){return PL.filter(function(p){return p.uid===u})[0]}
@@ -66,6 +68,7 @@ function num(id,min,max){var v=parseInt($(id).value,10);if(isNaN(v)||v<min||(max
 document.addEventListener('change',function(e){var s=e.target;if(s&&s.getAttribute('data-a')==='jsel'){var c0=s.closest('.pl'),u0=c0&&c0.getAttribute('data-u');if(u0){JSEL[u0]=s.value;draw()}return}if(!s||s.getAttribute('data-a')!=='wsel')return;var card=s.closest('.pl'),u=card&&card.getAttribute('data-u'),p=u&&find(u);if(!p)return;WSEL[u]=s.value;var d=((p.weapons||{})[s.value])||{};$('wl-'+u).value=Math.max(1,d.lv|0||1);$('wt-'+u).value=Math.min(4,Math.max(1,d.stage|0||1))});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var card=b.closest('.pl');if(!card)return;var u=card.getAttribute('data-u'),a=b.getAttribute('data-a'),p=find(u);
   if(a==='tg'){open[u]=!open[u];draw();return}
+  if(a==='reset'){if(!confirm('確定要重置「'+(p.name||'(無名)')+'」？\n人物等級回到 1、經驗歸 0、所有武器鍛造等級回到 1（淬火點數與附魔一併清空）、鍛造石歸 0。\n此動作無法復原。'))return;var fr={lv:1,exp:0,stones:0};WPN.forEach(function(w){if(!w.u_sn)return;fr['weapons.'+w.u_sn+'.lv']=1;fr['weapons.'+w.u_sn+'.stage']=1;fr['weapons.'+w.u_sn+'.pts']=[0,0,0];fr['weapons.'+w.u_sn+'.ench']=[]});save(u,fr,'已重置「'+(p.name||'')+'」');return}
   if(a==='ckset'){var v=num('ck-'+u,0);if(v==null)return toast('請輸入 0 以上的整數',1);save(u,{cookies:v},'餅乾已設成 '+v)}
   else if(a==='ckadd'){var d=num('ca-'+u,1);if(d==null)return toast('請輸入 1 以上的整數',1);var nv=(p.cookies|0)+d;save(u,{cookies:nv},'餅乾 +'+d+'，現在 '+nv)}
   else if(a==='skset'){var v2=num('sk-'+u,0);if(v2==null)return toast('請輸入 0 以上的整數',1);save(u,{stones:v2},'鍛造石已設成 '+v2)}
