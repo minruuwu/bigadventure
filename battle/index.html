@@ -266,7 +266,7 @@ function tick(now){
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
     p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=fall?'rotate('+(-90*fall)+'deg)':'none';
     p.f.style.opacity=1;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':'none';
-    p.sh.style.width=((ko?28:16)*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-(ko?22:8))*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';
+    p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=1-fall;
   });
   mons.forEach(function(m,i){var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=msrc(m.k,now);if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
