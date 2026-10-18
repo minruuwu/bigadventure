@@ -62,7 +62,7 @@ canvas{image-rendering:pixelated;display:block}
 
 /* ===== parchment sheets ===== */
 .back{position:fixed;inset:0;z-index:50;background:rgba(8,5,3,.72);display:flex;align-items:center;justify-content:center;padding:16px 12px calc(16px + env(safe-area-inset-bottom,0px))}
-.back[hidden]{display:none}
+.back[hidden]{display:none}.back{overscroll-behavior:contain}.sheet{overscroll-behavior:contain}html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden;overscroll-behavior:none}
 .swo{width:min(100%,460px);max-height:100%;display:flex;filter:drop-shadow(3px 0 0 #3b2713) drop-shadow(-3px 0 0 #3b2713) drop-shadow(0 3px 0 #3b2713) drop-shadow(0 -3px 0 #3b2713) drop-shadow(0 4px 0 rgba(0,0,0,.45))}
 .sw{position:relative;flex:1;min-width:0;max-height:100%;display:flex}
 .sw .edge{position:absolute;top:0;bottom:0;width:30px;z-index:3;pointer-events:none;background-size:30px 192px;background-repeat:repeat-y;image-rendering:pixelated}
@@ -443,6 +443,7 @@ function persist(fields){if(demo)return Promise.resolve();return new Promise(fun
 
 /* ================= sheets ================= */
 var back=$('back'),sheet=$('sheet'),cur=null,open={};
+back.addEventListener('touchmove',function(e){var t=e.target&&e.target.closest?e.target.closest('.sheet'):null;if(!t){e.preventDefault();return}var d=t.scrollHeight>t.clientHeight;if(!d){e.preventDefault()}},{passive:false});
 function jobIcon(sn){return '<img class="ji" alt="" src="../assets/icons/jobs/framed/'+sn+'.png?v=2" onerror="this.remove()">'}
 var PEN='<img alt="" src="../assets/icons/pen_copper.png?v=1">';
 var WSTAGE=['敘事級','歌謠級','史詩級','傳說級'],WSTAT={p_atk:'物攻',m_atk:'魔攻',crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害',p_damage_rate:'物理增傷',m_damage_rate:'魔法增傷',hp_rate:'生命',eva_rate:'閃避率',p_reduce_rate:'物理減傷',m_reduce_rate:'魔法減傷'};
