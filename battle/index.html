@@ -64,6 +64,11 @@ button{font:inherit;color:inherit}
 .lv{font-weight:900;font-size:15px;border:0;background:#4a2a12;color:#f0dfb8;padding:9px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
 .lv.boss{background:#7a1f14;font-size:13px}.lv.on{background:#e0b84a;color:#1d1008}
 .lvinfo{margin:10px 0;font-size:13px;font-weight:700;min-height:2.6em;line-height:1.5}
+.fover{position:absolute;inset:0;z-index:400;background:rgba(6,4,2,.66);display:flex;align-items:center;justify-content:center;padding:10px;animation:fdark .5s ease-out both}
+.fover[hidden]{display:none}@keyframes fdark{from{background:rgba(6,4,2,0)}to{background:rgba(6,4,2,.66)}}
+.rbox{width:100%;max-width:260px;text-align:center;background:rgba(20,12,8,.9);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;padding:10px 12px 12px}
+.rt{font-size:20px;font-weight:900;letter-spacing:.3em;margin-bottom:4px;text-shadow:2px 2px 0 #000}.rt.win{color:#ffd76a}.rt.lose{color:#ff9a8a}
+.rbox p{margin:0 0 10px;font-size:13px;line-height:1.6}.rbox b{color:#ffd76a}.rbox small{color:var(--dim)}
 </style></head><body>
 <div class="app">
  <div class="top"><h1>冒險</h1><span class="tag">測試</span></div>
@@ -72,11 +77,10 @@ button{font:inherit;color:inherit}
   <div id="mapv" hidden><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
-  <div class="frame" id="frame">
+  <div class="frame" id="frame"><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
    <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas>
   </div>
   <div class="panel"><h2>戰報</h2><div class="log" id="log" aria-live="polite"></div></div>
-  <div class="bres" id="bres" hidden><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div>
   </div>
  </div>
  <div class="lvov" id="lvov" hidden></div>
@@ -236,7 +240,7 @@ var WALK=2400;
 function win(t,te,len){var u=(t-te)/len;return u<0||u>1?-1:u}
 function tick(now){
   if(view!=='battle'){raf=0;return}
-  sizeU();var t=now-B.t0,walk=t<WALK||B.done&&B.res==='win'&&t>B.end+600,spawn=ease(t/WALK);
+  sizeU();var t=now-B.t0,walk=t<WALK,spawn=ease(t/WALK);
   var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
   /* 戰報逐行出現 */
   while(B.li<B.ev.length&&B.ev[B.li].t<=t){addLog(B.ev[B.li]);B.li++}
@@ -413,12 +417,12 @@ function addLog(e){var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});if(e.pko!=null)box.appendChild(el('div','lg ko',MEMB[e.pko].name+' 倒下了'));
   box.scrollTop=box.scrollHeight}
 function startBattle(a,l){setLastArea(a);B=simulate(a,l);B.li=0;B.done=false;
-  showView('battle');$('bhead').className='bhead';$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
+  showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
-function showResult(){var w=B.res==='win',h=$('bhead');h.className='bhead '+(w?'win':'lose');h.textContent=w?'戰鬥勝利':'戰鬥失敗';
+function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
   var r=rewardOf(B.a,B.l),mem=MEMB.length-1,box=$('bres');box.hidden=false;
   $('rtxt').innerHTML=w?'獲得 經驗 <b>'+r.exp+'</b>、鍛造石 <b>'+r.stones+'</b>'+(mem>0?'<br>隊友各得 經驗 <b>'+Math.ceil(r.exp*.2)+'</b>、鍛造石 <b>'+Math.ceil(r.stones*.1)+'</b>':'')+'<br><small>測試中：獎勵不會寫入</small>':'這場沒有獎勵，下次再挑戰吧。<br><small>測試中：獎勵不會寫入</small>';
-  box.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  $('frame').scrollIntoView({block:'nearest',behavior:'smooth'})}
 $('rok').addEventListener('click',function(){showView('map')});
 
 /* ---- tabs ---- */
