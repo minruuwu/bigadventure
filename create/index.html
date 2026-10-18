@@ -276,7 +276,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   var HAIR = [
     {n:'棕',h:0,s:112,l:11},{n:'紅',h:-13,s:160,l:17},{n:'金',h:37,s:141,l:44},{n:'藍',h:-152,s:190,l:39},
     {n:'綠',h:124,s:198,l:-4},{n:'黑',h:0,s:20,l:-30},{n:'白',h:0,s:0,l:90},{n:'粉',h:-36,s:170,l:54}];
-  var LOCKED = {outfit:{label:'外觀',cur:'預設'}};
+  var LOCKED = {outfit:{label:'外觀',cur:'當前職業'}};
   var st = {job:0, outfit:null, hair:0, skin:ASSETS.defaults.skin, style:ASSETS.defaults.style, eyes:ASSETS.defaults.eyes, weapon:'劍', name:''};
   st.weapon = defaultWeapon(JOBS[0]);
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -852,7 +852,7 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
     openSheet('選擇髮色', '選了就會立刻套在左邊的角色上。', body, [{text:'確定', main:true, fn:closeSheet}]);
   }
   function outfitIdx(){ return st.outfit == null ? st.job : st.outfit; }
-  function outfitName(){ return st.outfit == null ? '預設' : JOBS[st.outfit].name + '裝'; }
+  function outfitName(){ return st.outfit == null ? '當前職業' : JOBS[st.outfit].name + '裝'; }
   function thumb(si, hi, ei, oi){
     var c = document.createElement('canvas'); c.width = 24; c.height = 22; c.style.width = '72px'; c.style.height = '66px';
     var x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.fillStyle = '#c9aa72'; x.fillRect(0,0,24,22);
@@ -875,8 +875,8 @@ h1{margin:0;font-size:16px;line-height:24px;font-weight:400;letter-spacing:.2em}
   function styleSheet(){ pickSheet('選擇髮型', '髮色會沿用你現在選的顏色。', STYLE_ORDER.map(function(k){ return ASSETS.styles[k]; }), STYLE_ORDER.indexOf(st.style), function(i){ return thumb(st.skin, STYLE_ORDER[i], st.eyes); }, function(i){ st.style = STYLE_ORDER[i]; refreshSlots(); }); }
   function eyesSheet(){ pickSheet('選擇眼睛顏色', '選了就會立刻套在左邊的角色上。', ASSETS.eyes, st.eyes, function(i){ return thumb(st.skin, st.style, i); }, function(i){ st.eyes = i; refreshSlots(); }); }
   function outfitSheet(){
-    var items = [{n:'預設'}].concat(JOBS.map(function(j){ return {n:j.name + '裝'}; }));
-    pickSheet('選擇外觀', '外觀與職業無關，選了就會立刻套在左邊的角色上。「預設」會穿目前職業的衣服。', items, st.outfit == null ? 0 : st.outfit + 1,
+    var items = [{n:'當前職業'}].concat(JOBS.map(function(j){ return {n:j.name + '裝'}; }));
+    pickSheet('選擇外觀', '外觀與職業無關，選了就會立刻套在左邊的角色上。「當前職業」會穿目前職業的衣服，轉職後自動換裝。', items, st.outfit == null ? 0 : st.outfit + 1,
       function(i){ return thumb(st.skin, st.style, st.eyes, i === 0 ? st.job : i - 1); }, function(i){ st.outfit = i === 0 ? null : i - 1; refreshSlots(); });
   }
   function weaponSheet(){

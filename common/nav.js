@@ -53,7 +53,7 @@ restore('head2',function(c){c.__css=[34*PXS,25*PXS];if(!headCv){headCv=c;headKey
 function headCanvas(){var D=g.Doll;if(!player||!D)return headCv;
   if(!(D.assets.skins&&D.assets.skins.length&&D.assets.hairT&&D.assets.hairT.length)){
     if(!dollLoading){dollLoading=true;D.load(BASE,'1').then(function(){if(lastTabs)apply(lastTabs)})}return headCv}
-  var look={skin:D.val(player.skin,0),style:D.val(player.style,0),hair:player.hair|0,eyes:D.val(player.eyes,5),outfit:player.outfit==null?(player.job|0):D.val(player.outfit,0),weapon:null,shield:null,halo:[],breath:false};
+  var look={skin:D.val(player.skin,0),style:D.val(player.style,0),hair:player.hair|0,eyes:D.val(player.eyes,5),outfit:player.outfit==null?(player.job|0):D.val(player.outfit,0),bare:player.outfit==null&&!D.assets.outfits[player.job|0],weapon:null,shield:null,halo:[],breath:false};
   var key=JSON.stringify(look);if(headCv&&(key===headKey||key===headCv.__key)){headKey=key;headCv.__look=look;return headCv}
   var c=document.createElement('canvas');c.width=34;c.height=25;renderHead(look,1000,c);
   c.__css=[34*PXS,25*PXS];c.__head=true;c.__key=key;c.__look=look;headKey=key;headCv=c;save('head2',c);return c}

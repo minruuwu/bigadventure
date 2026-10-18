@@ -252,7 +252,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/wall.js?v=1"></script>
-<script src="../common/nav.js?v=23"></script>
+<script src="../common/nav.js?v=24"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -445,7 +445,7 @@ function fromPlayer(p){var s={uid:p.uid||'',name:p.name||'冒險者',lv:Math.max
   renames:p.renames|0,weapon:p.weapon||'劍',saved:null,look:null,skills:normSkills(p.skills)};
   s.wpn=(p.weapons&&typeof p.weapons==='object')?p.weapons:{};s.pets=(p.pets&&typeof p.pets==='object')?p.pets:{};
   s.unlocks=(Array.isArray(p.unlocks)?p.unlocks:[]).map(function(x){return String(x).toLowerCase()});
-  s.saved={skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0)};s.look=Object.assign({},s.saved);return s}
+  s.saved={skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?'cur':Doll.val(p.outfit,0)};s.look=Object.assign({},s.saved);return s}
 /* ---- 工會證：人物與職業共用一個經驗池(S.exp)，同一條升級曲線 ---- */
 var JMAX=50;
 function expNext(l){return 30*(l+1)}   /* 從 l 級升到 l+1 級要花的經驗（暫定曲線，之後換成表格只要改這裡） */
@@ -502,7 +502,7 @@ function shown(g,i){var c=codeOf(g,i),f=c&&Doll.INFO[c];return !(f&&f.locked)||o
 function extras(g){return (Doll.EX[g]||[]).filter(function(x){return !x.locked||owned(x.code)||x.code===S.saved[g]}).map(function(x){return{v:x.code,n:x.name,lock:false}})}
 function infoName(g,i,def){var c=codeOf(g,i),f=c&&Doll.INFO[c];return f&&f.name?f.name:def}
 var OPT={
-  outfit:{label:'衣服',list:function(){return Doll.OUTFIT_ORDER.map(function(i){return{v:i,n:(Doll.JOBN[i]||('外觀 '+(i+1)))+'裝',lock:!outfitUnlocked(i)}}).concat(extras('outfit'))}},
+  outfit:{label:'衣服',list:function(){return [{v:'cur',n:'當前職業',lock:false}].concat(Doll.OUTFIT_ORDER.map(function(i){return{v:i,n:(Doll.JOBN[i]||('外觀 '+(i+1)))+'裝',lock:!outfitUnlocked(i)}})).concat(extras('outfit'))}},
   style:{label:'髮型',list:function(){return Doll.STYLE_ORDER.filter(function(i){return shown('style',i)}).map(function(i){return{v:i,n:Doll.STYLEN[i],lock:false}}).concat(extras('style'))}},
   hair:{label:'髮色',list:function(){return Doll.HAIR.map(function(h,i){return{v:i,n:h.n,lock:false}})}},
   skin:{label:'膚色',list:function(){return Doll.SKINN.map(function(n,i){return{v:i,n:n,lock:false}}).filter(function(o){return shown('skin',o.v)}).concat(extras('skin'))}},
@@ -690,7 +690,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='wyes'){var w=WEAPON[confirmWeapon].n;b.disabled=true;persist({weapon:w}).then(function(){S.weapon=w;confirmWeapon=null;render();refresh();pushNavPlayer();toast('已裝備 '+w)},function(er){b.disabled=false;msg('wcmsg',errMsg(er))})}
   else if(a==='lookcancel'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]});render()}
   else if(a==='lstep'){var g2=b.getAttribute('data-g'),d2=+b.getAttribute('data-d'),l2=OPT[g2].list(),n2=l2.length,k2=0;l2.forEach(function(o,n){if(o.v===S.look[g2])k2=n});if(n2){k2=(k2+d2+n2)%n2;S.look[g2]=l2[k2].v;var sv=$('sv-'+g2);if(sv)sv.innerHTML=stepText(g2);updateMirror()}}
-  else if(a==='looksave'){var f=Object.assign({},S.look);persist(f).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
+  else if(a==='looksave'){var f=Object.assign({},S.look),fw=Object.assign({},f,{outfit:f.outfit==='cur'?null:f.outfit});persist(fw).then(function(){S.saved=Object.assign({},f);render();refresh();pushNavPlayer();toast('外觀已儲存')},function(er){msg('mstat',errMsg(er))})}
   else if(a==='card'){editName=false;confirmName=null;openSheet('card')}
   else if(a==='up'){openSheet('up')}
   else if(a==='jobs'){confirmJob=null;openSheet('jobs')}
@@ -720,8 +720,8 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='urn'){confirmRst=false;render()}
   else if(a==='ury'){var rf=jobRefund(),ne2=S.exp+rf,f3={exp:ne2,jobLv:{},job:0,jobSn:'job01',jobSeen:[],skills:{combat:['atk','atk','atk','atk'],reaction:'',passive:['','','','']}},nw3=S.weapon,oldLv=S.jobLvs,oldJ=S.job,oldSn=S.jobSn,oldSeen=S.seen;
     S.jobLvs={};S.seen=[];S.job=0;S.jobSn='job01';var us4=usableList('job01');if(us4.indexOf(nw3)<0){nw3=defaultWeaponName('job01')||us4[0]||nw3;f3.weapon=nw3}
-    var so=S.saved.outfit;if(typeof so==='number'&&so>=5&&!owned('job'+pad2(so+1)))f3.outfit=0;
-    b.disabled=true;persist(f3).then(function(){S.exp=ne2;S.skills=normSkills(f3.skills);skDraft=null;S.weapon=nw3;if('outfit' in f3){S.saved.outfit=0;S.look.outfit=0}confirmRst=false;UP={char:0,job:{}};upMsg='已重置：退還經驗已加回經驗池。';render();refresh();pushNavPlayer()},function(er){S.jobLvs=oldLv;S.seen=oldSeen;S.job=oldJ;S.jobSn=oldSn;b.disabled=false;msg('rmsg',errMsg(er))})}
+    f3.outfit=null;
+    b.disabled=true;persist(f3).then(function(){S.exp=ne2;S.skills=normSkills(f3.skills);skDraft=null;S.weapon=nw3;S.saved.outfit='cur';S.look.outfit='cur';confirmRst=false;UP={char:0,job:{}};upMsg='已重置：退還經驗已加回經驗池。';render();refresh();pushNavPlayer()},function(er){S.jobLvs=oldLv;S.seen=oldSeen;S.job=oldJ;S.jobSn=oldSn;b.disabled=false;msg('rmsg',errMsg(er))})}
   else if(a==='renamego'){var v=$('nin').value.trim();draftName=v;
     var bad=(window.FB&&window.FB.validName)?window.FB.validName(v):(v?'':'請先寫下新名字。');if(bad){msg('nmsg',bad);return}
     if(v===S.name){msg('nmsg','這已經是你的名字了。');return}
@@ -747,8 +747,8 @@ var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:47,w:36,h:41,p:'武器架',
 var WSPEC=null,SSPEC=null;
 var SHOWW=true,HALO=[];
 function updateWeaponSprites(){var w=WEAPON[WNAME2K[S.weapon]],s=w?wInfo(w.sn).st-1:0;HALO=w?haloOf(w.sn):[];var im=w&&(w.img[s]||w.img[0]),oi=w&&(w.offImg[s]||w.offImg[0]);WSPEC=im?{img:im,key:w.sn+'_'+s,cut:w.cut,ox:w.ox,oy:w.oy}:null;SSPEC=oi?{img:oi,key:'off_'+w.sn+'_'+s}:null}
-function tick(now){var L=S.look,lk={skin:L.skin,style:L.style,hair:L.hair,eyes:L.eyes,outfit:L.outfit,weapon:SHOWW?WSPEC:null,shield:SHOWW?SSPEC:null,halo:SHOWW?HALO:[],breath:true};Doll.draw(dollCv,lk,now);var m=$('mdoll');if(m&&cur==='mirror')Doll.draw(m,Object.assign({},lk,{weapon:null,shield:null}),now);requestAnimationFrame(tick)}
-function pushNavPlayer(){if(window.NavIcons)NavIcons.setPlayer(Object.assign({uid:S.uid,name:S.name,job:S.job,jobSn:S.jobSn,weapon:S.weapon},S.saved))}
+function tick(now){var L=S.look,cu=L.outfit==='cur',lk={skin:L.skin,style:L.style,hair:L.hair,eyes:L.eyes,outfit:cu?S.job:L.outfit,bare:cu&&!Doll.assets.outfits[S.job],weapon:SHOWW?WSPEC:null,shield:SHOWW?SSPEC:null,halo:SHOWW?HALO:[],breath:true};Doll.draw(dollCv,lk,now);var m=$('mdoll');if(m&&cur==='mirror')Doll.draw(m,Object.assign({},lk,{weapon:null,shield:null}),now);requestAnimationFrame(tick)}
+function pushNavPlayer(){if(window.NavIcons)NavIcons.setPlayer(Object.assign({uid:S.uid,name:S.name,job:S.job,jobSn:S.jobSn,weapon:S.weapon},S.saved,{outfit:S.saved.outfit==='cur'?null:S.saved.outfit}))}
 
 /* ================= tabs ================= */
 function renderTabs(){var h=$('tabs');h.textContent='';
