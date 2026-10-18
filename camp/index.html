@@ -372,7 +372,7 @@ html,body,*{touch-action:manipulation}
   <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
   <div class="toast" id="toast"></div>
 </div>
-<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="tp" id="pcTeam" hidden></div></div></div>
+<div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="ptabs" id="pcTabs" hidden></div><div class="pn" id="pcPanel" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="tp" id="pcTeam" hidden></div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/wall.js?v=1"></script>
@@ -801,7 +801,7 @@ function feedPet(pi,b){var lv=petLv(pi.id),need=pi.cost[lv],ck=ME_P.cookies|0,pm
   var done=function(){ME_P.cookies=ck-need;ME_P.pets=Object.assign({},ME_P.pets||{});ME_P.pets[pi.id]=Object.assign({},ME_P.pets[pi.id],{lv:lv+1});renderPet();var m=document.getElementById('pcPm');if(m)m.textContent=pi.name+' 的好感提升到 Lv '+(lv+1)+'！'};
   if(demo){done();return}b.disabled=true;
   withFB(function(FB){FB.feedPet(pi.id,lv+1,ck-need).then(done,function(er){b.disabled=false;pm.textContent=(er&&er.code==='permission-denied')?'餵食失敗（權限尚未開放）':(er&&er.code==='timeout')?'連線逾時，請檢查網路後再試':'餵食失敗，請稍後再試'})})}
-function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcTeam').hidden=true;document.getElementById('pcSayBox').hidden=true;
+function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=true;document.getElementById('pcTabs').hidden=true;document.getElementById('pcPanel').hidden=true;document.getElementById('pcName').innerHTML='';document.getElementById('pcTeam').hidden=true;document.getElementById('pcSayBox').hidden=true;
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name+' Lv.'+Party.charLv(p)));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
@@ -812,7 +812,9 @@ function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=tr
   msg.textContent='';document.getElementById('pcSayBox').hidden=false;ta.hidden=!mine;row.hidden=!mine;txt.hidden=mine;
   if(mine){ta.value=p.say||'';document.getElementById('pcSayCnt').textContent=ta.value.length+'/50';document.getElementById('pcSaySv').disabled=false}
   else{txt.textContent=p.say||'（還沒有想說的話）';txt.className='txt'+(p.say?'':' none')}
-  sayWhen(p);document.getElementById('pcard').hidden=false}
+  sayWhen(p);
+  Party.mountTabs(document.getElementById('pcTabs'),document.getElementById('pcPanel'),p,['say','stat','skill','res','job'],function(t){var sy=t==='say';document.getElementById('pcSayBox').hidden=!sy;document.getElementById('pcTeam').hidden=!sy},function(){return CARD===a});
+  document.getElementById('pcard').hidden=false}
 function sayAgo(t){var m=Math.floor((Date.now()-t)/60000);if(m<1)return '剛剛';if(m<60)return m+' 分鐘前';var h=Math.floor(m/60);if(h<24)return h+' 小時前';return Math.floor(h/24)+' 天前'}
 function sayWhen(p){document.getElementById('pcSayWhen').textContent=p.say&&tms(p.sayAt)?'更新於 '+sayAgo(tms(p.sayAt)):''}
 (function(){var ta=document.getElementById('pcSayIn'),cnt=document.getElementById('pcSayCnt'),sv=document.getElementById('pcSaySv'),msg=document.getElementById('pcSayMsg');

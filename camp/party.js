@@ -25,7 +25,9 @@
 .tb2 span,.sg span{display:flex;align-items:center;gap:4px;min-width:0}.tb2 em,.sg em{margin-left:auto;font-style:normal;font-weight:900;white-space:nowrap}\
 .icf{width:32px;height:32px;flex:none;display:inline-block;background-size:32px 32px;image-rendering:pixelated}.icf img{width:32px;height:32px;display:block;image-rendering:pixelated}.sg{gap:2px 12px!important}.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
 .tbs{display:flex;gap:4px;margin:8px 0 6px}.tbs b{padding:4px 12px;background:#4a2a12;color:#f0dfb8;font-size:12px;font-weight:900;box-shadow:0 0 0 2px #1d1008}\
-.lst{width:100%;display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto}\
+.ptabs{display:flex;gap:4px;margin:8px 0 6px;flex-wrap:wrap}.ptabs[hidden],.pn[hidden]{display:none}.ptabs button{font:inherit;font-size:12px;font-weight:900;padding:4px 10px;border:0;cursor:pointer;color:#6a4a2a;background:rgba(70,40,15,.15);box-shadow:0 0 0 2px rgba(70,40,15,.45)}.ptabs button.on{background:#4a2a12;color:#f0dfb8;box-shadow:0 0 0 2px #1d1008}\
+.pn{width:100%;text-align:left;font-size:12px;color:#2e1d0e}.sico{width:24px;height:24px;flex:none;display:inline-flex;align-items:center;justify-content:center}.sico img{width:24px;height:24px}.sico .icf.sw{width:24px;height:24px;background-size:24px 24px}.sico .icf.sw img{width:24px;height:24px}.sbl{width:22px;height:22px;box-sizing:border-box;background:#1d1008;border:2px solid #7a5a30;display:block}.ske{width:16px!important;height:16px!important;margin-left:4px;vertical-align:-3px;image-rendering:pixelated}\
+.lst.cp .rw{padding:2px 6px}.lst{width:100%;display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto}\
 .rw{display:flex;align-items:center;gap:8px;padding:5px 6px;background:rgba(70,40,15,.12);font-size:13px;color:#2e1d0e;min-width:0}\
 .rw img{width:24px;height:24px;flex:none}.rw .tx{min-width:0;flex:1}.rw .tx b{font-size:14px;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.rw .tx small{font-size:11px;color:#6a4a2a}\
 .rw .g{margin-left:auto;font-size:11px;color:#6a4a2a;text-align:right}.rw.off{opacity:.55}\
@@ -68,28 +70,73 @@
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
   function statData() {
     if (STAT) return Promise.resolve(STAT);
-    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv')]).then(function (R) {
-      var A = {}, G = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r });
-      STAT = { attr: A, grow: G }; return STAT
-    }).catch(function () { STAT = { attr: {}, grow: {} }; return STAT })
+    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] })]).then(function (R) {
+      var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element } });
+      STAT = { attr: A, grow: G, sk: K }; return STAT
+    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {} }; return STAT })
   }
+  var RES = [['fire', '火炎'], ['frost', '冰霜'], ['lightning', '雷電'], ['wind', '疾風'], ['nature', '自然'], ['light', '光明'], ['dark', '黑暗']];
+  var SKEL = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' }, PSLOT = [1, 30, 60, 90];
   function combat(p) {
     var D = STAT || { attr: {}, grow: {} }, sn = jobSn(p), K = ['str', 'int', 'agi', 'vit', 'luk'], T = {}, jl = p.jobLv || {}, al = p.alloc || {};
-    K.forEach(function (k) { var j = 0; Object.keys(jl).forEach(function (s) { var lv = jl[s] | 0, g = D.grow[s]; if (lv > 0 && g) j += (parseFloat(g['per_level_' + k]) || 0) * lv }); T[k] = 10 + j + (al[k] | 0) });
+    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, en = Array.isArray(wd.ench) ? wd.ench : [], pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
+    function rOn(id) { return en.indexOf(id) >= 0 }
+    K.forEach(function (k) { var j = 0; Object.keys(jl).forEach(function (s) { var l = jl[s] | 0, g = D.grow[s]; if (l > 0 && g) j += (parseFloat(g['per_level_' + k]) || 0) * l }); var bs = 10 + j + (al[k] | 0); T[k] = bs + (rOn('rune08') ? Math.round(bs * 0.1) : 0) });
     var at = D.attr[sn] || {}, hpb = pn(at.hp_bonus), pb = pn(at.p_atk_bonus), mb = pn(at.m_atk_bonus), eb = pn(at.eva_rate_bonus), cb = pn(at.crit_rate_bonus), db = pn(at.crit_damage_rate_bonus), pd = pn(at.p_def_bonus), md = pn(at.m_def_bonus);
-    var row = null, ws = wsn(p), lv = wlv(p); (C.rawWeapons() || []).forEach(function (r) { if (r.u_sn === ws) row = r });
-    function wsum(key) { var t = 0; if (!row) return 0; for (var q = 1; q <= 6; q++) { if (row['auto_stat_' + q] !== key) continue; var per = String(row['auto_per_level_' + q] || '').trim(), v = (parseFloat(per) || 0) * lv; t += /%/.test(per) ? v / 100 : v } return t }
+    var row = null; (C.rawWeapons() || []).forEach(function (r) { if (r.u_sn === ws) row = r });
+    function wsum(key) { var t = 0; if (!row) return 0; for (var q = 1; q <= 6; q++) { if (row['auto_stat_' + q] !== key) continue; var per = String(row['auto_per_level_' + q] || '').trim(), v = (parseFloat(per) || 0) * lv; t += /%/.test(per) ? v / 100 : v }
+      for (var u = 1; u <= 3; u++) { if (row['temper_stat_' + u] !== key || !pts[u - 1]) continue; t += (parseFloat(row['temper_per_point_' + u]) || 0) * pts[u - 1] / 100 } return t }
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(C.petinfo).forEach(function (id) { var pi = C.petinfo[id]; if (pi.stat !== stat) return; t += pi.per * Math.max(0, Math.min(10, ((pe[id] || {}).lv) | 0)) }); return t }
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk;
+    var P0 = Math.round((s + wsum('p_atk')) * (1 + pb)), M0 = Math.round((i + wsum('m_atk')) * (1 + mb)), balP = 0, balM = 0;
+    if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * 0.5), hi - lo)); if (P0 > M0) balM = ad; else if (M0 > P0) balP = ad }
+    var r5 = rOn('rune05') ? 0.2 : 0;
     return [
       ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1)) * (1 + hpb + wsum('hp_rate')))],
+      ['patk', '物理攻擊力', P0 + balP],
+      ['matk', '魔法攻擊力', M0 + balM],
+      ['pdmg', '物理傷害加成', pct(wsum('p_damage_rate'))],
+      ['mdmg', '魔法傷害加成', pct(wsum('m_damage_rate'))],
       ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate'))],
-      ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate'))],
-      ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate'))],
-      ['patk', '物理攻擊力', Math.round((s + wsum('p_atk')) * (1 + pb))],
-      ['matk', '魔法攻擊力', Math.round((i + wsum('m_atk')) * (1 + mb))],
-      ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate'))],
-      ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate'))]]
+      ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5)],
+      ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + (r5 ? 1 : 0))],
+      ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? 0.2 : 0))],
+      ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0))]]
+  }
+  function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']), 0.75))] }) }
+  function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>' }
+  function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
+  function skillsHtml(p) {
+    var K = (STAT && STAT.sk) || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, cb = Array.isArray(sv.combat) ? sv.combat : [], pa = Array.isArray(sv.passive) ? sv.passive : [];
+    function ok(id) { var k = K[id]; return k && (jl[k.j] | 0) >= k.lv ? k : null }
+    function line(tag, id, p) {
+      var k = id === 'atk' ? 'atk' : ok(id), nm = k === 'atk' ? '普通攻擊' : k ? esc(k.n) : '（空）', el = k && k !== 'atk' && SKEL[k.e] ? '<img class="ske" alt="' + SKEL[k.e] + '" title="' + SKEL[k.e] + '" src="' + C.base + 'icons/stats/res_' + k.e + '.png?v=5">' : '';
+      return '<div class="rw"><span class="sico">' + skIco(k, p) + '</span><span class="tx"><b>' + nm + el + '</b><small>' + tag + '</small></span></div>'
+    }
+    var h = '';
+    for (var i = 0; i < 4; i++) { var c = cb[i] || 'atk'; h += line('戰鬥 ' + (i + 1), c === 'atk' ? 'atk' : c, p) }
+    h += line('反應', sv.reaction || '', p);
+    for (var q = 0; q < 4; q++) h += lv >= PSLOT[q] ? line('被動 ' + (q + 1), pa[q] || '', p) : '<div class="rw off"><span class="sico"><span class="sbl"></span></span><span class="tx"><b>（Lv' + PSLOT[q] + ' 解鎖）</b><small>被動 ' + (q + 1) + '</small></span></div>';
+    return '<div class="lst cp" style="max-height:none">' + h + '</div>'
+  }
+  function jobsHtml(p) {
+    var jl = p.jobLv || {}, ks = Object.keys(jl).filter(function (k) { return (jl[k] | 0) > 0 }).sort();
+    if (!ks.length) return '<div class="none">還沒有職業等級</div>';
+    return '<div class="lst" style="max-height:none">' + ks.map(function (k) { var m = /(\d+)/.exec(k), nm = (m && g.Doll.JOBN[+m[1] - 1]) || k; return '<div class="rw"><img alt="" src="' + snIcon(k) + '"><span class="tx"><b>' + esc(nm) + '</b></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + (jl[k] | 0) + '</span></div>' }).join('') + '</div>'
+  }
+  var TABN = { say: '想說的話', stat: '屬性', skill: '技能', res: '抗性', job: '職業' };
+  /* 分頁：bar 放按鈕，panel 放內容；onTab(name) 讓呼叫端決定其他區塊（例如想說的話）要不要顯示 */
+  function mountTabs(bar, panel, p, names, onTab, alive) {
+    var cur = names[0];
+    function paint() {
+      bar.innerHTML = names.map(function (n) { return '<button type="button" data-t="' + n + '"' + (n === cur ? ' class="on"' : '') + '>' + TABN[n] + '</button>' }).join('');
+      if (onTab) onTab(cur);
+      if (cur === 'say') { panel.innerHTML = ''; return }
+      panel.innerHTML = '<div class="none">讀取中…</div>'; var mine = cur;
+      statData().then(function () { if (cur !== mine || (alive && !alive())) return; panel.innerHTML = mine === 'stat' ? gridHtml(combat(p)) : mine === 'res' ? gridHtml(resists(p)) : mine === 'skill' ? skillsHtml(p) : jobsHtml(p) })
+    }
+    bar.onclick = function (e) { var b = e.target.closest && e.target.closest('button[data-t]'); if (!b || b.dataset.t === cur) return; cur = b.dataset.t; paint() };
+    bar.hidden = false; panel.hidden = false; paint()
   }
 
   /* ---------- 資料（真的 Firebase 或 demo 假資料） ---------- */
@@ -160,7 +207,8 @@
       d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span>' + (isMe ? '<span class="tg">隊長</span>' : idx) + '</div>' +
         '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
-        '<div class="tbs"><b>屬性</b></div><div class="sg">' + combat(p).map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>';
+        '<div class="ptabs"></div><div class="pn"></div>';
+      mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'res', 'job']);
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
           API.remove(p.uid).then(function () { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== p.uid }); bust(p.uid); sel = 0; syncBtn(); load(); C.toast('已移出 ' + p.name) }, function (e) { C.toast(errText(e, '移出')) })
@@ -253,6 +301,6 @@
       host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button></div>';
       document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); syncBtn()
     },
-    fillTeam: fillTeam, jobName: jobName, jobLv: jobLv, charLv: charLv
+    fillTeam: fillTeam, mountTabs: mountTabs, jobName: jobName, jobLv: jobLv, charLv: charLv
   };
 })(window);
