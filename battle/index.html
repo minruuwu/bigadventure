@@ -86,7 +86,7 @@ button{font:inherit;color:inherit}
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
   <div class="frame" id="frame"><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
-   <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas>
+   <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas><canvas id="pfx" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250"></canvas>
   </div>
   <div class="panel"><div class="btabs" id="btabs" role="tablist"><button type="button" role="tab" data-v="log" class="on">戰報</button><button type="button" role="tab" data-v="dmg">傷害</button><button type="button" role="tab" data-v="taken">承受</button><button type="button" role="tab" data-v="heal">恢復</button></div><div class="log" id="log" aria-live="polite"></div><div class="stats" id="stats" hidden></div></div>
   </div>
@@ -94,7 +94,7 @@ button{font:inherit;color:inherit}
  <div class="lvov" id="lvov" hidden></div>
  <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
 </div>
-<script src="../common/doll.js?v=11"></script>
+<script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=24"></script>
 <script>
@@ -238,7 +238,7 @@ function tileW(){return frame.clientHeight*BG[cur].bw/BG[cur].bh}
 function build(){
   els.forEach(function(e){e.remove()});els=[];party=[];mons=[];
   MEMB.slice(0,6).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
-    party.push({i:i,f:c,sh:sh,ph:Math.random()*2000,look:look(p)});frame.appendChild(sh);frame.appendChild(c);els.push(sh,c)});
+    party.push({i:i,f:c,sh:sh,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);els.push(sh,c)});
   if(!B)return;var sl=mslots(B.mons.length);
   B.mons.forEach(function(m,i){var o={k:m.k,sc:m.boss?1.5:1,f:img(''),sh:el('div','sh'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};frame.appendChild(o.sh);frame.appendChild(o.f);els.push(o.sh,o.f);mons.push(o)});
 }
@@ -254,26 +254,38 @@ function tick(now){
   while(B.li<B.ev.length&&B.ev[B.li].t<=t){addLog(B.ev[B.li]);B.li++}
   if(!B.done&&t>=B.end){B.done=true;showResult()}
   party.forEach(function(p,k){
-    var pp=posOf(p.i),bob=0,lx=0,ko=B.pko[k]!=null&&t>=B.pko[k],fl=0;
+    var pp=posOf(p.i),bob=0,lx=0,kt=B.pko[k],ko=kt!=null&&t>=kt,fl=0;
     if(walk&&!ko)bob=Math.abs(Math.sin(now/110+p.ph*3))*2.4;
-    B.ev.forEach(function(e){if(e.side==='p'&&e.a===k){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*18}if(e.side==='m'&&e.tgt===k){var v=win(t,e.t+180,160);if(v>=0)fl=1}});
+    B.ev.forEach(function(e){if(e.side==='p'&&e.a===k){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*(p.far?6:18)}if(e.side==='m'&&e.tgt===k){var v=win(t,e.t+180,160);if(v>=0)fl=1}});
+    if(ko&&!p.look.closed){p.look=Object.assign({},p.look,{closed:true,breath:false});p.dr=0}
     if(!p.dr||now-p.dr>=90){Doll.draw(p.f,p.look,now+p.ph);p.dr=now}
-    var x=pp[0]+lx,y=pp[1]-bob,s=48*U;
+    var x=pp[0]+lx,y=pp[1]-bob,s=48*U,fall=ko?ease((t-kt)/420):0;
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
-    p.f.style.opacity=ko?.35:1;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1)':'none';
-    p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';
+    p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=fall?'rotate('+(-90*fall)+'deg)':'none';
+    p.f.style.opacity=1;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':'none';
+    p.sh.style.width=((ko?28:16)*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-(ko?22:8))*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';
   });
   mons.forEach(function(m,i){var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=msrc(m.k,now);if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
     else if(m.k!=='sk'&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
     B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+180,160);if(v>=0){fl=1;mx+=3}}});
-    if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/600);sy=1-ease(u2)*.7;sx=1+ease(u2)*.25;op=1-ease(u2)}
+    var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy,mw,mh,t)}
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=(gy*U-mh)+'px';
-    m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':'none';
+    m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
     var sw=MZ[0]*(m.k==='sk'?.6:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op});
+  drawParts(t);
   raf=requestAnimationFrame(tick);
 }
+/* 怪物蒸發：取怪物圖上的像素變成往上飄、慢慢變淡的小方塊 */
+var PARTS=[],pfx=$('pfx'),pctx=pfx.getContext('2d');
+function burst(m,mx,gy,mw,mh,t){m.boom=1;var im=m.f;if(!im.naturalWidth)return;var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.drawImage(im,0,0);var d=x.getImageData(0,0,w,h).data,st=w>30?2:1,uw=mw/U/w,uh=mh/U/h;
+  for(var py=0;py<h;py+=st)for(var px=0;px<w;px+=st){var k=(py*w+px)*4;if(d[k+3]<40)continue;
+    PARTS.push({x:mx-mw/U/2+px*uw,y:gy-mh/U+py*uh,sz:st*uw,c:'rgb('+Math.min(255,d[k]+60)+','+Math.min(255,d[k+1]+60)+','+Math.min(255,d[k+2]+60)+')',t0:t+(h-py)/h*260*Math.random()+Math.random()*120,life:520+Math.random()*560,vy:-(10+Math.random()*16),vx:(Math.random()-.5)*6,ph:Math.random()*6})}}
+function drawParts(t){var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
+  PARTS=PARTS.filter(function(q){return t<q.t0+q.life});
+  PARTS.forEach(function(q){if(t<q.t0){pctx.globalAlpha=1;pctx.fillStyle=q.c;pctx.fillRect(Math.round(q.x*U),Math.round(q.y*U),Math.max(1,Math.round(q.sz*U)),Math.max(1,Math.round(q.sz*U)));return}
+    var a=(t-q.t0)/q.life,s2=(t-q.t0)/1000,x=q.x+q.vx*s2+Math.sin(s2*5+q.ph)*1.2,y=q.y+q.vy*s2-a*a*6;pctx.globalAlpha=Math.max(0,1-a);pctx.fillStyle=q.c;var z=Math.max(1,Math.round(q.sz*U*(1-a*.4)));pctx.fillRect(Math.round(x*U),Math.round(y*U),z,z)});pctx.globalAlpha=1}
 /* ---- sky ---- */
 var SKW=418,SKH=280,sk=$('skc').getContext('2d'),sk2=$('skc2').getContext('2d'),CSZ=100;
 function mkc(){var c=document.createElement('canvas');c.width=SKW;c.height=SKH;return c}
@@ -424,7 +436,7 @@ function simulate(a,l){var N=stageNo(a,l),boss=l===10,winP=Math.max(.45,.95-N*.0
 function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]];r[q[0]]=(r[q[0]]||0)+q[2]});if(btab!=='log')renderStats();var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);box.appendChild(d);
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});if(e.pko!=null)box.appendChild(el('div','lg ko',MEMB[e.pko].name+' 倒下了'));
   box.scrollTop=box.scrollHeight}
-function startBattle(a,l){setLastArea(a);B=simulate(a,l);B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};setBTab('log');
+function startBattle(a,l){setLastArea(a);PARTS=[];B=simulate(a,l);B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};setBTab('log');
   showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
 function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');

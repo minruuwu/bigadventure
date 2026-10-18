@@ -110,7 +110,7 @@ function tinted(mask,key,col){var k=key+col;if(!TC[k]){var c=mk(N,N),x=c.getCont
    s = {skin,style,hair,eyes,outfit, weapon:{img,key,cut,ox,oy}|null, shield:{img,key}|null, halo:[colors], breath, outline} */
 var off=mk(N,N),octx=off.getContext('2d');
 function squash(img,d){octx.drawImage(img,0,CUTROW,40,40-CUTROW,PAD,PAD+CUTROW,40,40-CUTROW);if(CUTROW-d>0)octx.drawImage(img,0,0,40,CUTROW-d,PAD,PAD+d,40,CUTROW-d)}
-function frame(s,now){var sk=ix('skin',s.skin),sy2=ix('style',s.style),ey=ix('eyes',s.eyes),of=ix('outfit',s.outfit);if(!A.skins[sk])sk=0;if(!A.hairT[sy2])sy2=0;if(!A.eyes[ey])ey=0;if(!A.outfits[of])of=0;var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=Math.floor(u);return Math.round(u<.5?2*u:2*(1-u))})(),closed=(now%4000)<130,ol=s.outline!==false;
+function frame(s,now){var sk=ix('skin',s.skin),sy2=ix('style',s.style),ey=ix('eyes',s.eyes),of=ix('outfit',s.outfit);if(!A.skins[sk])sk=0;if(!A.hairT[sy2])sy2=0;if(!A.eyes[ey])ey=0;if(!A.outfits[of])of=0;var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=Math.floor(u);return Math.round(u<.5?2*u:2*(1-u))})(),closed=s.closed===true||(now%4000)<130,ol=s.outline!==false;
  octx.clearRect(0,0,N,N);
  octx.fillStyle='rgba(0,0,0,.38)';var sy=PAD;octx.fillRect(PAD+14,sy+34,7,1);octx.fillRect(PAD+12,sy+35,11,1);octx.fillRect(PAD+11,sy+36,13,1);octx.fillRect(PAD+10,sy+37,15,1);octx.fillRect(PAD+12,sy+38,11,1);
  var w=s.weapon,pc=w&&w.img?pieces(w.img,w.key,w.cut,ol,true):null,sh=s.shield&&s.shield.img?pieces(s.shield.img,s.shield.key,0,ol,false):null;
