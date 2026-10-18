@@ -31,7 +31,7 @@ skill029,虔誠,job04,12,passive,,,passive,,,,,,,,,魔法攻擊力+2%
 skill030,力智共鳴,job05,12,passive,,,passive,,,,,,,,,物理攻擊力+1%、魔法攻擊力+1%
 skill031,破甲猛擊,job01,15,combat,enemy_single,random,damage,,,p,,1.8,,,,物理減傷-20%
 skill032,魔力爆發,job02,15,combat,enemy_all,,damage,,,m,,1.6,,,,
-skill033,致盲刺擊,job03,15,combat,enemy_single,random,damage,,,p,,1.5,,,,命中率-20%
+skill033,致盲刺擊,job03,15,combat,enemy_single,random,damage,,,p,,1.5,,,,命中率-25%
 skill034,群體治療,job04,15,combat,ally_all,,heal,,,m,,0.8,,,,
 skill035,強化藥劑,job05,15,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理攻擊力+10%
 skill036,武器熟練,job01,18,passive,,,passive,,,,,,,,,物理增傷+3%
