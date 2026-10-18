@@ -509,7 +509,7 @@ function sheetHTML(k){
     h+='<div class="sec">元素抗性</div>';
     RES.forEach(function(r){var raw=resOf(r[0]),v=Math.min(raw,0.75),o=open['r'+r[0]],jn=jobName(S.jobSn);
       h+='<div class="row"><button class="nm" data-a="open" data-id="r'+r[0]+'" type="button">'+ic('res_'+r[0])+r[1]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+pct(v)+'</span>'+
-        (o?'<div class="src"><div>基礎 0%</div>'+(raw?'<div>'+esc(jn)+'職業加成 '+r[1]+'抗性 '+(raw>0?'+':'')+pct(raw)+'</div>':'')+'<div>（另有符文與狀態加成）</div><div>抗性上限 75%</div></div>':'')+'</div>'});
+        (o?'<div class="src"><div>基礎 0%</div>'+(raw?'<div>'+esc(jn)+'職業加成 '+r[1]+'抗性 '+(raw>0?'+':'')+pct(raw)+'</div>':'')+'<div>抗性上限 75%</div></div>':'')+'</div>'});
     if(askReset)h+='<div class="bar"><span class="ask">確定要重置全部配點？已配的點數會全部退回，可以重新分配。</span><button class="b alt" data-a="resetno" type="button">不要</button><button class="b go" data-a="resetyes" type="button">確定重置</button></div>';
     else h+='<div class="bar"><span class="t">'+(ps?'暫存 '+ps+' 點':'沒有暫存的配點')+'</span><button class="b alt" data-a="cancel" type="button" '+(ps?'':'disabled')+'>取消</button><button class="b go" data-a="ok" type="button" '+(ps?'':'disabled')+'>確定</button></div>';
     return h}
