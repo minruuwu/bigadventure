@@ -36,6 +36,6 @@ skill034,群體治療,job04,15,combat,ally_all,,heal,,,m,,0.8,,,,
 skill035,強化藥劑,job05,15,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理攻擊力+10%
 skill036,武器熟練,job01,18,passive,,,passive,,,,,,,,,物理增傷+3%
 skill037,元素掌握,job02,18,passive,,,passive,,,,,,,,,魔法增傷+3%
-skill038,弱點掃描,job03,18,passive,,,passive,,,,,,,,,暴擊率+5%
+skill038,陰險,job03,18,passive,,,passive,,,,,,,,,暴擊率+5%
 skill039,治療之道,job04,18,passive,,,passive,,,,,,,,,恢復技能增加20%回血量（只加成施放當下的恢復，對持續回血無效）
 skill040,好運,job05,18,passive,,,passive,,,,,,,,,暴擊傷害+30%
