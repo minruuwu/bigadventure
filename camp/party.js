@@ -8,7 +8,7 @@
 .mk{position:absolute;left:3px;right:3px;bottom:3px;z-index:6;display:flex;gap:8px;line-height:1}\
 .mk .mb{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;font:inherit;font-weight:900;font-size:14px;color:#f0e2c4;background:rgba(61,35,13,.88);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}\
 .mk .mb:active{filter:brightness(.9)}.mk .mb small{font-size:12px;opacity:.85;font-weight:400}\
-.pcard.pw{align-items:flex-start;padding-top:8vh;padding-bottom:24px;overflow-y:auto}.pcard.pw .box{max-width:340px;align-items:stretch}\
+.pcard.pw{padding-top:8vh;padding-bottom:24px}.pcard.pw .box{max-width:340px;align-items:stretch}\
 .pw .box>*{flex:none}.pw h2{margin:0;font-size:18px;text-align:center}.pw h3{margin:6px 0 2px;font-size:13px;font-weight:900;color:#5a3a1a}\
 .rowp{width:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}\
 .pt{position:relative;padding:0;border:0;font:inherit;background:#2b1d13;box-shadow:0 0 0 2px #3b2713;overflow:hidden;display:block;cursor:pointer;min-width:0}\
