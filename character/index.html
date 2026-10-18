@@ -388,7 +388,7 @@ function reqMet(sn){var j=JOB[sn];if(!j)return false;if((j.required_condition||'
   [1,2].forEach(function(n){var r=j['required_job_'+n];if(r){var need=parseInt(j['required_job_'+n+'_level'],10)||0;if((S.jobLvs[r]|0)<need)ok=false}});return ok}
 
 /* ================= 技能書 ================= */
-var SKILL={},SKORDER=[],SKST={},SKEFF={},SKNA={id:'atk',n:'普通攻擊',k:'combat',ty:'damage'},PSLOT=[1,30,60,90];
+var SKILL={},SKORDER=[],SKST={},SKEFF={},STI={},SKNA={id:'atk',n:'普通攻擊',k:'combat',ty:'damage'},PSLOT=[1,30,60,90];
 function buildSkills(info,eff){(info||[]).forEach(function(r){if(!r.skill_id)return;SKILL[r.skill_id]={id:r.skill_id,n:r.skill_name,j:r.job,lv:parseInt(r.job_level,10)||0,k:r.kind,t:r.target,p:r.pick,ty:r.type,cr:r.extra_crit_rate,cd:r.extra_crit_damage,d:r.part1_dmg,e:r.part1_element,r:r.part1_ratio,ds:r.skill_desc||''};SKORDER.push(r.skill_id)});
   (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns};if(r.effect_kind==='passive'&&r.effect)(SKEFF[r.skill_id]=SKEFF[r.skill_id]||[]).push({k:r.effect,v:parseFloat(r.value)||0,c:r.condition||''})});
   SKORDER.sort(function(a,b){var x=SKILL[a],y=SKILL[b];return x.j<y.j?-1:x.j>y.j?1:x.lv-y.lv})}
@@ -408,7 +408,7 @@ function skDesc(sk){if(sk.id==='atk')return '對敵方單體（隨機）造成 1
   if(sk.ty==='damage')o='對'+a+'造成 '+skPc(r)+' '+(SKEL[sk.e]||'')+(sk.d==='m'?'魔法':'物理')+'傷害';
   else if(sk.ty==='heal'&&r>0)o='恢復'+a+'魔法攻擊力 '+skPc(r)+' 的生命';else o='對'+a+'施放';
   if(parseFloat(sk.cr))o+='，暴擊率 +'+skPc(sk.cr);if(parseFloat(sk.cd))o+='，暴擊傷害 +'+skPc(sk.cd);
-  var st=SKST[sk.id];if(st)o+='；附加「'+st.n+'」'+(st.turns?st.turns+' 回合':'')+(sk.ds?'：'+sk.ds:'');else if(sk.ds)o+='；'+sk.ds;return o+'。'}
+  var st=SKST[sk.id];if(st){var sd=STI[st.n]?STI[st.n].d:sk.ds;o+='；附加「'+st.n+'」'+(st.turns?st.turns+' 回合':'')+(sd?'：'+sd:'')}else if(sk.ds)o+='；'+sk.ds;return o+'。'}
 var SWORD='<svg viewBox="0 0 11 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#d3bf8f" d="M8 1h2v2H9v1H8v1H7v1H6v1H5V6H4V5h1V4h1V3h1V2h1z"/><path fill="#8a6a3a" d="M2 6h1v1h1v1h1v1H4v1H3V9H2V8H1V7h1z"/></svg>';
 function skIcon(sk){if(!sk)return '<span class="ski bl"></span>';if(sk.id==='atk'){var wsn=WNAME2K[S.weapon];if(wsn&&WEAPON[wsn])return '<span class="ski" style="background:url('+wframe(wInfo(wsn).st-1)+') center/100% 100%"><img alt="" style="display:block;width:100%;height:100%" src="../assets/icons/weapons/'+wsn+'.png?v=2" onerror="this.remove()"></span>';return '<span class="ski bl">'+SWORD+'</span>'}return '<img class="ski" alt="'+esc(jobName(sk.j))+'" src="../assets/icons/jobs/framed/'+sk.j+'.png?v=2" onerror="this.remove()">'}
 var skTab='cfg',skDraft=null,skPick=null,skFlt='all',skJob=null,skMsg='';
@@ -804,7 +804,7 @@ function initTentPets(pets){
     requestAnimationFrame(loop)})(last)}
 function start(p){S=fromPlayer(p);initTentPets(p.pets);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
 var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',pets:{gm_pet_02:{lv:5,tent:true},gm_pet_01:{lv:2,tent:true},gm_pet_03:{lv:10,tent:true}},weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
-Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv','rune_info.csv','skill_info.csv','skill_effect.csv'].map(getCSV)).then(function(R){buildSkills(R[6],R[7]);return buildData(R.slice(0,6))}).then(function(){return Doll.load(BASE,V)}).then(function(){
+Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv','rune_info.csv','skill_info.csv','skill_effect.csv'].map(getCSV).concat([getCSV('status_info.csv').catch(function(){return []})])).then(function(R){R[8].forEach(function(r){if(r.status_name&&r.status_desc&&!STI[r.status_name])STI[r.status_name]={d:r.status_desc,pol:r.polarity}});buildSkills(R[6],R[7]);return buildData(R.slice(0,6))}).then(function(){return Doll.load(BASE,V)}).then(function(){
   if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){start(Object.assign({uid:who.user.uid},who.player));res()})})})

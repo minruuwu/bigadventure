@@ -1,0 +1,39 @@
+status_name,polarity,effect,value,base,element,dmg_type,status_desc
+顛茄毒,debuff,dot,0.2,m_atk,nature,m,每回合造成施加者魔法攻擊力 20% 的自然魔法傷害
+燃燒,debuff,dot,0.2,m_atk,fire,m,每回合造成施加者魔法攻擊力 20% 的火焰魔法傷害
+血裂,debuff,dot,0.3,p_atk,,p,每回合造成施加者物理攻擊力 30% 的物理傷害
+再生,buff,hot,0.5,m_atk,,,每回合恢復施加者魔法攻擊力 50% 的生命
+閃身,buff,eva_rate,0.1,,,,閃避率 +10%
+堅毅,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
+剛毅,buff,p_reduce_rate,0.1,,,,物理減傷 +10%
+意志,buff,m_reduce_rate,0.15,,,,魔法減傷 +15%
+強化,buff,p_atk_rate,0.1,,,,物理攻擊力 +10%
+魔力守護,buff,p_reduce_rate,0.15,,,,物理減傷 +15%、魔法減傷 +15%
+魔力守護,buff,m_reduce_rate,0.15,,,,
+神力祝福,buff,p_damage_rate,0.15,,,,物理增傷 +15%、魔法增傷 +15%
+神力祝福,buff,m_damage_rate,0.15,,,,
+聖域,buff,p_reduce_rate,0.1,,,,物理減傷 +10%、魔法減傷 +10%
+聖域,buff,m_reduce_rate,0.1,,,,
+超頻,buff,p_damage_rate,0.1,,,,物理增傷 +10%、魔法增傷 +10%
+超頻,buff,m_damage_rate,0.1,,,,
+輝煌,buff,str_rate,0.3,,,,力量 +30%、智力 +30%（太陽之照耀）
+輝煌,buff,int_rate,0.3,,,,
+生命守護,buff,shield,0.5,heal_amount,,,護盾吸收傷害：數值為該次治療量的 50%，上限為最大生命 30%（鹿之守護）
+霜凍,debuff,hit_taken_rate,0.3,,,,被命中率 +30%
+破甲,debuff,p_reduce_rate,-0.2,,,,物理減傷 −20%
+目盲,debuff,hit_rate,-0.25,,,,命中率 −25%
+虛弱,debuff,p_atk_rate,-0.1,,,,物理攻擊力 −10%、魔法攻擊力 −10%
+虛弱,debuff,m_atk_rate,-0.1,,,,
+遲鈍,debuff,speed,-8,,,,速度 −8
+混亂,debuff,confuse,,,,,技能目標隨機（自身技能除外）
+睡眠,debuff,sleep,,,,,跳過行動，受到攻擊就醒
+麻痺,debuff,stun,,,,,固定跳過行動
+封禁,debuff,seal,,,,,只能普通攻擊，反應技能照常
+弱魔,debuff,m_reduce_rate,-0.2,,,,魔法減傷 −20%
+識破,debuff,hit_taken_rate,0.5,,,,被命中率 +50%
+乏力,debuff,p_atk_rate,-0.15,,,,物理攻擊力 −15%
+失神,debuff,m_atk_rate,-0.15,,,,魔法攻擊力 −15%
+弱點標記,debuff,crit_taken_rate,0.3,,,,被暴擊率 +30%
+元素詛咒,debuff,rand_res_rate,-0.4,,,,隨機一種元素抗性 −40%
+石化,debuff,petrify,,,,,跳過行動，受到的傷害 −80%（石之正義）
+石化,debuff,dmg_taken_rate,-0.8,,,,
