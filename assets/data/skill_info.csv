@@ -15,7 +15,7 @@ skill013,回擊,job03,5,reaction,,,reaction,,,,,,,,,10%機率對物理魔法攻�
 skill014,信仰,job04,5,reaction,,,reaction,,,,,,,,,10%機率物理魔法傷害減少50%
 skill015,口袋驚喜,job05,5,reaction,,,reaction,,,,,,,,,受到傷害後，10%機率發動30%魔法攻擊力治療自己生命
 skill016,處決,job01,7,combat,enemy_single,lowest_hp,damage,,1,p,,1.5,,,,
-skill017,雷暴,job02,7,combat,enemy_all,,damage,,,m,,1.2,,,,
+skill017,雷暴,job02,7,combat,enemy_all,,damage,,,m,lightning,1.2,,,,
 skill018,閃身步,job03,7,combat,self,,buff,,,,,,,,,閃避率+10%
 skill019,堅毅導言,job04,7,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理減傷+15%
 skill020,燃燒瓶,job05,7,combat,enemy_single,random,damage,,,p,fire,1,,,,每回合造成魔法攻擊力20%的火焰傷害
