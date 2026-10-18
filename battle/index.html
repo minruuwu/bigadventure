@@ -407,11 +407,11 @@ function simulate(a,l){var N=stageNo(a,l),boss=l===10,winP=Math.max(.45,.95-N*.0
       else{var m=ms[o[1]];if(m.hp<=0)return;var ap=aliveP(),ti=ap[rnd(0,ap.length-1)],t2=P[ti];
         if(Math.random()<.12){ev.push({side:'m',a:o[1],tgt:-1,txt:m.n+' 攻擊 '+t2.n+'，被閃開了'});return}
         var d=Math.round(md*(.85+Math.random()*.3));t2.hp-=d;ev.push({side:'m',a:o[1],tgt:ti,txt:m.n+' 攻擊 '+t2.n+'，造成 '+d+' 傷害',pko:t2.hp<=0?ti:null})}})}
-  /* 排時間：開打後平均分配到約 10 秒內 */
-  var acts=ev.length,gap=Math.max(160,Math.min(520,10000/Math.max(1,acts))),t=WALK+400;
-  ev.forEach(function(e){e.t=t;t+=e.kind==='round'?gap*.5:gap;(e.dead||[]).forEach(function(i){mko[i]=e.t+260});if(e.pko!=null)pko[e.pko]=e.t+260});
+  /* 排時間：每條戰報 1 秒；「第 N 回合」跟該回合第一個動作同時出現，不另外佔時間 */
+  var STEP=1000,t=WALK+400;
+  ev.forEach(function(e){e.t=t;if(e.kind!=='round')t+=STEP;(e.dead||[]).forEach(function(i){mko[i]=e.t+260});if(e.pko!=null)pko[e.pko]=e.t+260});
   var res=aliveM().length?'lose':'win';
-  return{ev:ev,mons:ms,pko:pko,mko:mko,res:res,end:t+700,a:a,l:l}}
+  return{ev:ev,mons:ms,pko:pko,mko:mko,res:res,end:t+400,a:a,l:l}}
 
 function addLog(e){var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);box.appendChild(d);
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});if(e.pko!=null)box.appendChild(el('div','lg ko',MEMB[e.pko].name+' 倒下了'));
