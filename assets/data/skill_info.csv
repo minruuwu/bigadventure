@@ -54,3 +54,13 @@ skill052,錘專長,job04,27,passive,,,passive,,,,,,,,,裝備錘時魔法攻擊�
 skill053,調配,job05,20,passive,,,passive,,,,,,,,,魔法增傷+3%
 skill054,實踐,job05,22,passive,,,passive,,,,,,,,,物理增傷+3%
 skill055,元素試驗,job05,27,passive,,,passive,,,,,,,,,火焰、冰霜、疾風、雷電、自然、光明、黑暗七種元素抗性各+2%
+skill056,血裂斬,job01,25,combat,enemy_single,random,damage,,,p,,1.5,,,,每回合造成物理攻擊力30%的物理傷害
+skill057,旋風斬,job01,30,combat,enemy_all,,damage,,,p,wind,1.5,,,,
+skill058,火焰爆破,job02,25,combat,enemy_all,,damage,,,m,fire,1.5,,,,
+skill059,魔力守護,job02,30,combat,self,,buff,,,,,,,,,物理減傷+15%、魔法減傷+15%
+skill060,飛刃攻擊,job03,25,combat,enemy_single,lowest_hp,damage,,,p,,1.7,,,,
+skill061,暗刃突襲,job03,30,combat,enemy_single,lowest_hp,damage,0.2,,p,dark,1.8,,,,
+skill062,神力祝福,job04,25,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理增傷+15%、魔法增傷+15%
+skill063,聖域術,job04,30,combat,ally_all,,buff,,,,,,,,,物理減傷+10%、魔法減傷+10%
+skill064,催化酸雨,job05,25,combat,enemy_all,,damage,,,p,nature,1.4,,,,物理攻擊力-10%、魔法攻擊力-10%
+skill065,超頻研究,job05,30,combat,self,,buff,,,,,,,,,物理增傷+10%、魔法增傷+10%
