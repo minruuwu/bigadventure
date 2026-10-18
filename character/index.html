@@ -209,7 +209,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .chip.cur{box-shadow:0 0 0 2px #e0b84a,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
 .chip.no,.chip.cl{background:#6b5a42;color:#d9c79c;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #8a7656,inset 0 -2px 0 #4a3c2a}.chip.cl{background:#5a5448;color:#a89c84}
 .chip.sel.no,.chip.sel.cl{box-shadow:0 0 0 2px #e0b84a,inset 0 2px 0 #8a7656,inset 0 -2px 0 #4a3c2a}
-.jgo{display:block;width:100%;margin-top:12px;font:inherit;font-size:15px;font-weight:900;padding:12px 0;color:#f0e2c4;background:#3f6a2c;border:0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7fae5c,inset 0 -2px 0 #254418}
+.jgo{position:sticky;bottom:28px;z-index:3;display:block;width:100%;margin-top:12px;font:inherit;font-size:15px;font-weight:900;padding:12px 0;color:#f0e2c4;background:#3f6a2c;border:0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7fae5c,inset 0 -2px 0 #254418}
 .jgo:active{transform:translateY(2px)}.jgo:disabled{background:var(--paper2);color:var(--pink2);box-shadow:0 0 0 2px var(--lo);transform:none;cursor:default}
 
 .tree{display:block;width:100%;max-width:340px;margin:6px auto 4px;height:auto}
@@ -557,7 +557,7 @@ function sheetHTML(k){
       h6+='<div class="sec gs">'+['基礎職業','一轉職業','終極職業・未開放'][tr]+'</div><div class="chips">'+list.map(function(sn){var st=jobStatus(sn),lv=S.jobLvs[sn]|0;
         return '<button type="button" class="chip '+st+(sn===sel?' sel':'')+(sn===S.jobSn?' cur':'')+'" data-a="jsel" data-sn="'+sn+'">'+esc(jobName(sn))+'<small>'+(sn===S.jobSn?'目前':lv>0?'Lv '+lv:st==='cl'?'未開放':st==='ok'?'可轉職':'未達成')+'</small></button>'}).join('')+'</div>'});
     h6+='<div class="sec gs">職業資訊</div>'+jobInfoHTML(sel);
-    h6+='<button class="jgo" data-a="jgo" type="button" '+(js==='ok'?'':'disabled')+'>'+(js==='cur'?'目前職業':js==='cl'?'未開放':js==='no'?'條件未達成':'轉職為「'+esc(jj.job_name)+'」')+'</button><div class="msgline" id="jmsg">'+esc(jobToast)+'</div>';
+    h6+='<div class="msgline" id="jmsg">'+esc(jobToast)+'</div><button class="jgo" data-a="jgo" type="button" '+(js==='ok'?'':'disabled')+'>'+(js==='cur'?'目前職業':js==='cl'?'未開放':js==='no'?'條件未達成':'轉職為「'+esc(jj.job_name)+'」')+'</button>';
     return h6}
   return ''}
 function mirrorFx(){var c=$('mfx'),w=c&&c.parentNode,box=$('mdoll');if(!c||!w)return;
