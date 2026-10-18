@@ -72,7 +72,9 @@ button{font:inherit;color:inherit}
 .btabs{display:flex;gap:4px}.btabs button{flex:1;font-weight:900;font-size:13px;border:0;background:#2b1d13;color:var(--dim);padding:5px 0;cursor:pointer;box-shadow:0 0 0 2px #080503}.btabs button.on{background:#c9893f;color:#1d1008}
 .stats{height:190px;overflow-y:auto;font-size:12.5px}.stats[hidden],.log[hidden]{display:none}
 .sth{color:var(--dim);margin:0 0 6px;font-weight:700}.sth b{color:var(--fg)}
-.srow{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;margin-bottom:6px}
+.srow{display:grid;grid-template-columns:96px 1fr 70px;gap:8px;align-items:center;margin:0 0 6px;width:100%;padding:2px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}.srow.op .sn{color:var(--accent)}
+.sth span{float:right;font-size:11px;font-weight:400}
+.sdet{margin:-2px 0 8px 26px;padding:4px 8px;background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 1px #3b2713}.sdet>div{display:grid;grid-template-columns:1fr auto 38px 34px;gap:6px;align-items:baseline;padding:1px 0}.sdet span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sdet b{text-align:right;font-variant-numeric:tabular-nums}.sdet em{font-style:normal;color:var(--dim);text-align:right;font-size:11px}.sdet i{font-style:normal;color:var(--dim);text-align:right;font-size:11px}.sdet .none{display:block;color:var(--dim)}
 .sn{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}.sn img{width:20px;height:20px;image-rendering:pixelated;flex:none}
 .sbar{height:12px;background:#0e0905;box-shadow:inset 0 0 0 1px #3b2713}.sbar i{display:block;height:100%;transition:width .3s}
 .sbar i.dmg{background:#d4553f}.sbar i.taken{background:#8a7a68}.sbar i.heal{background:#5fae52}
@@ -419,24 +421,24 @@ function simulate(a,l){var N=stageNo(a,l),boss=l===10,winP=Math.max(.45,.95-N*.0
     var order=[];P.forEach(function(x,i){if(x.hp>0)order.push(['p',i])});ms.forEach(function(m,i){if(m.hp>0)order.push(['m',i])});order.sort(function(){return Math.random()-.5});
     order.forEach(function(o){if(!aliveM().length||!aliveP().length)return;
       if(o[0]==='p'){var x=P[o[1]];if(x.hp<=0)return;var s=skillOf(x.p,x.cy++);
-        if(s.ty==='heal'){var al=aliveP(),tg=al.reduce(function(b,i){return P[i].hp/P[i].mx<P[b].hp/P[b].mx?i:b},al[0]),amt=rnd(pd,pd*2),eff=Math.min(amt,P[tg].mx-P[tg].hp);P[tg].hp+=eff;ev.push({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」，'+P[tg].n+' 恢復 '+eff+' 生命',st:[[o[1],'heal',eff]]});return}
+        if(s.ty==='heal'){var al=aliveP(),tg=al.reduce(function(b,i){return P[i].hp/P[i].mx<P[b].hp/P[b].mx?i:b},al[0]),amt=rnd(pd,pd*2),eff=Math.min(amt,P[tg].mx-P[tg].hp);P[tg].hp+=eff;ev.push({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」，'+P[tg].n+' 恢復 '+eff+' 生命',st:[[o[1],'heal',eff,s.n]]});return}
         if(s.ty==='buff'){ev.push({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」'});return}
         var am=aliveM(),tgs=s.all?am:[am[rnd(0,am.length-1)]],parts=[],dead=[],sum=0;
         tgs.forEach(function(ti){var m=ms[ti];if(Math.random()<.08){parts.push(m.n+' 閃開了');return}var cr=Math.random()<.15,d=Math.round(pd*(s.all?.7:1)*(.85+Math.random()*.3)*(cr?1.5:1));m.hp-=d;sum+=d;parts.push(m.n+(cr?' 暴擊！':' ')+'受到 '+d+' 傷害');if(m.hp<=0)dead.push(ti)});
-        ev.push({side:'p',a:o[1],tg:tgs,txt:x.n+' 使用「'+s.n+'」→ '+parts.join('，'),dead:dead,st:sum?[[o[1],'dmg',sum]]:[]})}
+        ev.push({side:'p',a:o[1],tg:tgs,txt:x.n+' 使用「'+s.n+'」→ '+parts.join('，'),dead:dead,st:sum?[[o[1],'dmg',sum,s.n]]:[]})}
       else{var m=ms[o[1]];if(m.hp<=0)return;var ap=aliveP(),ti=ap[rnd(0,ap.length-1)],t2=P[ti];
         if(Math.random()<.12){ev.push({side:'m',a:o[1],tgt:-1,txt:m.n+' 攻擊 '+t2.n+'，被閃開了'});return}
-        var d=Math.round(md*(.85+Math.random()*.3));t2.hp-=d;ev.push({side:'m',a:o[1],tgt:ti,txt:m.n+' 攻擊 '+t2.n+'，造成 '+d+' 傷害',pko:t2.hp<=0?ti:null,st:[[ti,'taken',d]]})}})}
+        var d=Math.round(md*(.85+Math.random()*.3));t2.hp-=d;ev.push({side:'m',a:o[1],tgt:ti,txt:m.n+' 攻擊 '+t2.n+'，造成 '+d+' 傷害',pko:t2.hp<=0?ti:null,st:[[ti,'taken',d,m.n+' 普通攻擊']]})}})}
   /* 排時間：每條戰報 1 秒；「第 N 回合」跟該回合第一個動作同時出現，不另外佔時間 */
   var STEP=1000,t=WALK+400;
   ev.forEach(function(e){e.t=t;if(e.kind!=='round')t+=STEP;(e.dead||[]).forEach(function(i){mko[i]=e.t+260});if(e.pko!=null)pko[e.pko]=e.t+260});
   var res=aliveM().length?'lose':'win';
   return{ev:ev,mons:ms,pko:pko,mko:mko,res:res,end:t+400,a:a,l:l}}
 
-function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]];r[q[0]]=(r[q[0]]||0)+q[2]});if(btab!=='log')renderStats();var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);box.appendChild(d);
+function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||(r[q[0]]={v:0,by:{}}),k=q[3]||'其他',b=o.by[k]||(o.by[k]={v:0,c:0});o.v+=q[2];b.v+=q[2];b.c++});if(btab!=='log')renderStats();var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);box.appendChild(d);
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});if(e.pko!=null)box.appendChild(el('div','lg ko',MEMB[e.pko].name+' 倒下了'));
   box.scrollTop=box.scrollHeight}
-function startBattle(a,l){setLastArea(a);PARTS=[];B=simulate(a,l);B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};setBTab('log');
+function startBattle(a,l){setLastArea(a);PARTS=[];B=simulate(a,l);B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
 function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
@@ -448,11 +450,14 @@ var btab='log',STL={dmg:'造成傷害',taken:'承受傷害',heal:'恢復生命'}
 function setBTab(v){btab=v;[].forEach.call($('btabs').children,function(b){var on=b.getAttribute('data-v')===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});$('log').hidden=v!=='log';$('stats').hidden=v==='log';if(v!=='log')renderStats()}
 $('btabs').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setBTab(b.getAttribute('data-v'))});
 function jobSnOf(p){return p.jobSn||('job'+('0'+((p.job|0)+1)).slice(-2))}
-function renderStats(){if(!B)return;var r=B.stat[btab]||[],M=MEMB.slice(0,6),tot=0,mx=0;M.forEach(function(p,i){var v=r[i]||0;tot+=v;if(v>mx)mx=v});
-  var h='<div class="sth">'+STL[btab]+'　全隊合計 <b>'+tot.toLocaleString('en-US')+'</b></div>';
-  M.forEach(function(p,i){var v=r[i]||0,w=mx?v/mx*100:0,pc=tot?Math.round(v/tot*100):0;
-    h+='<div class="srow"><span class="sn"><img alt="" src="../assets/icons/jobs/framed/'+jobSnOf(p)+'.png?v=2" onerror="this.style.visibility=\'hidden\'">'+esc(p.name||'')+'</span><span class="sbar"><i class="'+btab+'" style="width:'+w+'%"></i></span><span class="sv">'+v.toLocaleString('en-US')+'<small>'+pc+'%</small></span></div>'});
+function renderStats(){if(!B)return;var r=B.stat[btab]||[],M=MEMB.slice(0,6),tot=0,mx=0;M.forEach(function(p,i){var v=r[i]?r[i].v:0;tot+=v;if(v>mx)mx=v});
+  var h='<div class="sth">'+STL[btab]+'　全隊合計 <b>'+tot.toLocaleString('en-US')+'</b><span>點名字看技能明細</span></div>';
+  M.forEach(function(p,i){var o=r[i],v=o?o.v:0,w=mx?v/mx*100:0,pc=tot?Math.round(v/tot*100):0,key=btab+i,op=!!B.sopen[key];
+    h+='<button type="button" class="srow'+(op?' op':'')+'" data-k="'+key+'" aria-expanded="'+op+'"><span class="sn"><img alt="" src="../assets/icons/jobs/framed/'+jobSnOf(p)+'.png?v=2" onerror="this.style.visibility=\'hidden\'">'+esc(p.name||'')+'</span><span class="sbar"><i class="'+btab+'" style="width:'+w+'%"></i></span><span class="sv">'+v.toLocaleString('en-US')+'<small>'+pc+'%</small></span></button>';
+    if(op){var L=o?Object.keys(o.by).map(function(k){return[k,o.by[k]]}).sort(function(a,b){return b[1].v-a[1].v}):[];
+      h+='<div class="sdet">'+(L.length?L.map(function(q){return '<div><span>'+esc(q[0])+'</span><b>'+q[1].v.toLocaleString('en-US')+'</b><em>'+(v?Math.round(q[1].v/v*100):0)+'%</em><i>×'+q[1].c+'</i></div>'}).join(''):'<div class="none">目前沒有紀錄</div>')+'</div>'}});
   $('stats').innerHTML=h}
+$('stats').addEventListener('click',function(e){var b=e.target.closest('.srow');if(!b||!B)return;var k=b.getAttribute('data-k');B.sopen[k]=!B.sopen[k];renderStats()});
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
 /* ---- tabs ---- */
