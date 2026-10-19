@@ -285,7 +285,7 @@ function tick(now){
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy,mw,mh,t)}
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=(gy*U-mh)+'px';
     m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
-    var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op});
+    var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op});
   drawParts(t);drawVfx(t);
   raf=requestAnimationFrame(tick);
 }
