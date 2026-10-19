@@ -389,8 +389,8 @@ function reqMet(sn){var j=JOB[sn];if(!j)return false;if((j.required_condition||'
 
 /* ================= 技能書 ================= */
 var SKILL={},SKORDER=[],SKST={},SKEFF={},STI={},SKNA={id:'atk',n:'普通攻擊',k:'combat',ty:'damage'},PSLOT=[1,30,60,90];
-function buildSkills(info,eff){(info||[]).forEach(function(r){if(!r.skill_id)return;SKILL[r.skill_id]={id:r.skill_id,n:r.skill_name,j:r.job,lv:parseInt(r.job_level,10)||0,k:r.kind,t:r.target,p:r.pick,ty:r.type,cr:r.extra_crit_rate,cd:r.extra_crit_damage,d:r.part1_dmg,e:r.part1_element,r:r.part1_ratio,d2:r.part2_dmg,e2:r.part2_element,r2:r.part2_ratio,ds:r.skill_desc||''};SKORDER.push(r.skill_id)});
-  (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns,ch:parseFloat(r.apply_chance)||1};if(r.effect_kind==='passive'&&r.effect)(SKEFF[r.skill_id]=SKEFF[r.skill_id]||[]).push({k:r.effect,v:parseFloat(r.value)||0,c:r.condition||''})});
+function buildSkills(info,eff){(info||[]).forEach(function(r){if(!r.skill_id)return;SKILL[r.skill_id]={id:r.skill_id,n:r.skill_name,j:r.job,lv:parseInt(r.job_level,10)||0,k:r.kind,t:r.target,p:r.pick,ty:r.type,cr:r.extra_crit_rate,cd:r.extra_crit_damage,d:r.part1_dmg,e:r.part1_element,r:r.part1_ratio,d2:r.part2_dmg,e2:r.part2_element,r2:r.part2_ratio,h:parseInt(r.hits,10)||1,ds:r.skill_desc||''};SKORDER.push(r.skill_id)});
+  (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns,ch:parseFloat(r.apply_chance)||1,tg:r.target};if(r.effect_kind==='passive'&&r.effect)(SKEFF[r.skill_id]=SKEFF[r.skill_id]||[]).push({k:r.effect,v:parseFloat(r.value)||0,c:r.condition||''})});
   SKORDER.sort(function(a,b){var x=SKILL[a],y=SKILL[b];return x.j<y.j?-1:x.j>y.j?1:x.lv-y.lv})}
 function normSkills(v){v=v&&typeof v==='object'?v:{};var c=Array.isArray(v.combat)?v.combat.slice(0,4):[],pa=Array.isArray(v.passive)?v.passive.slice(0,4):[];while(c.length<4)c.push('atk');while(pa.length<4)pa.push('');return{combat:c.map(function(x){return x||'atk'}),reaction:typeof v.reaction==='string'?v.reaction:'',passive:pa.map(function(x){return x||''})}}
 function skLearned(sk){return !!sk&&(S.jobLvs[sk.j]|0)>=sk.lv}
@@ -405,10 +405,10 @@ var SKT={enemy_single:'敵方單體',enemy_all:'敵方全體',self:'自身',ally
 function skPc(x){return Math.round(parseFloat(x)*100)+'%'}
 function skDesc(sk){if(sk.id==='atk')return '對敵方單體（隨機）造成 100% 物理傷害。';if(sk.k!=='combat')return sk.ds;
   var a=(SKT[sk.t]||'')+(sk.p?'（'+(SKP[sk.p]||sk.p)+'）':''),o='',r=parseFloat(sk.r)||0;
-  if(sk.ty==='damage'){o='對'+a+'造成 '+skPc(r)+' '+(SKEL[sk.e]||'')+(sk.d==='m'?'魔法':'物理')+'傷害';if(parseFloat(sk.r2))o+=' + '+skPc(sk.r2)+' '+(SKEL[sk.e2]||'')+(sk.d2==='m'?'魔法':'物理')+'傷害'}
+  if(sk.ty==='damage'){o='對'+a+'造成 '+skPc(r)+' '+(SKEL[sk.e]||'')+(sk.d==='m'?'魔法':'物理')+'傷害'+(sk.h>1?' × '+sk.h+' 次':'');if(parseFloat(sk.r2))o+=' + '+skPc(sk.r2)+' '+(SKEL[sk.e2]||'')+(sk.d2==='m'?'魔法':'物理')+'傷害'}
   else if(sk.ty==='heal'&&r>0)o='恢復'+a+'魔法攻擊力 '+skPc(r)+' 的生命';else o='對'+a+'施放';
   if(parseFloat(sk.cr))o+='，暴擊率 +'+skPc(sk.cr);if(parseFloat(sk.cd))o+='，暴擊傷害 +'+skPc(sk.cd);
-  var st=SKST[sk.id];if(st){var sd=STI[st.n]?STI[st.n].d:sk.ds;o+='；'+(st.ch<1?Math.round(st.ch*100)+'% 機率':'')+'附加「'+st.n+'」'+(st.turns?st.turns+' 回合':'')+(sd?'：'+sd:'')}else if(sk.ds)o+='；'+sk.ds;return o+'。'}
+  var st=SKST[sk.id];if(st){var sd=STI[st.n]?STI[st.n].d:sk.ds;o+='；'+(sk.ty==='damage'&&st.tg==='self'?'自身':'')+(st.ch<1?Math.round(st.ch*100)+'% 機率':'')+'附加「'+st.n+'」'+(st.turns==='attack'?'，持續到下次攻擊':st.turns?st.turns+' 回合':'')+(sd?'：'+sd:'')}else if(sk.ds)o+='；'+sk.ds;return o+'。'}
 var SWORD='<svg viewBox="0 0 11 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#d3bf8f" d="M8 1h2v2H9v1H8v1H7v1H6v1H5V6H4V5h1V4h1V3h1V2h1z"/><path fill="#8a6a3a" d="M2 6h1v1h1v1h1v1H4v1H3V9H2V8H1V7h1z"/></svg>';
 function skIcon(sk){if(!sk)return '<span class="ski bl"></span>';if(sk.id==='atk'){var wsn=WNAME2K[S.weapon];if(wsn&&WEAPON[wsn])return '<span class="ski" style="background:url('+wframe(wInfo(wsn).st-1)+') center/100% 100%"><img alt="" style="display:block;width:100%;height:100%" src="../assets/icons/weapons/'+wsn+'.png?v=2" onerror="this.remove()"></span>';return '<span class="ski bl">'+SWORD+'</span>'}return '<img class="ski" alt="'+esc(jobName(sk.j))+'" src="../assets/icons/jobs/framed/'+sk.j+'.png?v=2" onerror="this.remove()">'}
 var skTab='cfg',skDraft=null,skPick=null,skFlt='all',skJob=null,skMsg='';
@@ -469,14 +469,14 @@ function petSum(stat){var t=0;Object.keys(PETINFO).forEach(function(id){var pi=P
 function petLine(stat){var o=[];Object.keys(PETINFO).forEach(function(id){var pi=PETINFO[id];if(pi.stat!==stat)return;var lv=Math.max(0,Math.min(10,((S.pets||{})[id]||{}).lv|0));if(lv>0)o.push('寵物 '+pi.name+' 好感 Lv '+lv+'：每級 '+pi.perTxt+' × '+lv+' = +'+wNum(pi.per*lv*100)+'%')});return o}
 function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.total,l=a.luk.total,at=ATTR[S.jobSn]||{},jn=jobName(S.jobSn);
   var hpb=pctNum(at.hp_bonus),pb=pctNum(at.p_atk_bonus),mb=pctNum(at.m_atk_bonus),eb=pctNum(at.eva_rate_bonus),cb=pctNum(at.crit_rate_bonus),db=pctNum(at.crit_damage_rate_bonus),pd=pctNum(at.p_def_bonus),md=pctNum(at.m_def_bonus);
-  var kH=skPas('hp_rate'),kP=skPas('p_atk_rate'),kM=skPas('m_atk_rate'),kPD=skPas('p_damage_rate'),kMD=skPas('m_damage_rate'),kE=skPas('eva_rate'),kC=skPas('crit_rate'),kCD=skPas('crit_damage_rate'),kPR=skPas('p_reduce_rate'),kMR=skPas('m_reduce_rate'),kSM=skPas('str_to_m_atk'),kVP=skPas('vit_to_p_atk');
+  var kH=skPas('hp_rate'),kP=skPas('p_atk_rate'),kM=skPas('m_atk_rate'),kPD=skPas('p_damage_rate'),kMD=skPas('m_damage_rate'),kE=skPas('eva_rate'),kC=skPas('crit_rate'),kCD=skPas('crit_damage_rate'),kPR=skPas('p_reduce_rate'),kMR=skPas('m_reduce_rate'),kSM=skPas('str_to_m_atk'),kVP=skPas('vit_to_p_atk'),kAH=skPas('agi_to_hp');
   var wh=wsum('hp_rate'),wp=wsum('p_atk'),wm=wsum('m_atk'),we=wsum('eva_rate'),wc=wsum('crit_rate'),wd=wsum('crit_damage_rate'),wpr=wsum('p_reduce_rate'),wmr=wsum('m_reduce_rate');
   var vpA=Math.round(v*kVP.v),P0=Math.round((s+wp+vpA)*(1+pb+kP.v)),smA=Math.round(s*kSM.v),M0=Math.round((i+wm+smA)*(1+mb+kM.v)),sn0=WNAME2K[S.weapon],bal=sn0&&wInfo(sn0).en.indexOf('rune09')>=0,balP=0,balM=0;
   if(bal){var hi=Math.max(P0,M0),lo=Math.min(P0,M0),ad=Math.max(0,Math.min(Math.round(hi*0.5),hi-lo));if(P0>M0)balM=ad;else if(M0>P0)balP=ad}
   var balL=function(isP){var x=isP?balP:balM;return x?['符文 平衡之機會：較高者（'+(isP?'魔攻 '+M0:'物攻 '+P0)+'）的 50% 補到這邊 → +'+x]:[]};
   var L=[];
-  var hpL=10*Math.max(0,S.lv-1),hpBase=v*5+hpL;
-  L.push(['生命力',Math.round(hpBase*(1+hpb+wh+kH.v)),['體質 '+v+' × 5 = '+v*5].concat(hpL?['人物等級 Lv '+S.lv+'：10 × '+(S.lv-1)+' = +'+hpL]:[]).concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat(kH.L).concat((hpb||wh||kH.v)?['百分比加成合計 +'+pct(hpb+wh+kH.v)+' → +'+Math.round(hpBase*(hpb+wh+kH.v))]:[])]);
+  var hpL=10*Math.max(0,S.lv-1),ahA=Math.round(g*kAH.v*5),hpBase=v*5+hpL+ahA;
+  L.push(['生命力',Math.round(hpBase*(1+hpb+wh+kH.v)),['體質 '+v+' × 5 = '+v*5].concat(hpL?['人物等級 Lv '+S.lv+'：10 × '+(S.lv-1)+' = +'+hpL]:[]).concat(kAH.L.map(function(x){return x+'：敏捷 '+g+' × '+pct(kAH.v)+' × 5 = +'+ahA})).concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat(kH.L).concat((hpb||wh||kH.v)?['百分比加成合計 +'+pct(hpb+wh+kH.v)+' → +'+Math.round(hpBase*(hpb+wh+kH.v))]:[])]);
   L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(vpA?['技能 血氣昇華：體質 '+v+' × '+pct(kVP.v)+' = +'+vpA]:[]).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(kP.L).concat(kP.v?['技能加成合計 +'+pct(kP.v)+' → +'+Math.round((s+wp)*kP.v)]:[]).concat(balL(true))]);
   L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(smA?['技能 權能協調：力量 '+s+' × '+pct(kSM.v)+' = +'+smA]:[]).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(kM.L).concat(kM.v?['技能加成合計 +'+pct(kM.v)+' → +'+Math.round((i+wm)*kM.v)]:[]).concat(balL(false))]);
   L.push(['物理傷害加成',pct(wsum('p_damage_rate')+kPD.v),['基礎 0%'].concat(wline('p_damage_rate','物理傷害加成')).concat(kPD.L)]);

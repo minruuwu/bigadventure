@@ -56,3 +56,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 元素屏障,buff,frost_res_rate,0.3,,,,
 元素屏障,buff,lightning_res_rate,0.3,,,,
 元素屏障,buff,wind_res_rate,0.3,,,,
+纏繞,debuff,eva_rate,-0.3,,,,閃避率 −30%
+蓄力,buff,p_atk_rate,1.2,,,,物理攻擊力 +120%，下次出傷害招（含普通攻擊）後消失；多段攻擊每一下都有效；重複施放不疊加
