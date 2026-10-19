@@ -233,12 +233,14 @@ var BG={
  H:{src:AS+'bg_09.png?v=2',fg:AS+'fg_09.png?v=2',band:96,bw:564,bh:140,sky:'cave',fx:'castle'}};
 var SCN=[['A','怪物森林'],['B','魔晶礦洞'],['C','塵嵐荒漠'],['F','幽暗墓穴'],['E','凜冬雪山'],['H','聖教城領'],['D','熔岩火原'],['G','惡魔王城']];
 var cur='A',off=0,lastNow=0,CLD=[];
-/* 我方站位（全隊 4 人）：右排 1（下）2（上）、左排 3（下）4（上），上排略往右錯開 */
-var COL=[50,55,26,31],ROW=[30,10,30,10],LEFT=[0,0,0,0];
-function posOf(i){return [COL[i],BG[cur].band+ROW[i]-(LEFT[i]?1.9:0)]}
-/* 怪物站位：右排（離我方較遠）由中、下、上放 1、2、3，左排夾在空隙放 5（上）、4（下）；Boss 一定在 1 號位，王關的小怪先站左排（5、4）免得被 Boss 擋住 */
-var MSLOT=[[130,18],[132,34],[128,2],[104,26],[106,10]];
-function mslots(ms){var hasBoss=ms.some(function(m){return m.boss}),q=0,ord=hasBoss?[4,3,1,2]:[0,1,2,3,4];return ms.map(function(m){return hasBoss&&m.boss?MSLOT[0]:MSLOT[ord[Math.min(q++,ord.length-1)]]})}
+/* 我方站位：依人數 1～4 各有站法，[x, 往下位移]；0 號是隊長，前排在右邊（靠近怪物），故意錯落不排成方陣 */
+var PFORM={1:[[46,20]],2:[[52,27],[36,8]],3:[[56,22],[41,4],[30,33]],4:[[58,22],[46,3],[35,34],[22,14]]};
+function posOf(i){var F=PFORM[Math.max(1,Math.min(4,party.length||1))],q=F[Math.min(i,F.length-1)];return [q[0],BG[cur].band+q[1]]}
+/* 怪物站位：依隻數 1～5 各有站法，前排在左邊（靠近我方）；有 Boss 時 Boss 站最後面中間，小怪都站在 Boss 前面免得被擋住 */
+var MFORM={1:[[120,20]],2:[[132,28],[108,8]],3:[[138,12],[119,33],[102,5]],4:[[141,25],[127,3],[110,34],[97,14]],5:[[143,14],[133,34],[124,0],[108,22],[94,5]]};
+var BFORM={1:[[124,20]],2:[[134,20],[104,14]],3:[[136,20],[106,34],[98,6]],4:[[137,20],[109,34],[95,20],[104,2]],5:[[139,20],[113,34],[94,27],[104,7],[90,0]]};
+function mslots(ms){var n=Math.max(1,Math.min(5,ms.length)),bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});
+  if(bi<0)return ms.map(function(m,i){return MFORM[n][Math.min(i,n-1)]});var q=1;return ms.map(function(m,i){return i===bi?BFORM[n][0]:BFORM[n][Math.min(q++,n-1)]})}
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
 var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[];
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
