@@ -83,3 +83,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 英雄之歌,buff,m_damage_rate,0.25,,,,
 亂步,debuff,hit_rate,-0.3,,,,命中率 −30%
 魅惑,debuff,charm,,,,,照原本排到的技能出手但敵我相反：傷害技打自己的同伴，增益技放在對方；場上只剩自己時傷害技跳過
+秘術護罩,buff,shield,2,m_atk,,,吸收施放者魔法攻擊力 200% 的物理與魔法傷害（施放當下計算；再放一次刷新，不疊加）
+放逐,debuff,banish,2.1,m_atk,,m,跳過行動、不受傷害也不造成傷害，身上其他狀態暫停；回來時受到施放者魔法攻擊力 210% 的魔法傷害（可暴擊）；對 Boss 無效

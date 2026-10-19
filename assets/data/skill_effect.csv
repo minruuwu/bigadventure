@@ -159,3 +159,9 @@ skill167,奉獻詩歌,cost,,self,,,hp_cur,0.5,,,,,,
 skill167,奉獻詩歌,heal,,ally_others,,,,3,sacrificed_hp,,,,,
 skill168,放浪小步舞曲,status,亂步,enemy_all,2,1,,,,,,,,
 skill170,舞台魅力,passive,魅惑,enemy_single,1,,apply_status,,,,,attack,0.1,not_boss
+skill172,祕法專研,passive,,,,,m_damage_rate,0.1,,,,,,
+skill174,祕法共振,heal,,ally_single,,,,1,m_atk,,,,,lowest_hp
+skill175,引導靈光,passive,,ally_all,,,m_damage_rate,0.08,,,,,,
+skill176,秘術守衛,status,秘術護罩,self,3,1,,,,,,,,
+skill178,秘法裂隙,status,放逐,enemy_single,2,1,,,,,,,,
+skill179,知識累積,passive,,,,,exp_bonus,1.5,,,,win,0.5,leader
