@@ -595,8 +595,9 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
   if(B.saved)return;
   if(demo){$('rsave').textContent='示範模式：不寫入';return}
   $('rok').disabled=true;var bb=B,wait=Math.max(0,lastAdv()+21000-Date.now());
-  setTimeout(function(){withFB(function(FB){FB.advWin(req).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;if(req.cookie)me.cookies=(me.cookies|0)+1;if(req.clear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=req.clear}
-    var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入）';$('rok').disabled=false})})},wait)}
+  var tries=0;function put(){tries++;withFB(function(FB){FB.advWin(req).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;if(req.cookie)me.cookies=(me.cookies|0)+1;if(req.clear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=req.clear}
+    var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){if(tries<2&&e&&e.code==='permission-denied'){var q0=$('rsave');if(q0)q0.textContent='跟上一場隔太近，稍等一下自動重存…';setTimeout(put,22000);return}
+    var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入）';$('rok').disabled=false})})}setTimeout(put,wait)}
 $('rok').addEventListener('click',function(){curClear();showView('map')});
 /* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
 function resume(o){setLastArea(o.a);PARTS=[];B={ev:o.ev,mons:o.mons,pkl:o.pkl||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
