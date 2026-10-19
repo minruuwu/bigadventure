@@ -115,3 +115,12 @@ skill113,自然之絆,job08,12,combat,enemy_all,,damage,,,p,nature,1.2,,,,,smash
 skill114,蓄力,job08,15,combat,self,,buff,,,,,,,,,物理攻擊力 +120%，持續到下次攻擊,,
 skill115,三重箭,job08,20,combat,enemy_single,random,damage,,,p,,0.8,,,,,arrow,3
 skill116,自然之心,job08,25,passive,,,passive,,,,,,,,,敏捷的 10% × 5 加到生命力上,,
+skill117,高階恢復術,job09,1,combat,ally_single,lowest_hp,heal,,,m,,1.8,,,,,,
+skill118,治療專精,job09,3,passive,,,passive,,,,,,,,,治療恢復量 +30%（只加成施放當下的恢復，對持續回血無效）,,
+skill119,天罰,job09,5,combat,enemy_all,,damage,,,m,light,1.6,,,,,smash,
+skill120,禮讚禱言,job09,8,combat,ally_single,prefer_without_status,heal,,,m,,1,,,,,,
+skill121,神恩,job09,10,passive,,,passive,,,,,,,,,死亡時 10% 機率以 10% 生命復活（一場最多一次；復活時清除所有增益與減益）,,
+skill122,淨化禱言,job09,12,combat,ally_single,prefer_with_debuff,heal,,,m,,0.5,,,,清除所有減益,,
+skill123,輝光枷鎖,job09,15,combat,enemy_single,random,damage,,,m,light,1.8,,,,,missile,
+skill124,神輝治療術,job09,20,combat,ally_all,,heal,,,m,,1.5,,,,,,
+skill125,啟蒙,job09,25,passive,,,passive,,,,,,,,,智力的 5% × 5 加到生命力上,,

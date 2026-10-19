@@ -99,7 +99,7 @@
     if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * 0.5), hi - lo)); if (P0 > M0) balM = ad; else if (M0 > P0) balP = ad }
     var r5 = rOn('rune05') ? 0.2 : 0;
     return [
-      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1) + Math.round(a * skPas(p, 'agi_to_hp') * 5)) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate')))],
+      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1) + Math.round(a * skPas(p, 'agi_to_hp') * 5) + Math.round(i * skPas(p, 'int_to_hp') * 5)) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate')))],
       ['patk', '物理攻擊力', P0 + balP],
       ['matk', '魔法攻擊力', M0 + balM],
       ['pdmg', '物理傷害加成', pct(wsum('p_damage_rate') + skPas(p, 'p_damage_rate'))],
