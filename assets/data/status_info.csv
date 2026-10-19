@@ -79,3 +79,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 武器研磨,buff,p_damage_rate,0.5,,,,物理增傷 +50%
 武器損壞,debuff,p_damage_rate,-0.2,,,,物理增傷 −20%
 法器損壞,debuff,m_damage_rate,-0.2,,,,魔法增傷 −20%
+英雄之歌,buff,p_damage_rate,0.25,,,,物理增傷 +25%、魔法增傷 +25%
+英雄之歌,buff,m_damage_rate,0.25,,,,
+亂步,debuff,hit_rate,-0.3,,,,命中率 −30%
+魅惑,debuff,charm,,,,,照原本排到的技能出手但敵我相反：傷害技打自己的同伴，增益技放在對方；場上只剩自己時傷害技跳過

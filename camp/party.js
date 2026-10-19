@@ -84,7 +84,8 @@
     for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || (jl[k.j] | 0) < k.lv) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
     return t
   }
-  function combat(p) {
+  function combat(p, allies) {
+    if (allies == null) allies = p._allies != null ? p._allies : Math.min(5, (p.party || []).length); var apa = skPas(p, 'atk_per_ally') * allies; /* 觀眾熱情：每位隊友 +x% 物攻、魔攻 */
     var D = STAT || { attr: {}, grow: {} }, sn = jobSn(p), K = ['str', 'int', 'agi', 'vit', 'luk'], T = {}, jl = p.jobLv || {}, al = p.alloc || {};
     var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, en = Array.isArray(wd.ench) ? wd.ench : [], pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
@@ -95,7 +96,7 @@
       for (var u = 1; u <= 3; u++) { if (row['temper_stat_' + u] !== key || !pts[u - 1]) continue; t += (parseFloat(row['temper_per_point_' + u]) || 0) * pts[u - 1] / 100 } return t }
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(C.petinfo).forEach(function (id) { var pi = C.petinfo[id]; if (pi.stat !== stat) return; t += pi.per * Math.max(0, Math.min(10, ((pe[id] || {}).lv) | 0)) }); return t }
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk;
-    var P0 = Math.round((s + wsum('p_atk') + Math.round(v * skPas(p, 'vit_to_p_atk'))) * (1 + pb + skPas(p, 'p_atk_rate'))), M0 = Math.round((i + wsum('m_atk') + Math.round(s * skPas(p, 'str_to_m_atk'))) * (1 + mb + skPas(p, 'm_atk_rate'))), balP = 0, balM = 0;
+    var P0 = Math.round((s + wsum('p_atk') + Math.round(v * skPas(p, 'vit_to_p_atk'))) * (1 + pb + skPas(p, 'p_atk_rate') + apa)), M0 = Math.round((i + wsum('m_atk') + Math.round(s * skPas(p, 'str_to_m_atk'))) * (1 + mb + skPas(p, 'm_atk_rate') + apa)), balP = 0, balM = 0;
     if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * 0.5), hi - lo)); if (P0 > M0) balM = ad; else if (M0 > P0) balP = ad }
     var r5 = rOn('rune05') ? 0.2 : 0;
     return [
@@ -108,7 +109,7 @@
       ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5 + skPas(p, 'crit_rate'))],
       ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + (r5 ? 1 : 0) + skPas(p, 'crit_damage_rate'))],
       ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? 0.2 : 0) + skPas(p, 'p_reduce_rate'))],
-      ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0) + skPas(p, 'm_reduce_rate'))]]
+      ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0) + skPas(p, 'm_reduce_rate'))]].concat(skPas(p, 'atk_per_ally') ? [['patk', '觀眾熱情', '隊友 ' + allies + ' 人 → 物攻魔攻 +' + pct(apa)]] : [])
   }
   function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']) + skPas(p, r[0] + '_res_rate'), 0.75))] }) }
   function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>' }
@@ -215,6 +216,7 @@
         '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
         '<div class="ptabs"></div><div class="pn"></div>';
+      p._allies = Math.min(5, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */
       mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'res', 'job']);
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
