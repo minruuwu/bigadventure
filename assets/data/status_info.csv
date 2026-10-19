@@ -43,3 +43,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 強化護甲,buff,p_reduce_rate,0.1,,,,物理減傷 +10%、魔法減傷 +10%
 強化護甲,buff,m_reduce_rate,0.1,,,,
 戒律,buff,crit_rate,0.1,,,,暴擊率 +10%
+利刃,buff,p_damage_rate,0.1,,,,物理增傷 +10%、魔法增傷 +10%、暴擊率 +10%
+利刃,buff,m_damage_rate,0.1,,,,
+利刃,buff,crit_rate,0.1,,,,

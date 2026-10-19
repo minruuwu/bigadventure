@@ -79,3 +79,12 @@ skill077,復仇詛咒,job17,10,reaction,,,reaction,,,,,,,,,10%機率對物理魔
 skill078,戒律,job18,10,reaction,,,reaction,,,,,,,,,50%機率獲得「戒律」：暴擊率+10%，持續1回合,
 skill079,影步,job19,10,reaction,,,reaction,,,,,,,,,15%機率擋下物理攻擊,
 skill080,靈性守護,job20,10,reaction,,,reaction,,,,,,,,,15%機率擋下魔法攻擊,
+skill081,龍炎刃,job11,1,combat,enemy_single,random,damage,,,p,fire,1.5,m,fire,0.5,,slash
+skill082,冰冽斬,job11,5,combat,enemy_single,random,damage,,,p,frost,1.4,m,frost,0.7,,slash
+skill083,疾風牙,job11,8,combat,enemy_single,random,damage,,,p,wind,1.7,m,wind,0.6,,slash
+skill084,雷神震,job11,12,combat,enemy_all,,damage,,,p,lightning,1.2,m,lightning,0.5,每個目標15%機率麻痺1回合,slash
+skill085,利刃術,job11,15,combat,self,,buff,,,,,,,,,物理魔法增傷+10%、暴擊率+10%,
+skill086,奧術光刃,job11,20,combat,enemy_single,random,damage,,,p,light,2,m,light,0.5,,slash
+skill087,魔刃共鳴,job11,3,passive,,,passive,,,,,,,,,物理攻擊力+5%、魔法攻擊力+5%,
+skill088,奧術護甲,job11,10,passive,,,passive,,,,,,,,,物理減傷+3%、魔法減傷+3%,
+skill089,權能協調,job11,25,passive,,,passive,,,,,,,,,力量的15%加到魔法攻擊力,
