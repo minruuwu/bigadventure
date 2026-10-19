@@ -356,9 +356,9 @@ function drawVfx(t){shakeY=0;if(!B)return;
         if(r4>=0&&r4<=1){var e4=r4*r4*(3-2*r4);pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(cx4,ty4);pctx.beginPath();pctx.rect(-tw/2,-th,tw*e4+1,th*2);pctx.clip();pctx.scale(1,sq4);pctx.rotate(rot4);pctx.globalAlpha=TA;pctx.drawImage(ti4,-tw/2-tw*(1-e4)*.4,-th/2,tw,th);pctx.restore()}
         else if(f4>=0&&f4<=1){pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(cx4+f4*3*U,ty4);pctx.scale(1,sq4);pctx.rotate(rot4);pctx.globalAlpha=TA*(1-f4);pctx.drawImage(ti4,-tw/2,-th/2,tw,th);pctx.restore()}}
       else if(wk==='dagger'||wk==='spear'){var u4=(d-150)/180;if(u4>=0&&u4<=1){var len=wk==='spear'?40:24,x1=hx-4,f=Math.min(1,u4*2),x0=x1-len*f*f*(3-2*f),a4=1-Math.max(0,(u4-.5)*2);for(var x4=x0;x4<=x1;x4+=.5){VP(x4,hy,c,a4);if(x4-x0>len*.5)VP(x4,hy-1,c,a4*.5)}for(var i4=0;i4<4;i4++)VP(x1+i4,hy,'#ffffff',a4);VP(x1+2,hy-2,'#ffffff',a4);VP(x1+2,hy+2,'#ffffff',a4)}}
-      else if(wk==='hammer'){var u5=(d-130)/90;if(u5>=0&&u5<=1){var y5=hy-30+28*u5;for(var i5=0;i5<8;i5++)VP(hx,y5-i5,c,1-i5/8);VR(hx-2,y5-1,5,3,c,1)}
+      else if(wk==='hammer'){
         var gy=BG[cur].band+mons[ti].dy,smi=vimg(SMASH,e.el);
-        /* 打擊：錘頭落下後，打擊圖在命中點炸開（先快速放大，再淡出約 0.4 秒）；Boss 跟著放大；圖的下緣不低於地面 */
+        /* 打擊：不畫落下的錘頭，打擊圖直接在命中點炸開（先快速放大，再淡出約 0.4 秒）；Boss 跟著放大；圖的下緣不低於地面 */
         if(smi){var v5=(d-220)/420;if(v5>=0&&v5<=1){var scm=mons[ti].sc||1,S5=30*VS*scm*(v5<.15?.65+v5/.15*.35:1+.08*(v5-.15)),cy5=Math.min(hy,gy-S5*.45),al5=v5<.5?1:1-(v5-.5)/.5;
             pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=al5;pctx.drawImage(smi,(hx-S5/2)*U,(cy5-S5/2)*U,S5*U,S5*U);pctx.restore()}}
         else{var v5=(d-220)/380;if(v5>=0&&v5<=1){var R5=4+v5*16;for(var k5=0;k5<40;k5++){var an5=k5/40*Math.PI*2;VP(hx+Math.cos(an5)*R5,gy-1+Math.sin(an5)*R5*.3,c,1-v5)}}}
