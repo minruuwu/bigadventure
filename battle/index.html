@@ -300,7 +300,7 @@ function tick(now){
 }
 /* ---- 攻擊特效（依武器種類；顏色：普攻白／魔法淡紫、無屬性技能淡金、有屬性用屬性色） ---- */
 /* 特效圖編號：00 無屬性、01 火焰、02 冰霜、03 雷電、04 疾風、05 自然、06 光明、07 黑暗 */
-var ELN={'':0,fire:1,frost:2,lightning:3,wind:4,nature:5,light:6,dark:7},SLASH=[],ARROW=[],MISSILE=[];
+var ELN={'':0,fire:1,frost:2,lightning:3,wind:4,nature:5,light:6,dark:7},SLASH=[],ARROW=[],MISSILE=[],THRUST=[];
 function vimg(L,el){var i=L[ELN[el]||0];return i&&i.naturalWidth?i:(L[0]&&L[0].naturalWidth?L[0]:null)}
 var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'}},FARK=['bow','staff','book','throw'];
 var WKIND={'劍':'sword','斧':'axe','錘':'hammer','匕':'dagger','槍':'spear','弓':'bow','杖':'staff','書':'book'};
@@ -334,6 +334,10 @@ function drawVfx(t){shakeY=0;if(!B)return;
           pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1;pctx.translate(P0[0]*U,P0[1]*U);pctx.rotate(ang3+Math.PI/4);pctx.drawImage(mi,-sz3*.75,-sz3*.25,sz3,sz3);pctx.restore()}}
       else if(wk==='staff'||wk==='book'){var u3=(d-60)/230;if(u3>=0&&u3<=1){var e3=u3*u3*(3-2*u3),x3=sx+(hx-sx)*e3,y3=sy+(hy-sy)*u3-Math.sin(u3*Math.PI)*4;
           for(var i3=6;i3>=1;i3--)VO(x3-i3*3.2,y3,Math.max(1,4-i3*.5),Math.max(1,Math.round(3-i3*.35)),c,.1*(7-i3));VO(x3,y3,4,3,c,1);VO(x3+1,y3,2,2,'#ffffff',1)}}
+      else if((wk==='dagger'||wk==='spear')&&vimg(THRUST,e.el)){var ti4=vimg(THRUST,e.el),r4=(d-150)/120,f4=(d-270)/220,tw=(wk==='spear'?34:24)*U,th=24*.7*U,tipx=(hx+6)*U,ty4=hy*U;
+        /* 刺擊：從尾端往槍尖方向伸出，再淡出；圖垂直壓扁到 70% */
+        if(r4>=0&&r4<=1){var e4=r4*r4*(3-2*r4);pctx.save();pctx.imageSmoothingEnabled=false;pctx.beginPath();pctx.rect(tipx-tw,ty4-th,tw*e4+1,th*2);pctx.clip();pctx.globalAlpha=1;pctx.drawImage(ti4,tipx-tw-tw*(1-e4)*.4,ty4-th/2,tw,th);pctx.restore()}
+        else if(f4>=0&&f4<=1){pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1-f4;pctx.drawImage(ti4,tipx-tw+f4*3*U,ty4-th/2,tw,th);pctx.restore()}}
       else if(wk==='dagger'||wk==='spear'){var u4=(d-150)/180;if(u4>=0&&u4<=1){var len=wk==='spear'?40:24,x1=hx-4,f=Math.min(1,u4*2),x0=x1-len*f*f*(3-2*f),a4=1-Math.max(0,(u4-.5)*2);for(var x4=x0;x4<=x1;x4+=.5){VP(x4,hy,c,a4);if(x4-x0>len*.5)VP(x4,hy-1,c,a4*.5)}for(var i4=0;i4<4;i4++)VP(x1+i4,hy,'#ffffff',a4);VP(x1+2,hy-2,'#ffffff',a4);VP(x1+2,hy+2,'#ffffff',a4)}}
       else if(wk==='hammer'){var u5=(d-130)/90;if(u5>=0&&u5<=1){var y5=hy-30+28*u5;for(var i5=0;i5<8;i5++)VP(hx,y5-i5,c,1-i5/8);VR(hx-2,y5-1,5,3,c,1)}
         var v5=(d-220)/380;if(v5>=0&&v5<=1){var gy=BG[cur].band+mons[ti].dy,R5=4+v5*16;for(var k5=0;k5<40;k5++){var an5=k5/40*Math.PI*2;VP(hx+Math.cos(an5)*R5,gy-1+Math.sin(an5)*R5*.3,c,1-v5)}}
@@ -577,12 +581,12 @@ function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,6).map(function(p){return p.name}).join('、');
   $('loading').remove();renderTabs();showView('map')}
-Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=2')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=1')})).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
+Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=2')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||''}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   var m=r[4];if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}
-  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];for(var vi=0;vi<8;vi++){SLASH[vi]=r[14+vi];ARROW[vi]=r[22+vi];MISSILE[vi]=r[30+vi]}
+  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];for(var vi=0;vi<8;vi++){SLASH[vi]=r[14+vi];ARROW[vi]=r[22+vi];MISSILE[vi]=r[30+vi];THRUST[vi]=r[38+vi]}
   return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})
 }).then(function(){
   if(VFXT){vtStart();return}
