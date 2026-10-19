@@ -566,29 +566,43 @@ function realBattle(a,l){
 function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||(r[q[0]]={v:0,by:{}}),k=q[3]||'其他',b=o.by[k]||(o.by[k]={v:0,c:0});o.v+=q[2];b.v+=q[2];b.c++});if(btab!=='log')renderStats();var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);box.appendChild(d);
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});[].concat(e.pko==null?[]:e.pko).forEach(function(i){box.appendChild(el('div','lg ko',MEMB[i].name+' 倒下了'))});
   box.scrollTop=box.scrollHeight}
-function startBattle(a,l){setLastArea(a);PARTS=[];B=realBattle(a,l);B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
+function startBattle(a,l){setLastArea(a);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
-function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
-  var box=$('bres');box.hidden=false;$('rok').disabled=false;
-  if(!w){$('rtxt').innerHTML='這場沒有獎勵，下次再挑戰吧。';$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});return}
-  var r=stageReward(B.a,B.l),bx=[],sp=(B.lead&&B.lead.special)||[];
+/* ---- 獎勵：開戰時就決定好（加成、餅乾的機率在這裡擲），結果出來時才寫入 ---- */
+function makeReq(b){if(b.res!=='win')return null;var r=stageReward(b.a,b.l),bx=[],sp=(b.lead&&b.lead.special)||[];
   function roll(k){var x=sp.filter(function(q){return q.k===k})[0];return x&&Math.random()<x.ch?x:null}
   var eb=roll('exp_bonus'),fb=roll('forge_bonus'),exp=r.exp,st=r.stones;
   if(eb){exp=Math.ceil(exp*eb.v);bx.push('知識累積：經驗 ×'+eb.v)}if(fb){st=Math.ceil(st*fb.v);bx.push('鍛造專精：鍛造石 ×'+fb.v)}
-  var cookie=Math.random()<0.01,mem=MEMB.slice(1,6),me=MEMB[0],cl=cleared(B.a),newClear=B.l>cl?B.l:0;
-  var mail=mem.map(function(p){return{to:p.uid,exp:Math.ceil(exp*0.1),stones:Math.ceil(st*0.05)}}).filter(function(m){return m.to&&(me.party||[]).indexOf(m.to)>=0});
-  var h='獲得 經驗 <b>'+exp+'</b>、鍛造石 <b>'+st+'</b>'+(cookie?'、寵物餅乾 <b>1</b>':'')+(bx.length?'<br><small>'+bx.join('、')+'</small>':'')+
+  var me=MEMB[0],cl=cleared(b.a),newClear=b.l>cl?b.l:0;
+  var share=MEMB.slice(1,6).map(function(p){return{to:p.uid,exp:Math.ceil(exp*0.1),stones:Math.ceil(st*0.05)}}).filter(function(m){return m.to&&(me.party||[]).indexOf(m.to)>=0});
+  return{area:AREAID[b.a],stage:b.l,exp:exp,stones:st,cookie:Math.random()<0.01,clear:newClear,name:me.name,share:share,bx:bx}}
+/* ---- 戰鬥暫存：切到別頁再回來時接著播（離開期間戰鬥照樣進行）；只存在這台裝置，不碰資料庫 ---- */
+var CURK='adv.cur',KEEP=30*60*1000;
+function curSave(){if(!B)return;try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,ev:B.ev,mons:B.mons,pkl:B.pkl,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
+function curClear(){try{localStorage.removeItem(CURK)}catch(e){}}
+function curLoad(){try{var o=JSON.parse(localStorage.getItem(CURK)||'null');if(!o||!o.wall||Date.now()-o.wall>KEEP||!MEMB[0]||o.uid!==MEMB[0].uid){curClear();return null}return o}catch(e){return null}}
+function lastAdv(){try{return parseInt(localStorage.getItem('adv.last'),10)||0}catch(e){return 0}}
+function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}}
+function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
+  var box=$('bres');box.hidden=false;$('rok').disabled=false;
+  if(!w){$('rtxt').innerHTML='這場沒有獎勵，下次再挑戰吧。';curClear();$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});return}
+  var req=B.req||(B.req=makeReq(B)),me=MEMB[0],mail=req.share||[];
+  var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+
     (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地信件領取）':'')+
-    (newClear&&B.l<10?'<br>解鎖第 '+(B.l+1)+' 關':newClear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">獎勵寫入中…</small>';
-  $('rtxt').innerHTML=h;$('rok').disabled=true;
-  if(demo){$('rsave').textContent='示範模式：不寫入';$('rok').disabled=false;return}
-  var wait=Math.max(0,LASTADV+21000-Date.now()),req={area:AREAID[B.a],stage:B.l,exp:exp,stones:st,cookie:cookie,clear:newClear,name:me.name,share:mail};
-  setTimeout(function(){withFB(function(FB){FB.advWin(req).then(function(){LASTADV=Date.now();me.exp=(me.exp|0)+exp;me.stones=(me.stones|0)+st;if(cookie)me.cookies=(me.cookies|0)+1;if(newClear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=newClear}
-    var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入）';$('rok').disabled=false})})},wait);
-  $('frame').scrollIntoView({block:'nearest',behavior:'smooth'})}
-var LASTADV=0;
-$('rok').addEventListener('click',function(){showView('map')});
+    (req.clear&&B.l<10?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
+  $('rtxt').innerHTML=h;$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});
+  if(B.saved)return;
+  if(demo){$('rsave').textContent='示範模式：不寫入';return}
+  $('rok').disabled=true;var bb=B,wait=Math.max(0,lastAdv()+21000-Date.now());
+  setTimeout(function(){withFB(function(FB){FB.advWin(req).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;if(req.cookie)me.cookies=(me.cookies|0)+1;if(req.clear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=req.clear}
+    var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入）';$('rok').disabled=false})})},wait)}
+$('rok').addEventListener('click',function(){curClear();showView('map')});
+/* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
+function resume(o){setLastArea(o.a);PARTS=[];B={ev:o.ev,mons:o.mons,pkl:o.pkl||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
+  B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
+  showView('battle');$('bhead').textContent=AREA[o.a].n+'　第 '+o.l+' 關'+(o.l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
+  setBG(AREA[o.a].bg);build();B.t0=performance.now()-(Date.now()-o.wall);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
 var btab='log',STL={dmg:'造成傷害',taken:'承受傷害',heal:'恢復生命'};
 function setBTab(v){btab=v;[].forEach.call($('btabs').children,function(b){var on=b.getAttribute('data-v')===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});$('log').hidden=v!=='log';$('stats').hidden=v==='log';if(v!=='log')renderStats()}
 $('btabs').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setBTab(b.getAttribute('data-v'))});
@@ -643,7 +657,7 @@ function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json(
 function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,6).map(function(p){return p.name}).join('、');
-  $('loading').remove();renderTabs();showView('map')}
+  $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
 Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=4')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=3')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).concat([loadPx(BASE+'vfx/claw.png?v=1')]).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];ENG=BattleEngine.prepare({weapon_info:csv[0],skill_info:csv[3],skill_effect:csv[4],status_info:csv[5],job_attribute:csv[6],job_level_up:csv[7],pet_info:csv[8],monster_info:csv[9],stage_info:csv[10]});CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
