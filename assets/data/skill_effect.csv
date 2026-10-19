@@ -118,3 +118,10 @@ skill130,劍精通,passive,,,,,crit_rate,0.1,,,,,,weapon01
 skill130,劍精通,passive,,,,,crit_damage_rate,0.5,,,,,,weapon01
 skill131,劍氣蕩漾,status,劍氣,self,3,1,,,,,,,,
 skill134,人劍合一,passive,,,,,p_atk_to_hp,0.05,,,,,,weapon01
+skill136,書專精,passive,,,,,m_atk_rate,0.08,,,,,,weapon08
+skill137,生命脈衝,heal,,ally_all,,,,0.8,m_atk,,,,,
+skill138,水銀奔流,status,汞中毒,enemy_all,3,1,,,,,,,,
+skill139,原理,passive,,,,,crit_damage_rate,0.5,,,,,,
+skill140,零度反應,status,凍結,enemy_all,2,0.5,,,,,,,,
+skill141,分析弱點,status,透析,enemy_single,3,1,,,,,,,,
+skill143,定律,passive,,,,,m_damage_rate,0.1,,,,,,

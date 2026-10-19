@@ -66,3 +66,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 凍足,debuff,eva_rate,-0.2,,,,閃避率 −20%
 劍氣,buff,p_damage_rate,0.4,,,,物理增傷 +40%、閃避率 +15%
 劍氣,buff,eva_rate,0.15,,,,
+汞中毒,debuff,dot,0.3,m_atk,,m,每回合造成施加者魔法攻擊力 30% 的魔法傷害
+凍結,debuff,stun,,,,,跳過行動（同麻痺）
+透析,debuff,dmg_taken_rate,0.5,,,,受到傷害 +50%
