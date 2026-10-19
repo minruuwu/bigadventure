@@ -91,3 +91,12 @@ skill095,榮耀打擊,status,戰意,ally_all,3,1,,,,,,,,
 skill096,斧專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon02
 skill097,劍專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon01
 skill098,血氣昇華,passive,,,,,vit_to_p_atk,0.1,,,,,,
+skill101,龍捲塵沙嵐,status,目盲,enemy_all,2,0.2,,,,,,,,
+skill102,元素屏障,status,元素屏障,self,3,1,,,,,,,,
+skill103,魔力紊亂,status,封禁,enemy_single,3,1,,,,,,,,
+skill105,魔力增幅,passive,,,,,m_damage_rate,0.1,,,,,,
+skill106,杖專精,passive,,,,,m_atk_rate,0.08,,,,,,weapon07
+skill107,元素護體,passive,,,,,fire_res_rate,0.1,,,,,,
+skill107,元素護體,passive,,,,,frost_res_rate,0.1,,,,,,
+skill107,元素護體,passive,,,,,lightning_res_rate,0.1,,,,,,
+skill107,元素護體,passive,,,,,wind_res_rate,0.1,,,,,,

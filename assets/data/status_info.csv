@@ -52,3 +52,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 英勇,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
 怒意,buff,p_damage_rate,0.4,,,,物理增傷 +40%
 戰意,buff,p_atk_rate,0.1,,,,物理攻擊力 +10%
+元素屏障,buff,fire_res_rate,0.3,,,,火焰、冰霜、雷電、疾風抗性各 +30%
+元素屏障,buff,frost_res_rate,0.3,,,,
+元素屏障,buff,lightning_res_rate,0.3,,,,
+元素屏障,buff,wind_res_rate,0.3,,,,

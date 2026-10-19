@@ -416,7 +416,7 @@ function skDirty(){return JSON.stringify(skDraft)!==JSON.stringify(skValid(S.ski
 function skEl(sk){var e=sk&&sk.e;return e&&SKEL[e]?'<img class="ske" alt="'+SKEL[e]+'" title="'+SKEL[e]+'" src="../assets/icons/stats/res_'+e+'.png?v=5" onerror="this.remove()">':''}
 function skSlot(no,id,attr){var sk=id?skGet(id):null;return '<button class="sks" type="button" '+attr+'><span class="no">'+no+'</span>'+skIcon(sk)+'<span class="nm3">'+(sk?esc(sk.n)+skEl(sk):'（空）')+'<small>'+(sk?esc(skDesc(sk)):'點一下選擇技能')+'</small></span></button>'}
 function skPicker(){var g=skPick.g,k={c:'combat',r:'reaction',p:'passive'}[g],D=skDraft,used=g==='c'?D.combat:g==='p'?D.passive:[D.reaction],here=g==='c'?D.combat[skPick.i]:g==='p'?D.passive[skPick.i]:D.reaction;
-  var L=SKORDER.map(function(id){return SKILL[id]}).filter(function(sk){return sk.k===k&&skLearned(sk)&&(g!=='c'||skFlt==='all'||sk.ty===skFlt)});
+  var L=SKORDER.map(function(id){return SKILL[id]}).filter(function(sk){return sk.k===k&&skLearned(sk)&&(g!=='c'||skFlt==='all'||sk.ty===skFlt||(skFlt==='buff'&&sk.ty==='debuff'))});
   var h='<div class="cfm" role="dialog" aria-modal="true"><div class="box skp"><button class="x" data-a="skclose" type="button" aria-label="關閉">✕</button><h3 class="bold">選擇'+SKKN[k]+'技能'+(g==='r'?'':'（第 '+(skPick.i+1)+' 格）')+'</h3>';
   if(g==='c')h+='<div class="skf">'+[['all','全部'],['damage','傷害'],['buff','支援'],['heal','恢復']].map(function(f){return '<button type="button" data-a="skflt" data-v="'+f[0]+'" class="'+(skFlt===f[0]?'on':'')+'">'+f[1]+'</button>'}).join('')+'</div>';
   h+='<div class="skpl">';var showAtk=g==='c'&&(skFlt==='all'||skFlt==='damage');

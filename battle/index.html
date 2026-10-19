@@ -502,7 +502,7 @@ function simulate(a,l){var N=stageNo(a,l),boss=l===10,winP=Math.max(.45,.95-N*.0
     order.forEach(function(o){if(!aliveM().length||!aliveP().length)return;
       if(o[0]==='p'){var x=P[o[1]];if(x.hp<=0)return;var s=skillOf(x.p,x.cy++),ww=WKIND[x.p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww,fx={wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,el:s.el||'',ty:s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
         if(s.ty==='heal'){var al=aliveP(),tg=al.reduce(function(b,i){return P[i].hp/P[i].mx<P[b].hp/P[b].mx?i:b},al[0]),amt=rnd(pd,pd*2),eff=Math.min(amt,P[tg].mx-P[tg].hp);P[tg].hp+=eff;ev.push(Object.assign({side:'p',a:o[1],tg:[],hl:tg,txt:x.n+' 使用「'+s.n+'」，'+P[tg].n+' 恢復 '+eff+' 生命',st:[[o[1],'heal',eff,s.n]]},fx));return}
-        if(s.ty==='buff'){ev.push(Object.assign({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」'},fx));return}
+        if(s.ty==='buff'||s.ty==='debuff'){ev.push(Object.assign({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」'},fx));return}
         var am=aliveM(),tgs=s.all?am:[am[rnd(0,am.length-1)]],parts=[],dead=[],sum=0;
         tgs.forEach(function(ti){var m=ms[ti];if(Math.random()<.08){parts.push(m.n+' 閃開了');return}var cr=Math.random()<.15,d=Math.round(pd*(s.all?.7:1)*(.85+Math.random()*.3)*(cr?1.5:1));m.hp-=d;sum+=d;parts.push(m.n+(cr?' 暴擊！':' ')+'受到 '+d+' 傷害');if(m.hp<=0)dead.push(ti)});
         ev.push(Object.assign({side:'p',a:o[1],tg:tgs,txt:x.n+' 使用「'+s.n+'」→ '+parts.join('，'),dead:dead,st:sum?[[o[1],'dmg',sum,s.n]]:[]},fx))}
