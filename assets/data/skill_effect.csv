@@ -82,3 +82,12 @@ skill087,魔刃共鳴,passive,,,,,m_atk_rate,0.05,,,,,,
 skill088,奧術護甲,passive,,,,,p_reduce_rate,0.03,,,,,,
 skill088,奧術護甲,passive,,,,,m_reduce_rate,0.03,,,,,,
 skill089,權能協調,passive,,,,,str_to_m_atk,0.15,,,,,,
+skill090,暴戾斬,status,暈眩,enemy_single,1,0.2,,,,,,,,
+skill091,血腥暴風,status,出血,enemy_all,3,1,,,,,,,,
+skill092,嚎叫,status,嘲諷,self,2,1,,,,,,,,
+skill093,英勇突進,status,英勇,self,2,1,,,,,,,,
+skill094,怒意,status,怒意,self,4,1,,,,,,,,
+skill095,榮耀打擊,status,戰意,ally_all,3,1,,,,,,,,
+skill096,斧專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon02
+skill097,劍專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon01
+skill098,血氣昇華,passive,,,,,vit_to_p_atk,0.1,,,,,,

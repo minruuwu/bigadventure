@@ -95,7 +95,7 @@
       for (var u = 1; u <= 3; u++) { if (row['temper_stat_' + u] !== key || !pts[u - 1]) continue; t += (parseFloat(row['temper_per_point_' + u]) || 0) * pts[u - 1] / 100 } return t }
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(C.petinfo).forEach(function (id) { var pi = C.petinfo[id]; if (pi.stat !== stat) return; t += pi.per * Math.max(0, Math.min(10, ((pe[id] || {}).lv) | 0)) }); return t }
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk;
-    var P0 = Math.round((s + wsum('p_atk')) * (1 + pb + skPas(p, 'p_atk_rate'))), M0 = Math.round((i + wsum('m_atk') + Math.round(s * skPas(p, 'str_to_m_atk'))) * (1 + mb + skPas(p, 'm_atk_rate'))), balP = 0, balM = 0;
+    var P0 = Math.round((s + wsum('p_atk') + Math.round(v * skPas(p, 'vit_to_p_atk'))) * (1 + pb + skPas(p, 'p_atk_rate'))), M0 = Math.round((i + wsum('m_atk') + Math.round(s * skPas(p, 'str_to_m_atk'))) * (1 + mb + skPas(p, 'm_atk_rate'))), balP = 0, balM = 0;
     if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * 0.5), hi - lo)); if (P0 > M0) balM = ad; else if (M0 > P0) balP = ad }
     var r5 = rOn('rune05') ? 0.2 : 0;
     return [
