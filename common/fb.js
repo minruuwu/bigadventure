@@ -72,6 +72,14 @@ const FB = {
   // 鍛造存檔：鍛造石（只能減少）與各武器等級（只能增加）、淬火點數、附魔同一次寫入；lvs = {武器u_sn: {lv,pts,ench}}
   async saveForge(stones, lvs) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { stones }; Object.keys(lvs).forEach(k => { const v = lvs[k]; f['weapons.' + k + '.lv'] = v.lv; f['weapons.' + k + '.pts'] = v.pts; f['weapons.' + k + '.ench'] = v.ench; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], lvs[k]); }); mePatch({ stones, weapons }); },
   // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成累積在自己（隊長）資料的 owe.<隊友uid> 裡，同一次寫入
+  // 存檔前讀一次自己的最新資料：用最新的隊伍名單過濾隊友分成、檢查跟上一場的間隔；失敗時附上判斷到的原因（e.why）
+  async advCheck(r) { await ready; const u = auth.currentUser; if (!u) return {}; const s = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); const d = s.exists() ? s.data() : {};
+    const at = d.advAt && d.advAt.toMillis ? d.advAt.toMillis() : 0, party = d.party || [], why = [];
+    if (at && Date.now() - at < 20000) why.push('距離上一場存檔不到 20 秒');
+    if ((r.share || []).some(m => party.indexOf(m.to) < 0)) why.push('隊伍名單已變動');
+    const cur = ((d.adv || {})[r.area]) | 0; if (r.clear && r.clear > cur + 1) why.push('關卡進度跳太多（資料庫是第 ' + cur + ' 關）');
+    ['exp', 'stones', 'cookies'].forEach(k => { if (d[k] != null && !Number.isInteger(d[k])) why.push(k + ' 不是整數（' + d[k] + '）'); });
+    return { party, at, why }; },
   async advWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { exp: increment(r.exp), stones: increment(r.stones), advAt: serverTimestamp() };
     if (r.cookie) f.cookies = increment(1); if (r.clear) f['adv.' + r.area] = r.clear;
     (r.share || []).forEach(m => { f['owe.' + m.to + '.exp'] = increment(m.exp); f['owe.' + m.to + '.stones'] = increment(m.stones); });
