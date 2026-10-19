@@ -1,12 +1,13 @@
 # 怪物圖
 
-所有怪物圖統一放在這個資料夾，檔名用 `monster_NN`：
+所有怪物圖統一放在這個資料夾，一般怪物檔名用 `monster_NN`，王用 `monster_boss_NN`：
 
 | 編號 | 名稱 | 檔案 |
 |---|---|---|
 | monster_01 | 史萊姆 | `monster_01.png` |
 | monster_02 | 骷髏士兵 | `monster_02.png`（睜眼）、`monster_02_blink.png`（閉眼）、`monster_02.json`（待機起伏、眨眼週期、陰影參數） |
 | monster_03 | 哥布林雜兵 | `monster_03.png`（身體）、`monster_03_blink.png`（眼睛圖層，眨眼時隱藏） |
+| monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 
 規則：
 - 透明背景 PNG，面向左邊（朝向隊伍）。
