@@ -174,3 +174,13 @@ skill185,異界活力,status,異界活力,self,3,1,,,,,,,,
 skill186,死靈低語,status,死靈低語,enemy_all,3,0.5,,,,,,,,
 skill187,邪法矛,bonus,,,,,dmg_per_debuff,0.1,,,,,,max0.5
 skill188,竊取精血,passive,,,,,lifesteal,0.05,,,,,,
+skill189,罪證烙印,status,罪印,enemy_single,3,1,,,,,,,,
+skill190,異端追獵,passive,,,,,crit_damage_rate,0.5,,,,,,
+skill191,制裁之鎖,status,乏力,enemy_all,2,0.3,,,,,,,,
+skill192,拷問,status,出血,enemy_single,3,0.2,,,,,,,,per_hit
+skill193,狂熱靈氣,passive,,ally_all,,,p_damage_rate,0.08,,,,,,
+skill193,狂熱靈氣,passive,,ally_all,,,m_damage_rate,0.08,,,,,,
+skill194,狂信,status,狂信,self,3,1,,,,,,,,
+skill195,異端裁決,bonus,,,,,crit_if_debuffed,0.3,,,,,,
+skill196,處刑,bonus,,,,,sure_crit_low_hp,0.3,,,,,,
+skill197,審判靈氣,passive,,ally_all,,,crit_rate,0.1,,,,,,

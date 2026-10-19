@@ -92,3 +92,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 異界活力,buff,lifesteal,0.1,,,,
 死靈低語,debuff,dmg_taken_rate,0.15,,,,受到傷害 +15%、命中率 −15%
 死靈低語,debuff,hit_rate,-0.15,,,,
+罪印,debuff,crit_taken_rate,0.2,,,,被暴擊率 +20%
+狂信,buff,crit_rate,0.25,,,,暴擊率 +25%、暴擊傷害 +50%
+狂信,buff,crit_damage_rate,0.5,,,,
