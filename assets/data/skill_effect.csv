@@ -89,7 +89,7 @@ skill093,英勇突進,status,英勇,self,2,1,,,,,,,,
 skill094,怒意,status,怒意,self,4,1,,,,,,,,
 skill095,榮耀打擊,status,戰意,ally_all,3,1,,,,,,,,
 skill096,斧專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon02
-skill097,劍專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon01
+skill097,健壯,passive,,,,,hp_rate,0.1,,,,,,
 skill098,血氣昇華,passive,,,,,vit_to_p_atk,0.1,,,,,,
 skill101,龍捲塵沙嵐,status,目盲,enemy_all,2,0.2,,,,,,,,
 skill102,元素屏障,status,元素屏障,self,3,1,,,,,,,,
@@ -112,3 +112,4 @@ skill121,神恩,passive,,,,,revive_self,0.1,,,,death,0.1,
 skill122,淨化禱言,cleanse,,ally_single,,,debuff,all,,,,,,
 skill123,輝光枷鎖,status,封禁,enemy_single,2,0.2,,,,,,,,
 skill125,啟蒙,passive,,,,,int_to_hp,0.05,,,,,,
+skill126,劍專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon01

@@ -95,7 +95,7 @@ skill093,英勇突進,job06,12,combat,enemy_single,random,damage,,,p,,1.8,,,,自
 skill094,怒意,job06,15,combat,self,,buff,,,,,,,,,物理增傷+40%,,
 skill095,榮耀打擊,job06,20,combat,enemy_single,random,damage,,,p,,2.3,,,,我方全體物理攻擊力+10%，持續3回合,,
 skill096,斧專精,job06,3,passive,,,passive,,,,,,,,,裝備斧時物理攻擊力+8%,,
-skill097,劍專精,job06,10,passive,,,passive,,,,,,,,,裝備劍時物理攻擊力+8%,,
+skill097,健壯,job06,10,passive,,,passive,,,,,,,,,生命力 +10%,,
 skill098,血氣昇華,job06,25,passive,,,passive,,,,,,,,,體質的10%加到物理攻擊力,,
 skill099,冰雪暴,job07,1,combat,enemy_all,,damage,,,m,frost,1.6,,,,,missile,
 skill100,閃電雷雲,job07,5,combat,enemy_all,,damage,,,m,lightning,1.8,,,,,missile,
@@ -124,3 +124,4 @@ skill122,淨化禱言,job09,12,combat,ally_single,prefer_with_debuff,heal,,,m,,0
 skill123,輝光枷鎖,job09,15,combat,enemy_single,random,damage,,,m,light,1.8,,,,,missile,
 skill124,神輝治療術,job09,20,combat,ally_all,,heal,,,m,,1.5,,,,,,
 skill125,啟蒙,job09,25,passive,,,passive,,,,,,,,,智力的 5% × 5 加到生命力上,,
+skill126,劍專精,job12,3,passive,,,passive,,,,,,,,,裝備劍時物理攻擊力+8%,,
