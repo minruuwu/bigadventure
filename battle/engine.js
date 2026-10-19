@@ -119,13 +119,13 @@
       cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: [], special: [], runes: [] };
   }
 
-  /* 一關要出哪些怪：前 9 關從怪物池隨機（數量上限 = 隊伍人數 + 1），Boss 關固定 */
+  /* 一關要出哪些怪：一般關從怪物池隨機（min_count～max_count 隻，不看隊伍人數），Boss 關固定 */
   function stageMonsters(D, area, l, nParty) {
     var r = stageRow(D, area, l); if (!r) return [];
     var fixed = String(r.fixed_monsters || '').split(';').filter(Boolean), out = [];
     if (fixed.length) fixed.forEach(function (id) { if (D.mon[id]) out.push(monster(D.mon[id], l, D)) });
     else {
-      var pool = String(r.monster_pool || '').split(';').filter(function (id) { return D.mon[id] }), mx = Math.min(num(r.max_count) || 1, nParty + 1), mn = Math.min(num(r.min_count) || 1, mx), n = rnd(mn, mx);
+      var pool = String(r.monster_pool || '').split(';').filter(function (id) { return D.mon[id] }), mx = num(r.max_count) || 1, mn = Math.min(num(r.min_count) || 1, mx), n = rnd(mn, mx);
       for (var q = 0; q < n && pool.length; q++) out.push(monster(D.mon[pickOne(pool)], l, D));
     }
     var hs = 1 + num(r.party_hp_scale) * Math.max(0, nParty - 1); out.forEach(function (m) { m.b.mhp = Math.round(m.b.mhp * hs) }); /* 人多時怪物血量加成 */
@@ -139,6 +139,9 @@
   function run(P, M, D) {
     var U = P.concat(M), ev = [], rounds = 0, nowAct = null;
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
+    /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
+    var lone = P.length === 1 && !P[0].lone;
+    if (lone) { var L0 = P[0]; L0.lone = true; L0.b.mhp = Math.round(L0.b.mhp * 1.5); L0.b.patk = Math.round(L0.b.patk * 1.5); L0.b.matk = Math.round(L0.b.matk * 1.5) }
     U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = 0; u.dead = false; u.used = {}; u.flags = {}; u.dragon = 0.5 });
     /* 靈氣：同一招只算一次，套到同陣營每個人（自己的已算在基礎值） */
     var auraSeen = {};
@@ -530,6 +533,7 @@
 
     /* --- 主迴圈 --- */
     function alive(a) { return a.some(function (x) { return !x.dead }) }
+    if (lone) line({ kind: 'note', idle: true, txt: P[0].name + ' 獨自上陣，進入「獨狼」狀態：生命、物理攻擊力、魔法攻擊力 ×1.5' });
     while (alive(P) && alive(M) && rounds < MAXR) {
       rounds++;
       line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
