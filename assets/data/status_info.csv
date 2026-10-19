@@ -7,7 +7,8 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 堅毅,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
 剛毅,buff,p_reduce_rate,0.1,,,,物理減傷 +10%
 意志,buff,m_reduce_rate,0.15,,,,魔法減傷 +15%
-強化,buff,p_atk_rate,0.1,,,,物理攻擊力 +10%
+強化,buff,p_atk_rate,0.1,,,,物理攻擊力 +10%、魔法攻擊力 +10%
+強化,buff,m_atk_rate,0.1,,,,
 魔力守護,buff,p_reduce_rate,0.15,,,,物理減傷 +15%、魔法減傷 +15%
 魔力守護,buff,m_reduce_rate,0.15,,,,
 神力祝福,buff,p_damage_rate,0.15,,,,物理增傷 +15%、魔法增傷 +15%
