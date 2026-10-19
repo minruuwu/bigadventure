@@ -220,3 +220,4 @@ skill218,毒牙,monster,0,combat,enemy_single,random,damage,,,p,nature,1,,,,怪�
 skill219,毒龍吐息,monster,0,combat,enemy_all,,damage,,,m,nature,1.5,,,,怪物技能（全體自然魔法傷害，50% 附加顛茄毒）,,,
 skill220,龍爪撕裂,monster,0,combat,enemy_single,random,damage,,,p,,1.1,,,,怪物技能（單體連抓 2 下）,,2,
 skill221,龍威,monster,0,combat,enemy_all,,damage,,,m,,1.2,,,,怪物技能（全體無屬性魔法傷害，30% 暈眩 1 回合）,,,
+skill222,野獸衝撞,monster,0,combat,enemy_single,random,damage,,,p,,2,,,,怪物技能（同暴戾斬：20% 暈眩 1 回合）,,,

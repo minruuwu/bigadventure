@@ -116,7 +116,7 @@
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k)), patk: Math.round(num(r.p_atk) * (1 + ag * k)), matk: Math.round(num(r.m_atk) * (1 + ag * k)), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
-      cycle: cyc, reaction: '', aura: [], special: [], runes: [] };
+      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: [], special: [], runes: [] };
   }
 
   /* 一關要出哪些怪：前 9 關從怪物池隨機（數量上限 = 隊伍人數 + 1），Boss 關固定 */
