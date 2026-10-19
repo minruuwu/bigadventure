@@ -84,7 +84,7 @@ skill082,冰冽斬,job11,5,combat,enemy_single,random,damage,,,p,frost,1.4,m,fro
 skill083,疾風牙,job11,8,combat,enemy_single,random,damage,,,p,wind,1.7,m,wind,0.6,,slash,
 skill084,雷神震,job11,12,combat,enemy_all,,damage,,,p,lightning,1.2,m,lightning,0.5,每個目標15%機率麻痺1回合,slash,
 skill085,利刃術,job11,15,combat,self,,buff,,,,,,,,,物理增傷 +35%、魔法增傷 +35%、暴擊率 +10%,,
-skill086,奧術光刃,job11,20,combat,enemy_single,random,damage,,,p,light,2,m,light,0.5,,slash,
+skill086,烈光霸,job11,20,combat,enemy_single,random,damage,,,p,light,2,m,light,0.5,,slash,
 skill087,魔刃共鳴,job11,3,passive,,,passive,,,,,,,,,物理攻擊力+5%、魔法攻擊力+5%,,
 skill088,奧術護甲,job11,10,passive,,,passive,,,,,,,,,物理減傷+3%、魔法減傷+3%,,
 skill089,權能協調,job11,25,passive,,,passive,,,,,,,,,力量的15%加到魔法攻擊力,,
