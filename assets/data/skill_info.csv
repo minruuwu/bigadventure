@@ -111,7 +111,7 @@ skill109,鷹眼,job08,3,passive,,,passive,,,,,,,,,暴擊傷害 +50%,,
 skill110,流星箭雨,job08,5,combat,enemy_all,,damage,,0.3,p,,1.4,,,,,arrow,
 skill111,疾風箭,job08,8,combat,enemy_single,random,damage,,,p,wind,1.6,,,,自身閃避率 +10%，持續 2 回合,arrow,
 skill112,弓專精,job08,10,passive,,,passive,,,,,,,,,裝備弓時物理攻擊力 +8%,,
-skill113,自然之絆,job08,12,combat,enemy_all,,damage,,,p,nature,1.2,,,,,arrow,
+skill113,自然之絆,job08,12,combat,enemy_all,,damage,,,p,nature,1.2,,,,,smash,
 skill114,蓄力,job08,15,combat,self,,buff,,,,,,,,,物理攻擊力 +120%，持續到下次攻擊,,
 skill115,三重箭,job08,20,combat,enemy_single,random,damage,,,p,,0.8,,,,,arrow,3
 skill116,自然之心,job08,25,passive,,,passive,,,,,,,,,敏捷的 10% × 5 加到生命力上,,
