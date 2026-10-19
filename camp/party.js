@@ -39,6 +39,7 @@
 .chat{width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;height:300px;overflow-y:auto;background:rgba(40,22,8,.88);padding:8px;font-size:13px;color:#f0e2c4}\
 .chat div{display:flex;gap:6px;align-items:flex-start;line-height:1.35;word-break:break-all}.chat img{width:18px;height:18px;flex:none;margin-top:1px}.chat b{color:#e0b84a;flex:none}.chat .e{color:#a99774;justify-content:center}\
 .cin{display:flex;gap:6px;margin-top:6px}.cin input{flex:1;min-width:0;font:inherit;font-size:14px;padding:6px;border:2px solid #3d230d;background:#f4e8c8;color:#2e1d0e;border-radius:0}.cin button{font-size:14px;padding:0 14px;white-space:nowrap}\
+.pnote{width:100%;font-size:11px;line-height:1.4;color:#6a4a2a;text-align:center;margin:4px 0 2px}.pt.em span{line-height:1;margin-bottom:10px}.pt.em i{background:none;color:#6a4a2a}\
 .cmsg{font-size:12px;min-height:1.3em;color:#7a2a1a;text-align:center}\
 .tp{width:100%;margin-top:4px;padding-top:8px;border-top:2px dashed rgba(70,40,15,.45);display:flex;flex-direction:column;gap:4px}\
 .tp[hidden]{display:none}.tp h3{margin:0;font-size:13px;font-weight:900;color:#3b2713}.tp .m{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:#2e1d0e}.tp .m img{width:22px;height:22px}';
@@ -236,6 +237,14 @@
     try { var HD = document.createElement('canvas'); HD.width = HD.height = 48; var lk = Object.assign({}, C.look(p), { weapon: null, shield: null, halo: [], breath: false }); g.Doll.draw(HD, lk, 1000); cv.getContext('2d').drawImage(HD, 12, 5, 22, 24, 0, 0, 22, 24) } catch (e) { }
     return cv
   }
+  /* 全隊上限 4 人：隊伍裡第 4 位之後的隊員直接移出（照加入順序保留前 3 位） */
+  var trimming = null;
+  function trimParty() {
+    if (trimming) return trimming; var m = me(); if (!m) return Promise.resolve(); var extra = (m.party || []).slice(3); if (!extra.length) return Promise.resolve();
+    trimming = extra.reduce(function (pr, u) { return pr.then(function () { return API.remove(u).then(function () { var mm = me(); mm.party = (mm.party || []).filter(function (x) { return x !== u }); bust(u) }) }) }, Promise.resolve())
+      .then(function () { syncBtn(); C.toast('全隊上限 4 人，已移出多的 ' + extra.length + ' 位隊員') }, function () { }).then(function () { trimming = null });
+    return trimming
+  }
   function syncBtn() { var b = document.getElementById('mkParty'); if (b) b.querySelector('small').textContent = (1 + Math.min(3, (me().party || []).length)) + ' / 4' }
   function errText(e, what) { var c = e && e.code; return c === 'permission-denied' ? what + '失敗（對方已被 5 人加入，或規則尚未開放）' : c === 'timeout' ? '連線逾時，請檢查網路後再試' : what + '失敗，請稍後再試' }
 
@@ -243,7 +252,7 @@
   function openParty() {
     var win = overlay('pw'), box = win.box, sel = 0, mem = [], leaders = [], gone = false; win.onClose = function () { gone = true; openWin = null }; openWin = win;
     function load() {
-      var m = me(), pu = (m.party || []).slice(0, 5), lu = (m.leaders || []).slice(0, 5);
+      var m = me(), pu = (m.party || []).slice(0, 3), lu = (m.leaders || []).slice(0, 5);
       return Promise.all([members(pu), members(lu), statData()]).then(function (R) { if (gone) return; mem = R[0]; leaders = R[1]; render() })
     }
     function detail(p, isMe) {
@@ -265,11 +274,11 @@
       var m = me(), n = (m.party || []).length; box.innerHTML = '<button type="button" class="x" aria-label="關閉">✕</button><h2>我的隊伍　' + (1 + Math.min(3, n)) + ' / 4</h2>';
       box.querySelector('.x').addEventListener('click', win.close);
       var row = el('div', 'rowp'), ppl = [m].concat(mem.map(function (p, i) { return p || { uid: (m.party || [])[i], name: '（讀取失敗）' } }));
-      for (var i = 0; i < Math.max(4, ppl.length); i++) {
+      for (var i = 0; i < 4; i++) {
         if (i < ppl.length) { (function (i) { var p = ppl[i], b = el('button', 'pt' + (i === 0 ? ' me' : '') + (i === sel ? ' sel' : '')); b.type = 'button'; b.appendChild(thumb(p)); b.appendChild(el('i', null, esc(p.name))); b.addEventListener('click', function () { sel = i; render() }); row.appendChild(b) })(i) }
-        else { var e = el('button', 'pt em', '＋'); e.type = 'button'; e.setAttribute('aria-label', '加入隊員'); e.addEventListener('click', function () { openPicker(win, function () { load() }) }); row.appendChild(e) }
+        else { var e = el('button', 'pt em', '<span>＋</span><i>空位</i>'); e.type = 'button'; e.setAttribute('aria-label', '加入隊員'); e.addEventListener('click', function () { openPicker(win, function () { load() }) }); row.appendChild(e) }
       }
-      box.appendChild(row); if (ppl.length > 4) box.appendChild(el('div', 'cmsg', '全隊最多 4 人：冒險只會帶前 3 位隊員，請移出多的隊員')); if (sel >= ppl.length) sel = 0; box.appendChild(detail(ppl[sel], sel === 0));
+      box.appendChild(row); box.appendChild(el('div', 'pnote', '全隊最多 4 人（含隊長）。同行隊友可分得戰鬥所得 10% 經驗、5% 鍛造石，每天 06:00 發放')); if (sel >= ppl.length) sel = 0; box.appendChild(detail(ppl[sel], sel === 0));
       if (sel === 0) {
         box.appendChild(el('h3', null, '我被加入的隊伍'));
         var lst = el('div', 'lst'); var lu = (m.leaders || []);
@@ -286,7 +295,7 @@
       }
     }
     box.insertAdjacentHTML('beforeend', '<div class="none" style="text-align:center">讀取中…</div>');
-    load().catch(function () { if (!gone) { box.innerHTML = '<button type="button" class="x">✕</button><div class="none">讀取失敗，請稍後再試</div>'; box.querySelector('.x').addEventListener('click', win.close) } })
+    trimParty().then(load).catch(function () { if (!gone) { box.innerHTML = '<button type="button" class="x">✕</button><div class="none">讀取失敗，請稍後再試</div>'; box.querySelector('.x').addEventListener('click', win.close) } })
   }
 
   /* ----- 選隊員 ----- */
@@ -344,7 +353,7 @@
       var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
       var host = document.getElementById('mkHost'); if (!host) return;
       host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button><button type="button" class="mb" id="mkMail">信件 <small></small></button></div>';
-      document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); document.getElementById('mkMail').addEventListener('click', openMail); syncBtn(); mailCount()
+      document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); document.getElementById('mkMail').addEventListener('click', openMail); syncBtn(); mailCount(); trimParty()
     },
     fillTeam: fillTeam, mountTabs: mountTabs, jobName: jobName, jobLv: jobLv, charLv: charLv
   };
