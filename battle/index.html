@@ -602,7 +602,7 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
     var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){if(tries<2&&e&&e.code==='permission-denied'){var q0=$('rsave');if(q0)q0.textContent='存檔被擋，稍等一下自動重試…';setTimeout(put,22000);return}
     /* 找出是哪一部分被擋：依序拿掉 隊友分成 → 寵物餅乾 → 關卡進度 再試，能存的部分先存起來 */
     var steps=[['share','隊友分成'],['cookie','寵物餅乾'],['clear','關卡進度']],cut=[],r2=Object.assign({},req);
-    (function tryCut(){var st=steps.shift();if(!st){FB.advCheck(req).catch(function(){return{}}).then(function(c2){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+((c2&&c2.why&&c2.why.length)?'；原因：'+c2.why.join('、'):'；原因不明，請截圖給開發者')+'（獎勵沒有寫入）';$('rok').disabled=false});return}
+    (function tryCut(){var st=steps.shift();if(!st){FB.advCheck(req).catch(function(){return{}}).then(function(c2){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+((c2&&c2.why&&c2.why.length)?'；原因：'+c2.why.join('、'):'；原因不明，請截圖給開發者')+'（獎勵沒有寫入）'+(c2&&c2.types?'［'+c2.types+'］':'');$('rok').disabled=false});return}
       var q3=$('rsave');if(q3)q3.textContent='存檔被擋，正在找出是哪一部分被擋（約 20 秒）…';r2[st[0]]=st[0]==='share'?[]:st[0]==='cookie'?false:0;cut.push(st[1]);
       setTimeout(function(){FB.advWin(r2).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;
         var q=$('rsave');if(q)q.textContent='經驗、鍛造石已存檔；被擋下沒存到：'+cut.join('、')+'（請截圖給開發者）';$('rok').disabled=false},function(){tryCut()})},21500)})()})})})}setTimeout(put,wait)}
@@ -684,5 +684,5 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=13"></script>
+<script type="module" src="../common/fb.js?v=14"></script>
 </body></html>

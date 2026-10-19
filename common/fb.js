@@ -79,7 +79,12 @@ const FB = {
     if ((r.share || []).some(m => party.indexOf(m.to) < 0)) why.push('隊伍名單已變動');
     const cur = ((d.adv || {})[r.area]) | 0; if (r.clear && r.clear > cur + 1) why.push('關卡進度跳太多（資料庫是第 ' + cur + ' 關）');
     ['exp', 'stones', 'cookies'].forEach(k => { if (d[k] != null && !Number.isInteger(d[k])) why.push(k + ' 不是整數（' + d[k] + '）'); });
-    return { party, at, why }; },
+    /* 用 REST 讀原始型別（SDK 分不出整數和小數）：規則要求 exp、stones、adv 是整數型別 */
+    try { const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
+      const ty = v => v ? Object.keys(v)[0] : '無'; const types = ['exp', 'stones', 'cookies', 'advAt', 'party', 'owe'].map(k => k + '=' + ty(F[k])); const ad = F.adv && F.adv.mapValue && F.adv.mapValue.fields || {}; types.push('adv.area01=' + ty(ad.area01));
+      ['exp', 'stones', 'cookies'].forEach(k => { if (F[k] && !('integerValue' in F[k])) why.push(k + ' 存成了' + ty(F[k]) + '（規則要整數）'); }); if (ad.area01 && !('integerValue' in ad.area01)) why.push('adv.area01 存成了' + ty(ad.area01));
+      why.types = types.join(' '); } catch (e) { why.types = 'REST 讀取失敗 ' + (e && e.message); }
+    return { party, at, why, types: why.types }; },
   async advWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { exp: increment(r.exp), stones: increment(r.stones), advAt: serverTimestamp() };
     if (r.cookie) f.cookies = increment(1); if (r.clear) f['adv.' + r.area] = r.clear;
     (r.share || []).forEach(m => { f['owe.' + m.to + '.exp'] = increment(m.exp); f['owe.' + m.to + '.stones'] = increment(m.stones); });
