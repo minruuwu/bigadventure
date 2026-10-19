@@ -1,7 +1,7 @@
 status_name,polarity,effect,value,base,element,dmg_type,status_desc
 顛茄毒,debuff,dot,0.2,m_atk,nature,m,每回合造成施加者魔法攻擊力 20% 的自然魔法傷害
 燃燒,debuff,dot,0.2,m_atk,fire,m,每回合造成施加者魔法攻擊力 20% 的火焰魔法傷害
-血裂,debuff,dot,0.3,p_atk,,p,每回合造成施加者物理攻擊力 30% 的物理傷害
+撕裂傷,debuff,dot,0.3,p_atk,,p,每回合造成施加者物理攻擊力 30% 的物理傷害
 再生,buff,hot,0.5,m_atk,,,每回合恢復施加者魔法攻擊力 50% 的生命
 閃身,buff,eva_rate,0.1,,,,閃避率 +10%
 堅毅,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
