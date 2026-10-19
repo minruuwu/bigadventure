@@ -362,7 +362,9 @@ function drawVfx(t){shakeY=0;if(!B)return;
         return}
       var u=(d-170)/260;if(u<0||u>1)return;var a=1-u;for(var k=0;k<3;k++){for(var j=0;j<7;j++){var x=pp[0]-4+k*3+j*.6,y=pp[1]-24+j*1.4;VP(x,y,j<2?'#ffffff':'#ff9a8a',a*(j<5?1:.6))}}});return}
     var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
-    if(e.ty==='heal'&&e.hl!=null){[].concat(e.hl).forEach(function(hk){var hp=posOf(hk);if(PCOL[e.el])pBurst(e.el,hp[0],hp[1]-10,d-150,12,.8*VS);for(var k=0;k<10;k++){var u=(d-150-k*30)/600;if(u<0||u>1)continue;VP(hp[0]-6+hsh(k,1)*12,hp[1]-6-u*22-hsh(k,2)*8,k%3?'#8ef09a':'#e8ffe8',1-u)}});return}
+    if(e.ty==='heal'&&e.hl!=null){[].concat(e.hl).forEach(function(hk){var hp=posOf(hk);if(PCOL[e.el])pBurst(e.el,hp[0],hp[1]-10,d-150,12,.8*VS);for(var k=0;k<10;k++){var u=(d-150-k*30)/600;if(u<0||u>1)continue;VP(hp[0]-6+hsh(k,1)*12,hp[1]-6-u*22-hsh(k,2)*8,k%3?'#8ef09a':'#e8ffe8',1-u)}
+      /* 腳下一圈綠光：先在地上亮起，再慢慢往上升、變淡（兩圈錯開） */
+      for(var rg=0;rg<2;rg++){var ur=(d-80-rg*260)/1100;if(ur<0||ur>1)continue;var fa=ur<.15?ur/.15:1-(ur-.15)/.85,ry=hp[1]-1-ease(ur)*14,rx=9-ur*2;for(var q=0;q<40;q++){var an=q/40*Math.PI*2,fr=Math.sin(an)>0,cx=hp[0]+Math.cos(an)*rx,cy=ry+Math.sin(an)*2.6;VP(cx,cy,q%3?'#9cf5a6':'#eaffea',fa*(fr?1:.3));VP(cx,cy-1,'#6fe08a',fa*(fr?.4:.12));VP(cx*.85+hp[0]*.15,cy*.85+ry*.15,'#b8ffc4',fa*.18)}}});return}
     if(e.ty==='buff'){if(PCOL[e.el])pBurst(e.el,pp[0],pp[1]-12,d-60,12,.8*VS);var u2=d/700;if(u2>1)return;var R=6+u2*6;for(var k2=0;k2<28;k2++){var an=k2/28*Math.PI*2;VP(pp[0]+Math.cos(an)*R,pp[1]-1+Math.sin(an)*R*.3,k2%2?'#ffd76a':'#fff4c4',1-u2)}return}
     (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;var hx=mp[0],hy=mp[1];
       if(wk==='bow'&&vimg(ARROW,e.el)){var ai=vimg(ARROW,e.el),tc=ELC[e.el]||'#ffffff',u=(d-80)/140,ex=hx-6,ang=Math.atan2(hy-sy,ex-sx);
