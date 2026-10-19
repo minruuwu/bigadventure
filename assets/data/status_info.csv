@@ -76,3 +76,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 聖盾,buff,m_reduce_rate,0.2,,,,
 祝福,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
 祝福,buff,m_damage_rate,0.4,,,,
+武器研磨,buff,p_damage_rate,0.5,,,,物理增傷 +50%
+武器損壞,debuff,p_damage_rate,-0.2,,,,物理增傷 −20%
+法器損壞,debuff,m_damage_rate,-0.2,,,,魔法增傷 −20%

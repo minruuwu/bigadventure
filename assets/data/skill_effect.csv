@@ -141,3 +141,13 @@ skill152,抵抗靈氣,passive,,ally_all,,,wind_res_rate,0.15,,,,,,
 skill152,抵抗靈氣,passive,,ally_all,,,nature_res_rate,0.15,,,,,,
 skill152,抵抗靈氣,passive,,ally_all,,,light_res_rate,0.15,,,,,,
 skill152,抵抗靈氣,passive,,ally_all,,,dark_res_rate,0.15,,,,,,
+skill153,鍛火錘,status,暈眩,enemy_single,2,0.3,,,,,,,,
+skill154,錘專精,passive,,,,,p_atk_rate,0.05,,,,,,weapon06
+skill154,錘專精,passive,,,,,m_atk_rate,0.05,,,,,,weapon06
+skill155,武器研磨,status,武器研磨,self,4,1,,,,,,,,
+skill156,冷凝劑,status,凍足,enemy_all,3,0.5,,,,,,,,
+skill157,護甲專精,passive,,,,,p_reduce_rate,0.05,,,,,,
+skill157,護甲專精,passive,,,,,m_reduce_rate,0.05,,,,,,
+skill159,武器破壞,status,武器損壞,enemy_single,3,1,,,,,,,,
+skill160,法器破壞,status,法器損壞,enemy_single,3,1,,,,,,,,
+skill161,鍛造專精,passive,,,,,forge_bonus,1.5,,,,win,0.5,leader
