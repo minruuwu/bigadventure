@@ -164,7 +164,7 @@
       var L = (SH && SH.list) || [], R = ready(); all.hidden = R.length < 2;
       if (!L.length) { lst.innerHTML = '<div class="none">目前沒有隊長把你加進隊伍。</div>'; return }
       lst.innerHTML = L.map(function (x) { var has = x.exp || x.stones, ok = has && canClaim(x.uid);
-        return '<div class="rw"><span class="tx"><b>' + esc(x.name || '隊長') + ' 那邊的分成</b><small>' + (has ? '經驗 ' + x.exp + '、鍛造石 ' + x.stones : '目前沒有累積') + (has && !ok ? '　（' + nextSix() + ' 後可領）' : '') + '</small></span>' + (ok ? '<button type="button" class="pbtn" data-id="' + esc(x.uid) + '">領取</button>' : '') + '</div>' }).join('')
+        return '<div class="rw"><span class="tx"><b>' + esc(x.name || '隊長') + ' 那邊的分成' + (x.past ? '（已離隊）' : '') + '</b><small>' + (has ? '經驗 ' + x.exp + '、鍛造石 ' + x.stones : '目前沒有累積') + (has && !ok ? '　（' + nextSix() + ' 後可領）' : '') + '</small></span>' + (ok ? '<button type="button" class="pbtn" data-id="' + esc(x.uid) + '">領取</button>' : '') + '</div>' }).join('')
     }
     function take(ids) {
       if (busy) return; busy = true; msg.textContent = ''; var got = { e: 0, s: 0 }, q = ids.slice();

@@ -91,9 +91,12 @@ const FB = {
     await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), pl = (c && c.player) || {}, adv = Object.assign({}, pl.adv || {}); if (r.clear) adv[r.area] = r.clear;
     mePatch({ exp: (pl.exp | 0) + r.exp, stones: (pl.stones | 0) + r.stones, cookies: (pl.cookies | 0) + (r.cookie ? 1 : 0), adv }); },
   // 隊友分成：讀把我加進隊伍的隊長們，看各自累積了多少（owe.<我的uid>）
-  async shareList() { await ready; const u = auth.currentUser; if (!u) return { list: [], claims: {} }; const me = await withTimeout(FB.getPlayer(u.uid), 10000); const ls = ((me && me.leaders) || []).slice(0, 5);
+  async shareList() { await ready; const u = auth.currentUser; if (!u) return { list: [], claims: {} }; const me = await withTimeout(FB.getPlayer(u.uid), 10000); const cur = ((me && me.leaders) || []).slice(0, 5), past = ((me && me.pastLeaders) || []);
+    /* 現在的隊長補記到 pastLeaders（被移出後還能領以前累積的分成）；最多保留最近 20 位 */
+    const miss = cur.filter(l => past.indexOf(l) < 0); if (miss.length) { const np = past.concat(miss).slice(-20); try { await tmo(updateDoc(doc(db, 'players', u.uid), { pastLeaders: np })); } catch (e) {} }
+    const old = past.filter(l => cur.indexOf(l) < 0).slice(-10), ls = cur.concat(old);
     const docs = await Promise.all(ls.map(l => withTimeout(getDoc(doc(db, 'players', l)), 10000).then(s => s.exists() ? Object.assign({ uid: l }, ser(s.data())) : null).catch(() => null)));
-    return { list: docs.filter(Boolean).map(d => { const o = (d.owe || {})[u.uid] || {}; return { uid: d.uid, name: d.name, exp: o.exp | 0, stones: o.stones | 0 }; }), claims: ser((me && me.claims) || {}) }; },
+    return { list: docs.filter(Boolean).map(d => { const o = (d.owe || {})[u.uid] || {}; return { uid: d.uid, name: d.name, exp: o.exp | 0, stones: o.stones | 0, past: cur.indexOf(d.uid) < 0 }; }).filter(x => !x.past || x.exp || x.stones), claims: ser((me && me.claims) || {}) }; },
   // 領取某位隊長那邊的分成：自己加經驗、鍛造石並記下領取時間；隊長那邊的 owe.<我> 刪掉（同一批寫入，規則核對金額與每天早上 6 點的領取週期）
   async shareClaim(L) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const lr = doc(db, 'players', L), mr = doc(db, 'players', u.uid);
     const got = await tmo(runTransaction(db, async tx => { const ls = await tx.get(lr); const o = ((ls.exists() && ls.data().owe) || {})[u.uid] || {}; const e = o.exp | 0, st = o.stones | 0;
@@ -104,7 +107,7 @@ const FB = {
   async adminUpdate(uid, fields) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', uid), fields); },
   // ---- 組隊：leader doc `party`(最多 5 個隊員 uid)、member doc `leaders`(把我放進隊伍的隊長 uid，最多 5 個)，兩邊用 batch 一起寫 ----
   async getPlayers(uids) { await ready; return Promise.all((uids || []).map(u => withTimeout(getDoc(doc(db, 'players', u)), 10000).then(s => s.exists() ? Object.assign({ uid: u }, ser(s.data())) : null).catch(() => null))); },
-  async partyAdd(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayUnion(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayUnion(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid).concat(uid) }); },
+  async partyAdd(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayUnion(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayUnion(u.uid), pastLeaders: arrayUnion(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid).concat(uid) }); },
   async partyRemove(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayRemove(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayRemove(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid) }); },
   async partyLeave(leaderUid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { leaders: arrayRemove(leaderUid) }); b.update(doc(db, 'players', leaderUid), { party: arrayRemove(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ leaders: ((c && c.player.leaders) || []).filter(x => x !== leaderUid) }); },
   // ---- 營地聊天：chat/s00..s29 輪流覆蓋(只留 30 則)，chat/meta.n 是已發言總數；聊天視窗開著才監聽 ----
