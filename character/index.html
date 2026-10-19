@@ -452,7 +452,7 @@ function expNext(l){return 30*(l+1)}   /* 從 l 級升到 l+1 級要花的經驗
 function expCost(a,b){var s=0;for(var l=a;l<b;l++)s+=expNext(l);return s}
 function jobSum(){var t=0;Object.keys(S.jobLvs).forEach(function(k){t+=S.jobLvs[k]|0});return t}
 function tierOf(sn){var n=parseInt(String(sn).slice(3),10)||0;return n<=5?0:n<=20?1:2}
-function jobRefund(){var r=0;Object.keys(S.jobLvs).forEach(function(k){r+=expCost(0,S.jobLvs[k]|0)});return Math.floor(r/2)}
+function jobRefund(){var r=0;Object.keys(S.jobLvs).forEach(function(k){r+=expCost(0,S.jobLvs[k]|0)});return r}
 function totalPts(){return 5*(S.lv-1)}
 function spent(){var t=0;KEYS.forEach(function(k){t+=S.alloc[k]+S.pend[k]});return t}
 function unspent(){return Math.max(0,totalPts()-spent())}
@@ -619,7 +619,7 @@ function sheetHTML(k){
       h8+='<div class="urow"><div class="nm2">'+esc(jobName(sn))+(sn===S.jobSn?'<span class="cu">目前職業</span>':'')+'<small>'+(l>=JMAX?'已滿級':'下一級需 '+nc.toLocaleString('en-US')+' 經驗')+'</small></div><div class="stp2"><button type="button" data-a="ujm" data-sn="'+sn+'" class="'+((UP.job[sn]|0)>0?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+l+((UP.job[sn]|0)?'<em>+'+UP.job[sn]+'</em>':'')+'</span><button type="button" data-a="ujp" data-sn="'+sn+'" class="'+(can?'':'off')+'" aria-label="增加">＋</button></div></div>'});
     var dirty=UP.char>0||pj>0;
     h8+='<div class="bar"><span class="t'+(upMsg?' umsg2':'')+'">'+esc(upMsg||(dirty?'尚未確定的升級':'沒有暫存的升級'))+'</span><button class="b alt" data-a="ucancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="uok" type="button" '+(dirty?'':'disabled')+'>確定</button></div>';
-    if(confirmRst)h8+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">確定要重置所有職業嗎？</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px"><li>所有職業等級歸零，退還 <b>'+jobRefund().toLocaleString('en-US')+'</b> 經驗（已花職業經驗的 50%）</li><li>職業技能與外觀鎖回，技能書全部清空</li><li>人物等級不變，職業轉回戰士</li></ul><div class="acts"><button class="b alt" data-a="urn" type="button">先不要</button><button class="b go" data-a="ury" type="button">確定重置</button></div><div class="msgline" id="rmsg"></div></div></div>';
+    if(confirmRst)h8+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">確定要重置所有職業嗎？</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px"><li>所有職業等級歸零，退還 <b>'+jobRefund().toLocaleString('en-US')+'</b> 經驗（已花職業經驗全額退還）</li><li>職業技能與外觀鎖回，技能書全部清空</li><li>人物等級不變，職業轉回戰士</li></ul><div class="acts"><button class="b alt" data-a="urn" type="button">先不要</button><button class="b go" data-a="ury" type="button">確定重置</button></div><div class="msgline" id="rmsg"></div></div></div>';
     return h8}
   if(k==='jobs'){var sel=jobSel||S.jobSn,js=jobStatus(sel),jj=JOB[sel],h6='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><button class="bk" data-a="card" type="button">‹ 返回</button><h2 class="bold">轉職<button class="tbtn" data-a="tree" type="button">轉職樹 ›</button></h2><p class="hint">點選職業，預覽你的角色穿上該職業的樣子。</p>';
     var need=js==='no'?[1,2].map(function(n){var q=jj['required_job_'+n];return q?esc(jobName(q))+' Lv. '+(parseInt(jj['required_job_'+n+'_level'],10)||0):''}).filter(Boolean).join(' + '):'';
