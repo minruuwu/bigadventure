@@ -65,7 +65,7 @@ button{font:inherit;color:inherit}
 .lvg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .lv{font-weight:900;font-size:15px;border:0;background:#4a2a12;color:#f0dfb8;padding:9px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
 .lv.boss{background:#7a1f14;font-size:13px}.lv.on{background:#e0b84a;color:#1d1008}
-.lvinfo{margin:10px 0;font-size:13px;font-weight:700;min-height:2.6em;line-height:1.5}
+.lvinfo{margin:10px 0;font-size:13px;font-weight:700;min-height:2.6em;line-height:1.5}.lvsh{display:block;margin-top:4px;font-size:11px;font-weight:400;color:#5a3a1a;line-height:1.45}
 .fover{position:absolute;inset:0;z-index:400;background:rgba(6,4,2,.66);display:flex;align-items:center;justify-content:center;padding:10px;animation:fdark .5s ease-out both}
 .fover[hidden]{display:none}@keyframes fdark{from{background:rgba(6,4,2,0)}to{background:rgba(6,4,2,.66)}}
 .rbox{width:100%;max-width:260px;text-align:center;background:rgba(20,12,8,.9);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;padding:10px 12px 12px}
@@ -535,7 +535,7 @@ function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
-    $('lvinfo').textContent=AREA[pickA].n+' 第 '+pickL+' 關'+(pickL===10?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones;$('lvov').querySelector('.go').disabled=false}
+    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(pickL===10?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地信件領取</small>';$('lvov').querySelector('.go').disabled=false}
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();startBattle(A2,L2)}});
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
