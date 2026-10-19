@@ -105,7 +105,7 @@ const FB = {
   // 管理後台（admin/ 頁面用；寫入是否允許由 Firestore 規則依管理者 email 決定）
   async adminList(n) { await ready; const s = await withTimeout(getDocs(query(collection(db, 'players'), orderBy('lastSeen', 'desc'), limit(n || 200))), 15000); return s.docs.map(d => Object.assign({ uid: d.id }, ser(d.data()))); },
   async adminUpdate(uid, fields) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', uid), fields); },
-  // ---- 組隊：leader doc `party`(最多 5 個隊員 uid)、member doc `leaders`(把我放進隊伍的隊長 uid，最多 5 個)，兩邊用 batch 一起寫 ----
+  // ---- 組隊：leader doc `party`(最多 3 個隊員 uid，全隊 4 人)、member doc `leaders`(把我放進隊伍的隊長 uid，最多 5 個)，兩邊用 batch 一起寫 ----
   async getPlayers(uids) { await ready; return Promise.all((uids || []).map(u => withTimeout(getDoc(doc(db, 'players', u)), 10000).then(s => s.exists() ? Object.assign({ uid: u }, ser(s.data())) : null).catch(() => null))); },
   async partyAdd(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayUnion(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayUnion(u.uid), pastLeaders: arrayUnion(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid).concat(uid) }); },
   async partyRemove(uid) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.update(doc(db, 'players', u.uid), { party: arrayRemove(uid) }); b.update(doc(db, 'players', uid), { leaders: arrayRemove(u.uid) }); await tmo(b.commit()); const c = meGet(); mePatch({ party: ((c && c.player.party) || []).filter(x => x !== uid) }); },

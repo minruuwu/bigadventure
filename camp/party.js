@@ -11,7 +11,7 @@
 .ml .rw{display:flex;align-items:center;gap:8px}.ml .tx{flex:1;min-width:0;display:flex;flex-direction:column}.ml .tx small{font-size:11px;color:#5a3a1a}.mall{margin-top:6px;align-self:center}\
 .pcard.pw{padding-top:8vh;padding-bottom:24px}.pcard.pw .box{max-width:340px;align-items:stretch}\
 .pw .box>*{flex:none}.pw h2{margin:0;font-size:18px;text-align:center}.pw h3{margin:6px 0 2px;font-size:13px;font-weight:900;color:#5a3a1a}\
-.rowp{width:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}\
+.rowp{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}\
 .pt{position:relative;padding:0;border:0;font:inherit;background:#2b1d13;box-shadow:0 0 0 2px #3b2713;overflow:hidden;display:block;cursor:pointer;min-width:0}\
 .pt canvas{width:100%;display:block;image-rendering:pixelated;background:none!important;box-shadow:none!important}\
 .pt.me{box-shadow:0 0 0 2px #e0b84a}.pt.sel{box-shadow:0 0 0 3px #fff}\
@@ -86,7 +86,7 @@
     return t
   }
   function combat(p, allies) {
-    if (allies == null) allies = p._allies != null ? p._allies : Math.min(5, (p.party || []).length); var apa = skPas(p, 'atk_per_ally') * allies; /* 觀眾熱情：每位隊友 +x% 物攻、魔攻 */
+    if (allies == null) allies = p._allies != null ? p._allies : Math.min(3, (p.party || []).length); var apa = skPas(p, 'atk_per_ally') * allies; /* 觀眾熱情：每位隊友 +x% 物攻、魔攻 */
     var D = STAT || { attr: {}, grow: {} }, sn = jobSn(p), K = ['str', 'int', 'agi', 'vit', 'luk'], T = {}, jl = p.jobLv || {}, al = p.alloc || {};
     var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, en = Array.isArray(wd.ench) ? wd.ench : [], pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
@@ -236,7 +236,7 @@
     try { var HD = document.createElement('canvas'); HD.width = HD.height = 48; var lk = Object.assign({}, C.look(p), { weapon: null, shield: null, halo: [], breath: false }); g.Doll.draw(HD, lk, 1000); cv.getContext('2d').drawImage(HD, 12, 5, 22, 24, 0, 0, 22, 24) } catch (e) { }
     return cv
   }
-  function syncBtn() { var b = document.getElementById('mkParty'); if (b) b.querySelector('small').textContent = (1 + ((me().party || []).length)) + ' / 6' }
+  function syncBtn() { var b = document.getElementById('mkParty'); if (b) b.querySelector('small').textContent = (1 + Math.min(3, (me().party || []).length)) + ' / 4' }
   function errText(e, what) { var c = e && e.code; return c === 'permission-denied' ? what + '失敗（對方已被 5 人加入，或規則尚未開放）' : c === 'timeout' ? '連線逾時，請檢查網路後再試' : what + '失敗，請稍後再試' }
 
   /* ----- 我的隊伍 ----- */
@@ -252,7 +252,7 @@
         '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
         '<div class="ptabs"></div><div class="pn"></div>';
-      p._allies = Math.min(5, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */
+      p._allies = Math.min(3, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */
       mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'res', 'job']);
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
@@ -262,14 +262,14 @@
       return d
     }
     function render() {
-      var m = me(), n = (m.party || []).length; box.innerHTML = '<button type="button" class="x" aria-label="關閉">✕</button><h2>我的隊伍　' + (1 + n) + ' / 6</h2>';
+      var m = me(), n = (m.party || []).length; box.innerHTML = '<button type="button" class="x" aria-label="關閉">✕</button><h2>我的隊伍　' + (1 + Math.min(3, n)) + ' / 4</h2>';
       box.querySelector('.x').addEventListener('click', win.close);
       var row = el('div', 'rowp'), ppl = [m].concat(mem.map(function (p, i) { return p || { uid: (m.party || [])[i], name: '（讀取失敗）' } }));
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < Math.max(4, ppl.length); i++) {
         if (i < ppl.length) { (function (i) { var p = ppl[i], b = el('button', 'pt' + (i === 0 ? ' me' : '') + (i === sel ? ' sel' : '')); b.type = 'button'; b.appendChild(thumb(p)); b.appendChild(el('i', null, esc(p.name))); b.addEventListener('click', function () { sel = i; render() }); row.appendChild(b) })(i) }
         else { var e = el('button', 'pt em', '＋'); e.type = 'button'; e.setAttribute('aria-label', '加入隊員'); e.addEventListener('click', function () { openPicker(win, function () { load() }) }); row.appendChild(e) }
       }
-      box.appendChild(row); if (sel >= ppl.length) sel = 0; box.appendChild(detail(ppl[sel], sel === 0));
+      box.appendChild(row); if (ppl.length > 4) box.appendChild(el('div', 'cmsg', '全隊最多 4 人：冒險只會帶前 3 位隊員，請移出多的隊員')); if (sel >= ppl.length) sel = 0; box.appendChild(detail(ppl[sel], sel === 0));
       if (sel === 0) {
         box.appendChild(el('h3', null, '我被加入的隊伍'));
         var lst = el('div', 'lst'); var lu = (m.leaders || []);
@@ -298,7 +298,7 @@
         var inP = (m.party || []).indexOf(p.uid) >= 0, full = !inP && (p.leaders || []).length >= 5, why = inP ? '已在隊伍中' : full ? '已被 5 人加入' : '';
         var r = el('div', 'rw' + (why ? ' off' : ''), '<img alt="" src="' + jicon(p) + '"><span class="tx"><b>' + esc(p.name) + '</b><small>Lv.' + charLv(p) + '　' + esc(jobName(p)) + '・' + (p.lastSeen ? ago(tms(p.lastSeen)) : '—') + '</small></span>' + (why ? '<span class="g">' + why + '</span>' : '<button type="button">放入</button>'));
         var b = r.querySelector('button'); if (b) b.addEventListener('click', function () {
-          if ((m.party || []).length >= 5) { C.toast('隊伍已滿'); return } b.disabled = true;
+          if ((m.party || []).length >= 3) { C.toast('隊伍已滿（全隊最多 4 人）'); return } b.disabled = true;
           API.add(p.uid).then(function () { m.party = (m.party || []).concat(p.uid); p.leaders = (p.leaders || []).concat(m.uid); bust(p.uid); syncBtn(); win.close(); C.toast('已把 ' + p.name + ' 放入隊伍'); done() }, function (e) { b.disabled = false; C.toast(errText(e, '放入')) })
         }); lst.appendChild(r)
       });
@@ -331,7 +331,7 @@
 
   /* ----- 別人卡片裡的「他的隊伍」 ----- */
   function fillTeam(box, p, alive) {
-    box.hidden = false; var uids = (p.party || []).slice(0, 5);
+    box.hidden = false; var uids = (p.party || []).slice(0, 3);
     box.innerHTML = '<h3>' + (p.uid === me().uid ? '我的隊伍' : '他的隊伍') + '</h3>' + (uids.length ? '<div class="none">讀取中…</div>' : '<div class="none">尚無隊員</div>');
     if (!uids.length) return;
     members(uids).then(function (r) { if (!alive()) return; box.innerHTML = '<h3>' + (p.uid === me().uid ? '我的隊伍' : '他的隊伍') + '</h3>' + r.map(function (q) { return q ? '<div class="m"><img alt="" src="' + jicon(q) + '">' + esc(q.name) + '</div>' : '' }).join('') },
