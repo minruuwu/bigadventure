@@ -327,6 +327,12 @@ function pBurst(key,ox,oy,dd,n,sc){if(key==='lightning')n=Math.ceil(n*.45);for(v
 function pTrail(key,fp,d){for(var te=0;te<=d;te+=25){var q=fp(te);if(!q)continue;var uu=(d-te)/300;if(uu>1)continue;part(key,q[0],q[1],uu,Math.floor(te/25)+50,.35*VS)}}
 /* 特效整體縮放（圖片大小與粒子散開範圍） */
 var VS=1.2;
+/* 魔彈圖方向：00 是舊圖（朝右上 45 度，頭在右上）；01～07 新圖頭在左下（逆時針轉 135 度對準前進方向）。ax/ay 是頭部附近的錨點 */
+var MROT=[Math.PI/4,-3*Math.PI/4,-3*Math.PI/4,-3*Math.PI/4,-3*Math.PI/4,-3*Math.PI/4,-3*Math.PI/4,-3*Math.PI/4],MANC=[[.75,.25],[.25,.75],[.25,.75],[.25,.75],[.25,.75],[.25,.75],[.25,.75],[.25,.75]];
+function drawMis(el,x,y,ang){var k=ELN[el]||0,im=MISSILE[k]&&MISSILE[k].naturalWidth?MISSILE[k]:MISSILE[0];if(!im||!im.naturalWidth)return false;if(im===MISSILE[0])k=0;var sz=24*VS*U;
+  pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1;pctx.translate(x*U,y*U);pctx.rotate(ang+MROT[k]);pctx.drawImage(im,-sz*MANC[k][0],-sz*MANC[k][1],sz,sz);pctx.restore();return true}
+/* 拋擲（鍊金士）：用魔彈圖，拋物線較高 */
+var THROWH=30;
 var shakeY=0;
 function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
@@ -344,13 +350,12 @@ function drawVfx(t){shakeY=0;if(!B)return;
       else if(wk==='bow'){var u=(d-80)/140;if(u>=0&&u<=1){var x=sx+(hx-6-sx)*u,y=sy+(hy-sy)*u,head=e.atk?'#c6ced8':c,trail=e.atk?'#ffffff':c;
           for(var i=1;i<9;i++)VP(x-10-i*2,y,trail,.75-i*.08);for(var i2=2;i2<9;i2++)VP(x-i2,y,'#a06f3c',1);VP(x-9,y-1,'#eadbbd',1);VP(x-9,y+1,'#eadbbd',1);
           VP(x,y,head,1);VP(x-1,y,head,1);VP(x+1,y,head,1);VP(x-1,y-1,head,1);VP(x-1,y+1,head,1)}}
-      else if(wk==='throw'){var ut=(d-60)/240;if(ut>=0&&ut<=1){var xt=sx+(hx-sx)*ut,yt=sy+(hy-sy)*ut-Math.sin(ut*Math.PI)*16,rot=Math.floor(ut*8)%4;
-          VR(xt-1,yt-2,3,4,c,1);VR(xt-1,yt-3,3,1,'#eadbbd',1);VP(xt,yt-4,'#a06f3c',1);if(rot%2)VP(xt+(rot>1?2:-2),yt-1,'#ffffff',.8);for(var it=1;it<5;it++){var ub=ut-it*.05;if(ub<0)break;VP(sx+(hx-sx)*ub,sy+(hy-sy)*ub-Math.sin(ub*Math.PI)*16,c,.35-it*.07)}}
+      else if(wk==='throw'){var ut=(d-60)/240,thp=function(u){return [sx+(hx-sx)*u,sy+(hy-sy)*u-Math.sin(u*Math.PI)*THROWH]};if(ut>=0&&ut<=1){var T0=thp(ut),T1=thp(Math.min(1,ut+.02)),T2=thp(Math.max(0,ut-.02));
+          if(!drawMis(e.el,T0[0],T0[1],Math.atan2(T1[1]-T2[1],T1[0]-T2[0]))){VR(T0[0]-1,T0[1]-2,3,4,c,1);VR(T0[0]-1,T0[1]-3,3,1,'#eadbbd',1)}}
         var us=(d-300)/420;if(us>=0&&us<=1){for(var ks=0;ks<12;ks++){var an=-Math.PI*(.1+.8*hsh(ks,3)),sp=8+hsh(ks,4)*10,xx=hx+Math.cos(an)*sp*us*1.4,yy=hy+Math.sin(an)*sp*us+us*us*14;VP(xx,yy,ks%3?c:'#ffffff',1-us)}
           var R7=3+us*7;VO(hx,hy+2,Math.round(R7),Math.max(1,Math.round(R7*.5)),c,.28*(1-us))}}
       else if((wk==='staff'||wk==='book')&&vimg(MISSILE,e.el)){var u3=(d-60)/230;if(u3>=0&&u3<=1){var mi=vimg(MISSILE,e.el),mp3=function(u){var ee=u*u*(3-2*u);return [sx+(hx-sx)*ee,sy+(hy-sy)*u-Math.sin(u*Math.PI)*4]},P0=mp3(u3),P1=mp3(Math.min(1,u3+.02)),P2=mp3(Math.max(0,u3-.02)),ang3=Math.atan2(P1[1]-P2[1],P1[0]-P2[0]),sz3=24*VS*U;
-          /* 圖是朝右上 45 度畫的，所以多轉 45 度讓頭對準飛行方向；頭在右上角，中心往後退一點讓頭落在彈道上 */
-          pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1;pctx.translate(P0[0]*U,P0[1]*U);pctx.rotate(ang3+Math.PI/4);pctx.drawImage(mi,-sz3*.75,-sz3*.25,sz3,sz3);pctx.restore()}}
+          drawMis(e.el,P0[0],P0[1],ang3)}}
       else if(wk==='staff'||wk==='book'){var u3=(d-60)/230;if(u3>=0&&u3<=1){var e3=u3*u3*(3-2*u3),x3=sx+(hx-sx)*e3,y3=sy+(hy-sy)*u3-Math.sin(u3*Math.PI)*4;
           for(var i3=6;i3>=1;i3--)VO(x3-i3*3.2,y3,Math.max(1,4-i3*.5),Math.max(1,Math.round(3-i3*.35)),c,.1*(7-i3));VO(x3,y3,4,3,c,1);VO(x3+1,y3,2,2,'#ffffff',1)}}
       else if((wk==='dagger'||wk==='spear')&&vimg(THRUST,e.el)){var ti4=vimg(THRUST,e.el),r4=(d-150)/120,f4=(d-270)/220,tw=(wk==='spear'?34:24)*VS*U,th=24*VS*U,cx4=(hx+6)*U-tw/2,ty4=hy*U,rot4=THROT[ELN[e.el]||0]||0,sq4=THSQ[ELN[e.el]||0]||1,TA=.8;
@@ -375,7 +380,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
       if(pk){var fp=null;
         if(wk==='bow')fp=function(dd){var u=(dd-80)/140;return u<0||u>1?null:[sx+(hx-6-sx)*u,sy+(hy-sy)*u]};
         else if(wk==='staff'||wk==='book')fp=function(dd){var u=(dd-60)/230;if(u<0||u>1)return null;var ee=u*u*(3-2*u);return [sx+(hx-sx)*ee,sy+(hy-sy)*u-Math.sin(u*Math.PI)*4]};
-        else if(wk==='throw')fp=function(dd){var u=(dd-60)/240;return u<0||u>1?null:[sx+(hx-sx)*u,sy+(hy-sy)*u-Math.sin(u*Math.PI)*16]};
+        else if(wk==='throw')fp=function(dd){var u=(dd-60)/240;return u<0||u>1?null:[sx+(hx-sx)*u,sy+(hy-sy)*u-Math.sin(u*Math.PI)*THROWH]};
         if(fp)pTrail(pk,fp,d);
         pBurst(pk,hx,hy,d-(wk==='hammer'?220:(e.hit>180?e.hit:220)),14,VS)}
       if(wk!=='hammer'&&wk!=='throw'){var bu=(d-(e.hit>180?e.hit:220))/320;if(bu>=0&&bu<=1){var mg=wk==='staff'||wk==='book',n=mg?14:8;for(var k7=0;k7<n;k7++){var an7=k7/n*Math.PI*2+.3,dd=2+bu*(mg?10:6);VP(hx+Math.cos(an7)*dd,hy+Math.sin(an7)*dd*(mg?.6:1),k7%2?c:'#ffffff',1-bu)}}}
@@ -612,7 +617,7 @@ function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,6).map(function(p){return p.name}).join('、');
   $('loading').remove();renderTabs();showView('map')}
-Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=2')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
+Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=2')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=2')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   var m=r[4];if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
