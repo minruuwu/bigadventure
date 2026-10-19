@@ -58,7 +58,7 @@ skill063,聖域術,status,聖域,ally_all,3,1,,,,,,,,
 skill064,催化酸雨,status,虛弱,enemy_all,3,1,,,,,,,,
 skill065,超頻研究,status,超頻,self,3,1,,,,,,,,
 skill066,反擊,reaction,,attacker,,,counter,1,p_atk,,p,hit_any,0.2,
-skill067,元素吸收,reaction,,self,,,absorb,,,,,hit_any,0.1,fire;frost;lightning
+skill067,元素吸收,reaction,,self,,,absorb,,,,,hit_any,0.1,fire;frost;wind;lightning
 skill068,燕返箭,reaction,,attacker,,,counter,2,p_atk,,p,hit_any,0.1,
 skill069,懲罰箴言,reaction,懲戒,attacker,2,,apply_status,,,,,hit_any,0.1,
 skill070,透析原理,reaction,,self,,,block,,,,,hit_any,0.08,

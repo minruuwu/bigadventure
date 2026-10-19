@@ -65,7 +65,7 @@ skill063,聖域術,job04,30,combat,ally_all,,buff,,,,,,,,,物理減傷+10%、魔
 skill064,催化酸雨,job05,25,combat,enemy_all,,damage,,,p,nature,1.4,,,,物理攻擊力-10%、魔法攻擊力-10%,throw
 skill065,超頻研究,job05,30,combat,self,,buff,,,,,,,,,物理增傷+10%、魔法增傷+10%,
 skill066,反擊,job06,10,reaction,,,reaction,,,,,,,,,20%機率對物理魔法攻擊來源發動一次100%物理攻擊,
-skill067,元素吸收,job07,10,reaction,,,reaction,,,,,,,,,10%機率將帶有火焰、冰霜、雷電屬性的傷害完全轉為恢復自身生命（不受傷）,
+skill067,元素吸收,job07,10,reaction,,,reaction,,,,,,,,,10%機率將帶有火焰、冰霜、疾風、雷電屬性的傷害完全轉為恢復自身生命（不受傷）,
 skill068,燕返箭,job08,10,reaction,,,reaction,,,,,,,,,10%機率對物理魔法攻擊來源發動一次200%物理攻擊,
 skill069,懲罰箴言,job09,10,reaction,,,reaction,,,,,,,,,10%機率對物理魔法攻擊來源施加「懲戒」：物理魔法攻擊力-10%，持續2回合,
 skill070,透析原理,job10,10,reaction,,,reaction,,,,,,,,,8%機率擋下物理魔法攻擊,
