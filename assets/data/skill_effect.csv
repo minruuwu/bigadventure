@@ -165,3 +165,12 @@ skill175,引導靈光,passive,,ally_all,,,m_damage_rate,0.08,,,,,,
 skill176,秘術守衛,status,秘術護罩,self,3,1,,,,,,,,
 skill178,秘法裂隙,status,放逐,enemy_single,2,1,,,,,,,,
 skill179,知識累積,passive,,,,,exp_bonus,1.5,,,,win,0.5,leader
+skill180,苦痛魔箭,status,苦痛,enemy_single,3,1,,,,,,,,
+skill181,邪能充盈,passive,,,,,m_damage_rate,0.1,,,,,,
+skill182,魔能爆,status,失神,enemy_all,2,0.3,,,,,,,,
+skill183,血噬詛咒,status,血噬,enemy_single,3,1,,,,,,,,
+skill184,巫術軀體,passive,,,,,m_reduce_rate,0.1,,,,,,
+skill185,異界活力,status,異界活力,self,3,1,,,,,,,,
+skill186,死靈低語,status,死靈低語,enemy_all,3,0.5,,,,,,,,
+skill187,邪法矛,bonus,,,,,dmg_per_debuff,0.1,,,,,,max0.5
+skill188,竊取精血,passive,,,,,lifesteal,0.05,,,,,,
