@@ -336,8 +336,8 @@ var THROWH=30;
 var shakeY=0;
 function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
-  B.ev.forEach(function(e){for(var hh=0;hh<(e.side==='p'&&e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130)});
-  function vOne(e,t){var d=t-e.t;if(d<0||d>900||!e.side)return;
+  B.ev.forEach(function(e){for(var hh=0;hh<(e.side==='p'&&e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
+  function vOne(e,t,hh){var d=t-e.t;if(d<0||d>900||!e.side)return;
     if(e.side==='m'){if(e.tgt==null||e.tgt<0)return;var pp=posOf(e.tgt);
       /* 怪物攻擊：爪痕圖由上往下劃出約 0.13 秒，再放大淡出約 0.2 秒 */
       if(CLAW&&CLAW.naturalWidth){var cs=24*VS*U,ccx=(pp[0]+6)*U,ccy=(pp[1]-14)*U,c1=(d-170)/130,c2=(d-300)/200;
@@ -348,7 +348,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
     var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
     if(e.ty==='heal'&&e.hl!=null){var hp=posOf(e.hl);if(PCOL[e.el])pBurst(e.el,hp[0],hp[1]-10,d-150,12,.8*VS);for(var k=0;k<10;k++){var u=(d-150-k*30)/600;if(u<0||u>1)continue;VP(hp[0]-6+hsh(k,1)*12,hp[1]-6-u*22-hsh(k,2)*8,k%3?'#8ef09a':'#e8ffe8',1-u)}return}
     if(e.ty==='buff'){if(PCOL[e.el])pBurst(e.el,pp[0],pp[1]-12,d-60,12,.8*VS);var u2=d/700;if(u2>1)return;var R=6+u2*6;for(var k2=0;k2<28;k2++){var an=k2/28*Math.PI*2;VP(pp[0]+Math.cos(an)*R,pp[1]-1+Math.sin(an)*R*.3,k2%2?'#ffd76a':'#fff4c4',1-u2)}return}
-    (e.tg||[]).forEach(function(ti){var mp=monPos(ti);if(!mp)return;var hx=mp[0],hy=mp[1];
+    (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;var hx=mp[0],hy=mp[1];
       if(wk==='bow'&&vimg(ARROW,e.el)){var ai=vimg(ARROW,e.el),tc=ELC[e.el]||'#ffffff',u=(d-80)/140,ex=hx-6,ang=Math.atan2(hy-sy,ex-sx);
         var head=Math.min(1,Math.max(0,u)),tailFade=u>1?1-(d-220)/320:1;
         if(u>=0&&tailFade>0){var t0=Math.max(0,head-.55);for(var q=t0;q<=head;q+=.012){var k=(q-t0)/(head-t0+1e-6),px0=sx+(ex-sx)*q-12*Math.cos(ang)*(u<=1?1:0),py0=sy+(hy-sy)*q;VP(px0,py0,tc,k*.75*tailFade);if(k>.55){VP(px0,py0-1,tc,(k-.55)*.9*tailFade);VP(px0,py0+1,tc,(k-.55)*.9*tailFade)}if(k>.85&&Math.random()<.25)VP(px0-1,py0+(Math.random()<.5?-2:2),'#ffffff',.6*tailFade)}}
@@ -545,9 +545,12 @@ function simulate(a,l){var N=stageNo(a,l),boss=l===10,winP=Math.max(.45,.95-N*.0
         if(s.ty==='heal'){var al=aliveP(),tg=al.reduce(function(b,i){return P[i].hp/P[i].mx<P[b].hp/P[b].mx?i:b},al[0]),amt=rnd(pd,pd*2),eff=Math.min(amt,P[tg].mx-P[tg].hp);P[tg].hp+=eff;ev.push(Object.assign({side:'p',a:o[1],tg:[],hl:tg,txt:x.n+' 使用「'+s.n+'」，'+P[tg].n+' 恢復 '+eff+' 生命',st:[[o[1],'heal',eff,s.n]]},fx));return}
         if(s.ty==='buff'||s.ty==='debuff'){ev.push(Object.assign({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」'},fx));return}
         var am=aliveM(),tgs=s.all?am:[am[rnd(0,am.length-1)]],parts=[],dead=[],sum=0;
-        tgs.forEach(function(ti){var m=ms[ti],hs=[],H=s.hits||1;for(var h=0;h<H;h++){if(m.hp<=0)break;if(Math.random()<.08){hs.push('閃開');continue}var cr=Math.random()<.15,d=Math.round(pd*(s.all?.7:1)*(H>1?.8:1)*(.85+Math.random()*.3)*(cr?1.5:1));m.hp-=d;sum+=d;hs.push((cr?'暴擊 ':'')+d)}
+        var tgh=null;if(s.re&&!s.all&&(s.hits||1)>1){tgh=[];var per={};for(var h0=0;h0<s.hits;h0++){var al0=aliveM();if(!al0.length)break;var t0=al0[rnd(0,al0.length-1)],m0=ms[t0];tgh.push(t0);(per[t0]=per[t0]||[]);
+            if(Math.random()<.08){per[t0].push('閃開');continue}var cr0=Math.random()<.15,d0=Math.round(pd*.8*(.85+Math.random()*.3)*(cr0?1.5:1));m0.hp-=d0;sum+=d0;per[t0].push((cr0?'暴擊 ':'')+d0);if(m0.hp<=0&&dead.indexOf(t0)<0)dead.push(t0)}
+          tgs=Object.keys(per).map(Number);tgs.forEach(function(ti){parts.push(ms[ti].n+' 受到 '+per[ti].join('、')+' 傷害')})}
+        else tgs.forEach(function(ti){var m=ms[ti],hs=[],H=s.hits||1;for(var h=0;h<H;h++){if(m.hp<=0)break;if(Math.random()<.08){hs.push('閃開');continue}var cr=Math.random()<.15,d=Math.round(pd*(s.all?.7:1)*(H>1?.8:1)*(.85+Math.random()*.3)*(cr?1.5:1));m.hp-=d;sum+=d;hs.push((cr?'暴擊 ':'')+d)}
           if(H>1)parts.push(m.n+' 受到 '+hs.join('、')+' 傷害');else parts.push(hs[0]==='閃開'?m.n+' 閃開了':m.n+(hs[0].indexOf('暴擊')===0?' 暴擊！受到 '+hs[0].slice(3):' 受到 '+hs[0])+' 傷害');if(m.hp<=0)dead.push(ti)});
-        ev.push(Object.assign({side:'p',a:o[1],tg:tgs,hits:s.hits||1,txt:x.n+' 使用「'+s.n+'」→ '+parts.join('，'),dead:dead,st:sum?[[o[1],'dmg',sum,s.n]]:[]},fx))}
+        ev.push(Object.assign({side:'p',a:o[1],tg:tgs,tgh:tgh,hits:tgh?tgh.length:(s.hits||1),txt:x.n+' 使用「'+s.n+'」→ '+parts.join('，'),dead:dead,st:sum?[[o[1],'dmg',sum,s.n]]:[]},fx))}
       else{var m=ms[o[1]];if(m.hp<=0)return;var ap=aliveP(),ti=ap[rnd(0,ap.length-1)],t2=P[ti];
         if(Math.random()<.12){ev.push({side:'m',a:o[1],tgt:-1,txt:m.n+' 攻擊 '+t2.n+'，被閃開了'});return}
         var d=Math.round(md*(.85+Math.random()*.3));t2.hp-=d;ev.push({side:'m',a:o[1],tgt:ti,txt:m.n+' 攻擊 '+t2.n+'，造成 '+d+' 傷害',pko:t2.hp<=0?ti:null,st:[[ti,'taken',d,m.n+' 普通攻擊']]})}})}
@@ -624,7 +627,7 @@ function start(me,mem){
   $('who').textContent='隊伍：'+MEMB.slice(0,6).map(function(p){return p.name}).join('、');
   $('loading').remove();renderTabs();showView('map')}
 Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=4')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=3')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).concat([loadPx(BASE+'vfx/claw.png?v=1')]).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
-  var csv=r[0];CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1}});
+  var csv=r[0];CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   var m=r[4];if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}

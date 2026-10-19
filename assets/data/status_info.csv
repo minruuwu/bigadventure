@@ -63,3 +63,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 禮讚,buff,m_reduce_rate,0.2,,,,
 禮讚,buff,p_damage_rate,0.2,,,,
 禮讚,buff,m_damage_rate,0.2,,,,
+凍足,debuff,eva_rate,-0.2,,,,閃避率 −20%
+劍氣,buff,p_damage_rate,0.2,,,,物理增傷 +20%、閃避率 +15%
+劍氣,buff,eva_rate,0.15,,,,

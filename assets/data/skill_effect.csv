@@ -113,3 +113,8 @@ skill122,淨化禱言,cleanse,,ally_single,,,debuff,all,,,,,,
 skill123,輝光枷鎖,status,封禁,enemy_single,2,0.2,,,,,,,,
 skill125,啟蒙,passive,,,,,int_to_hp,0.05,,,,,,
 skill126,劍專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon01
+skill128,劍履冰霜,status,凍足,enemy_single,2,1,,,,,,,,
+skill130,劍精通,passive,,,,,crit_rate,0.1,,,,,,weapon01
+skill130,劍精通,passive,,,,,crit_damage_rate,0.5,,,,,,weapon01
+skill131,劍氣蕩漾,status,劍氣,self,3,1,,,,,,,,
+skill134,人劍合一,passive,,,,,p_atk_to_hp,0.05,,,,,,weapon01
