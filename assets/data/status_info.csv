@@ -98,3 +98,8 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 蛇毒,debuff,dot,0.25,p_atk,nature,p,每回合造成施加者物理攻擊力 25% 的自然物理傷害
 潛伏,buff,eva_rate,0.3,,,,閃避率 +30%；期間下一招傷害技必定暴擊，用掉後潛伏消失
 潛伏,buff,sure_crit_next,1,,,,
+生命之泉,buff,hot,0.3,m_atk,,,每回合恢復施加者魔法攻擊力 30% 的生命
+復甦,buff,hot,0.25,m_atk,,,每回合恢復施加者魔法攻擊力 25% 的生命
+森之庇護,buff,p_reduce_rate,0.15,,,,物理減傷 +15%、魔法減傷 +15%、受到的治療量 +20%
+森之庇護,buff,m_reduce_rate,0.15,,,,
+森之庇護,buff,heal_taken_rate,0.2,,,,
