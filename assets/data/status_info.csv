@@ -7,16 +7,16 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 堅毅,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
 剛毅,buff,p_reduce_rate,0.1,,,,物理減傷 +10%
 意志,buff,m_reduce_rate,0.15,,,,魔法減傷 +15%
-強化,buff,p_atk_rate,0.1,,,,物理攻擊力 +10%、魔法攻擊力 +10%
-強化,buff,m_atk_rate,0.1,,,,
+強化,buff,p_atk_rate,0.2,,,,物理攻擊力 +20%、魔法攻擊力 +20%
+強化,buff,m_atk_rate,0.2,,,,
 魔力守護,buff,p_reduce_rate,0.15,,,,物理減傷 +15%、魔法減傷 +15%
 魔力守護,buff,m_reduce_rate,0.15,,,,
-神力祝福,buff,p_damage_rate,0.15,,,,物理增傷 +15%、魔法增傷 +15%
-神力祝福,buff,m_damage_rate,0.15,,,,
+神力祝福,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
+神力祝福,buff,m_damage_rate,0.4,,,,
 聖域,buff,p_reduce_rate,0.1,,,,物理減傷 +10%、魔法減傷 +10%
 聖域,buff,m_reduce_rate,0.1,,,,
-超頻,buff,p_damage_rate,0.1,,,,物理增傷 +10%、魔法增傷 +10%
-超頻,buff,m_damage_rate,0.1,,,,
+超頻,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
+超頻,buff,m_damage_rate,0.4,,,,
 輝煌,buff,str_rate,0.3,,,,力量 +30%、智力 +30%（太陽之照耀）
 輝煌,buff,int_rate,0.3,,,,
 生命守護,buff,shield,0.5,heal_amount,,,護盾吸收傷害：數值為該次治療量的 50%，上限為最大生命 30%（鹿之守護）
@@ -44,8 +44,8 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 強化護甲,buff,p_reduce_rate,0.1,,,,物理減傷 +10%、魔法減傷 +10%
 強化護甲,buff,m_reduce_rate,0.1,,,,
 戒律,buff,crit_rate,0.1,,,,暴擊率 +10%
-利刃,buff,p_damage_rate,0.1,,,,物理增傷 +10%、魔法增傷 +10%、暴擊率 +10%
-利刃,buff,m_damage_rate,0.1,,,,
+利刃,buff,p_damage_rate,0.35,,,,物理增傷 +35%、魔法增傷 +35%、暴擊率 +10%
+利刃,buff,m_damage_rate,0.35,,,,
 利刃,buff,crit_rate,0.1,,,,
 暈眩,debuff,stun,,,,,跳過行動（同麻痺）
 出血,debuff,dot,0.3,p_atk,,p,每回合造成施加者物理攻擊力 30% 的物理傷害
@@ -64,5 +64,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 禮讚,buff,p_damage_rate,0.2,,,,
 禮讚,buff,m_damage_rate,0.2,,,,
 凍足,debuff,eva_rate,-0.2,,,,閃避率 −20%
-劍氣,buff,p_damage_rate,0.2,,,,物理增傷 +20%、閃避率 +15%
+劍氣,buff,p_damage_rate,0.4,,,,物理增傷 +40%、閃避率 +15%
 劍氣,buff,eva_rate,0.15,,,,
