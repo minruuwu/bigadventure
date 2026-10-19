@@ -69,3 +69,10 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 汞中毒,debuff,dot,0.3,m_atk,,m,每回合造成施加者魔法攻擊力 30% 的魔法傷害
 凍結,debuff,stun,,,,,跳過行動（同麻痺）
 透析,debuff,dmg_taken_rate,0.5,,,,受到傷害 +50%
+守護誓言,buff,protect,,,,,替所有隊友承受單體攻擊（全體攻擊不擋），物理減傷 +10%、魔法減傷 +10%
+守護誓言,buff,p_reduce_rate,0.1,,,,
+守護誓言,buff,m_reduce_rate,0.1,,,,
+聖盾,buff,p_reduce_rate,0.2,,,,物理減傷 +20%、魔法減傷 +20%
+聖盾,buff,m_reduce_rate,0.2,,,,
+祝福,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
+祝福,buff,m_damage_rate,0.4,,,,
