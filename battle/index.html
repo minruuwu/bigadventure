@@ -296,6 +296,7 @@ function tick(now){
   raf=requestAnimationFrame(tick);
 }
 /* ---- 攻擊特效（依武器種類；顏色：普攻白／魔法淡紫、無屬性技能淡金、有屬性用屬性色） ---- */
+var SLASH={},SLASHK=['none','fire','frost','wind','lightning','nature','light','dark'];
 var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'}},FARK=['bow','staff','book','throw'];
 var WKIND={'劍':'sword','斧':'axe','錘':'hammer','匕':'dagger','槍':'spear','弓':'bow','杖':'staff','書':'book'};
 var ELC={fire:'#ff7a3a',frost:'#9ad8ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#fff4c4',dark:'#6a1fc0'};
@@ -325,6 +326,10 @@ function drawVfx(t){shakeY=0;if(!B)return;
       else if(wk==='hammer'){var u5=(d-130)/90;if(u5>=0&&u5<=1){var y5=hy-30+28*u5;for(var i5=0;i5<8;i5++)VP(hx,y5-i5,c,1-i5/8);VR(hx-2,y5-1,5,3,c,1)}
         var v5=(d-220)/380;if(v5>=0&&v5<=1){var gy=BG[cur].band+mons[ti].dy,R5=4+v5*16;for(var k5=0;k5<40;k5++){var an5=k5/40*Math.PI*2;VP(hx+Math.cos(an5)*R5,gy-1+Math.sin(an5)*R5*.3,c,1-v5)}}
         if(d>220&&d<380)shakeY=Math.round(Math.sin(d)*1.5*U)}
+      else if(SLASH.none&&SLASH.none.naturalWidth){var si=SLASH[e.el]&&SLASH[e.el].naturalWidth?SLASH[e.el]:SLASH.none,SZ=24,cx=(hx-2)*U,cy=(hy-2)*U,sz=SZ*U;
+        var r1=(d-160)/150,r2=(d-310)/200;
+        if(r1>=0&&r1<=1){pctx.save();pctx.imageSmoothingEnabled=false;pctx.beginPath();pctx.rect(cx-sz/2-2,cy-sz/2-2,sz+4,(sz+4)*r1*r1*(3-2*r1));pctx.clip();pctx.globalAlpha=1;pctx.drawImage(si,cx-sz/2,cy-sz/2,sz,sz);pctx.restore()}
+        else if(r2>=0&&r2<=1){var k=1+.15*r2,s2=sz*k;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1-r2;pctx.drawImage(si,cx-s2/2,cy-s2/2,s2,s2);pctx.restore()}}
       else{var u6=(d-180)/220;if(u6>=0&&u6<=1){var R6=wk==='axe'?10:14,th=wk==='axe'?3:2,a0=-2.3,span=2.6,f6=Math.min(1,u6*1.8),sw=a0+span*f6*f6*(3-2*f6),fade=1-Math.max(0,(u6-.45)/.55);
           for(var an6=a0;an6<=sw;an6+=.04){var k6=(an6-a0)/span;for(var d6=0;d6<th;d6++){var rr=R6-d6;VP(hx-2+Math.cos(an6)*rr,hy-2+Math.sin(an6)*rr,d6===0?'#ffffff':c,fade*(.35+.65*k6))}}}}
       if(wk!=='hammer'&&wk!=='throw'){var bu=(d-(e.hit>180?e.hit:220))/320;if(bu>=0&&bu<=1){var mg=wk==='staff'||wk==='book',n=mg?14:8;for(var k7=0;k7<n;k7++){var an7=k7/n*Math.PI*2+.3,dd=2+bu*(mg?10:6);VP(hx+Math.cos(an7)*dd,hy+Math.sin(an7)*dd*(mg?.6:1),k7%2?c:'#ffffff',1-bu)}}}
@@ -479,7 +484,7 @@ function simulate(a,l){var N=stageNo(a,l),boss=l===10,winP=Math.max(.45,.95-N*.0
   while(aliveM().length&&aliveP().length&&rd<40){rd++;ev.push({kind:'round',txt:'— 第 '+rd+' 回合 —'});
     var order=[];P.forEach(function(x,i){if(x.hp>0)order.push(['p',i])});ms.forEach(function(m,i){if(m.hp>0)order.push(['m',i])});order.sort(function(){return Math.random()-.5});
     order.forEach(function(o){if(!aliveM().length||!aliveP().length)return;
-      if(o[0]==='p'){var x=P[o[1]];if(x.hp<=0)return;var s=skillOf(x.p,x.cy++),ww=WKIND[x.p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww,fx={wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,ty:s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
+      if(o[0]==='p'){var x=P[o[1]];if(x.hp<=0)return;var s=skillOf(x.p,x.cy++),ww=WKIND[x.p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww,fx={wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,el:s.el||'',ty:s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
         if(s.ty==='heal'){var al=aliveP(),tg=al.reduce(function(b,i){return P[i].hp/P[i].mx<P[b].hp/P[b].mx?i:b},al[0]),amt=rnd(pd,pd*2),eff=Math.min(amt,P[tg].mx-P[tg].hp);P[tg].hp+=eff;ev.push(Object.assign({side:'p',a:o[1],tg:[],hl:tg,txt:x.n+' 使用「'+s.n+'」，'+P[tg].n+' 恢復 '+eff+' 生命',st:[[o[1],'heal',eff,s.n]]},fx));return}
         if(s.ty==='buff'){ev.push(Object.assign({side:'p',a:o[1],tg:[],txt:x.n+' 使用「'+s.n+'」'},fx));return}
         var am=aliveM(),tgs=s.all?am:[am[rnd(0,am.length-1)]],parts=[],dead=[],sum=0;
@@ -536,12 +541,12 @@ function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,6).map(function(p){return p.name}).join('、');
   $('loading').remove();renderTabs();showView('map')}
-Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
+Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat(SLASHK.map(function(k){return loadPx(BASE+'vfx/slash_'+k+'.png?v=1')})).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||''}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   var m=r[4];if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}
-  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];
+  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];SLASHK.forEach(function(k,i){SLASH[k]=r[14+i]});
   return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})
 }).then(function(){
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
