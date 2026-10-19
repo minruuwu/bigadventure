@@ -189,7 +189,7 @@
       rows.forEach(function (r) { if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
       if (old) { var i = tgt.st.indexOf(old); tgt.st[i] = s } else tgt.st.push(s);
       if (rows.some(function (r) { return r.k === 'banish' })) { s.banish = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }) }
-      if (e) e.txt += '，' + tgt.name + ' 陷入「' + name + '」';
+      if (e) { e._st = e._st || {}; (e._st[name] = e._st[name] || []).push(tgt.name) }
       return true;
     }
     function removeStatus(u, s) { var i = u.st.indexOf(s); if (i >= 0) u.st.splice(i, 1) }
@@ -357,6 +357,7 @@
       if (!sk) { e.txt = u.name + ' 沒有可以行動的目標'; e.idle = 1; endAct(u, null); e.hp = hpSnap(); return }
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
       doSkill(u, sk, tg, e);
+      flushSt(e);
       endAct(u, sk);
       e.hp = hpSnap();
     }
@@ -365,6 +366,7 @@
       var d = debuffs(u); if (d.length) { var s = pickOne(d); removeStatus(u, s); line({ side: u.side, a: u.i, txt: u.name + ' 的「聖潔」驅散了「' + s.n + '」', tick: 1, hp: hpSnap() }) }
       return true;
     }
+    function flushSt(e) { if (!e._st) return; Object.keys(e._st).forEach(function (n) { var L = e._st[n]; e.txt += '，' + (L.length > 3 ? L.length + ' 人' : L.join('、')) + ((D.STS[n] || {}).pol === 'buff' ? ' 獲得「' : ' 陷入「') + n + '」' }); delete e._st }
     function endAct(u, sk) {
       u.st.forEach(function (s) {
         if (s.paused || s.banish) return;

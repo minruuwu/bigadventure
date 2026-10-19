@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -71,6 +71,16 @@ const FB = {
   async setPetTent(id, on) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { ['pets.' + id + '.tent']: !!on })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { tent: !!on }); mePatch({ pets }); },
   // 鍛造存檔：鍛造石（只能減少）與各武器等級（只能增加）、淬火點數、附魔同一次寫入；lvs = {武器u_sn: {lv,pts,ench}}
   async saveForge(stones, lvs) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { stones }; Object.keys(lvs).forEach(k => { const v = lvs[k]; f['weapons.' + k + '.lv'] = v.lv; f['weapons.' + k + '.pts'] = v.pts; f['weapons.' + k + '.ench'] = v.ench; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], lvs[k]); }); mePatch({ stones, weapons }); },
+  // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成寫成信件（同一批寫入，規則檢查上限與 20 秒間隔）
+  async advWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db), f = { exp: increment(r.exp), stones: increment(r.stones), advAt: serverTimestamp() };
+    if (r.cookie) f.cookies = increment(1); if (r.clear) f['adv.' + r.area] = r.clear; b.update(doc(db, 'players', u.uid), f);
+    (r.mail || []).forEach(m => b.set(doc(collection(db, 'mail')), { to: m.to, from: u.uid, fromName: String(r.name || '').slice(0, 20), exp: m.exp, stones: m.stones, area: r.area, stage: r.stage, at: serverTimestamp() }));
+    await tmo(b.commit()); const c = meGet(), pl = (c && c.player) || {}, adv = Object.assign({}, pl.adv || {}); if (r.clear) adv[r.area] = r.clear;
+    mePatch({ exp: (pl.exp | 0) + r.exp, stones: (pl.stones | 0) + r.stones, cookies: (pl.cookies | 0) + (r.cookie ? 1 : 0), adv }); },
+  // 信件：寄給我的隊友分成；領取時一封一封領（刪信＋加經驗、鍛造石同一批寫入）
+  async mailList() { await ready; const u = auth.currentUser; if (!u) return []; const s = await withTimeout(getDocs(query(collection(db, 'mail'), where('to', '==', u.uid), limit(50))), 10000); return s.docs.map(d => Object.assign({ id: d.id }, ser(d.data()))); },
+  async mailClaim(m) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const b = writeBatch(db); b.delete(doc(db, 'mail', m.id)); b.update(doc(db, 'players', u.uid), { exp: increment(m.exp | 0), stones: increment(m.stones | 0), claim: m.id }); await tmo(b.commit());
+    const c = meGet(), pl = (c && c.player) || {}; mePatch({ exp: (pl.exp | 0) + (m.exp | 0), stones: (pl.stones | 0) + (m.stones | 0) }); },
   // 管理後台（admin/ 頁面用；寫入是否允許由 Firestore 規則依管理者 email 決定）
   async adminList(n) { await ready; const s = await withTimeout(getDocs(query(collection(db, 'players'), orderBy('lastSeen', 'desc'), limit(n || 200))), 15000); return s.docs.map(d => Object.assign({ uid: d.id }, ser(d.data()))); },
   async adminUpdate(uid, fields) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', uid), fields); },
