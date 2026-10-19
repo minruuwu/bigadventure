@@ -105,7 +105,7 @@ button{font:inherit;color:inherit}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=24"></script>
-<script src="engine.js?v=2"></script>
+<script src="engine.js?v=3"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -577,13 +577,13 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
   var eb=roll('exp_bonus'),fb=roll('forge_bonus'),exp=r.exp,st=r.stones;
   if(eb){exp=Math.ceil(exp*eb.v);bx.push('知識累積：經驗 ×'+eb.v)}if(fb){st=Math.ceil(st*fb.v);bx.push('鍛造專精：鍛造石 ×'+fb.v)}
   var cookie=Math.random()<0.01,mem=MEMB.slice(1,6),me=MEMB[0],cl=cleared(B.a),newClear=B.l>cl?B.l:0;
-  var mail=mem.map(function(p){return{to:p.uid,exp:Math.ceil(exp*0.1),stones:Math.ceil(st*0.05)}}).filter(function(m){return m.to});
+  var mail=mem.map(function(p){return{to:p.uid,exp:Math.ceil(exp*0.1),stones:Math.ceil(st*0.05)}}).filter(function(m){return m.to&&(me.party||[]).indexOf(m.to)>=0});
   var h='獲得 經驗 <b>'+exp+'</b>、鍛造石 <b>'+st+'</b>'+(cookie?'、寵物餅乾 <b>1</b>':'')+(bx.length?'<br><small>'+bx.join('、')+'</small>':'')+
-    (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（寄到營地信件）':'')+
+    (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地信件領取）':'')+
     (newClear&&B.l<10?'<br>解鎖第 '+(B.l+1)+' 關':newClear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">獎勵寫入中…</small>';
   $('rtxt').innerHTML=h;$('rok').disabled=true;
   if(demo){$('rsave').textContent='示範模式：不寫入';$('rok').disabled=false;return}
-  var wait=Math.max(0,LASTADV+21000-Date.now()),req={area:AREAID[B.a],stage:B.l,exp:exp,stones:st,cookie:cookie,clear:newClear,name:me.name,mail:mail};
+  var wait=Math.max(0,LASTADV+21000-Date.now()),req={area:AREAID[B.a],stage:B.l,exp:exp,stones:st,cookie:cookie,clear:newClear,name:me.name,share:mail};
   setTimeout(function(){withFB(function(FB){FB.advWin(req).then(function(){LASTADV=Date.now();me.exp=(me.exp|0)+exp;me.stones=(me.stones|0)+st;if(cookie)me.cookies=(me.cookies|0)+1;if(newClear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=newClear}
     var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入）';$('rok').disabled=false})})},wait);
   $('frame').scrollIntoView({block:'nearest',behavior:'smooth'})}

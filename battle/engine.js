@@ -99,7 +99,9 @@
         res: res, heal: sp('heal_rate'), speed: 10 + num(at.speed_bonus) + a / 20, hit: 0 },
       cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) ? id : 'atk' }),
       reaction: sv.reaction && D.SK[sv.reaction] && learned(p, D.SK[sv.reaction]) ? sv.reaction : '',
-      aura: aura, special: special, runes: en.slice(), weapon: p.weapon || '', p: p
+      aura: aura, special: special, runes: en.slice(), weapon: p.weapon || '', p: p,
+      apa: sp('atk_per_ally'), apaN: opt.allies || 0, pB: s + wsum('p_atk') + Math.round(v * sp('vit_to_p_atk')), mB: i + wsum('m_atk') + Math.round(s * sp('str_to_m_atk')),
+      learned: Object.keys(D.SK).map(function (id) { return D.SK[id] }).filter(function (k) { return k.kind === 'combat' && k.id !== 'atk' && k.j && k.j !== 'monster' && learned(p, k) })
     };
     while (u.cycle.length < 4) u.cycle.push('atk');
     if (rOn('rune24')) { u.b.pdmg += u.b.pred; u.b.mdmg += u.b.mred }
@@ -149,8 +151,8 @@
     function stat(u, k) {
       var b = u.b;
       switch (k) {
-        case 'patk': return b.patk * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
-        case 'matk': return b.matk * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
+        case 'patk': return (b.patk + apaAdj(u, 'pB')) * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
+        case 'matk': return (b.matk + apaAdj(u, 'mB')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'pdmg': return b.pdmg + sv(u, 'p_damage_rate') + auraVal(u, 'p_damage_rate');
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
         case 'pred': return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate');
@@ -163,6 +165,8 @@
       }
       return 0;
     }
+    /* 觀眾熱情：開戰時已照隊友人數算進攻擊力；隊友倒下（或復活）時即時調整 */
+    function apaAdj(u, k) { if (!u.apa) return 0; var n = Math.min(5, P.filter(function (x) { return x !== u && !x.dead }).length); return u[k] * u.apa * (n - u.apaN) }
     function resOf(u, el) { if (!el) return 0; var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV }); return r }
 
     /* --- 戰報 --- */
@@ -358,8 +362,32 @@
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
       doSkill(u, sk, tg, e);
       flushSt(e);
+      afterSkill(u, sk, tg, e, false);
       endAct(u, sk);
+      if (!e.hp) e.hp = hpSnap();
+    }
+    /* 技能結算後才判定的符文：墓之土、啟示之書、鷹之勇氣、命運之輪（追加的那次不再觸發後兩者） */
+    function trueAll(u, amt, e, why) { var t = 0; foes(u).forEach(function (q) { if (banished(q)) return; var d = hurt(q, amt, u); t += d; addStat(e, u, 'dmg', d, why); addStat(e, q, 'taken', d, u.name + ' ' + why); checkDeath(q, e) }); return t }
+    function afterSkill(u, sk, tg, e, isExtra) {
+      if (u.dead || !u.runes.length) return;
+      var dealt = (e._dealt || 0) > 0;
+      if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * 0.05)); u.hp -= loss; e.txt += '；墓之土：失去 ' + loss + ' 生命，全體敵人受到 ' + loss * 2 + ' 真實傷害'; trueAll(u, loss * 2, e, '墓之土'); checkDeath(u, e) }
+      if (!isExtra && dealt && u.runes.indexOf('rune21') >= 0 && sk.parts.some(function (x) { return x.d === 'm' })) {
+        u.r21 = (u.r21 || 0) + 1;
+        if (u.r21 >= 3) { u.r21 = 0; var wv = Math.round(stat(u, 'matk') * 2); e.txt += '；啟示之書：魔力幽界波對全體敵人造成 ' + wv + ' 真實傷害'; trueAll(u, wv, e, '啟示之書') }
+      }
       e.hp = hpSnap();
+      if (isExtra || u.dead || !foes(u).length) return;
+      if (dealt && u.runes.indexOf('rune19') >= 0 && RND() < 0.3) {
+        var t2 = tg.filter(function (x) { return !x.dead }); if (!t2.length) t2 = pickTargets(u, sk, false, false);
+        if (t2.length) { var e2 = line({ side: u.side, a: u.i, sk: sk.id, ty: sk.ty, txt: u.name + ' 的「鷹之勇氣」再次使用「' + sk.n + '」' }); doSkill(u, sk, t2, e2); flushSt(e2); afterSkill(u, sk, t2, e2, true); e2.hp = hpSnap() }
+      }
+      if (sk.id !== 'atk' && u.runes.indexOf('rune20') >= 0 && u.learned && u.learned.length && RND() < 0.5 && !u.dead && foes(u).length) {
+        var k3 = pickOne(u.learned), t3 = pickTargets(u, k3, false, false);
+        var e3 = line({ side: u.side, a: u.i, sk: k3.id, ty: k3.ty, txt: u.name + ' 的「命運之輪」發動「' + k3.n + '」' });
+        if (t3.length) { doSkill(u, k3, t3, e3); flushSt(e3); afterSkill(u, k3, t3, e3, true) } else { e3.txt += '，但沒有合法目標'; e3.idle = 1 }
+        e3.hp = hpSnap();
+      }
     }
     function autoClean(u) {
       if (!u.special.some(function (x) { return x.k === 'auto_cleanse' })) return false;
@@ -418,6 +446,8 @@
             [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * 0.5 * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
             if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round(real * 0.5); real += hurt(t, cr, u); totalDmg += cr }
             rec.hs.push((x.crit ? '暴擊 ' : '') + real + (x.absorbed ? '（吸收 ' + x.absorbed + '）' : ''));
+            /* 水之幽暗：每次暴擊，對隨機一名敵人造成物攻、魔攻較高者 200% 的黑暗魔法傷害（不再暴擊、不連鎖） */
+            if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * 2 * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); var wr = hurt(wt, Math.max(1, wa), u); totalDmg += wr; addStat(e, u, 'dmg', wr, '水之幽暗'); addStat(e, wt, 'taken', wr, u.name + ' 水之幽暗'); (e._x = e._x || []).push('水之幽暗 → ' + wt.name + ' ' + wr); checkDeath(wt, e) } }
             addStat(e, u, 'dmg', real, sk.n); addStat(e, t, 'taken', real, u.name + ' ' + sk.n);
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * 0.5), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); checkDeath(u, e) }
             if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < 0.2) applyStatus(t, u, '石化', 5, 1, null);
@@ -431,7 +461,9 @@
         e.tg = order.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i });
         e.tgP = order.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
         e.hitsN = hitList.length; e.tgh = each ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null;
+        e._dealt = (e._dealt || 0) + totalDmg;
         e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs; return H > 1 ? t.name + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? t.name + ' 閃開了' : hs[0] === '擋下' ? t.name + ' 擋下了' : hs[0] === '無效' ? t.name + ' 不受影響' : t.name + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
+        if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
         var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? 0.25 : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
         if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血') } }

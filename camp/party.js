@@ -148,32 +148,36 @@
     bar.hidden = false; panel.hidden = false; paint()
   }
 
-  /* ---------- 信件：隊長打贏冒險後寄來的分成 ---------- */
-  var MAILS = null;
-  function mailBadge() { var b = document.getElementById('mkMail'); if (!b) return; var n = MAILS ? MAILS.length : 0; b.querySelector('small').textContent = n ? n : ''; b.classList.toggle('new', n > 0) }
-  function mailCount() { API.mails().then(function (L) { MAILS = L || []; mailBadge() }, function () { MAILS = []; mailBadge() }) }
-  var AREAN = { area01: '怪物森林', area02: '魔晶礦洞', area03: '塵嵐荒漠', area04: '幽暗墓穴', area05: '凜冬雪山', area06: '聖教城領', area07: '熔岩火原', area08: '惡魔王城' };
+  /* ---------- 信件：隊長打贏冒險時，我的分成累積在隊長那邊；每天早上 6 點（台灣時間）後可以領一次 ---------- */
+  var SH = null, DAY = 86400000, SIX = 79200000; /* 台灣 06:00 = UTC 22:00 */
+  function period(t) { return Math.floor((t - SIX) / DAY) }
+  function canClaim(L) { var c = SH && SH.claims && SH.claims[L]; return !c || period(c) < period(Date.now()) }
+  function nextSix() { var d = new Date((period(Date.now()) + 1) * DAY + SIX); return (d.getMonth() + 1) + '/' + d.getDate() + ' 06:00' }
+  function ready() { return SH ? SH.list.filter(function (x) { return (x.exp || x.stones) && canClaim(x.uid) }) : [] }
+  function mailBadge() { var b = document.getElementById('mkMail'); if (!b) return; var n = ready().length; b.querySelector('small').textContent = n ? n : ''; b.classList.toggle('new', n > 0) }
+  function mailCount() { API.shares().then(function (r) { SH = r || { list: [], claims: {} }; mailBadge() }, function () { SH = { list: [], claims: {} }; mailBadge() }) }
   function openMail() {
     var win = overlay('pw'), box = win.box, busy = false;
-    box.insertAdjacentHTML('beforeend', '<h2>信件</h2><div class="lst ml"><div class="none">讀取中…</div></div><div class="cmsg"></div><button type="button" class="pbtn mall" hidden>全部領取</button>');
+    box.insertAdjacentHTML('beforeend', '<h2>信件</h2><p class="mnote" style="margin:0;font-size:12px;color:#5a3a1a;text-align:center">隊長帶你打贏冒險時，你的分成（經驗 10%、鍛造石 5%）會累積在隊長那邊，每天早上 6 點後可以領一次。</p><div class="lst ml"><div class="none">讀取中…</div></div><div class="cmsg"></div><button type="button" class="pbtn mall" hidden>全部領取</button>');
     var lst = box.querySelector('.ml'), msg = box.querySelector('.cmsg'), all = box.querySelector('.mall');
     function paint() {
-      var L = MAILS || []; all.hidden = L.length < 2;
-      if (!L.length) { lst.innerHTML = '<div class="none">沒有信件。隊長帶你打贏冒險時，你的分成會寄到這裡。</div>'; return }
-      lst.innerHTML = L.slice().sort(function (a, b) { return tms(b.at) - tms(a.at) }).map(function (m) { return '<div class="rw"><span class="tx"><b>' + esc(m.fromName || '隊長') + ' 的冒險分成</b><small>' + esc((AREAN[m.area] || '') + (m.stage ? ' 第 ' + m.stage + ' 關' : '')) + '　經驗 ' + (m.exp | 0) + '、鍛造石 ' + (m.stones | 0) + '</small></span><button type="button" class="pbtn" data-id="' + esc(m.id) + '">領取</button></div>' }).join('')
+      var L = (SH && SH.list) || [], R = ready(); all.hidden = R.length < 2;
+      if (!L.length) { lst.innerHTML = '<div class="none">目前沒有隊長把你加進隊伍。</div>'; return }
+      lst.innerHTML = L.map(function (x) { var has = x.exp || x.stones, ok = has && canClaim(x.uid);
+        return '<div class="rw"><span class="tx"><b>' + esc(x.name || '隊長') + ' 那邊的分成</b><small>' + (has ? '經驗 ' + x.exp + '、鍛造石 ' + x.stones : '目前沒有累積') + (has && !ok ? '　（' + nextSix() + ' 後可領）' : '') + '</small></span>' + (ok ? '<button type="button" class="pbtn" data-id="' + esc(x.uid) + '">領取</button>' : '') + '</div>' }).join('')
     }
     function take(ids) {
-      if (busy) return; busy = true; msg.textContent = ''; var got = { e: 0, s: 0 };
-      var q = ids.slice(); (function next() {
-        var id = q.shift(), m = (MAILS || []).filter(function (x) { return x.id === id })[0];
-        if (!m) { busy = false; paint(); mailBadge(); if (got.e || got.s) C.toast('領到 經驗 ' + got.e + '、鍛造石 ' + got.s); return }
-        API.claim(m).then(function () { MAILS = MAILS.filter(function (x) { return x.id !== id }); got.e += m.exp | 0; got.s += m.stones | 0; var q2 = me(); if (!C.demo) { q2.exp = (q2.exp | 0) + (m.exp | 0); q2.stones = (q2.stones | 0) + (m.stones | 0) } next() },
-          function (e) { busy = false; msg.textContent = '領取失敗' + (e && e.code === 'permission-denied' ? '（權限尚未開放）' : '') + '，請再試一次'; paint(); mailBadge() })
+      if (busy) return; busy = true; msg.textContent = ''; var got = { e: 0, s: 0 }, q = ids.slice();
+      (function next() {
+        var id = q.shift(), x = SH && SH.list.filter(function (y) { return y.uid === id })[0];
+        if (!x) { busy = false; paint(); mailBadge(); if (got.e || got.s) C.toast('領到 經驗 ' + got.e + '、鍛造石 ' + got.s); return }
+        API.claim(x.uid).then(function (g) { g = g || { exp: x.exp, stones: x.stones }; got.e += g.exp; got.s += g.stones; var m = me(); if (!C.demo) { m.exp = (m.exp | 0) + g.exp; m.stones = (m.stones | 0) + g.stones } x.exp = 0; x.stones = 0; SH.claims[x.uid] = Date.now(); next() },
+          function (e) { busy = false; msg.textContent = '領取失敗' + (e && e.code === 'permission-denied' ? '（今天可能已經領過，或規則尚未更新）' : '，請再試一次'); API.shares().then(function (r) { SH = r; paint(); mailBadge() }) })
       })()
     }
     lst.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (b) { b.disabled = true; take([b.dataset.id]) } });
-    all.addEventListener('click', function () { all.disabled = true; take((MAILS || []).map(function (m) { return m.id })); all.disabled = false });
-    API.mails().then(function (L) { MAILS = L || []; paint(); mailBadge() }, function (e) { lst.innerHTML = '<div class="none">信件讀取失敗' + (e && e.code === 'permission-denied' ? '（權限尚未開放）' : '') + '</div>' });
+    all.addEventListener('click', function () { take(ready().map(function (x) { return x.uid })) });
+    API.shares().then(function (r) { SH = r || { list: [], claims: {} }; paint(); mailBadge() }, function (e) { lst.innerHTML = '<div class="none">信件讀取失敗' + (e && e.code === 'permission-denied' ? '（權限尚未開放）' : '') + '</div>' });
   }
   /* ---------- 資料（真的 Firebase 或 demo 假資料） ---------- */
   function realAPI() {
@@ -186,12 +190,12 @@
       leave: function (u) { return F(function (FB) { return FB.partyLeave(u) }) },
       listen: function (cb, er) { var off = null, dead = false; C.withFB(function (FB) { if (!dead) off = FB.chatListen(cb, er) }); return function () { dead = true; if (off) off() } },
       send: function (t, n, j) { return F(function (FB) { return FB.chatSend(t, n, j) }) },
-      mails: function () { return F(function (FB) { return FB.mailList() }) },
-      claim: function (m) { return F(function (FB) { return FB.mailClaim(m) }) }
+      shares: function () { return F(function (FB) { return FB.shareList() }) },
+      claim: function (L) { return F(function (FB) { return FB.shareClaim(L) }) }
     }
   }
   function demoAPI() {
-    var msgs = [], subs = [], DL = C.demoList(), DMAIL = [{ id: 'm1', fromName: (DL[1] || {}).name || '隊長', exp: 6, stones: 1, area: 'area01', stage: 3, at: Date.now() - 3600000 }, { id: 'm2', fromName: (DL[1] || {}).name || '隊長', exp: 21, stones: 5, area: 'area01', stage: 10, at: Date.now() - 600000 }];
+    var msgs = [], subs = [], DL = C.demoList(), DMAIL = [{ uid: 'L1', name: (DL[1] || {}).name || '隊長', exp: 86, stones: 12 }, { uid: 'L2', name: (DL[2] || {}).name || '隊長', exp: 23, stones: 4 }], DCL = { L2: Date.now() };
     ['今天誰要打王？', '我先下班了～', '等等 20 分鐘後開', '欸 阿果升到 3 級了', '剛剛拿到兩顆餅乾'].forEach(function (t, i) { var q = DL[(i + 1) % DL.length]; msgs.push({ id: 'd' + i, uid: q.uid, name: q.name, jobSn: jobSn(q), text: t, at: Date.now() - 900000 + i * 60000 }) });
     function byUid(u) { return DL.filter(function (p) { return p.uid === u })[0] || null }
     return {
@@ -200,8 +204,8 @@
       add: function (u) { var m = me(); m.party = (m.party || []).concat(u); var o = byUid(u); if (o) o.leaders = (o.leaders || []).concat(m.uid); return Promise.resolve() },
       remove: function (u) { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== u }); return Promise.resolve() },
       leave: function (u) { var m = me(); m.leaders = (m.leaders || []).filter(function (x) { return x !== u }); return Promise.resolve() },
-      mails: function () { return Promise.resolve(DMAIL.slice()) },
-      claim: function (m) { DMAIL = DMAIL.filter(function (x) { return x.id !== m.id }); var q = me(); q.exp = (q.exp | 0) + m.exp; q.stones = (q.stones | 0) + m.stones; return Promise.resolve() },
+      shares: function () { return Promise.resolve({ list: DMAIL.map(function (x) { return Object.assign({}, x) }), claims: DCL }) },
+      claim: function (L) { var g = { exp: 0, stones: 0 }; DMAIL.forEach(function (x) { if (x.uid === L) { g = { exp: x.exp, stones: x.stones }; x.exp = 0; x.stones = 0 } }); DCL[L] = Date.now(); return Promise.resolve(g) },
       listen: function (cb) { subs.push(cb); setTimeout(function () { cb(msgs.slice().reverse()) }, 0); return function () { subs = subs.filter(function (x) { return x !== cb }) } },
       send: function (t, n, j) { msgs.push({ id: 'n' + msgs.length, uid: me().uid, name: n, jobSn: j, text: t, at: Date.now() }); msgs = msgs.slice(-30); subs.forEach(function (f) { f(msgs.slice().reverse()) }); return Promise.resolve() }
     }
