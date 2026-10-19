@@ -11,6 +11,7 @@
 | monster_05 | 青蛇（怪物森林） | `monster_05.png`（原圖縮 50%，呼吸＋吐蛇信） |
 | monster_06 | 灰狼（怪物森林） | `monster_06.png`（原圖縮 75%，喘氣＋流口水） |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
+| monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（72×60，原圖去背、左右翻轉後縮小；身體上半慢慢起伏） |
 
 規則：
 - 透明背景 PNG，面向左邊（朝向隊伍）。

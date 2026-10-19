@@ -240,11 +240,13 @@ function posOf(i){var F=PFORM[Math.max(1,Math.min(4,party.length||1))],q=F[Math.
 var MFORM={1:[[126,20]],2:[[136,28],[118,8]],3:[[140,12],[127,33],[115,4]],4:[[140,24],[132,2],[121,34],[114,14]],5:[[141,14],[136,34],[130,0],[120,22],[113,5]]};
 var BFORM={1:[[130,20]],2:[[138,20],[115,14]],3:[[139,20],[116,33],[112,6]],4:[[139,20],[117,34],[111,19],[115,2]],5:[[140,20],[118,34],[110,26],[115,8],[111,0]]};
 function mslots(ms){var n=Math.max(1,Math.min(5,ms.length)),bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});
-  if(bi<0)return ms.map(function(m,i){return MFORM[n][Math.min(i,n-1)]});var q=1;return ms.map(function(m,i){return i===bi?BFORM[n][0]:BFORM[n][Math.min(q++,n-1)]})}
+  if(bi<0)return ms.map(function(m,i){return MFORM[n][Math.min(i,n-1)]});var F=ms[bi].k==='dragon'?DFORM:BFORM,q=1;return ms.map(function(m,i){return i===bi?F[n][0]:F[n][Math.min(q++,n-1)]})}
+/* 龍這種大隻的王：王往後站一點，小怪站在牠前面的上下兩側，盡量不擋住龍頭 */
+var DFORM={1:[[124,18]],2:[[124,16],[104,34]],3:[[124,14],[104,34],[100,4]],4:[[124,14],[106,34],[96,20],[102,2]],5:[[124,14],[108,34],[96,26],[102,6],[92,0]]};
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
 var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[];
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
-var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:22,per:430,fx:'drool',at:[8,16]}};
+var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:22,per:430,fx:'drool',at:[8,16]},dragon:{n:'綠龍',f:'monster_boss_02',leg:40,per:1500,sin:1,fx:'',at:[0,0]}};
 function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return '';A.c=A.c||{};var ph=(now%A.per)/A.per,dy=A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0);if(A.c[dy])return A.c[dy];
   var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,A.leg,w,h-A.leg,0,A.leg,w,h-A.leg);x.drawImage(im,0,0,w,A.leg,0,dy,w,A.leg);return A.c[dy]=c.toDataURL()}
 function aniDy(k,now){var A=ANI[k],ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
@@ -267,7 +269,7 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){var o={k:m.k,sc:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
+  B.mons.forEach(function(m,i){var o={k:m.k,sc:m.k==='dragon'?1:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(o.x+hw>UW-1)o.x=UW-1-hw;/* 大隻的（龍）往左收，免得超出畫面 */o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
 }
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
@@ -521,28 +523,30 @@ var MAPH=1346,AREA=[
 var view='map',raf=0,B=null,pickA=-1,pickL=0,SKN={},FORCE_LOSE=false;
 function lastArea(){try{var v=parseInt(localStorage.getItem('adv.lastArea'),10);return v>=0&&v<AREA.length?v:0}catch(e){return 0}}
 function setLastArea(i){try{localStorage.setItem('adv.lastArea',String(i))}catch(e){}}
-function stageNo(a,l){return a*10+l}
-function rewardOf(a,l){var N=stageNo(a,l),k=l===10?3:1;return{exp:(20+5*N)*k,stones:(10+2*N)*k}}
+var NST=20;/* 每章節關數 */
+function stageNo(a,l){return a*NST+l}
+function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
+function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:(10+2*N)*k}}
 function showView(v){view=v;frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map';if(v==='map'){renderMap();window.scrollTo(0,0)}}
 function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
     var zn=el('span','zn',a.n);if(!OPEN[i]){b.classList.add('lock');zn.appendChild(el('small',null,'尚未開放'))}b.appendChild(zn);if(i===la){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
     b.addEventListener('click',function(){if(OPEN[i])openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2><p class="lvh">打過一關才會開放下一關</p><div class="lvg">';
-  var cl=cleared(i);for(var l=1;l<=10;l++)h+='<button type="button" class="lv'+(l===10?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(l===10?'Boss':l)+(l<=cl?' ✓':'')+'</button>';
+  var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
   h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><button type="button" class="go" data-a="lvgo" disabled>開始冒險</button></div>';
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
-    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(pickL===10?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">'+(pickL===10?'實際獎勵有 ±10% 浮動':'以 3 隻敵人為準，每少／多一隻 −／+ 1/3，並有 ±10% 浮動')+'<br>同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地信件領取</small>';$('lvov').querySelector('.go').disabled=false}
+    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">'+(isBoss(pickA,pickL)?'實際獎勵有 ±10% 浮動':'以 3 隻敵人為準，每少／多一隻 −／+ 1/3，並有 ±10% 浮動')+'<br>同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地信件領取</small>';$('lvov').querySelector('.go').disabled=false}
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();startBattle(A2,L2)}});
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
 var ENG=null,AREAID=['area01','area02','area03','area04','area05','area06','area07','area08'],OPEN={0:1};
-function cleared(a){if(demo)return 9;var m=MEMB[0]&&MEMB[0].adv||{};return m[AREAID[a]]|0}
+function cleared(a){if(demo)return NST-1;var m=MEMB[0]&&MEMB[0].adv||{};return m[AREAID[a]]|0}
 function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?{exp:parseInt(r.exp,10)||0,stones:parseInt(r.stones,10)||0}:rewardOf(a,l)}
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
   var ww=WKIND[p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww;return{wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,el:s.el||'',ty:ty||s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180}}
@@ -568,7 +572,7 @@ function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});[].concat(e.pko==null?[]:e.pko).forEach(function(i){box.appendChild(el('div','lg ko',MEMB[i].name+' 倒下了'))});
   box.scrollTop=box.scrollHeight}
 function startBattle(a,l){setLastArea(a);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
-  showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
+  showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(isBoss(a,l)?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
 /* ---- 獎勵：開戰時就決定好（加成、餅乾的機率在這裡擲），結果出來時才寫入 ---- */
 function makeReq(b){if(b.res!=='win')return null;var r=stageReward(b.a,b.l),bx=[],sp=(b.lead&&b.lead.special)||[];
@@ -593,7 +597,7 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
   var req=B.req||(B.req=makeReq(B)),me=MEMB[0],mail=req.share||[];
   var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+
     (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地信件領取）':'')+
-    (req.clear&&B.l<10?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
+    (req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
   $('rtxt').innerHTML=h;$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});
   if(B.saved)return;
   if(demo){$('rsave').textContent='示範模式：不寫入';return}
@@ -613,7 +617,7 @@ $('rok').addEventListener('click',function(){curClear();showView('map')});
 /* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
 function resume(o){setLastArea(o.a);PARTS=[];B={ev:o.ev,mons:o.mons,pkl:o.pkl||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
   B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
-  showView('battle');$('bhead').textContent=AREA[o.a].n+'　第 '+o.l+' 關'+(o.l===10?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
+  showView('battle');$('bhead').textContent=AREA[o.a].n+'　第 '+o.l+' 關'+(isBoss(o.a,o.l)?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[o.a].bg);build();B.t0=performance.now()-(Date.now()-o.wall);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
 var btab='log',STL={dmg:'造成傷害',taken:'承受傷害',heal:'恢復生命'};
 function setBTab(v){btab=v;[].forEach.call($('btabs').children,function(b){var on=b.getAttribute('data-v')===v;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on))});$('log').hidden=v!=='log';$('stats').hidden=v==='log';if(v!=='log')renderStats()}
@@ -650,7 +654,7 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button></div>'+
-  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button></div>'+
+  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="dragon">綠龍</button></div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
@@ -670,12 +674,12 @@ function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、');
   $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
-Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=4')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=3')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).concat([loadPx(BASE+'vfx/claw.png?v=1')]).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
+Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png'),loadPx(BASE+'monsters/monster_03_blink.png'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png'),loadPx(BASE+'monsters/monster_boss_02.png?v=1')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=4')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=3')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).concat([loadPx(BASE+'vfx/claw.png?v=1')]).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];ENG=BattleEngine.prepare({weapon_info:csv[0],skill_info:csv[3],skill_effect:csv[4],status_info:csv[5],job_attribute:csv[6],job_level_up:csv[7],pet_info:csv[8],monster_info:csv[9],stage_info:csv[10]});CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   var m=r[4];if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}
-  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];for(var vi=0;vi<8;vi++){SLASH[vi]=r[14+vi];ARROW[vi]=r[22+vi];MISSILE[vi]=r[30+vi];THRUST[vi]=r[38+vi];SMASH[vi]=r[46+vi]}CLAW=r[54];
+  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];ANI.dragon.im=r[14];for(var vi=0;vi<8;vi++){SLASH[vi]=r[15+vi];ARROW[vi]=r[23+vi];MISSILE[vi]=r[31+vi];THRUST[vi]=r[39+vi];SMASH[vi]=r[47+vi]}CLAW=r[55];
   return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})
 }).then(function(){
   if(VFXT){vtStart();return}
