@@ -95,3 +95,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 罪印,debuff,crit_taken_rate,0.2,,,,被暴擊率 +20%
 狂信,buff,crit_rate,0.25,,,,暴擊率 +25%、暴擊傷害 +50%
 狂信,buff,crit_damage_rate,0.5,,,,
+蛇毒,debuff,dot,0.25,p_atk,nature,p,每回合造成施加者物理攻擊力 25% 的自然物理傷害
+潛伏,buff,eva_rate,0.3,,,,閃避率 +30%；期間下一招傷害技必定暴擊，用掉後潛伏消失
+潛伏,buff,sure_crit_next,1,,,,

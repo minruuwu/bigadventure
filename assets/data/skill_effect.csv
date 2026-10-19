@@ -184,3 +184,11 @@ skill194,狂信,status,狂信,self,3,1,,,,,,,,
 skill195,異端裁決,bonus,,,,,crit_if_debuffed,0.3,,,,,,
 skill196,處刑,bonus,,,,,sure_crit_low_hp,0.3,,,,,,
 skill197,審判靈氣,passive,,ally_all,,,crit_rate,0.1,,,,,,
+skill198,毒刃突刺,status,蛇毒,enemy_single,3,1,,,,,,,,
+skill199,匕專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon03
+skill202,匕精通,passive,,,,,crit_rate,0.1,,,,,,weapon03
+skill202,匕精通,passive,,,,,crit_damage_rate,0.5,,,,,,weapon03
+skill203,潛伏,status,潛伏,self,2,1,,,,,,,,
+skill204,致命弱點,status,弱點標記,enemy_single,3,1,,,,,,,,
+skill205,斷喉,bonus,,,,,dmg_if_low_hp,0.3,,,,,,0.5
+skill206,武器淬毒,passive,,,,,extra_dmg,0.1,,nature,p,,,
