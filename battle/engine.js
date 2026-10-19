@@ -69,7 +69,7 @@
       if (e.trigger || ['revive_self', 'forge_bonus', 'exp_bonus', 'apply_status'].indexOf(e.effect) >= 0) { special.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type }); return }
       self[e.effect] = (self[e.effect] || 0) + v;
       if (e.target === 'ally_all') aura.push({ id: id, k: e.effect, v: v });
-      else if (e.effect === 'lifesteal' || e.effect === 'extra_dmg') special.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
+      else if (['lifesteal', 'extra_dmg', 'heal_echo', 'auto_cleanse'].indexOf(e.effect) >= 0) special.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
     }) });
     function sp(k) { return self[k] || 0 }
     var T = {};
@@ -452,7 +452,7 @@
           if (base > 0) {
             var c = RND() < stat(u, 'crit'), v = stat(u, 'matk') * base * (1 + u.b.heal) * (c ? 1 + stat(u, 'cdmg') : 1);
             if (bonus.heal_if_hot && hasHot(t)) v *= 1 + num(bonus.heal_if_hot.value);
-            var got = heal(u, t, v); tot += got; amtList.push(t.name + (c ? ' 暴擊！' : ' ') + '恢復 ' + got); addStat(e, u, 'heal', got, sk.n);
+            var got = heal(u, t, v); tot += got; amtList.push(t.name + (got ? (c ? ' 暴擊！' : ' ') + '恢復 ' + got : ' 生命已滿')); addStat(e, u, 'heal', got, sk.n);
           }
         });
         if (amtList.length) e.txt += '，' + amtList.join('，');
