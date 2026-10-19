@@ -529,7 +529,7 @@ function setLastArea(i){try{localStorage.setItem('adv.lastArea',String(i))}catch
 var NST=20;/* 每章節關數 */
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
-function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:(10+2*N)*k}}
+function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
 function showView(v){view=v;frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map';if(v==='map'){renderMap();window.scrollTo(0,0)}}
 function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
