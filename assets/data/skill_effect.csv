@@ -154,7 +154,7 @@ skill161,鍛造專精,passive,,,,,forge_bonus,1.5,,,,win,0.5,leader
 skill162,英雄之讚美詩,status,英雄之歌,ally_all,4,1,,,,,,,,
 skill163,靈動,passive,,,,,eva_rate,0.1,,,,,,
 skill164,冥河之安眠曲,status,睡眠,enemy_all,3,0.5,,,,,,,,
-skill166,觀眾熱情,passive,,,,,atk_per_ally,0.02,,,,,,
+skill166,觀眾熱情,passive,,,,,atk_per_ally,0.04,,,,,,
 skill167,奉獻詩歌,cost,,self,,,hp_cur,0.5,,,,,,
 skill167,奉獻詩歌,heal,,ally_others,,,,3,sacrificed_hp,,,,,
 skill168,放浪小步舞曲,status,亂步,enemy_all,2,1,,,,,,,,
