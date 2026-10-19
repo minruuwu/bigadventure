@@ -37,3 +37,9 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 元素詛咒,debuff,rand_res_rate,-0.4,,,,隨機一種元素抗性 −40%
 石化,debuff,petrify,,,,,跳過行動，受到的傷害 −80%（石之正義）
 石化,debuff,dmg_taken_rate,-0.8,,,,
+懲戒,debuff,p_atk_rate,-0.1,,,,物理攻擊力 −10%、魔法攻擊力 −10%
+懲戒,debuff,m_atk_rate,-0.1,,,,
+易傷,debuff,dmg_taken_rate,0.1,,,,受到物理、魔法傷害 +10%
+強化護甲,buff,p_reduce_rate,0.1,,,,物理減傷 +10%、魔法減傷 +10%
+強化護甲,buff,m_reduce_rate,0.1,,,,
+戒律,buff,crit_rate,0.1,,,,暴擊率 +10%
