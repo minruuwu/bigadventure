@@ -7,7 +7,8 @@
   var CSS = '\
 .mk{position:absolute;left:3px;right:3px;bottom:3px;z-index:6;display:flex;gap:8px;line-height:1}\
 .mk .mb{flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:34px;font:inherit;font-weight:900;font-size:14px;color:#f0e2c4;background:rgba(61,35,13,.88);border:0;cursor:pointer;box-shadow:inset 0 0 0 2px #1d1008,inset 0 2px 0 2px #b9823f;text-shadow:1px 1px 0 #000}\
-.mk .mb:active{filter:brightness(.9)}.mk .mb small{font-size:12px;opacity:.85;font-weight:400}\
+.mk .mb:active{filter:brightness(.9)}.mk .mb small{font-size:12px;opacity:.85;font-weight:400}.mk .mb.new small{opacity:1;font-weight:900;color:#1d1008;background:#ffd76a;padding:1px 5px;border-radius:8px}\
+.ml .rw{display:flex;align-items:center;gap:8px}.ml .tx{flex:1;min-width:0;display:flex;flex-direction:column}.ml .tx small{font-size:11px;color:#5a3a1a}.mall{margin-top:6px;align-self:center}\
 .pcard.pw{padding-top:8vh;padding-bottom:24px}.pcard.pw .box{max-width:340px;align-items:stretch}\
 .pw .box>*{flex:none}.pw h2{margin:0;font-size:18px;text-align:center}.pw h3{margin:6px 0 2px;font-size:13px;font-weight:900;color:#5a3a1a}\
 .rowp{width:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}\
@@ -147,6 +148,33 @@
     bar.hidden = false; panel.hidden = false; paint()
   }
 
+  /* ---------- 信件：隊長打贏冒險後寄來的分成 ---------- */
+  var MAILS = null;
+  function mailBadge() { var b = document.getElementById('mkMail'); if (!b) return; var n = MAILS ? MAILS.length : 0; b.querySelector('small').textContent = n ? n : ''; b.classList.toggle('new', n > 0) }
+  function mailCount() { API.mails().then(function (L) { MAILS = L || []; mailBadge() }, function () { MAILS = []; mailBadge() }) }
+  var AREAN = { area01: '怪物森林', area02: '魔晶礦洞', area03: '塵嵐荒漠', area04: '幽暗墓穴', area05: '凜冬雪山', area06: '聖教城領', area07: '熔岩火原', area08: '惡魔王城' };
+  function openMail() {
+    var win = overlay('pw'), box = win.box, busy = false;
+    box.insertAdjacentHTML('beforeend', '<h2>信件</h2><div class="lst ml"><div class="none">讀取中…</div></div><div class="cmsg"></div><button type="button" class="pbtn mall" hidden>全部領取</button>');
+    var lst = box.querySelector('.ml'), msg = box.querySelector('.cmsg'), all = box.querySelector('.mall');
+    function paint() {
+      var L = MAILS || []; all.hidden = L.length < 2;
+      if (!L.length) { lst.innerHTML = '<div class="none">沒有信件。隊長帶你打贏冒險時，你的分成會寄到這裡。</div>'; return }
+      lst.innerHTML = L.slice().sort(function (a, b) { return tms(b.at) - tms(a.at) }).map(function (m) { return '<div class="rw"><span class="tx"><b>' + esc(m.fromName || '隊長') + ' 的冒險分成</b><small>' + esc((AREAN[m.area] || '') + (m.stage ? ' 第 ' + m.stage + ' 關' : '')) + '　經驗 ' + (m.exp | 0) + '、鍛造石 ' + (m.stones | 0) + '</small></span><button type="button" class="pbtn" data-id="' + esc(m.id) + '">領取</button></div>' }).join('')
+    }
+    function take(ids) {
+      if (busy) return; busy = true; msg.textContent = ''; var got = { e: 0, s: 0 };
+      var q = ids.slice(); (function next() {
+        var id = q.shift(), m = (MAILS || []).filter(function (x) { return x.id === id })[0];
+        if (!m) { busy = false; paint(); mailBadge(); if (got.e || got.s) C.toast('領到 經驗 ' + got.e + '、鍛造石 ' + got.s); return }
+        API.claim(m).then(function () { MAILS = MAILS.filter(function (x) { return x.id !== id }); got.e += m.exp | 0; got.s += m.stones | 0; var q2 = me(); if (!C.demo) { q2.exp = (q2.exp | 0) + (m.exp | 0); q2.stones = (q2.stones | 0) + (m.stones | 0) } next() },
+          function (e) { busy = false; msg.textContent = '領取失敗' + (e && e.code === 'permission-denied' ? '（權限尚未開放）' : '') + '，請再試一次'; paint(); mailBadge() })
+      })()
+    }
+    lst.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (b) { b.disabled = true; take([b.dataset.id]) } });
+    all.addEventListener('click', function () { all.disabled = true; take((MAILS || []).map(function (m) { return m.id })); all.disabled = false });
+    API.mails().then(function (L) { MAILS = L || []; paint(); mailBadge() }, function (e) { lst.innerHTML = '<div class="none">信件讀取失敗' + (e && e.code === 'permission-denied' ? '（權限尚未開放）' : '') + '</div>' });
+  }
   /* ---------- 資料（真的 Firebase 或 demo 假資料） ---------- */
   function realAPI() {
     function F(cb) { return new Promise(function (res, rej) { C.withFB(function (FB) { try { res(cb(FB)) } catch (e) { rej(e) } }) }).then(function (x) { return x }) }
@@ -157,11 +185,13 @@
       remove: function (u) { return F(function (FB) { return FB.partyRemove(u) }) },
       leave: function (u) { return F(function (FB) { return FB.partyLeave(u) }) },
       listen: function (cb, er) { var off = null, dead = false; C.withFB(function (FB) { if (!dead) off = FB.chatListen(cb, er) }); return function () { dead = true; if (off) off() } },
-      send: function (t, n, j) { return F(function (FB) { return FB.chatSend(t, n, j) }) }
+      send: function (t, n, j) { return F(function (FB) { return FB.chatSend(t, n, j) }) },
+      mails: function () { return F(function (FB) { return FB.mailList() }) },
+      claim: function (m) { return F(function (FB) { return FB.mailClaim(m) }) }
     }
   }
   function demoAPI() {
-    var msgs = [], subs = [], DL = C.demoList();
+    var msgs = [], subs = [], DL = C.demoList(), DMAIL = [{ id: 'm1', fromName: (DL[1] || {}).name || '隊長', exp: 6, stones: 1, area: 'area01', stage: 3, at: Date.now() - 3600000 }, { id: 'm2', fromName: (DL[1] || {}).name || '隊長', exp: 21, stones: 5, area: 'area01', stage: 10, at: Date.now() - 600000 }];
     ['今天誰要打王？', '我先下班了～', '等等 20 分鐘後開', '欸 阿果升到 3 級了', '剛剛拿到兩顆餅乾'].forEach(function (t, i) { var q = DL[(i + 1) % DL.length]; msgs.push({ id: 'd' + i, uid: q.uid, name: q.name, jobSn: jobSn(q), text: t, at: Date.now() - 900000 + i * 60000 }) });
     function byUid(u) { return DL.filter(function (p) { return p.uid === u })[0] || null }
     return {
@@ -170,6 +200,8 @@
       add: function (u) { var m = me(); m.party = (m.party || []).concat(u); var o = byUid(u); if (o) o.leaders = (o.leaders || []).concat(m.uid); return Promise.resolve() },
       remove: function (u) { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== u }); return Promise.resolve() },
       leave: function (u) { var m = me(); m.leaders = (m.leaders || []).filter(function (x) { return x !== u }); return Promise.resolve() },
+      mails: function () { return Promise.resolve(DMAIL.slice()) },
+      claim: function (m) { DMAIL = DMAIL.filter(function (x) { return x.id !== m.id }); var q = me(); q.exp = (q.exp | 0) + m.exp; q.stones = (q.stones | 0) + m.stones; return Promise.resolve() },
       listen: function (cb) { subs.push(cb); setTimeout(function () { cb(msgs.slice().reverse()) }, 0); return function () { subs = subs.filter(function (x) { return x !== cb }) } },
       send: function (t, n, j) { msgs.push({ id: 'n' + msgs.length, uid: me().uid, name: n, jobSn: j, text: t, at: Date.now() }); msgs = msgs.slice(-30); subs.forEach(function (f) { f(msgs.slice().reverse()) }); return Promise.resolve() }
     }
@@ -307,8 +339,8 @@
       C = ctx; API = ctx.demo ? demoAPI() : realAPI();
       var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
       var host = document.getElementById('mkHost'); if (!host) return;
-      host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button></div>';
-      document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); syncBtn()
+      host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button><button type="button" class="mb" id="mkMail">信件 <small></small></button></div>';
+      document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); document.getElementById('mkMail').addEventListener('click', openMail); syncBtn(); mailCount()
     },
     fillTeam: fillTeam, mountTabs: mountTabs, jobName: jobName, jobLv: jobLv, charLv: charLv
   };
