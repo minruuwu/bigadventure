@@ -53,7 +53,7 @@
 
   /* ---------- 建立玩家單位（算法跟角色頁、營地一致） ---------- */
   function jobSn(p) { return p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)) }
-  function learned(p, sk) { var jl = p.jobLv || {}; return !!sk && (sk.id === 'atk' || (jl[sk.j] | 0) >= sk.lv) }
+  function learned(p, sk) { var jl = p.jobLv || {}; return !!sk && (sk.id === 'atk' || (/^job\d+$/.test(sk.j || '') && (jl[sk.j] | 0) >= sk.lv)) }
   function player(p, D, opt) {
     opt = opt || {};
     var jl = p.jobLv || {}, lv = Math.max(1, p.lv | 0 || 1), sv = p.skills || {}, ws = D.wbyname[p.weapon] || '';

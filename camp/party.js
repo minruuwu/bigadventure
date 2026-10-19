@@ -82,7 +82,7 @@
   /* 已配置的被動技能加成（跟角色頁相同：有開放的格子、已學會、武器條件符合才算） */
   function skPas(p, key) {
     var D = STAT || {}, K = D.sk || {}, E = D.eff || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, pa = Array.isArray(sv.passive) ? sv.passive : [], ws = wsn(p), t = 0;
-    for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || (jl[k.j] | 0) < k.lv) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
+    for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || !/^job\d+$/.test(k.j || '') || (jl[k.j] | 0) < k.lv) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
     return t
   }
   function combat(p, allies) {
@@ -117,7 +117,7 @@
   function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
   function skillsHtml(p) {
     var K = (STAT && STAT.sk) || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, cb = Array.isArray(sv.combat) ? sv.combat : [], pa = Array.isArray(sv.passive) ? sv.passive : [];
-    function ok(id) { var k = K[id]; return k && (jl[k.j] | 0) >= k.lv ? k : null }
+    function ok(id) { var k = K[id]; return k && /^job\d+$/.test(k.j || '') && (jl[k.j] | 0) >= k.lv ? k : null }
     function line(tag, id, p) {
       var k = id === 'atk' ? 'atk' : ok(id), nm = k === 'atk' ? '普通攻擊' : k ? esc(k.n) : '（空）', el = k && k !== 'atk' && SKEL[k.e] ? '<img class="ske" alt="' + SKEL[k.e] + '" title="' + SKEL[k.e] + '" src="' + C.base + 'icons/stats/res_' + k.e + '.png?v=5">' : '';
       return '<div class="rw"><span class="sico">' + skIco(k, p) + '</span><span class="tx"><b>' + nm + el + '</b><small>' + tag + '</small></span></div>'
