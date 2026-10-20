@@ -233,3 +233,6 @@ skill231,吸血,monster,0,passive,,,passive,,,,,,,,,怪物被動（造成傷害�
 skill232,重擊,monster,0,combat,enemy_all,,damage,,,p,,0.8,,,,怪物技能（全體無屬性物理傷害 ×0.8，每個目標 20% 暈眩 1 回合）,smash,,
 skill233,堅守,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身物理減傷 +30%，持續 3 回合）,,,
 skill234,擴散攻擊,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技能（主目標物理傷害 ×1.0，其他隊員各受到減傷前傷害的 20%）,smash,,
+skill235,晶石爆裂,monster,0,combat,enemy_all,,damage,,,p,nature,0.8,,,,怪物技能（全體自然物理傷害 ×0.8，每個目標 20% 晶塵：魔法攻擊力 −20%，3 回合）,smash,,
+skill236,結晶拳,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技能（主目標物理傷害 ×1.0，其他隊員各受到減傷前傷害的 20%）,smash,,
+skill237,晶化,monster,0,combat,enemy_single,random,debuff,,,,,,,,,怪物技能（單體晶化：受到的物理傷害 +40%，3 回合）,,,

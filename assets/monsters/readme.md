@@ -15,6 +15,7 @@
 | monster_09 | 綠幼龍（怪物森林第 15 關起） | `monster_09.png`（46×48，原圖左右翻轉、去背、縮回原像素大小；上半身呼吸） |
 | monster_10 | 暗影魔蝠（魔晶礦洞，目前只在 `?vfx=1` 測試） | `monster_10_a.png`（翅膀張開）、`monster_10_b.png`（翅膀收下），42×50，兩張以眼睛位置對齊；兩張輪播當拍翅＋懸空上下浮動，不眨眼；原截圖在 `src/` |
 | monster_11 | 石魔像（魔晶礦洞，目前只在 `?vfx=1` 測試） | `monster_11.png`（48×48 身體）、`monster_11_blink.png`（眼睛圖層）；膝蓋以上起伏，下面 7 格不動 |
+| monster_12 | 水晶魔像（魔晶礦洞，目前只在 `?vfx=1` 測試；顯示 1.2 倍） | `monster_12.png`（48×48 身體）、`monster_12_blink.png`（眼睛圖層）；起伏同石魔像 |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（79×66，原圖去背、左右翻轉、綠色壓暗後縮小；身體上半慢慢起伏，眼睛發紅光由程式畫） |
 

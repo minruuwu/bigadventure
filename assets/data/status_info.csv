@@ -104,3 +104,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 森之庇護,buff,m_reduce_rate,0.15,,,,
 森之庇護,buff,heal_taken_rate,0.2,,,,
 堅守,buff,p_reduce_rate,0.3,,,,物理減傷 +30%
+晶塵,debuff,m_atk_rate,-0.2,,,,魔法攻擊力 −20%
+晶化,debuff,p_dmg_taken_rate,0.4,,,,受到的物理傷害 +40%

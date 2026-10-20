@@ -264,7 +264,7 @@
       var cm = r.crit ? 1 + stat(a, 'cdmg') + (sk.cd || 0) : 1, tot = 0, byEl = {};
       parts.forEach(function (x) {
         var atk = x.d === 'm' ? stat(a, 'matk') : stat(a, 'patk'), inc = x.d === 'm' ? stat(a, 'mdmg') : stat(a, 'pdmg'), red = x.d === 'm' ? stat(d, 'mred') : stat(d, 'pred');
-        var v = atk * x.r * (1 + inc) * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(d, x.e), 0.9)) * (1 + sv(d, 'dmg_taken_rate')) * cm * (o.mult || 1) * (0.95 + RND() * 0.1);
+        var v = atk * x.r * (1 + inc) * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(d, x.e), 0.9)) * (1 + sv(d, 'dmg_taken_rate') + sv(d, x.d === 'm' ? 'm_dmg_taken_rate' : 'p_dmg_taken_rate')) * cm * (o.mult || 1) * (0.95 + RND() * 0.1);
         if (re && re.reduce) v *= 1 - re.reduce;
         byEl[x.e] = (byEl[x.e] || 0) + v; tot += v;
       });
