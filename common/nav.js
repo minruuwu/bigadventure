@@ -11,7 +11,8 @@ var cache={},player=null,lastTabs=null,dollLoading=false,headKey='',headCv=null;
 var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 /* pixel-art icons: a whole number of screen pixels per art pixel, about 2.4 css px (7 device px on a 3x phone) */
 var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(2.06*dpr))/dpr;
-function pxs(k){return k==='forge'?PXSF:PXS}
+var PXSA=Math.max(1,Math.round(1.33*dpr))/dpr;
+function pxs(k){return k==='forge'?PXSF:k==='adv'?PXSA:PXS}
 
 /* processed icons are kept for the browser session so the next page shows them straight away */
 function ssGet(k){try{return JSON.parse(sessionStorage.getItem('navicon2:'+k)||'null')}catch(e){return null}}
@@ -43,10 +44,10 @@ function olScaled(ol,x0,y0,cw,ch,W,H){if(!ol)return null;var o=document.createEl
   var od=ox.getImageData(0,0,W,H);for(var i=3;i<od.data.length;i+=4)od.data[i]=od.data[i]>=120?255:0;ox.putImageData(od,0,0);return o}
 function load(k){if(k in cache)return;cache[k]=null;var im=new Image(),tn=null;
   im.onload=function(){if(k==='camp'&&!tn){tn=new Image();tn.onload=im.onload;tn.onerror=function(){cache[k]=false};tn.src=BASE+'icons/nav/camp_tent.png?v=3';return}
-    var c=processIcon(im,tn);cache[k]=c||false;if(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];save(k,c)}if(lastTabs)apply(lastTabs)};im.onerror=function(){cache[k]=false};
-  im.src=BASE+'icons/nav/'+FILES[k]+'.png?v=3'}
+    var c=k==='adv'?advIcon(im):processIcon(im,tn);cache[k]=c||false;if(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];save(k,c)}if(lastTabs)apply(lastTabs)};im.onerror=function(){cache[k]=false};
+  im.src=BASE+'icons/nav/'+FILES[k]+'.png?v='+(k==='adv'?4:3)}
 /* warm start from this session's saved copies (fresh files still load and replace them) */
-Object.keys(FILES).forEach(function(k){restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
+Object.keys(FILES).forEach(function(k){if(k==='adv')return;restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
 restore('head2',function(c){c.__css=[34*PXS,25*PXS];if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
 
 /* head-and-chest portrait: 22x24 crop of the 48px doll, 1px outline, shown at 3x and allowed to poke above the bar */
@@ -123,6 +124,32 @@ function headTick(now){if(!HA.el||!HA.el.isConnected||!HA.look||!g.Doll){HA.run=
   var t=(now-HA.t0)/1000,e=0.5+0.5*Math.sin(t*2*Math.PI/HH.period-Math.PI/2);e=0.22+0.78*e;
   renderHead(Object.assign({},HA.look,{breath:false}),1000,HA.el,e);haloDraw(t,e);requestAnimationFrame(headTick)}
 
+/* ---- 冒險 tab: a treasure-map scroll. Other pages: rolled up (the two side rolls pushed together).
+   On the adventure page it unrolls, the red route glows (a light runs along it) and a cross sparkle blinks at the route's end. ---- */
+var AV={cv:null,img:null,sel:false,t0:0,run:false,last:0},AC=[2,6,45,37]; /* crop of the 48x48 art: x, y, w, h */
+var APATH=[[16,21],[17,22],[18,23],[20,23],[21,22],[23,22],[24,22],[25,23],[29,25],[30,25],[30,27],[29,28],[30,29],[32,29],[33,28],[34,28],[35,27],[36,27]],AEND=[37,26],ALR=[2,8],ARR=[41,46];
+function advIcon(im){var c=document.createElement('canvas');c.width=AC[2];c.height=AC[3];c.__img=im;c.__pixel=true;c.__adv=true;advDraw(c,0,0,false);return c}
+function aP(x,col,X,Y,a){if(a<=0)return;x.globalAlpha=Math.min(1,a);x.fillStyle=col;x.fillRect(X,Y,1,1)}
+function advDraw(cv,u,t,lit){var im=cv.__img||AV.img;if(!im)return;var x=cv.getContext('2d');x.imageSmoothingEnabled=false;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);x.globalAlpha=1;x.translate(-AC[0],-AC[1]);
+  var lw=ALR[1]-ALR[0]+1,rw=ARR[1]-ARR[0]+1,cx=24,lx=Math.round(ALR[0]+(cx-lw-ALR[0])*(1-u)),rx=Math.round(ARR[0]+(cx-ARR[0])*(1-u)),a0=lx+lw;
+  if(rx>a0){x.save();x.beginPath();x.rect(a0,0,rx-a0,48);x.clip();x.drawImage(im,0,0);x.restore()}
+  x.drawImage(im,ALR[0],0,lw,48,lx,0,lw,48);x.drawImage(im,ARR[0],0,rw,48,rx,0,rw,48);
+  if(lit&&u>=0.98){var br=.55+.25*Math.sin(t/380),head=((t%1800)/1300)*APATH.length;x.globalCompositeOperation='lighter';
+    APATH.forEach(function(p,i){var d=head-i,k=d>=0&&d<4?1-d/4:0;aP(x,'#ff5a3c',p[0],p[1],br*.55+k*.6);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){aP(x,'#ff3a1a',p[0]+o[0],p[1]+o[1],br*.18+k*.3)})});
+    var ph=(t%1400)/1400,s=ph<.55?Math.sin(ph/.55*Math.PI):0,L=Math.round(2+s*5),E0=AEND[0],E1=AEND[1];
+    if(s>0.02){for(var gy=-3;gy<=3;gy++)for(var gx=-3;gx<=3;gx++){var gr=Math.sqrt(gx*gx+gy*gy);if(gr<=3.3)aP(x,'#ffcf70',E0+gx,E1+gy,.28*s*(1-gr/3.6))}
+      aP(x,'#ffffff',E0,E1,1);[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(o){aP(x,'#fff6d0',E0+o[0],E1+o[1],.9*s+.1)});
+      for(var j=2;j<=L;j++){var f=(1-(j-1)/L)*s;[[j,0],[-j,0],[0,j],[0,-j]].forEach(function(o){aP(x,'#fff2b0',E0+o[0],E1+o[1],Math.min(1,f*1.3))});
+        if(j<=Math.ceil(L/2))[[j,1],[j,-1],[-j,1],[-j,-1],[1,j],[-1,j],[1,-j],[-1,-j]].forEach(function(o){aP(x,'#ffd27a',E0+o[0],E1+o[1],f*.55)})}
+      for(var d2=1;d2<=Math.round(1+s*2);d2++)[[d2,d2],[-d2,d2],[d2,-d2],[-d2,-d2]].forEach(function(o){aP(x,'#ffb060',E0+o[0],E1+o[1],.6*s*(1-d2/4))})}
+    x.globalCompositeOperation='source-over'}
+  x.globalAlpha=1;x.setTransform(1,0,0,1,0,0)}
+function advOn(c,sel){c.__img=c.__navFrom&&c.__navFrom.__img;AV.img=c.__img;AV.cv=c;AV.sel=sel;AV.t0=performance.now();if(!sel){advDraw(c,0,0,false);return}
+  if(!AV.run){AV.run=true;requestAnimationFrame(advTick)}}
+function advTick(now){if(!AV.cv||!AV.cv.isConnected||!AV.sel){AV.run=false;return}
+  if(AV.last&&now-AV.last<33){requestAnimationFrame(advTick);return}AV.last=now;
+  var k=Math.min(1,Math.max(0,(now-AV.t0-150)/450));advDraw(AV.cv,k*k*(3-2*k),now,true);requestAnimationFrame(advTick)}
+
 function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFrom===src)return;
   var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.__navFrom=src;
   c.style.width=src.__css[0]+'px';c.style.height=src.__css[1]+'px';
@@ -132,6 +159,7 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
   old.replaceWith(c);
   if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src);
   if(btn.getAttribute('data-k')==='camp'&&!src.__pixel&&btn.getAttribute('aria-selected')==='true')campOn(btn,c);
+  if(btn.getAttribute('data-k')==='adv'&&src.__adv)advOn(c,btn.getAttribute('aria-selected')==='true');
   if(btn.getAttribute('data-k')==='char'&&src.__head&&src.__look&&btn.getAttribute('aria-selected')==='true')headAnimOn(c,src.__look)}
 
 /* ---- camp tab (current page): warm light through the tent door, a breathing grainy halo over it, and a chat bubble ---- */
