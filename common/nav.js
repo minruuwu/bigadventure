@@ -126,7 +126,7 @@ function headTick(now){if(!HA.el||!HA.el.isConnected||!HA.look||!g.Doll){HA.run=
 
 /* ---- 冒險 tab: a treasure-map scroll. Other pages: rolled up (the two side rolls pushed together).
    On the adventure page it unrolls, the red route glows (a light runs along it) and a cross sparkle blinks at the route's end. ---- */
-var AV={cv:null,img:null,sel:false,t0:0,run:false,last:0},AC=[2,6,45,37]; /* crop of the 48x48 art: x, y, w, h */
+var ROLL=new Image();ROLL.onload=function(){if(lastTabs)apply(lastTabs);if(AV.cv&&!AV.sel)advDraw(AV.cv,0,0,false)};ROLL.src=BASE+'icons/nav/adventure_roll.png';var AV={cv:null,img:null,sel:false,t0:0,run:false,last:0},AC=[2,6,45,37]; /* crop of the 48x48 art: x, y, w, h */
 var APATH=[[16,21],[17,22],[18,23],[20,23],[21,22],[23,22],[24,22],[25,23],[29,25],[30,25],[30,27],[29,28],[30,29],[32,29],[33,28],[34,28],[35,27],[36,27]],AEND=[37,26],ALR=[2,8],ARR=[41,46];
 /* 48px 像素圖（記事的墨水瓶）：裁掉透明邊，照像素放大 */
 function pixIcon(im){var w=im.naturalWidth,h=im.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(im,0,0);var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
@@ -134,7 +134,9 @@ function pixIcon(im){var w=im.naturalWidth,h=im.naturalHeight,t=document.createE
   var c=document.createElement('canvas');c.width=x1-x0+1;c.height=y1-y0+1;c.getContext('2d').drawImage(t,x0,y0,c.width,c.height,0,0,c.width,c.height);c.__pixel=true;return c}
 function advIcon(im){var c=document.createElement('canvas');c.width=AC[2];c.height=AC[3];c.__img=im;c.__pixel=true;c.__adv=true;advDraw(c,0,0,false);return c}
 function aP(x,col,X,Y,a){if(a<=0)return;x.globalAlpha=Math.min(1,a);x.fillStyle=col;x.fillRect(X,Y,1,1)}
-function advDraw(cv,u,t,lit){var im=cv.__img||AV.img;if(!im)return;var x=cv.getContext('2d');x.imageSmoothingEnabled=false;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);x.globalAlpha=1;x.translate(-AC[0],-AC[1]);
+function advDraw(cv,u,t,lit){var im=cv.__img||AV.img;if(!im)return;var x=cv.getContext('2d');x.imageSmoothingEnabled=false;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);if(!lit&&u===0&&ROLL.complete&&ROLL.naturalWidth){var rx0=Math.round((cv.width-ROLL.naturalWidth)/2)-1,ry0=Math.round((cv.height-ROLL.naturalHeight)/2)-1;
+  if(!ROLL.sh){var sc=document.createElement('canvas');sc.width=ROLL.naturalWidth;sc.height=ROLL.naturalHeight;var sx=sc.getContext('2d');sx.drawImage(ROLL,0,0);sx.globalCompositeOperation='source-in';sx.fillStyle='#000';sx.fillRect(0,0,sc.width,sc.height);ROLL.sh=sc}
+  x.globalAlpha=.55;x.drawImage(ROLL.sh,rx0+2,ry0+2);x.globalAlpha=.3;x.drawImage(ROLL.sh,rx0+3,ry0+3);x.globalAlpha=1;x.drawImage(ROLL,rx0,ry0);return}x.globalAlpha=1;x.translate(-AC[0],-AC[1]);
   var lw=ALR[1]-ALR[0]+1,rw=ARR[1]-ARR[0]+1,cx=24,lx=Math.round(ALR[0]+(cx-lw-ALR[0])*(1-u)),rx=Math.round(ARR[0]+(cx-ARR[0])*(1-u)),a0=lx+lw;
   if(rx>a0){x.save();x.beginPath();x.rect(a0,0,rx-a0,48);x.clip();x.drawImage(im,0,0);x.restore()}
   x.drawImage(im,ALR[0],0,lw,48,lx,0,lw,48);x.drawImage(im,ARR[0],0,rw,48,rx,0,rw,48);
