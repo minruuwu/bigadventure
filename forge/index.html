@@ -597,13 +597,20 @@ document.getElementById('sheetBg').addEventListener('click',closeSheet);document
 var DIRTY={},saveT=null,saving=false;
 function markDirty(k){DIRTY[k]=1;clearTimeout(saveT);saveT=setTimeout(flush,800)}
 function flush(){clearTimeout(saveT);if(demo)return;var ks=Object.keys(DIRTY);if(!ks.length)return;if(saving){saveT=setTimeout(flush,800);return}
-  var lvs={};ks.forEach(function(k){lvs[k]={lv:ST[k].lv,pts:ST[k].pts.slice(),ench:ST[k].ench.slice()}});var stones=S.stones;DIRTY={};saving=true;
-  withFB(function(FB){FB.saveForge(stones,lvs).then(function(){saving=false},function(e){saving=false;ks.forEach(function(k){DIRTY[k]=1});var c=e&&(e.code||e.message)||'';
-    toast(c==='permission-denied'?'存檔失敗：資料庫規則還沒開放鍛造存檔（permission-denied）':'存檔失敗，稍後會再試（'+c+'）');saveT=setTimeout(flush,6000)})})}
+  var lvs={};ks.forEach(function(k){lvs[k]={lv:ST[k].lv,pts:ST[k].pts.slice(),ench:ST[k].ench.slice()}});var spent=SPENT;SPENT=0;DIRTY={};saving=true;
+  withFB(function(FB){FB.saveForge(spent,lvs).then(function(){saving=false},function(e){saving=false;var c=e&&(e.code||e.message)||'';
+    /* 被規則擋下：多半是這支手機的資料比伺服器舊（例如在別的裝置鍛造過），重新讀一次伺服器的資料，這次的變更不存 */
+    if(c==='permission-denied'){toast('存檔失敗：這台裝置的資料比較舊，已重新讀取最新的鍛造石與武器，請再操作一次');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){});return}
+    SPENT+=spent;ks.forEach(function(k){DIRTY[k]=1});toast('存檔失敗，稍後會再試（'+c+'）');saveT=setTimeout(flush,6000)})})}
 window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flush()});
-function upOne(k){var s=ST[k];if(s.lv>=100)return false;var c=cost(s.lv);if(S.stones<c)return false;S.stones-=c;s.lv++;markDirty(k);return true}
+var SPENT=0;/* 還沒存檔、已經花掉的鍛造石 */
+function upOne(k){var s=ST[k];if(s.lv>=100)return false;var c=cost(s.lv);if(S.stones<c)return false;S.stones-=c;SPENT+=c;s.lv++;markDirty(k);return true}
 function costTo(k,target){var s=ST[k],t=0;for(var l=s.lv;l<target;l++)t+=cost(l);return t}
 function nextTemperLv(k){var l=ST[k].lv;return Math.min(100,(Math.floor(l/5)+1)*5)}
+function loadST(me){ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};var lv0=Math.min(100,Math.max(1,d.lv|0||1)),pp=Array.isArray(d.pts)?d.pts.slice(0,3).map(function(n){return Math.max(0,n|0)}):[0,0,0];while(pp.length<3)pp.push(0);if(pp[0]+pp[1]+pp[2]>totalPts(lv0))pp=[0,0,0];ST[k]={lv:lv0,pts:pp,ench:(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return RUNE[id]}).slice(0,slots(lv0))}})}
+/* 換成伺服器上最新的資料（快取比較舊、或存檔被擋時） */
+function applyFresh(p){clearTimeout(saveT);DIRTY={};SPENT=0;S.stones=Math.max(0,p.stones|0);loadST(p);render(true)}
+var FRESHP=null;window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo)return;if(!ORDER.length||!ST[ORDER[0]]){FRESHP=p;return}if(!Object.keys(DIRTY).length&&!SPENT&&!saving)applyFresh(p);else S.stones=Math.max(0,(p.stones|0)-SPENT)});
 function upToNext(k){var t=nextTemperLv(k),n=0;if(ST[k].lv>=100)return 0;while(ST[k].lv<t&&upOne(k))n++;return n}
 /* ---------- render ---------- */
 function renderTop(){var s=document.getElementById('stones');s.textContent='';
@@ -699,7 +706,7 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
     var en={};R[0].forEach(function(r){en[r.u_sn]=String(r.weapon_e_name||'').toLowerCase()});
     var job=R[3][me.job|0]||R[3][0];USABLE={};ORDER.forEach(function(k){if(job&&job['usable_'+en[k]])USABLE[k]=1});
     ORDER.forEach(function(k){if(W[k].n===me.weapon)EQUIPPED=k});
-    ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};var lv0=Math.min(100,Math.max(1,d.lv|0||1)),pp=Array.isArray(d.pts)?d.pts.slice(0,3).map(function(n){return Math.max(0,n|0)}):[0,0,0];while(pp.length<3)pp.push(0);if(pp[0]+pp[1]+pp[2]>totalPts(lv0))pp=[0,0,0];ST[k]={lv:lv0,pts:pp,ench:(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return RUNE[id]}).slice(0,slots(lv0))}});
+    loadST(me);if(FRESHP&&!demo){S.stones=Math.max(0,FRESHP.stones|0);loadST(FRESHP)}
     if(!W[EQUIPPED])EQUIPPED=ORDER[0];S.cur=EQUIPPED;
     if(demo)document.getElementById('demoNote').textContent='示範模式：鍛造石為測試用，資料只存在目前畫面，重新整理會重置。';document.getElementById('loading').remove();render(true)})})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
@@ -714,5 +721,5 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/nav.js?v=24"></script>
-<script type="module" src="../common/fb.js?v=16"></script>
+<script type="module" src="../common/fb.js?v=17"></script>
 </body></html>
