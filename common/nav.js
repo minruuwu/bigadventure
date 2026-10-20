@@ -155,7 +155,7 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
   c.style.width=src.__css[0]+'px';c.style.height=src.__css[1]+'px';
   c.style.flex='none';
   if(src.__head||src.__pixel){c.style.imageRendering='pixelated';c.style.marginTop=(48-src.__css[1])+'px';c.style.position='relative';c.style.zIndex='2';if(btn.getAttribute('data-k')==='forge')c.style.top='6px';btn.style.overflow='visible'}
-  else{c.style.margin=((48-src.__css[1])/2)+'px -6px';}
+  else{var mv=btn.getAttribute('data-k')==='camp'?3:0;/* 營地往上一格 */c.style.margin=((48-src.__css[1])/2-mv)+'px -6px '+((48-src.__css[1])/2+mv)+'px';}
   old.replaceWith(c);
   if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src);
   if(btn.getAttribute('data-k')==='camp'&&!src.__pixel&&btn.getAttribute('aria-selected')==='true')campOn(btn,c);
