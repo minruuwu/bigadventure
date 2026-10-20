@@ -393,6 +393,19 @@ function buildSkills(info,eff){(info||[]).forEach(function(r){if(!r.skill_id||!/
   (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns,ch:parseFloat(r.apply_chance)||1,tg:r.target};if(r.effect_kind==='passive'&&r.effect)(SKEFF[r.skill_id]=SKEFF[r.skill_id]||[]).push({k:r.effect,v:parseFloat(r.value)||0,c:r.condition||''})});
   SKORDER.sort(function(a,b){var x=SKILL[a],y=SKILL[b];return x.j<y.j?-1:x.j>y.j?1:x.lv-y.lv})}
 function normSkills(v){v=v&&typeof v==='object'?v:{};var c=Array.isArray(v.combat)?v.combat.slice(0,4):[],pa=Array.isArray(v.passive)?v.passive.slice(0,4):[];while(c.length<4)c.push('atk');while(pa.length<4)pa.push('');return{combat:c.map(function(x){return x||'atk'}),reaction:typeof v.reaction==='string'?v.reaction:'',passive:pa.map(function(x){return x||''})}}
+/* 升級完成時的摘要：比對升級前後，列出增加的點數、屬性、學到的技能、可以轉職的新職業 */
+function upSnap(){var r={};Object.keys(JOB).forEach(function(sn){if(reqMet(sn))r[sn]=1});return{lv:S.lv,jl:Object.assign({},S.jobLvs),req:r}}
+function upSummary(b){var o={lines:[],skills:[],jobs:[]},dn=S.lv-b.lv,KL={combat:'主動',reaction:'反應',passive:'被動'};
+  if(dn>0)o.lines.push('人物 Lv'+b.lv+' → Lv'+S.lv+'：自由點數 +'+5*dn+'、生命 +'+10*dn+'、職業等級上限 +'+2*dn);
+  Object.keys(S.jobLvs).forEach(function(k){var a=b.jl[k]|0,n=S.jobLvs[k]|0;if(n<=a)return;var g=[];KEYS.forEach(function(x){var v=growthOf(k,x)*(n-a);if(v)g.push(NAMES[x]+' +'+(Math.round(v*100)/100))});
+    o.lines.push(jobName(k)+' Lv'+a+' → Lv'+n+(g.length?'：'+g.join('、'):''));
+    SKORDER.forEach(function(id){var sk=SKILL[id];if(sk&&sk.j===k&&sk.lv>a&&sk.lv<=n)o.skills.push({n:sk.n,k:KL[sk.k]||'',j:jobName(k),lv:sk.lv})})});
+  Object.keys(JOB).forEach(function(sn){if(!b.req[sn]&&reqMet(sn))o.jobs.push(jobName(sn))});
+  return o.lines.length?o:null}
+function upDoneHtml(){var o=upDone;if(!o)return '';var h='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">升級完成！</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.lines.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+  if(o.skills.length)h+='<p class="sub" style="margin:6px 0 2px"><b>學會新技能</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.skills.map(function(x){return '<li>'+esc(x.n)+'<span style="font-size:11px;opacity:.75">（'+esc(x.j)+' Lv'+x.lv+(x.k?'・'+x.k:'')+'）</span></li>'}).join('')+'</ul><p class="sub" style="margin:0 0 6px">到「技能書」就可以裝上。</p>';
+  if(o.jobs.length)h+='<p class="sub" style="margin:6px 0 2px"><b>可以轉職</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.jobs.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+  return h+'<div class="acts"><button class="b go" data-a="udone" type="button">知道了</button></div></div></div>'}
 function skLearned(sk){return !!sk&&(S.jobLvs[sk.j]|0)>=sk.lv}
 function skGet(id){return id==='atk'?SKNA:SKILL[id]}
 /* 已配置的被動技能加成（屬性頁用）：回傳 {v:生效合計, L:來源說明}；條件不符的也列出但不算 */
@@ -534,7 +547,7 @@ function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
 var confirmWeapon=null;
 var editName=false,confirmName=null,draftName='',confirmJob=null;
-var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',confirmRst=false,jobToast='',capTip=false;
+var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',upDone=null,confirmRst=false,jobToast='',capTip=false;
 function treeModel(){var by={},bi={},base=[];JOBORDER.forEach(function(sn){var j=JOB[sn];j.par=[1,2].map(function(n){return j['required_job_'+n]}).filter(Boolean);by[sn]=j;if(!j.par.length){bi[sn]=base.length;base.push(sn)}});
   function dep(sn){var j=by[sn];return j.par.length?dep(j.par[0])+1:1}
   var slot={},pos={};JOBORDER.forEach(function(sn){var j=by[sn],d=dep(sn);j.depth=d;if(d===2){if(j.par.length===1){slot[sn]=3*bi[j.par[0]]}else{var a=bi[j.par[0]],b=bi[j.par[1]];if(a>b){var t=a;a=b;b=t}var df=b-a;slot[sn]=df===1?3*a+1:df===4?3*4+1:df===2?3*a+2:3*b+2}}});
@@ -619,6 +632,7 @@ function sheetHTML(k){
       h8+='<div class="urow"><div class="nm2">'+esc(jobName(sn))+(sn===S.jobSn?'<span class="cu">目前職業</span>':'')+'<small>'+(l>=JMAX?'已滿級':'下一級需 '+nc.toLocaleString('en-US')+' 經驗')+'</small></div><div class="stp2"><button type="button" data-a="ujm" data-sn="'+sn+'" class="'+((UP.job[sn]|0)>0?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+l+((UP.job[sn]|0)?'<em>+'+UP.job[sn]+'</em>':'')+'</span><button type="button" data-a="ujp" data-sn="'+sn+'" class="'+(can?'':'off')+'" aria-label="增加">＋</button></div></div>'});
     var dirty=UP.char>0||pj>0;
     h8+='<div class="bar"><span class="t'+(upMsg?' umsg2':'')+'">'+esc(upMsg||(dirty?'尚未確定的升級':'沒有暫存的升級'))+'</span><button class="b alt" data-a="ucancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="uok" type="button" '+(dirty?'':'disabled')+'>確定</button></div>';
+    h8+=upDoneHtml();
     if(confirmRst)h8+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">確定要重置所有職業嗎？</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px"><li>所有職業等級歸零，退還 <b>'+jobRefund().toLocaleString('en-US')+'</b> 經驗（已花職業經驗全額退還）</li><li>職業技能與外觀鎖回，技能書全部清空</li><li>人物等級不變，職業轉回戰士</li></ul><div class="acts"><button class="b alt" data-a="urn" type="button">先不要</button><button class="b go" data-a="ury" type="button">確定重置</button></div><div class="msgline" id="rmsg"></div></div></div>';
     return h8}
   if(k==='jobs'){var sel=jobSel||S.jobSn,js=jobStatus(sel),jj=JOB[sel],h6='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><button class="bk" data-a="card" type="button">‹ 返回</button><h2 class="bold">轉職<button class="tbtn" data-a="tree" type="button">轉職樹 ›</button></h2><p class="hint">點選職業，預覽你的角色穿上該職業的樣子。</p>';
@@ -651,7 +665,7 @@ window.addEventListener('resize',jag);
 function paintSheetPaper(){if(!window.PaperLit)return;if(cur==='mirror'){sheet.style.backgroundImage='none';sheet.__pw=0;return}var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
 window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);var sj=$('skjob');if(sj)sj.onchange=function(){skJob=sj.value;render()};sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
-function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';confirmRst=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}if(k==='book'){skDraft=null;skPick=null;skFlt='all';skJob=S.jobSn;skMsg=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
+function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';upDone=null;confirmRst=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}if(k==='book'){skDraft=null;skPick=null;skFlt='all';skJob=S.jobSn;skMsg=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
@@ -709,13 +723,14 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
     if(l2>=JMAX)upMsg='這個職業已滿級。';else if(jobSum()+upJobSum()+1>(S.lv+UP.char)*2)upMsg='職業等級已達上限，請先提升人物等級。';else if(S.exp-upCost()<n2)upMsg='經驗不夠，'+jobName(us2)+'升到下一級需要 '+n2.toLocaleString('en-US')+'。';else{UP.job[us2]=(UP.job[us2]|0)+1;upMsg=''}render()}
   else if(a==='ujm'){var us3=b.getAttribute('data-sn');if(UP.job[us3]>0){UP.job[us3]--;if(!UP.job[us3])delete UP.job[us3];upMsg=''}render()}
   else if(a==='captip'){capTip=!capTip;render()}
+  else if(a==='udone'){upDone=null;render()}
   else if(a==='ucancel'){UP={char:0,job:{}};upMsg='';render()}
-  else if(a==='uok'){var steps=[],e=S.exp,lvC=S.lv;
+  else if(a==='uok'){var steps=[],e=S.exp,lvC=S.lv,snap=upSnap();
     if(UP.char>0){e-=expCost(S.lv,S.lv+UP.char);steps.push({f:{lv:S.lv+UP.char,exp:e},ok:function(){S.lv+=UP.char}})}
     Object.keys(UP.job).forEach(function(k){var l=S.jobLvs[k]|0,n=l+UP.job[k];e-=expCost(l,n);var f={exp:e,jobUp:k};f['jobLv.'+k]=n;steps.push({f:f,ok:function(){S.jobLvs[k]=n}})});
     b.disabled=true;
     /* 規則限制每次只能升一個項目,所以一項一項寫入(人物先、職業後) */
-    steps.reduce(function(pr,st){return pr.then(function(){return persist(st.f).then(function(){S.exp=st.f.exp;st.ok()})})},Promise.resolve()).then(function(){UP={char:0,job:{}};upMsg='已升級完成。';render();refresh();pushNavPlayer()},function(er){UP={char:0,job:{}};upMsg=errMsg(er)+'（已完成的部分已儲存）';render();refresh();pushNavPlayer()})}
+    steps.reduce(function(pr,st){return pr.then(function(){return persist(st.f).then(function(){S.exp=st.f.exp;st.ok()})})},Promise.resolve()).then(function(){UP={char:0,job:{}};upMsg='已升級完成。';upDone=upSummary(snap);render();refresh();pushNavPlayer()},function(er){UP={char:0,job:{}};upDone=upSummary(snap);upMsg=errMsg(er)+'（已完成的部分已儲存）';render();refresh();pushNavPlayer()})}
   else if(a==='urs'){confirmRst=true;render()}
   else if(a==='urn'){confirmRst=false;render()}
   else if(a==='ury'){var rf=jobRefund(),ne2=S.exp+rf,f3={exp:ne2,jobLv:{},job:0,jobSn:'job01',jobSeen:[],skills:{combat:['atk','atk','atk','atk'],reaction:'',passive:['','','','']}},nw3=S.weapon,oldLv=S.jobLvs,oldJ=S.job,oldSn=S.jobSn,oldSeen=S.seen;
