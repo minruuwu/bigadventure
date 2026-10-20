@@ -111,7 +111,7 @@
   /* ---------- 建立怪物單位 ---------- */
   function monster(r, stg, D) {
     var hg = num(r.hp_growth), ag = num(r.atk_growth), k = stg - 1, res = {};
-    ELS.forEach(function (e) { res[e] = num(r[e + '_res_rate']) });
+    ELS.forEach(function (e) { res[e] = num(r[e + '_res_rate']) }); res.none = num(r.none_res_rate);
     var cyc = [r.skill_1, r.skill_2, r.skill_3, r.skill_4].map(function (x) { x = String(x || '').trim(); return x && (x === 'atk' || D.SK[x]) ? x : 'atk' });
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k)), patk: Math.round(num(r.p_atk) * (1 + ag * k)), matk: Math.round(num(r.m_atk) * (1 + ag * k)), pdmg: 0, mdmg: 0,
@@ -184,7 +184,7 @@
     }
     /* 觀眾熱情：開戰時已照隊友人數算進攻擊力；隊友倒下（或復活）時即時調整 */
     function apaAdj(u, k) { if (!u.apa) return 0; var n = Math.min(3, P.filter(function (x) { return x !== u && !x.dead }).length); return u[k] * u.apa * (n - u.apaN) }
-    function resOf(u, el) { if (!el) return 0; var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV }); return r }
+    function resOf(u, el) { if (!el) return u.b.res.none || 0; /* 無屬性：只有怪物有隱藏的無屬性抗性（monster_info 的 none_res_rate），玩家為 0；真實傷害不經過這裡 */ var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV }); return r }
 
     /* --- 戰報 --- */
     function line(o) { ev.push(o); return o }
