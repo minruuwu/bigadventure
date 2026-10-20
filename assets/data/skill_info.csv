@@ -225,3 +225,4 @@ skill223,恢復術,monster,0,combat,ally_single,lowest_hp,heal,,,m,,1,,,,怪物�
 skill224,劇毒吐息,monster,0,combat,enemy_all,,damage,,,m,nature,1.2,,,,怪物技能（全體自然魔法傷害，附加顛茄毒）,missile,,
 skill225,爪擊,monster,0,combat,enemy_single,random,damage,,,p,,1.5,,,,怪物技能（單體物理傷害 ×1.5）,,,
 skill226,尾擊,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（單體物理傷害 ×1.2，20% 暈眩 1 回合）,smash,,
+skill227,龍之叫喚,monster,0,combat,enemy_all,,damage,,,m,,0.5,,,,怪物技能（全體無屬性魔法傷害 ×0.5；場上綠幼龍不到 4 隻就召喚一隻）,,,

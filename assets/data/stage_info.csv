@@ -18,4 +18,4 @@ area01,怪物森林,16,,4,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09;mon10,,,10
 area01,怪物森林,17,,4,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09;mon10,,,105,25,1,0.4
 area01,怪物森林,18,,4,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09;mon10,,,110,27,1,0.4
 area01,怪物森林,19,,4,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09;mon10,,,115,28,1,0.4
-area01,怪物森林,20,1,3,3,,mon03;mon03;mon07,mon03;mon07,360,87,1,0.2
+area01,怪物森林,20,1,3,3,,mon11;mon11;mon07,mon11;mon07,360,87,1,0.2

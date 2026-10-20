@@ -129,7 +129,7 @@
       var pool = String(r.monster_pool || '').split(';').filter(function (id) { return D.mon[id] }), mx = num(r.max_count) || 1, mn = Math.min(num(r.min_count) || 1, mx), n = rnd(mn, mx);
       for (var q = 0; q < n && pool.length; q++) out.push(monster(D.mon[pickOne(pool)], l, D));
     }
-    var hs = 1 + num(r.party_hp_scale) * Math.max(0, nParty - 1); out.forEach(function (m) { m.b.mhp = Math.round(m.b.mhp * hs) }); /* 人多時怪物血量加成 */
+    var hs = 1 + num(r.party_hp_scale) * Math.max(0, nParty - 1); out.forEach(function (m) { m.b.mhp = Math.round(m.b.mhp * hs); m.stg = l; m.hs = hs }); /* 人多時怪物血量加成 */
     var cnt = {}, seen = {}; out.forEach(function (m) { cnt[m.name] = (cnt[m.name] || 0) + 1 });
     out.forEach(function (m) { if (cnt[m.name] > 1) { seen[m.name] = (seen[m.name] || 0) + 1; m.name += ' ' + 'ABCDE'[seen[m.name] - 1] } });
     out.sort(function (a, b) { return (a.boss ? 1 : 0) - (b.boss ? 1 : 0) });
@@ -508,6 +508,15 @@
         /* 太陽之照耀 */
         if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) applyStatus(u, u, '輝煌', 5, 1, null);
       }
+      /* 召喚（龍之叫喚）：effect = 怪物 id，value = 場上同種怪最多幾隻；未滿就叫一隻出來，下一回合開始行動 */
+      if (u.side === 'm') effs.forEach(function (r) {
+        if (r.effect_kind !== 'summon' || !D.mon[r.effect]) return;
+        var aliveN = M.filter(function (m) { return !m.dead && m.mid === r.effect }).length; if (aliveN >= (num(r.value) || 1)) return;
+        var nu = monster(D.mon[r.effect], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs;
+        var same = M.filter(function (m) { return m.mid === r.effect }).length; nu.name += ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.min(25, same)];
+        nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0.5; nu.summoned = true;
+        M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
+      });
       /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…） */
       effs.forEach(function (r) {
         if (r.effect_kind !== 'heal') return;

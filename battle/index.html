@@ -106,7 +106,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=24"></script>
-<script src="engine.js?v=9"></script>
+<script src="engine.js?v=10"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -270,7 +270,7 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){var o={k:m.k,sc:m.k==='dragon'?1:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
+  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
 }
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
@@ -304,6 +304,7 @@ function tick(now){
   mons.forEach(function(m,i){var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=msrc(m.k,now);if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
+    else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
     else if(m.k==='slime'&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
     B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}});
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy,mw,mh,t)}
@@ -569,6 +570,11 @@ function cleared(a){if(demo)return NST-1;var m=MEMB[0]&&MEMB[0].adv||{};return m
 function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?{exp:parseInt(r.exp,10)||0,stones:parseInt(r.stones,10)||0}:rewardOf(a,l)}
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
   var ww=WKIND[p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww;return{wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,el:s.el||'',ty:ty||s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180}}
+/* 有召喚的戰鬥：固定用 5 格站位，被召喚的怪站到已經倒下的同伴空出來的位置（沒有空位就站下一格） */
+function sumSlots(ms,mko){if(!ms.some(function(m){return m.at!=null}))return;var bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});var F=((bi>=0&&ms[bi].k==='dragon')?DFORM:BFORM)[5],occ=[],q=1;
+  ms.forEach(function(m,i){if(m.at!=null)return;if(i===bi){m.slot=F[0];occ[0]=i;return}var j=Math.min(q++,4);m.slot=F[j];occ[j]=i});
+  ms.map(function(m,i){return i}).filter(function(i){return ms[i].at!=null}).sort(function(a,b){return ms[a].at-ms[b].at}).forEach(function(i){var at=ms[i].at,pick=-1;
+    for(var j=1;j<5;j++){var o=occ[j];if(o==null||(mko[o]!=null&&mko[o]+400<=at)){pick=j;break}}if(pick<0)pick=4;ms[i].slot=F[pick];occ[pick]=i})}
 function realBattle(a,l){
   var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
   var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG);
@@ -581,9 +587,11 @@ function realBattle(a,l){
       else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
     if(e.kind!=='round')t+=(e.tick||e.idle)?650:STEP;
     (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+260});
+    (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
     (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+260,d:true})});
     (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
     ev.push(o)});
+  sumSlots(ms,mko);
   return{ev:ev,mons:ms,pkl:pkl,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
     hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp})},lead:P[0]}}
 
