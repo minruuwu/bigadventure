@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -70,6 +70,9 @@ const FB = {
   async feedPet(id, lv, cookiesLeft) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { cookies: cookiesLeft, ['pets.' + id + '.lv']: lv })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { lv }); mePatch({ cookies: cookiesLeft, pets }); },
   // 帳棚：寵物「邀請進帳棚」開關（只改 pets.<id>.tent）
   async setPetTent(id, on) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { ['pets.' + id + '.tent']: !!on })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { tent: !!on }); mePatch({ pets }); },
+  // 營地跑馬燈公告：meta/notice = {text, on}；只有管理者能寫
+  async noticeGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'notice')), 8000); return s.exists() ? s.data() : null; },
+  async noticeSet(text, on) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'notice'), { text: String(text || '').slice(0, 200), on: !!on })); },
   // 鍛造存檔被擋時的檢查：用 REST 讀原始型別，找出哪個欄位不合規則（小數型別的鍛造石或武器等級可以自動修正）
   async forgeCheck() { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
     const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
@@ -84,6 +87,9 @@ const FB = {
     return { why, fix, fixable: fix.stones != null || Object.keys(fix.lv).length > 0, types: 'stones=' + ty(F.stones) }; },
   // 鍛造存檔：鍛造石（只能減少）與各武器等級（只能增加）、淬火點數、附魔同一次寫入；lvs = {武器u_sn: {lv,pts,ench}}
   async myFresh() { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const p = await withTimeout(FB.getPlayer(u.uid), 12000); if (p) meSet(u.uid, p); return p ? ser(p) : null; },
+  // 營地跑馬燈公告：meta/notice = {text, on}；只有管理者能寫
+  async noticeGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'notice')), 8000); return s.exists() ? s.data() : null; },
+  async noticeSet(text, on) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'notice'), { text: String(text || '').slice(0, 200), on: !!on })); },
   // 鍛造存檔被擋時的檢查：用 REST 讀原始型別，找出哪個欄位不合規則（小數型別的鍛造石或武器等級可以自動修正）
   async forgeCheck() { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
     const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};

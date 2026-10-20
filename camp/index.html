@@ -310,6 +310,10 @@ html,body,*{touch-action:manipulation}
 .resetrow .ghost{min-height:42px;padding:8px 18px}
 .dollnote{text-align:center}
 </style><style>
+.ntc{position:absolute;left:0;right:0;top:0;z-index:7;height:20px;line-height:20px;background:rgba(0,0,0,.42);overflow:hidden;white-space:nowrap;pointer-events:none;font-size:12px;font-weight:700;text-shadow:1px 1px 0 #000}
+.ntc span{position:absolute;left:0;top:0;padding-left:100%;animation:ntc linear infinite;will-change:transform}.ntc b{color:#ffd65a}.ntc i{font-style:normal;color:#fff}
+@keyframes ntc{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.ntc span{animation:none;padding-left:8px}}
 .plaza{position:relative;width:100%;line-height:0;box-shadow:0 0 0 2px #06080b,inset 0 0 0 2px #5d6b7c;overflow:hidden;touch-action:manipulation}
 #scene{display:block;width:100%;image-rendering:pixelated}
 .tags{position:absolute;inset:0;pointer-events:none}
@@ -856,11 +860,17 @@ document.getElementById('plaza').addEventListener('click',function(e){var r=scen
 function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=localStorage.getItem('camp.showNames')!=='0'}catch(e){}
   cb.checked=v;tagsEl.classList.toggle('hn',!v);
   cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
+/* 營地上方的跑馬燈公告（管理後台設定；取消後就不顯示） */
+function showNotice(){function put(n){var old=document.getElementById('ntc');if(old)old.remove();if(!n||!n.on||!n.text)return;
+    var d=document.createElement('div');d.className='ntc';d.id='ntc';d.setAttribute('role','marquee');d.innerHTML='<span><b>[公告]</b> <i>'+esc2(n.text)+'</i></span>';
+    document.getElementById('plaza').appendChild(d);var sp=d.firstChild;requestAnimationFrame(function(){var w=sp.offsetWidth;sp.style.animationDuration=Math.max(8,w/45)+'s'})}
+  if(demo){put({on:true,text:'這是示範公告：今晚 9 點一起打第 20 關的綠龍！'});return}
+  withFB(function(FB){if(FB.noticeGet)FB.noticeGet().then(put,function(){})})}
 function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,9));
   document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
   Party.init({demo:demo,base:BASE,v:V,me:function(){return ME_P},look:look,withFB:withFB,getCSV:getCSV,rawWeapons:function(){return RAWW},wbyname:WBYNAME,petinfo:PETINFO,toast:toast,
     findLocal:function(u){var r=null;ACT.forEach(function(a){if(!a.pet&&a.p.uid===u)r=a.p});return r},demoList:function(){return window.__DL||[]}});
-  scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
+  showNotice();scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
 
 var V2='2';var FRONT=new Image();FRONT.src=BASE+'camp/camp_front.png?v='+Date.now();
 var SCENE=new Image();SCENE.src=BASE+'camp/camp_cut.png?v='+Date.now();
@@ -889,5 +899,5 @@ Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv']
 }).catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=19"></script>
+<script type="module" src="../common/fb.js?v=20"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>
