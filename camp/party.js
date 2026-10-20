@@ -24,7 +24,7 @@
 .pw .pbtn:disabled,.cin button:disabled{opacity:.5}\
 .tb2,.sg{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:12px}.tb2{margin:4px 0 2px}\
 .tb2 span,.sg span{display:flex;align-items:center;gap:4px;min-width:0}.tb2 em,.sg em{margin-left:auto;font-style:normal;font-weight:900;white-space:nowrap}\
-.icf{width:32px;height:32px;flex:none;display:inline-block;background-size:32px 32px;image-rendering:pixelated}.icf img{width:32px;height:32px;display:block;image-rendering:pixelated}.sg{gap:2px 12px!important}.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
+.icf{width:32px;height:32px;flex:none;display:inline-block;background-size:32px 32px;image-rendering:pixelated}.icf img{width:32px;height:32px;display:block;image-rendering:pixelated}.sg{gap:2px 8px!important}.sg .sl{font-style:normal;white-space:nowrap;min-width:0;overflow:hidden}.sg .sl.lg{font-size:11px;letter-spacing:-.03em}.sg em{padding-left:3px}.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
 .tbs{display:flex;gap:4px;margin:8px 0 6px}.tbs b{padding:4px 12px;background:#4a2a12;color:#f0dfb8;font-size:12px;font-weight:900;box-shadow:0 0 0 2px #1d1008}\
 .ptabs{display:flex;gap:4px;margin:8px 0 6px;flex-wrap:wrap}.ptabs[hidden],.pn[hidden]{display:none}.ptabs button{font:inherit;font-size:12px;font-weight:900;padding:4px 10px;border:0;cursor:pointer;color:#6a4a2a;background:rgba(70,40,15,.15);box-shadow:0 0 0 2px rgba(70,40,15,.45)}.ptabs button.on{background:#4a2a12;color:#f0dfb8;box-shadow:0 0 0 2px #1d1008}\
 .pn{width:100%;text-align:left;font-size:12px;color:#2e1d0e}.sico{width:24px;height:24px;flex:none;display:inline-flex;align-items:center;justify-content:center}.sico img{width:24px;height:24px}.sico .icf.sw{width:24px;height:24px;background-size:24px 24px}.sico .icf.sw img{width:24px;height:24px}.sbl{width:22px;height:22px;box-sizing:border-box;background:#1d1008;border:2px solid #7a5a30;display:block}.ske{width:16px!important;height:16px!important;margin-left:4px;vertical-align:-3px;image-rendering:pixelated}\
@@ -106,15 +106,15 @@
       ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate') + skPas(p, 'eva_rate'))],
       ['patk', '物理攻擊力', P0 + balP],
       ['matk', '魔法攻擊力', M0 + balM],
-      ['pdmg', '物理傷害加成', pct(wsum('p_damage_rate') + skPas(p, 'p_damage_rate'))],
-      ['mdmg', '魔法傷害加成', pct(wsum('m_damage_rate') + skPas(p, 'm_damage_rate'))],
+      ['pdmg', '物理加成', pct(wsum('p_damage_rate') + skPas(p, 'p_damage_rate'))],
+      ['mdmg', '魔法加成', pct(wsum('m_damage_rate') + skPas(p, 'm_damage_rate'))],
       ['pdef', '物理減傷', pct(pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? 0.2 : 0) + skPas(p, 'p_reduce_rate'))],
       ['mdef', '魔法減傷', pct(md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0) + skPas(p, 'm_reduce_rate'))],
       ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5 + skPas(p, 'crit_rate'))],
       ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + (r5 ? 1 : 0) + skPas(p, 'crit_damage_rate'))]].concat(skPas(p, 'atk_per_ally') ? [['patk', '觀眾熱情', '隊友 ' + allies + ' 人 → 物攻魔攻 +' + pct(apa)]] : []);
   }
   function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']) + skPas(p, r[0] + '_res_rate'), 0.75))] }) }
-  function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span>' + r[1] + '<em>' + r[2] + '</em></span>' }).join('') + '</div>' }
+  function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span><i class="sl' + (String(r[1]).length > 5 ? ' lg' : '') + '">' + r[1] + '</i><em>' + r[2] + '</em></span>' }).join('') + '</div>' }
   function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
   function skillsHtml(p) {
     var K = (STAT && STAT.sk) || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, cb = Array.isArray(sv.combat) ? sv.combat : [], pa = Array.isArray(sv.passive) ? sv.passive : [];
