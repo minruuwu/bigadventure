@@ -25,7 +25,8 @@ const ser = o => { if (o && typeof o === 'object') { if (typeof o.toMillis === '
 const meGet = () => { try { const c = JSON.parse(localStorage.getItem(ME_KEY) || 'null'); return c && c.uid && c.player ? c : null; } catch (e) { return null; } };
 const meSet = (uid, player) => { try { localStorage.setItem(ME_KEY, JSON.stringify({ uid, t: Date.now(), player: ser(player) })); } catch (e) {} };
 const meClear = () => { try { localStorage.removeItem(ME_KEY); sessionStorage.removeItem(LIST_KEY); } catch (e) {} };
-const mePatch = fields => { const c = meGet(); if (!c) return; try { Object.assign(c.player, ser(fields)); c.t = Date.now(); localStorage.setItem(ME_KEY, JSON.stringify(c)); } catch (e) {} };
+/* 寫入成功後同步本機快取；欄位名稱有點（例如 'jobLv.job07'）時要寫進巢狀的地方，不然快取裡的職業等級會是舊的 */
+const mePatch = fields => { const c = meGet(); if (!c) return; try { const f = ser(fields); Object.keys(f).forEach(k => { const ps = k.split('.'); let o = c.player; for (let i = 0; i < ps.length - 1; i++) { if (!o[ps[i]] || typeof o[ps[i]] !== 'object') o[ps[i]] = {}; o = o[ps[i]]; } o[ps[ps.length - 1]] = f[k]; }); c.t = Date.now(); localStorage.setItem(ME_KEY, JSON.stringify(c)); } catch (e) {} };
 const withTimeout = (pr, ms) => new Promise((res, rej) => { const t = setTimeout(() => { const e = new Error('timeout'); e.code = 'timeout'; rej(e); }, ms); pr.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
 const say = t => { const e = document.getElementById('loading'); if (e) e.textContent = t; };
 

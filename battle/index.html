@@ -691,6 +691,8 @@ function demoPlayers(){var names=['阿明','小美','阿傑','雞湯'],ws=['劍'
 function loadPx(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
 function glArr(l){return (l||[]).map(function(g){return [g.x,g.y,g.radius,g.color,g.speed,g.alpha]})}
 function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
+/* 背景讀到伺服器上最新的自己（技能、職業等級剛改過時快取可能是舊的）：還沒開打就換成新的 */
+window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo||!MEMB.length||(B&&!B.done))return;MEMB[0]=Object.assign({},MEMB[0],p,{uid:MEMB[0].uid})});
 function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、');
@@ -712,5 +714,5 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=18"></script>
+<script type="module" src="../common/fb.js?v=19"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>
