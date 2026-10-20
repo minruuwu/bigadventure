@@ -466,6 +466,16 @@
             /* 水之幽暗：每次暴擊，對隨機一名敵人造成物攻、魔攻較高者 200% 的黑暗魔法傷害（不再暴擊、不連鎖） */
             if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * 2 * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); var wr = hurt(wt, Math.max(1, wa), u); totalDmg += wr; addStat(e, u, 'dmg', wr, '水之幽暗'); addStat(e, wt, 'taken', wr, u.name + ' 水之幽暗'); (e._x = e._x || []).push('水之幽暗 → ' + wt.name + ' ' + wr); checkDeath(wt, e) } }
             addStat(e, u, 'dmg', real, sk.n); addStat(e, t, 'taken', real, u.name + ' ' + sk.n);
+            /* 擴散（skill_effect 的 bonus / splash）：其他敵方各受到主目標「減傷前」傷害的 value 倍，再吃各自的減傷；
+               跟著主目標的暴擊，主目標閃開就不擴散；擴散本身不能閃避、不觸發反應與符文 */
+            if (bonus.splash && x.amt > 0) {
+              var spP = sk.parts[0] && sk.parts[0].d === 'm', spBase = x.amt / Math.max(0.1, (1 - Math.min(stat(t, spP ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(t, ''), 0.9)));
+              foes(u).filter(function (q) { return q !== t && !q.dead && !banished(q) }).forEach(function (q) {
+                var sa = Math.max(1, Math.round(spBase * num(bonus.splash.value) * (1 - Math.min(stat(q, spP ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(q, ''), 0.9))));
+                var sr = hurt(q, sa, u); totalDmg += sr; addStat(e, u, 'dmg', sr, sk.n + '（擴散）'); addStat(e, q, 'taken', sr, u.name + ' ' + sk.n + '（擴散）');
+                (e._x = e._x || []).push('擴散 → ' + q.name + ' ' + sr); (e.spl = e.spl || []).push([q.side, q.i]); checkDeath(q, e);
+              });
+            }
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * 0.5), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); checkDeath(u, e) }
             if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < 0.2) applyStatus(t, u, '石化', 5, 1, null);
             if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < 0.3) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' }) }); applyStatus(u, t, pickOne(dbs), 3, 1, null) }

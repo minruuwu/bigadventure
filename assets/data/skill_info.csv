@@ -230,3 +230,6 @@ skill228,咬擊,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物�
 skill229,音嘯,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體物理傷害 ×0.7，每個目標 30% 麻痺 1 回合）,sonic,,
 skill230,呼喚同伴,monster,0,combat,self,,buff,,,,,,,,,怪物技能（場上怪物未滿 5 隻時，30% 機率叫出一隻暗影魔蝠）,,,
 skill231,吸血,monster,0,passive,,,passive,,,,,,,,,怪物被動（造成傷害時吸收實際傷害的 10% 恢復生命）,,,
+skill232,重擊,monster,0,combat,enemy_all,,damage,,,p,,0.8,,,,怪物技能（全體無屬性物理傷害 ×0.8，每個目標 20% 暈眩 1 回合）,smash,,
+skill233,堅守,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身物理減傷 +30%，持續 3 回合）,,,
+skill234,擴散攻擊,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技能（主目標物理傷害 ×1.0，其他隊員各受到減傷前傷害的 20%）,smash,,
