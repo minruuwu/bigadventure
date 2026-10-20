@@ -228,5 +228,5 @@ skill226,尾擊,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物�
 skill227,龍之叫喚,monster,0,combat,enemy_all,,damage,,,m,,0.5,,,,怪物技能（全體無屬性魔法傷害 ×0.5；場上綠幼龍不到 4 隻就召喚一隻）,,,
 skill228,咬擊,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（單體物理傷害 ×1.2）,thrust,,
 skill229,音嘯,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體物理傷害 ×0.7，每個目標 30% 麻痺 1 回合）,sonic,,
-skill230,呼喚同伴,monster,0,combat,self,,buff,,,,,,,,,怪物技能（場上怪物未滿 5 隻時，30% 機率叫出一隻蝙蝠）,,,
+skill230,呼喚同伴,monster,0,combat,self,,buff,,,,,,,,,怪物技能（場上怪物未滿 5 隻時，30% 機率叫出一隻暗影魔蝠）,,,
 skill231,吸血,monster,0,passive,,,passive,,,,,,,,,怪物被動（造成傷害時吸收實際傷害的 10% 恢復生命）,,,

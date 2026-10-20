@@ -252,7 +252,7 @@ function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return ''
   var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,A.leg,w,h-A.leg,0,A.leg,w,h-A.leg);x.drawImage(im,0,0,w,A.leg,0,dy,w,A.leg);return A.c[dy]=c.toDataURL()}
 function aniDy(k,now){var A=ANI[k],ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
 /* 會飛的怪物：兩張圖輪播當拍翅（flap 毫秒換一張），整隻懸空 hov 格、上下浮動 amp 格（bper 毫秒一輪），換到第二張（收翅）時多往上提 1 格；cy = 身體中心離圖底幾格 */
-var FLY={bat:{n:'蝙蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26}};
+var FLY={bat:{n:'暗影魔蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26}};
 function flyFr(k,now,ph){var F=FLY[k];return Math.floor((now+(ph||0))/F.flap)%2}
 function flyLift(k,now,ph){var F=FLY[k];if(!F)return 0;return F.hov+F.amp*(1+Math.sin((now+(ph||0)*3)/F.bper*Math.PI*2))/2+(flyFr(k,now,ph)?1:0)}
 function msz(k){return k==='sk'?[40,40]:FLY[k]?(FLY[k].im&&FLY[k].im[0]?[FLY[k].im[0].naturalWidth,FLY[k].im[0].naturalHeight]:[42,50]):LAY[k]?LAY[k].sz:ANI[k]&&ANI[k].im?[ANI[k].im.naturalWidth,ANI[k].im.naturalHeight]:[20,16]}
@@ -274,7 +274,7 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
+  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.k==='bat'?.8:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
 }
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
@@ -696,7 +696,7 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button></div>'+
-  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button><button type="button" data-m="bat">蝙蝠</button></div>'+
+  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button><button type="button" data-m="bat">暗影魔蝠</button></div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
