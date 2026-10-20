@@ -122,7 +122,8 @@
   /* 一關要出哪些怪：一般關從怪物池隨機（min_count～max_count 隻，不看隊伍人數），Boss 關固定 */
   function stageMonsters(D, area, l, nParty) {
     var r = stageRow(D, area, l); if (!r) return [];
-    var fixed = String(r.fixed_monsters || '').split(';').filter(Boolean), out = [];
+    var fs = nParty <= 2 && r.fixed_small ? r.fixed_small : r.fixed_monsters; /* 王關：1～2 人時改用 fixed_small（小怪比較少） */
+    var fixed = String(fs || '').split(';').filter(Boolean), out = [];
     if (fixed.length) fixed.forEach(function (id) { if (D.mon[id]) out.push(monster(D.mon[id], l, D)) });
     else {
       var pool = String(r.monster_pool || '').split(';').filter(function (id) { return D.mon[id] }), mx = num(r.max_count) || 1, mn = Math.min(num(r.min_count) || 1, mx), n = rnd(mn, mx);
