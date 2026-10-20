@@ -159,7 +159,7 @@ function place(btn,src){var old=btn.querySelector('canvas');if(!old||old.__navFr
   old.replaceWith(c);
   if(btn.getAttribute('data-k')==='forge'&&src.__pixel&&btn.getAttribute('aria-selected')==='true')sparksOn(btn,c,src);
   if(btn.getAttribute('data-k')==='camp'&&!src.__pixel&&btn.getAttribute('aria-selected')==='true')campOn(btn,c);
-  if(btn.getAttribute('data-k')==='adv'&&src.__adv)advOn(c,btn.getAttribute('aria-selected')==='true');
+  if(btn.getAttribute('data-k')==='adv'&&src.__adv){c.style.top=PXSA+'px';advOn(c,btn.getAttribute('aria-selected')==='true')} /* 地圖往下一格 */
   if(btn.getAttribute('data-k')==='char'&&src.__head&&src.__look&&btn.getAttribute('aria-selected')==='true')headAnimOn(c,src.__look)}
 
 /* ---- camp tab (current page): warm light through the tent door, a breathing grainy halo over it, and a chat bubble ---- */
