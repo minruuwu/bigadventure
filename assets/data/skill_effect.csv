@@ -210,3 +210,6 @@ skill222,野獸衝撞,status,暈眩,enemy_single,1,0.2,,,,,,,,
 skill224,劇毒吐息,status,顛茄毒,enemy_all,3,1,,,,,,,,
 skill226,尾擊,status,暈眩,enemy_single,1,0.2,,,,,,,,
 skill227,龍之叫喚,summon,,,,,mon11,4,,,,,,
+skill229,音嘯,status,麻痺,enemy_all,1,0.3,,,,,,,,
+skill230,呼喚同伴,summon,,,,0.3,mon12,5,,,,,,all_monsters
+skill231,吸血,passive,,,,,lifesteal,0.1,,,,,,

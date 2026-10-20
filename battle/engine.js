@@ -116,7 +116,20 @@
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k)), patk: Math.round(num(r.p_atk) * (1 + ag * k)), matk: Math.round(num(r.m_atk) * (1 + ag * k)), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
-      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: [], special: [], runes: [] };
+      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: [], special: monPassive(r, D), runes: [] };
+  }
+  /* 怪物被動（monster_info 的 passive 欄，可用 ; 分隔多個）：吸血、追加傷害、攻擊附加狀態等，寫法跟玩家被動一樣 */
+  function monPassive(r, D) {
+    var out = [];
+    String(r.passive || '').split(';').map(function (x) { return x.trim() }).filter(Boolean).forEach(function (id) {
+      (D.EFF[id] || []).forEach(function (e) {
+        if (e.effect_kind !== 'passive' || !e.effect) return;
+        var v = num(e.value);
+        if (e.trigger || e.effect === 'apply_status') out.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type });
+        else if (['lifesteal', 'extra_dmg', 'auto_cleanse'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
+      });
+    });
+    return out;
   }
 
   /* 一關要出哪些怪：一般關從怪物池隨機（min_count～max_count 隻，不看隊伍人數），Boss 關固定 */
@@ -508,10 +521,15 @@
         /* 太陽之照耀 */
         if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) applyStatus(u, u, '輝煌', 5, 1, null);
       }
-      /* 召喚（龍之叫喚）：effect = 怪物 id，value = 場上同種怪最多幾隻；未滿就叫一隻出來，下一回合開始行動 */
+      /* 召喚：effect = 怪物 id，value = 上限；condition 填 all_monsters 時上限算「全場活著的怪」，空白則只算同種怪（龍之叫喚）；
+         apply_chance = 成功機率（空白 = 必定）。未滿且成功就叫一隻出來，下一回合開始行動 */
       if (u.side === 'm') effs.forEach(function (r) {
         if (r.effect_kind !== 'summon' || !D.mon[r.effect]) return;
-        var aliveN = M.filter(function (m) { return !m.dead && m.mid === r.effect }).length; if (aliveN >= (num(r.value) || 1)) return;
+        var allM = String(r.condition || '').trim() === 'all_monsters';
+        var aliveN = M.filter(function (m) { return !m.dead && (allM || m.mid === r.effect) }).length;
+        if (aliveN >= (num(r.value) || 1)) { if (allM) e.txt += '，但場上已經滿了'; return }
+        var ch = String(r.apply_chance || '').trim() === '' ? 1 : num(r.apply_chance);
+        if (RND() >= ch) { e.txt += '，但沒有同伴回應'; return }
         var nu = monster(D.mon[r.effect], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs;
         var same = M.filter(function (m) { return m.mid === r.effect }).length; nu.name += ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.min(25, same)];
         nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0.5; nu.summoned = true;

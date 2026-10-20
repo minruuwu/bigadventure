@@ -251,7 +251,11 @@ var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},sna
 function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return '';A.c=A.c||{};var ph=(now%A.per)/A.per,dy=A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0);if(A.c[dy])return A.c[dy];
   var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,A.leg,w,h-A.leg,0,A.leg,w,h-A.leg);x.drawImage(im,0,0,w,A.leg,0,dy,w,A.leg);return A.c[dy]=c.toDataURL()}
 function aniDy(k,now){var A=ANI[k],ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
-function msz(k){return k==='sk'?[40,40]:LAY[k]?LAY[k].sz:ANI[k]&&ANI[k].im?[ANI[k].im.naturalWidth,ANI[k].im.naturalHeight]:[20,16]}
+/* 會飛的怪物：兩張圖輪播當拍翅（flap 毫秒換一張），整隻懸空 hov 格、上下浮動 amp 格（bper 毫秒一輪），換到第二張（收翅）時多往上提 1 格；cy = 身體中心離圖底幾格 */
+var FLY={bat:{n:'蝙蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26}};
+function flyFr(k,now,ph){var F=FLY[k];return Math.floor((now+(ph||0))/F.flap)%2}
+function flyLift(k,now,ph){var F=FLY[k];if(!F)return 0;return F.hov+F.amp*(1+Math.sin((now+(ph||0)*3)/F.bper*Math.PI*2))/2+(flyFr(k,now,ph)?1:0)}
+function msz(k){return k==='sk'?[40,40]:FLY[k]?(FLY[k].im&&FLY[k].im[0]?[FLY[k].im[0].naturalWidth,FLY[k].im[0].naturalHeight]:[42,50]):LAY[k]?LAY[k].sz:ANI[k]&&ANI[k].im?[ANI[k].im.naturalWidth,ANI[k].im.naturalHeight]:[20,16]}
 function skFrame(now){var bl=(now%3200)<180?1:0,dy=Math.sin(now/330)>0?1:0,k=bl+'_'+dy;if(SKC[k])return SKC[k];var im=SKI[bl];if(!im||!im.naturalWidth)return '';var c=document.createElement('canvas');c.width=40;c.height=40;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,34,40,6,0,34,40,6);x.drawImage(im,0,0,40,34,0,dy,40,34);return SKC[k]=c.toDataURL()}
 /* 眼睛圖層型的怪物：_blink 是眼睛圖層，平常疊上去、眨眼時藏起來；膝蓋以上每 0.66 秒上下 1 格 */
 var LAY={gob:{sz:[25,27],c:{},per:2900,kn:6},orc:{sz:[36,45],c:{},per:3400,kn:7},gobw:{sz:[24,27],c:{},per:2600,kn:6}};
@@ -262,7 +266,7 @@ function layFrame(k,now){var L=LAY[k],cl=(now%L.per)<160?1:0,dy=Math.sin(now/330
 function layInit(k,b,e){var L=LAY[k];L.base=b;L.eyes=e;if(!b)return;var W=b.naturalWidth,H=b.naturalHeight,gc=document.createElement('canvas');gc.width=W;gc.height=H;var gx=gc.getContext('2d');gx.drawImage(b,0,0);if(e)gx.drawImage(e,0,0);
   var gd=gx.getImageData(0,0,W,H).data,a0=W,b0=H,a1=-1,b1=-1;for(var y=0;y<H;y++)for(var xx=0;xx<W;xx++)if(gd[(y*W+xx)*4+3]>0){if(xx<a0)a0=xx;if(xx>a1)a1=xx;if(y<b0)b0=y;if(y>b1)b1=y}
   if(a1>=0){L.bb=[a0,b0,a1-a0+1,b1-b0+1];L.sz=[a1-a0+1,b1-b0+1]}}
-function msrc(k,now){return k==='sk'?skFrame(now):LAY[k]?layFrame(k,now):ANI[k]?aniFrame(k,now):SLIME}
+function msrc(k,now,ph){if(FLY[k]){var fi=FLY[k].im&&FLY[k].im[flyFr(k,now,ph)];return fi&&fi.naturalWidth?fi.src:''}return k==='sk'?skFrame(now):LAY[k]?layFrame(k,now):ANI[k]?aniFrame(k,now):SLIME}
 function sizeU(){U=frame.clientWidth/UW}
 function tileW(){return frame.clientHeight*BG[cur].bw/BG[cur].bh}
 function build(){
@@ -301,17 +305,18 @@ function tick(now){
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=1-fall;
     hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk);
   });
-  mons.forEach(function(m,i){var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=msrc(m.k,now);if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
+  mons.forEach(function(m,i){var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=msrc(m.k,now,m.ph),lift=FLY[m.k]?flyLift(m.k,now,m.ph):0;if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
     else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
     else if(m.k==='slime'&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
     B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}});
-    var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy,mw,mh,t)}
-    m.lx=mx;m.gy=gy;m.alive=op>.99&&t>=WALK;
-    m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=(gy*U-mh)+'px';
+    var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
+    m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
+    m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh)+'px';
     m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
-    var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op;
+    if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
+    else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
   drawParts(t);drawVfx(t);drawIdle(now);
   raf=requestAnimationFrame(tick);
@@ -327,7 +332,15 @@ function vfxColor(wk,s){if(s.el&&ELC[s.el])return ELC[s.el];if(!s.atk)return '#f
 function VP(x,y,c,a){if(a<=0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=c;var z=Math.max(1,Math.round(U));pctx.fillRect(Math.round(x*U),Math.round(y*U),z,z)}
 function VR(x,y,w,h,c,a){if(a<=0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=c;pctx.fillRect(Math.round(x*U),Math.round(y*U),Math.max(1,Math.round(w*U)),Math.max(1,Math.round(h*U)))}
 function VO(cx,cy,rx,ry,c,a){for(var y=-ry;y<=ry;y++){var w=Math.round(rx*Math.sqrt(Math.max(0,1-(y*y)/(ry*ry+.01))));VR(cx-w,cy+y,w*2+1,1,c,a)}}
-function monPos(i){var m=mons[i];if(!m)return null;var MZ=msz(m.k);return[m.x,BG[cur].band+m.dy-MZ[1]*m.sc*.45]}
+/* 音波（蝙蝠的音嘯）：從怪物嘴邊往左一圈一圈擴散的像素弧線，共 3 道，掃過隊員時隊員身上震一下 */
+function sonicFx(e,d){var mo=mons[e.a],mp=monPos(e.a);if(!mo||!mp)return;var sx=mp[0]-msz(mo.k)[0]*mo.sc*.18,sy=mp[1]+2,far=40;
+  (e.tgts||[]).forEach(function(tk){var pp=posOf(tk);far=Math.max(far,Math.hypot(sx-pp[0],sy-(pp[1]-14))+8)});
+  for(var w=0;w<3;w++){var u=(d-w*120)/560;if(u<0||u>1)continue;var R=4+u*far,a=(1-u)*(u<.08?u/.08:1),st=1/Math.max(4,R);
+    for(var an=-0.75;an<=0.75;an+=st){var ca=Math.cos(an),sa=Math.sin(an),edge=Math.abs(an)>.58,ea=edge?.55:1;
+      VP(sx-ca*R,sy+sa*R*.8,'#ffffff',a*ea);VP(sx-ca*(R+1),sy+sa*(R+1)*.8,'#c8b4ff',a*.85*ea);VP(sx-ca*(R+2),sy+sa*(R+2)*.8,'#8f78d8',a*.5*ea)}}
+  (e.tgts||[]).forEach(function(tk){var pp=posOf(tk),dist=Math.hypot(sx-pp[0],sy-(pp[1]-14)),hitT=dist/far*560,v=(d-hitT)/240;if(v<0||v>1)return;var a=1-v,j=Math.round(Math.sin(d/18)*1.5);
+    for(var q=0;q<3;q++){var r=5+q*3+v*4;for(var an2=-1.1;an2<=1.1;an2+=.2){VP(pp[0]+j+Math.cos(an2)*r*.6,pp[1]-14+Math.sin(an2)*r,q?'#c8b4ff':'#ffffff',a*(1-q*.25))}}})}
+function monPos(i){var m=mons[i];if(!m)return null;var MZ=msz(m.k);if(FLY[m.k])return[m.x,BG[cur].band+m.dy-(m.lift||FLY[m.k].hov)-FLY[m.k].cy*m.sc];return[m.x,BG[cur].band+m.dy-MZ[1]*m.sc*.45]}
 /* ---- 屬性粒子：命中時從目標散開；箭、魔彈、拋擲飛行途中沿路灑；治療、支援也有。無屬性魔彈用藍色（arc） ---- */
 var PCOL={fire:['#ffe08a','#ff8a3a','#ff4a1a'],frost:['#ffffff','#bfeaff','#6cbcff'],lightning:['#fffbd0','#ffe95a','#ffb81a'],wind:['#e0fff4','#7cf0c4','#2fbf9a'],nature:['#eaffd4','#8ed65a','#4fa83a'],light:['#ffffff','#fff4c4','#ffd76a'],dark:['#140620','#2a0f42','#7a2ad0'],arc:['#e6f2ff','#7ab8ff','#3a76ff']};
 function pLine(x0,y0,x1,y1,c,a){var n=Math.max(1,Math.round(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))));for(var i=0;i<=n;i++)VP(x0+(x1-x0)*i/n,y0+(y1-y0)*i/n,c,a)}
@@ -405,6 +418,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
   B.ev.forEach(function(e){for(var hh=0;hh<(e.side==='p'&&e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
   function vOne(e,t,hh){var d=t-e.t;if(d<0||d>900||!e.side)return;
     if(e.side==='m'&&e.mhl){e.mhl.forEach(function(i){var mo=mons[i];if(mo&&mo.lx!=null)healFx([mo.lx,mo.gy],d,'')});return}
+    if(e.side==='m'&&e.sonic){sonicFx(e,d);return}
     if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-msz(mo.k)[0]*mo.sc*.3,msy=mp0[1];
       /* 怪物技能特效：把畫面左右翻過來，沿用玩家那套（投擲、刺擊、飛彈……），起點是怪物、終點是被打的隊員 */
       pctx.save();pctx.translate(pfx.width,0);pctx.scale(-1,1);
@@ -584,7 +598,7 @@ function realBattle(a,l){
     if(e.sk&&!e.idle&&!e.tick){
       if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
         o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
-      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
+      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
     if(e.kind!=='round')t+=(e.tick||e.idle)?650:STEP;
     (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+260});
     (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
@@ -675,13 +689,14 @@ function vtChar(){var w=VT.w==='拋擲'?'書':VT.w,k=WBYNAME[w],p={uid:'t',name:
 function vtBuild(){MEMB=[vtChar()];var keep=B&&B.t0;B={ev:[],mons:[{k:VT.mon,n:'標靶',boss:false}],pko:{},mko:{},res:'win',end:1e15,li:1e9,done:false,stat:{dmg:[],taken:[],heal:[]},sopen:{},a:0,l:1,t0:keep||performance.now()-WALK-50};build()}
 function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
   if(VT.kind==='claw')e={side:'m',a:0,tgt:0,tgts:[0],t:t};
+  else if(VT.kind==='sonic')e={side:'m',a:0,tgt:0,tgts:[0],t:t,sonic:1};
   else{e={side:'p',a:0,t:t,tg:[0],wk:wk,vc:vfxColor(wk,s),atk:VT.atk&&!VT.el,el:VT.el,ty:VT.kind,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
     if(VT.kind==='heal'){e.tg=[];e.hl=0}if(VT.kind==='buff')e.tg=[]}
   B.ev=B.ev.filter(function(x){return t-x.t<1500});B.ev.push(e)}
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
-  '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button></div>'+
-  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button></div>'+
+  '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button></div>'+
+  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button><button type="button" data-m="bat">蝙蝠</button></div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
@@ -705,12 +720,23 @@ function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
   $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、');
   $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
-Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadPx(BASE+'monsters/monster_01.png'),loadPx(BASE+'monsters/monster_02.png'),loadPx(BASE+'monsters/monster_02_blink.png'),loadPx(BASE+'monsters/monster_03.png?v=3'),loadPx(BASE+'monsters/monster_03_blink.png?v=2'),loadPx(BASE+'monsters/monster_boss_01.png'),loadPx(BASE+'monsters/monster_boss_01_blink.png'),loadPx(BASE+'monsters/monster_04.png'),loadPx(BASE+'monsters/monster_05.png'),loadPx(BASE+'monsters/monster_06.png?v=2'),loadPx(BASE+'monsters/monster_boss_02.png?v=3'),loadPx(BASE+'monsters/monster_07.png?v=1'),loadPx(BASE+'monsters/monster_08.png?v=1'),loadPx(BASE+'monsters/monster_08_blink.png?v=1'),loadPx(BASE+'monsters/monster_09.png?v=1')].concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/slash_0'+k+'.png?v=4')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/arrow_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/missile_0'+k+'.png?v=3')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/thrust_0'+k+'.png?v=1')})).concat([0,1,2,3,4,5,6,7].map(function(k){return loadPx(BASE+'vfx/smash_0'+k+'.png?v=1')})).concat([loadPx(BASE+'vfx/claw.png?v=1')]).map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
+/* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
+var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',
+  monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
+  monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=3',
+  monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',claw:'vfx/claw.png?v=1'};
+[['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
+var IMG={};
+function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}
+Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadImgs()].map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];ENG=BattleEngine.prepare({weapon_info:csv[0],skill_info:csv[3],skill_effect:csv[4],status_info:csv[5],job_attribute:csv[6],job_level_up:csv[7],pet_info:csv[8],monster_info:csv[9],stage_info:csv[10]});CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
-  var m=r[4];if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
+  var I=IMG,m=I.monster_01;if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}
-  SKI[0]=r[5];SKI[1]=r[6];layInit('gob',r[7],r[8]);layInit('orc',r[9],r[10]);ANI.boar.im=r[11];ANI.snake.im=r[12];ANI.wolf.im=r[13];ANI.dragon.im=r[14];ANI.dwolf.im=r[15];layInit('gobw',r[16],r[17]);ANI.bdragon.im=r[18];for(var vi=0;vi<8;vi++){SLASH[vi]=r[19+vi];ARROW[vi]=r[27+vi];MISSILE[vi]=r[35+vi];THRUST[vi]=r[43+vi];SMASH[vi]=r[51+vi]}CLAW=r[59];
+  SKI[0]=I.monster_02;SKI[1]=I.monster_02_blink;layInit('gob',I.monster_03,I.monster_03_blink);layInit('orc',I.monster_boss_01,I.monster_boss_01_blink);layInit('gobw',I.monster_08,I.monster_08_blink);
+  Object.keys(ANI).forEach(function(k){ANI[k].im=I[ANI[k].f]});Object.keys(FLY).forEach(function(k){FLY[k].im=FLY[k].f.map(function(f){return I[f]})});
+  for(var vi=0;vi<8;vi++){SLASH[vi]=I['slash_0'+vi];ARROW[vi]=I['arrow_0'+vi];MISSILE[vi]=I['missile_0'+vi];THRUST[vi]=I['thrust_0'+vi];SMASH[vi]=I['smash_0'+vi]}CLAW=I.claw;
   return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})
 }).then(function(){
   if(VFXT){vtStart();return}

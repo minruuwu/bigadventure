@@ -1,12 +1,13 @@
-monster_id,monster_name,sprite,boss,hp,p_atk,m_atk,p_reduce_rate,m_reduce_rate,eva_rate,crit_rate,crit_damage_rate,speed,fire_res_rate,frost_res_rate,lightning_res_rate,wind_res_rate,nature_res_rate,light_res_rate,dark_res_rate,hp_growth,atk_growth,skill_1,skill_2,skill_3,skill_4,reaction,monster_desc
-mon01,史萊姆,slime,,80,5,8,0,0.1,0.03,0.05,0.5,8,-0.2,0,0,0,0.2,0,0,0.5,0.55,atk,skill216,atk,skill217,,黏呼呼的森林常客，會吐酸液、自己慢慢回血
-mon02,青蛇,snake,,60,6,6,0,0,0.15,0.1,0.5,13,0,-0.2,0,0,0.2,0,0,0.5,0.55,atk,skill218,atk,skill218,,動作很快，牙上有顛茄毒
-mon03,灰狼,wolf,,70,6,0,0.05,0,0.1,0.15,0.5,12,0,0.2,0,0,0,0,0,0.5,0.55,skill003,atk,skill083,skill001,,成群出沒，擅長偷襲
-mon04,野豬,boar,,110,5,0,0.15,0,0,0.05,0.5,7,0,0,0,0,0,0,0,0.5,0.55,skill001,atk,skill092,atk,,皮厚肉粗，會嚎叫引走攻擊
-mon05,哥布林,gob,,75,6,0,0.05,0.05,0.08,0.1,0.5,11,0,0,0,0,0,0,0,0.5,0.55,skill003,skill006,skill008,atk,,狡猾的小鬼，什麼招都會一點
-mon06,半獸人戰酋,orc,1,320,9,0,0.2,0.1,0.03,0.1,0.5,9,0,0,0,0,0,0,0,0.35,0.55,skill090,skill091,skill094,skill056,,怪物森林的首領
-mon07,綠龍,dragon,1,500,10,10,0.2,0.2,0.03,0.1,0.5,10,-0.2,0,0,0,0.5,0,0,0.35,0.55,skill220,skill219,skill221,skill227,,怪物森林最深處的古老綠龍，吐息帶著劇毒
-mon08,魔狼,dwolf,,95,8,7,0.05,0.1,0.1,0.22,0.5,12,0,0.2,0,0.3,0,-0.2,0.3,0.5,0.55,skill083,skill222,skill022,atk,skill066,被魔力侵染的狼，會反擊、還會放風刃
-mon09,哥布林巫師,gobw,,60,3,9,0,0.15,0.06,0.08,0.5,10,0.2,-0.1,0,0,0,-0.1,0.1,0.5,0.55,skill002,skill223,skill058,skill171,,會用法杖施法的哥布林，火球、爆炎、祕法飛彈都會，還會幫同伴補血
-mon10,綠幼龍,bdragon,,150,8,8,0.15,0.1,0.05,0.1,0.5,9,-0.2,0,0,0,0.3,0,0,0.5,0.55,skill224,skill225,skill218,skill226,,還沒長大的綠龍，會吐毒、咬人、甩尾巴
-mon11,綠幼龍,bdragon,,30,4,4,0.15,0.1,0.05,0.1,0.5,9,-0.2,0,0,0,0.3,0,0,0.5,0.55,skill224,skill225,skill218,skill226,,跟著綠龍的幼龍（第 20 關用；綠龍的龍之叫喚會再叫出來）
+monster_id,monster_name,sprite,boss,hp,p_atk,m_atk,p_reduce_rate,m_reduce_rate,eva_rate,crit_rate,crit_damage_rate,speed,fire_res_rate,frost_res_rate,lightning_res_rate,wind_res_rate,nature_res_rate,light_res_rate,dark_res_rate,hp_growth,atk_growth,skill_1,skill_2,skill_3,skill_4,reaction,passive,monster_desc
+mon01,史萊姆,slime,,80,5,8,0,0.1,0.03,0.05,0.5,8,-0.2,0,0,0,0.2,0,0,0.5,0.55,atk,skill216,atk,skill217,,,黏呼呼的森林常客，會吐酸液、自己慢慢回血
+mon02,青蛇,snake,,60,6,6,0,0,0.15,0.1,0.5,13,0,-0.2,0,0,0.2,0,0,0.5,0.55,atk,skill218,atk,skill218,,,動作很快，牙上有顛茄毒
+mon03,灰狼,wolf,,70,6,0,0.05,0,0.1,0.15,0.5,12,0,0.2,0,0,0,0,0,0.5,0.55,skill003,atk,skill083,skill001,,,成群出沒，擅長偷襲
+mon04,野豬,boar,,110,5,0,0.15,0,0,0.05,0.5,7,0,0,0,0,0,0,0,0.5,0.55,skill001,atk,skill092,atk,,,皮厚肉粗，會嚎叫引走攻擊
+mon05,哥布林,gob,,75,6,0,0.05,0.05,0.08,0.1,0.5,11,0,0,0,0,0,0,0,0.5,0.55,skill003,skill006,skill008,atk,,,狡猾的小鬼，什麼招都會一點
+mon06,半獸人戰酋,orc,1,320,9,0,0.2,0.1,0.03,0.1,0.5,9,0,0,0,0,0,0,0,0.35,0.55,skill090,skill091,skill094,skill056,,,怪物森林的首領
+mon07,綠龍,dragon,1,500,10,10,0.2,0.2,0.03,0.1,0.5,10,-0.2,0,0,0,0.5,0,0,0.35,0.55,skill220,skill219,skill221,skill227,,,怪物森林最深處的古老綠龍，吐息帶著劇毒
+mon08,魔狼,dwolf,,95,8,7,0.05,0.1,0.1,0.22,0.5,12,0,0.2,0,0.3,0,-0.2,0.3,0.5,0.55,skill083,skill222,skill022,atk,skill066,,被魔力侵染的狼，會反擊、還會放風刃
+mon09,哥布林巫師,gobw,,60,3,9,0,0.15,0.06,0.08,0.5,10,0.2,-0.1,0,0,0,-0.1,0.1,0.5,0.55,skill002,skill223,skill058,skill171,,,會用法杖施法的哥布林，火球、爆炎、祕法飛彈都會，還會幫同伴補血
+mon10,綠幼龍,bdragon,,150,8,8,0.15,0.1,0.05,0.1,0.5,9,-0.2,0,0,0,0.3,0,0,0.5,0.55,skill224,skill225,skill218,skill226,,,還沒長大的綠龍，會吐毒、咬人、甩尾巴
+mon11,綠幼龍,bdragon,,30,4,4,0.15,0.1,0.05,0.1,0.5,9,-0.2,0,0,0,0.3,0,0,0.5,0.55,skill224,skill225,skill218,skill226,,,跟著綠龍的幼龍（第 20 關用；綠龍的龍之叫喚會再叫出來）
+mon12,蝙蝠,bat,,65,7,0,0,0,0.15,0.1,0.5,15,0,0,0,0.2,0,-0.2,0.2,0.5,0.55,skill228,atk,skill229,skill230,,skill231,魔晶礦洞的蝙蝠，飛得很快，咬人會吸血；音嘯震得人發麻，還會呼喚同伴
