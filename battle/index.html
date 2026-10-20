@@ -59,9 +59,9 @@ button{font:inherit;color:inherit}
 .go:disabled{opacity:.45;cursor:default}
 .lvov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:10vh 18px 20px}
 .lvov[hidden]{display:none}.lvbg{position:fixed;inset:0;background:rgba(0,0,0,.62)}
-.lvbox{position:relative;width:100%;max-width:340px;background:#b98a57;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 3px #3b2713,inset 0 0 0 6px #7a5426,6px 6px 0 rgba(0,0,0,.5)}
+.lvbox{position:relative;width:100%;max-width:340px;background:#b98a57 var(--kraft,none) 0 0/288px 288px;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
 .lvbox h2{margin:0;font-size:19px;font-weight:900;color:#2a1708}.lvh{margin:2px 0 10px;font-size:12px;font-weight:700;color:#5a3a1a}
-.lvbox .x{position:absolute;top:10px;right:10px;width:30px;height:30px;border:0;background:#4a2a12;color:#f0dfb8;font-weight:900;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
+.lvbox .x{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:#4a2a12;color:#f0dfb8;font-weight:900;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
 .lvg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .lv{font-weight:900;font-size:15px;border:0;background:#4a2a12;color:#f0dfb8;padding:9px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
 .lv.boss{background:#7a1f14;font-size:13px}.lv.on{background:#e0b84a;color:#1d1008}
@@ -667,6 +667,8 @@ function vtSync(){function on(id,f){[].forEach.call(document.querySelectorAll('#
   on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon})}
 function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hidden=true;$('batv').hidden=false;$('bhead').textContent='特效測試';setBG('A');vtBuild();vtUI();lastNow=performance.now();
   (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>1300){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
+/* 牛皮紙紋理（跟營地的視窗一樣） */
+try{document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})())}catch(e){}
 var demo=/[?&]demo=\d/.test(location.search),VFXT=/[?&]vfx=1/.test(location.search);
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function demoPlayers(){var names=['阿明','小美','阿傑','雞湯'],ws=['劍','斧','匕','弓'];return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3][i],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i]}})}
