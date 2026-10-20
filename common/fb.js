@@ -69,10 +69,34 @@ const FB = {
   async feedPet(id, lv, cookiesLeft) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { cookies: cookiesLeft, ['pets.' + id + '.lv']: lv })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { lv }); mePatch({ cookies: cookiesLeft, pets }); },
   // 帳棚：寵物「邀請進帳棚」開關（只改 pets.<id>.tent）
   async setPetTent(id, on) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { ['pets.' + id + '.tent']: !!on })); const c = meGet(); const pets = Object.assign({}, (c && c.player.pets) || {}); pets[id] = Object.assign({}, pets[id], { tent: !!on }); mePatch({ pets }); },
+  // 鍛造存檔被擋時的檢查：用 REST 讀原始型別，找出哪個欄位不合規則（小數型別的鍛造石或武器等級可以自動修正）
+  async forgeCheck() { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
+    const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
+    const ty = v => v ? Object.keys(v)[0] : '無', nv = v => v ? Number(v.integerValue != null ? v.integerValue : v.doubleValue) : 0;
+    if (F.stones && !('integerValue' in F.stones)) { why.push('鍛造石存成了' + ty(F.stones)); fix.stones = Math.max(0, Math.floor(nv(F.stones))); }
+    const W = (F.weapons && F.weapons.mapValue && F.weapons.mapValue.fields) || {}, OK = ['weapon01','weapon02','weapon03','weapon04','weapon05','weapon06','weapon07','weapon08'];
+    Object.keys(W).forEach(k => { if (OK.indexOf(k) < 0) { why.push('武器清單有不認得的項目 ' + k); return; } const w = (W[k].mapValue && W[k].mapValue.fields) || {};
+      if (w.lv && !('integerValue' in w.lv)) { why.push(k + ' 等級存成了' + ty(w.lv)); fix.lv[k] = Math.min(100, Math.max(1, Math.floor(nv(w.lv)))); }
+      const lv = nv(w.lv) || 1, pts = w.pts && w.pts.arrayValue ? (w.pts.arrayValue.values || []) : null;
+      if (pts) { if (pts.length !== 3 || pts.some(x => !('integerValue' in x))) why.push(k + ' 淬火點數格式不對'); else if (pts.reduce((a, x) => a + Number(x.integerValue), 0) * 5 > lv) why.push(k + ' 淬火點數超過上限'); }
+      const en = w.ench && w.ench.arrayValue ? (w.ench.arrayValue.values || []) : []; if (en.length > (lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)) why.push(k + ' 符文數量超過上限'); });
+    return { why, fix, fixable: fix.stones != null || Object.keys(fix.lv).length > 0, types: 'stones=' + ty(F.stones) }; },
   // 鍛造存檔：鍛造石（只能減少）與各武器等級（只能增加）、淬火點數、附魔同一次寫入；lvs = {武器u_sn: {lv,pts,ench}}
   async myFresh() { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const p = await withTimeout(FB.getPlayer(u.uid), 12000); if (p) meSet(u.uid, p); return p ? ser(p) : null; },
+  // 鍛造存檔被擋時的檢查：用 REST 讀原始型別，找出哪個欄位不合規則（小數型別的鍛造石或武器等級可以自動修正）
+  async forgeCheck() { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
+    const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
+    const ty = v => v ? Object.keys(v)[0] : '無', nv = v => v ? Number(v.integerValue != null ? v.integerValue : v.doubleValue) : 0;
+    if (F.stones && !('integerValue' in F.stones)) { why.push('鍛造石存成了' + ty(F.stones)); fix.stones = Math.max(0, Math.floor(nv(F.stones))); }
+    const W = (F.weapons && F.weapons.mapValue && F.weapons.mapValue.fields) || {}, OK = ['weapon01','weapon02','weapon03','weapon04','weapon05','weapon06','weapon07','weapon08'];
+    Object.keys(W).forEach(k => { if (OK.indexOf(k) < 0) { why.push('武器清單有不認得的項目 ' + k); return; } const w = (W[k].mapValue && W[k].mapValue.fields) || {};
+      if (w.lv && !('integerValue' in w.lv)) { why.push(k + ' 等級存成了' + ty(w.lv)); fix.lv[k] = Math.min(100, Math.max(1, Math.floor(nv(w.lv)))); }
+      const lv = nv(w.lv) || 1, pts = w.pts && w.pts.arrayValue ? (w.pts.arrayValue.values || []) : null;
+      if (pts) { if (pts.length !== 3 || pts.some(x => !('integerValue' in x))) why.push(k + ' 淬火點數格式不對'); else if (pts.reduce((a, x) => a + Number(x.integerValue), 0) * 5 > lv) why.push(k + ' 淬火點數超過上限'); }
+      const en = w.ench && w.ench.arrayValue ? (w.ench.arrayValue.values || []) : []; if (en.length > (lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)) why.push(k + ' 符文數量超過上限'); });
+    return { why, fix, fixable: fix.stones != null || Object.keys(fix.lv).length > 0, types: 'stones=' + ty(F.stones) }; },
   // 鍛造存檔：鍛造石用「減少花掉的量」寫入（不寫絕對值），手機上的舊快取不會蓋掉伺服器上的數字
-  async saveForge(spent, lvs) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = {}; if (spent > 0) f.stones = increment(-spent); Object.keys(lvs).forEach(k => { const v = lvs[k]; f['weapons.' + k + '.lv'] = v.lv; f['weapons.' + k + '.pts'] = v.pts; f['weapons.' + k + '.ench'] = v.ench; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], lvs[k]); }); mePatch({ stones: Math.max(0, ((c && c.player.stones) | 0) - spent), weapons }); },
+  async saveForge(spent, lvs, fix) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = {}; if (fix && fix.stones != null) f.stones = Math.max(0, fix.stones - spent); else if (spent > 0) f.stones = increment(-spent); if (fix && fix.lv) Object.keys(fix.lv).forEach(k => { if (!lvs[k]) f['weapons.' + k + '.lv'] = fix.lv[k]; }); Object.keys(lvs).forEach(k => { const v = lvs[k]; f['weapons.' + k + '.lv'] = v.lv; f['weapons.' + k + '.pts'] = v.pts; f['weapons.' + k + '.ench'] = v.ench; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], lvs[k]); }); mePatch({ stones: Math.max(0, ((c && c.player.stones) | 0) - spent), weapons }); },
   // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成累積在自己（隊長）資料的 owe.<隊友uid> 裡，同一次寫入
   // 存檔前讀一次自己的最新資料：用最新的隊伍名單過濾隊友分成、檢查跟上一場的間隔；失敗時附上判斷到的原因（e.why）
   async advCheck(r) { await ready; const u = auth.currentUser; if (!u) return {}; const s = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); const d = s.exists() ? s.data() : {};

@@ -101,7 +101,7 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .tab[aria-selected="true"]{color:var(--accent);background:#34404d;box-shadow:inset 0 3px 0 var(--accent)}
 .tab[aria-selected="true"] canvas{filter:none}
 .dot{position:absolute;top:8px;right:calc(50% - 26px);width:8px;height:8px;background:var(--red);box-shadow:0 0 0 2px #080503}
-.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;--bd:#e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#120c08;--bd:#e0b84a;padding:6px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;white-space:normal;width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;text-align:center;line-height:1.45}
 .toast.on{opacity:1}
 
 .enrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -474,7 +474,7 @@ function num(n){return n.toLocaleString('en-US')}
 function atk(k,lv){var w=W[k];return {p:Math.round(w.phys*lv/100),m:Math.round(w.mag*lv/100)}}
 function totalPts(lv){return Math.floor(lv/5)}
 function usedPts(k){var p=ST[k].pts;return p[0]+p[1]+p[2]}
-function toast(t){var e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},1400)}
+function toast(t){var e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},Math.max(1400,t.length*90))}
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 
 /* ---------- stage animation: shadow, breathing bob, light particles ---------- */
@@ -600,7 +600,12 @@ function flush(){clearTimeout(saveT);if(demo)return;var ks=Object.keys(DIRTY);if
   var lvs={};ks.forEach(function(k){lvs[k]={lv:ST[k].lv,pts:ST[k].pts.slice(),ench:ST[k].ench.slice()}});var spent=SPENT;SPENT=0;DIRTY={};saving=true;
   withFB(function(FB){FB.saveForge(spent,lvs).then(function(){saving=false},function(e){saving=false;var c=e&&(e.code||e.message)||'';
     /* 被規則擋下：多半是這支手機的資料比伺服器舊（例如在別的裝置鍛造過），重新讀一次伺服器的資料，這次的變更不存 */
-    if(c==='permission-denied'){toast('存檔失敗：這台裝置的資料比較舊，已重新讀取最新的鍛造石與武器，請再操作一次');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){});return}
+    if(c==='permission-denied'){
+      /* 先檢查伺服器上的資料型別：鍛造石或武器等級存成小數時，自動修正後再存一次；修不了就說明原因並重新讀取 */
+      FB.forgeCheck().then(function(r){
+        if(r.fixable){saving=true;FB.saveForge(spent,lvs,r.fix).then(function(){saving=false;toast('已自動修正資料格式並存檔')},function(e2){saving=false;toast('存檔失敗：'+(r.why.join('、')||'原因不明')+'（'+(e2&&e2.code||'')+'）');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){})});return}
+        toast(r.why.length?'存檔失敗：'+r.why.join('、')+'，請截圖給管理者':'存檔失敗：這台裝置的資料比較舊，已重新讀取，請再操作一次');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){})
+      },function(){toast('存檔失敗：已重新讀取最新的鍛造石與武器，請再操作一次');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){})});return}
     SPENT+=spent;ks.forEach(function(k){DIRTY[k]=1});toast('存檔失敗，稍後會再試（'+c+'）');saveT=setTimeout(flush,6000)})})}
 window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flush()});
 var SPENT=0;/* 還沒存檔、已經花掉的鍛造石 */
@@ -721,5 +726,5 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/nav.js?v=24"></script>
-<script type="module" src="../common/fb.js?v=17"></script>
+<script type="module" src="../common/fb.js?v=18"></script>
 </body></html>
