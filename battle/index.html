@@ -274,7 +274,8 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.k==='bat'?.8:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.hb);els.push(o.sh,o.f,o.hb);mons.push(o)});
+  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.k==='bat'?.8:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
+  frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
 }
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
@@ -314,7 +315,7 @@ function tick(now){
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh)+'px';
-    m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
+    m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
@@ -438,7 +439,8 @@ function drawVfx(t){shakeY=0;if(!B)return;
   pctx.globalAlpha=1;frame.style.transform=shakeY?'translateY('+shakeY+'px)':''}
 
 /* 怪物待機特效：野豬鼻息、灰狼口水、青蛇吐信 */
-function drawIdle(now){if(!B)return;mons.forEach(function(m){
+function drawIdle(now){if(!B)return;var main=pctx,W=frame.clientWidth,H=frame.clientHeight;mons.forEach(function(m){if(!m.fx)return;if(m.fx.width!==W||m.fx.height!==H){m.fx.width=W;m.fx.height=H}else m.fxx.clearRect(0,0,W,H);pctx=m.fxx;idleOne(m,now);pctx.globalAlpha=1;pctx.globalCompositeOperation='source-over'});pctx=main}
+function idleOne(m,now){(function(){
   /* 哥布林巫師：法杖頂端的寶珠發出藍色光暈（跟著身體上下） */
   if(m.k==='gobw'&&m.alive){var GZ=msz('gobw'),gs=m.sc,gdy=Math.sin(now/330)>0?1:0,gx=m.lx-GZ[0]*gs/2+2*gs,gy2=m.gy-GZ[1]*gs+(1.5+gdy)*gs,gp=.7+.3*Math.sin((now+m.ph*3)/300);
     pctx.globalCompositeOperation='lighter';for(var gi=-5;gi<=5;gi++)for(var gj=-5;gj<=5;gj++){var gr=Math.sqrt(gi*gi+gj*gj);if(gr>5.3)continue;VP(gx+gi,gy2+gj,gr<2.5?'#7ec4ff':'#3d8bff',gp*(gr<2.5?.95:.75)*(1-gr/6.5))}pctx.globalCompositeOperation='source-over';
@@ -449,7 +451,7 @@ function drawIdle(now){if(!B)return;mons.forEach(function(m){
   else if(A.fx==='drool'){var c2=t%2600;if(c2<1300){var len=1+Math.floor(c2/1300*3);for(var j=0;j<len;j++)VP(ax,ay+1+j,'#d8ecf4',.85);VP(ax,ay+len,'#ffffff',.9)}
     else if(c2<1900){var u2=(c2-1300)/600,yy=ay+4+u2*u2*(m.gy-ay-4);VP(ax,yy,'#d8ecf4',.9);VP(ax,yy+1,'#ffffff',.7)}
     else if(c2<2150){var u3=(c2-1900)/250;VP(ax-1,m.gy-1,'#d8ecf4',.6*(1-u3));VP(ax+1,m.gy-1,'#d8ecf4',.6*(1-u3))}}
-  else if(A.fx==='tongue'){var c3=t%2200,fl=function(s0){var u=(c3-s0)/260;return u<0||u>1?0:Math.sin(u*Math.PI)},n2=Math.round(Math.max(fl(0),fl(320))*3);for(var q=1;q<=n2;q++)VP(ax-q,ay,'#d8344a',1);if(n2>=2){VP(ax-n2-1,ay-1,'#d8344a',1);VP(ax-n2-1,ay+1,'#d8344a',1)}}});pctx.globalAlpha=1}
+  else if(A.fx==='tongue'){var c3=t%2200,fl=function(s0){var u=(c3-s0)/260;return u<0||u>1?0:Math.sin(u*Math.PI)},n2=Math.round(Math.max(fl(0),fl(320))*3);for(var q=1;q<=n2;q++)VP(ax-q,ay,'#d8344a',1);if(n2>=2){VP(ax-n2-1,ay-1,'#d8344a',1);VP(ax-n2-1,ay+1,'#d8344a',1)}}})()}
 /* 怪物蒸發：取怪物圖上的像素變成往上飄、慢慢變淡的小方塊 */
 var PARTS=[],pfx=$('pfx'),pctx=pfx.getContext('2d');
 function burst(m,mx,gy,mw,mh,t){m.boom=1;var im=m.f;if(!im.naturalWidth)return;var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.drawImage(im,0,0);var d=x.getImageData(0,0,w,h).data,st=w>30?2:1,uw=mw/U/w,uh=mh/U/h;
