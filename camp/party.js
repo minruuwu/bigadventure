@@ -159,7 +159,7 @@
   function mailCount() { API.shares().then(function (r) { SH = r || { list: [], claims: {} }; mailBadge() }, function () { SH = { list: [], claims: {} }; mailBadge() }) }
   function openMail() {
     var win = overlay('pw'), box = win.box, busy = false;
-    box.insertAdjacentHTML('beforeend', '<h2>信件</h2><p class="mnote" style="margin:0;font-size:12px;color:#5a3a1a;text-align:center">隊長帶你打贏冒險時，你的分成（經驗 10%、鍛造石 5%）會累積在隊長那邊，每天早上 6 點後可以領一次。</p><div class="lst ml"><div class="none">讀取中…</div></div><div class="cmsg"></div><button type="button" class="pbtn mall" hidden>全部領取</button>');
+    box.insertAdjacentHTML('beforeend', '<h2>組隊獎勵</h2><p class="mnote" style="margin:0;font-size:12px;color:#5a3a1a;text-align:center">隊長帶你打贏冒險時，你的分成（經驗 10%、鍛造石 5%）會累積在隊長那邊，每天早上 6 點後可以領一次。</p><div class="lst ml"><div class="none">讀取中…</div></div><div class="cmsg"></div><button type="button" class="pbtn mall" hidden>全部領取</button>');
     var lst = box.querySelector('.ml'), msg = box.querySelector('.cmsg'), all = box.querySelector('.mall');
     function paint() {
       var L = (SH && SH.list) || [], R = ready(); all.hidden = R.length < 2;
@@ -182,7 +182,7 @@
       lst.innerHTML = '<div class="none">讀取中…</div>';
       API.shares().then(function (r) { SH = r || { list: [], claims: {} }; paint(); mailBadge() }, function (e) {
         if (n < 1) { setTimeout(function () { load(n + 1) }, 1500); return } /* 第一次失敗先自動再讀一次 */
-        var c = e && e.code; lst.innerHTML = '<div class="none">信件讀取失敗' + (c === 'permission-denied' ? '（權限尚未開放）' : c === 'timeout' ? '（連線逾時）' : c ? '（' + esc(String(c)) + '）' : '') + '　<button type="button" class="pbtn mre">重新讀取</button></div>';
+        var c = e && e.code; lst.innerHTML = '<div class="none">組隊獎勵讀取失敗' + (c === 'permission-denied' ? '（權限尚未開放）' : c === 'timeout' ? '（連線逾時）' : c ? '（' + esc(String(c)) + '）' : '') + '　<button type="button" class="pbtn mre">重新讀取</button></div>';
         lst.querySelector('.mre').addEventListener('click', function () { load(1) })
       })
     }
@@ -360,7 +360,7 @@
       C = ctx; API = ctx.demo ? demoAPI() : realAPI();
       var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
       var host = document.getElementById('mkHost'); if (!host) return;
-      host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button><button type="button" class="mb" id="mkMail">信件 <small></small></button></div>';
+      host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button><button type="button" class="mb" id="mkMail">組隊獎勵 <small></small></button></div>';
       document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); document.getElementById('mkMail').addEventListener('click', openMail); syncBtn(); mailCount(); trimParty()
     },
     fillTeam: fillTeam, mountTabs: mountTabs, jobName: jobName, jobLv: jobLv, charLv: charLv
