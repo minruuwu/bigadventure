@@ -142,7 +142,7 @@
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
     var lone = P.length === 1 && !P[0].lone;
     if (lone) { var L0 = P[0]; L0.lone = true; L0.b.mhp = Math.round(L0.b.mhp * 1.5); L0.b.patk = Math.round(L0.b.patk * 1.5); L0.b.matk = Math.round(L0.b.matk * 1.5) }
-    U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = 0; u.dead = false; u.used = {}; u.flags = {}; u.dragon = 0.5 });
+    U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = 0.5 });
     /* 靈氣：同一招只算一次，套到同陣營每個人（自己的已算在基礎值） */
     var auraSeen = {};
     P.forEach(function (src) { src.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (auraSeen[key]) return; auraSeen[key] = src; }) });
