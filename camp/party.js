@@ -73,7 +73,7 @@
   function statData() {
     if (STAT) return Promise.resolve(STAT);
     return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] })]).then(function (R) {
-      var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element } });
+      var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element } });
       var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
       STAT = { attr: A, grow: G, sk: K, eff: E }; return STAT
     }).catch(function () { STAT = { attr: {}, grow: {}, sk: {}, eff: {} }; return STAT })
