@@ -8,7 +8,7 @@ area01,怪物森林,6,,2,4,mon01;mon02;mon03;mon04;mon05;mon09,,50,12,1,0.3
 area01,怪物森林,7,,3,4,mon01;mon02;mon03;mon04;mon05;mon09,,55,13,1,0.3
 area01,怪物森林,8,,3,5,mon01;mon02;mon03;mon04;mon05;mon09,,60,15,1,0.3
 area01,怪物森林,9,,3,5,mon01;mon02;mon03;mon04;mon05;mon09,,65,16,1,0.3
-area01,怪物森林,10,1,3,3,,mon05;mon05;mon06,210,51,1,0.3
+area01,怪物森林,10,1,4,4,,mon05;mon05;mon09;mon06,210,51,1,0.3
 area01,怪物森林,11,,3,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09,,75,18,1,0.3
 area01,怪物森林,12,,3,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09,,80,19,1,0.3
 area01,怪物森林,13,,3,5,mon01;mon02;mon03;mon04;mon05;mon08;mon09,,85,21,1,0.3
