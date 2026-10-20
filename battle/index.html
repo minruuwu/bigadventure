@@ -105,7 +105,7 @@ html,body,*{touch-action:manipulation}
 </div>
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
-<script src="../common/nav.js?v=27"></script>
+<script src="../common/nav.js?v=28"></script>
 <script src="engine.js?v=10"></script>
 <script>
 (function(){
@@ -662,7 +662,7 @@ function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;
 
 /* ---- tabs ---- */
 function renderTabs(){var h=$('tabs');h.textContent='';
-  [['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','設定','scroll']].forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='adv'));
+  [['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','記事','scroll']].forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='adv'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));b.setAttribute('data-k',it[0]);
     if(it[0]!=='adv')b.addEventListener('click',function(){if(!NavIcons.go(it[0]))alert('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)});NavIcons.apply(h)}
 

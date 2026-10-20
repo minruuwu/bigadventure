@@ -380,7 +380,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/wall.js?v=1"></script>
-<script src="../common/nav.js?v=27"></script>
+<script src="../common/nav.js?v=28"></script>
 <script src="party.js?v=24"></script>
 <script>
 (function(){
@@ -593,7 +593,7 @@ function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cl
   document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})());document.body.style.setProperty('--wear',tile('steel'));document.body.style.setProperty('--wearB',tile('wood'));document.getElementById('sheet').style.setProperty('--wear',tile('paper'));document.getElementById('sheet').style.setProperty('--wearS',tile('steel'));document.getElementById('sheet').style.setProperty('--edgeL',edgeTile('l'));document.getElementById('sheet').style.setProperty('--edgeR',edgeTile('r'));document.getElementById('sheet').style.setProperty('--stain',stainTile());document.getElementById('sheet').style.setProperty('--wearC',tile('copper'))}catch(e){}})();
 
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
-  var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','設定','scroll']];
+  var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','記事','scroll']];
     items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='camp'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
     b.setAttribute('data-k',it[0]);if(it[0]!=='camp')b.addEventListener('click',function(){STOP=true;if(!NavIcons.go(it[0])){STOP=false;last=0;requestAnimationFrame(tick);toast('「'+it[1]+'」頁面尚未製作')}});h.appendChild(b)});NavIcons.apply(h)}

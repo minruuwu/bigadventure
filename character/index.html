@@ -252,7 +252,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/wall.js?v=1"></script>
-<script src="../common/nav.js?v=27"></script>
+<script src="../common/nav.js?v=28"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -771,7 +771,7 @@ function pushNavPlayer(){if(window.NavIcons)NavIcons.setPlayer(Object.assign({ui
 
 /* ================= tabs ================= */
 function renderTabs(){var h=$('tabs');h.textContent='';
-  var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','設定','scroll']];
+  var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','記事','scroll']];
   items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='char'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
     b.setAttribute('data-k',it[0]);if(it[0]!=='char')b.addEventListener('click',function(){if(!NavIcons.go(it[0]))toast('「'+it[1]+'」頁面尚未製作')});h.appendChild(b)});NavIcons.apply(h)}

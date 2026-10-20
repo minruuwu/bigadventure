@@ -693,7 +693,7 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
 function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=s.ench.length<slots(s.lv);return {tm:tm,en:en,any:tm||en}}
 function refreshDots(){renderChips();renderSeg();renderTabs()}
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
-  var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','設定','scroll']];
+  var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','記事','scroll']];
   var afford=ORDER.some(function(k){return pend(k).any});
   items.forEach(function(it){var b=el('button','tab');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='forge'));
     b.appendChild(cv(make(ICON[it[2]].draw),3));b.appendChild(el('span',null,it[1]));
@@ -725,6 +725,6 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
 </script>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
-<script src="../common/nav.js?v=27"></script>
+<script src="../common/nav.js?v=28"></script>
 <script type="module" src="../common/fb.js?v=20"></script>
 </body></html>

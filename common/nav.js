@@ -12,7 +12,7 @@ var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 /* pixel-art icons: a whole number of screen pixels per art pixel, about 2.4 css px (7 device px on a 3x phone) */
 var dpr=Math.max(1,Math.round(g.devicePixelRatio||1)),PXS=Math.max(2,Math.round(2.4*dpr))/dpr,PXSF=Math.max(2,Math.round(2.06*dpr))/dpr;
 var PXSA=Math.max(1,Math.round(1.33*dpr))/dpr;
-function pxs(k){return k==='forge'?PXSF:k==='adv'?PXSA:PXS}
+function pxs(k){return k==='forge'?PXSF:(k==='adv'||k==='set')?PXSA:PXS}
 
 /* processed icons are kept for the browser session so the next page shows them straight away */
 function ssGet(k){try{return JSON.parse(sessionStorage.getItem('navicon2:'+k)||'null')}catch(e){return null}}
@@ -44,10 +44,10 @@ function olScaled(ol,x0,y0,cw,ch,W,H){if(!ol)return null;var o=document.createEl
   var od=ox.getImageData(0,0,W,H);for(var i=3;i<od.data.length;i+=4)od.data[i]=od.data[i]>=120?255:0;ox.putImageData(od,0,0);return o}
 function load(k){if(k in cache)return;cache[k]=null;var im=new Image(),tn=null;
   im.onload=function(){if(k==='camp'&&!tn){tn=new Image();tn.onload=im.onload;tn.onerror=function(){cache[k]=false};tn.src=BASE+'icons/nav/camp_tent.png?v=3';return}
-    var c=k==='adv'?advIcon(im):processIcon(im,tn);cache[k]=c||false;if(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];save(k,c)}if(lastTabs)apply(lastTabs)};im.onerror=function(){cache[k]=false};
-  im.src=BASE+'icons/nav/'+FILES[k]+'.png?v='+(k==='adv'?4:3)}
+    var c=k==='adv'?advIcon(im):k==='set'?pixIcon(im):processIcon(im,tn);cache[k]=c||false;if(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];save(k,c)}if(lastTabs)apply(lastTabs)};im.onerror=function(){cache[k]=false};
+  im.src=BASE+'icons/nav/'+FILES[k]+'.png?v='+(k==='adv'||k==='set'?4:3)}
 /* warm start from this session's saved copies (fresh files still load and replace them) */
-Object.keys(FILES).forEach(function(k){if(k==='adv')return;restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
+Object.keys(FILES).forEach(function(k){if(k==='adv'||k==='set')return;restore(k,function(c){if(c.__pixel)c.__css=[c.width*pxs(k),c.height*pxs(k)];if(!cache[k]){cache[k]=c;if(lastTabs)apply(lastTabs)}})});
 restore('head2',function(c){c.__css=[34*PXS,25*PXS];if(!headCv){headCv=c;headKey='';if(lastTabs)apply(lastTabs)}});
 
 /* head-and-chest portrait: 22x24 crop of the 48px doll, 1px outline, shown at 3x and allowed to poke above the bar */
@@ -128,6 +128,10 @@ function headTick(now){if(!HA.el||!HA.el.isConnected||!HA.look||!g.Doll){HA.run=
    On the adventure page it unrolls, the red route glows (a light runs along it) and a cross sparkle blinks at the route's end. ---- */
 var AV={cv:null,img:null,sel:false,t0:0,run:false,last:0},AC=[2,6,45,37]; /* crop of the 48x48 art: x, y, w, h */
 var APATH=[[16,21],[17,22],[18,23],[20,23],[21,22],[23,22],[24,22],[25,23],[29,25],[30,25],[30,27],[29,28],[30,29],[32,29],[33,28],[34,28],[35,27],[36,27]],AEND=[37,26],ALR=[2,8],ARR=[41,46];
+/* 48px 像素圖（記事的墨水瓶）：裁掉透明邊，照像素放大 */
+function pixIcon(im){var w=im.naturalWidth,h=im.naturalHeight,t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(im,0,0);var d=tx.getImageData(0,0,w,h).data,x0=w,y0=h,x1=-1,y1=-1;
+  for(var y=0;y<h;y++)for(var x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}if(x1<0)return null;
+  var c=document.createElement('canvas');c.width=x1-x0+1;c.height=y1-y0+1;c.getContext('2d').drawImage(t,x0,y0,c.width,c.height,0,0,c.width,c.height);c.__pixel=true;return c}
 function advIcon(im){var c=document.createElement('canvas');c.width=AC[2];c.height=AC[3];c.__img=im;c.__pixel=true;c.__adv=true;advDraw(c,0,0,false);return c}
 function aP(x,col,X,Y,a){if(a<=0)return;x.globalAlpha=Math.min(1,a);x.fillStyle=col;x.fillRect(X,Y,1,1)}
 function advDraw(cv,u,t,lit){var im=cv.__img||AV.img;if(!im)return;var x=cv.getContext('2d');x.imageSmoothingEnabled=false;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);x.globalAlpha=1;x.translate(-AC[0],-AC[1]);
