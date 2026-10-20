@@ -178,7 +178,15 @@
     }
     lst.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (b) { b.disabled = true; take([b.dataset.id]) } });
     all.addEventListener('click', function () { take(ready().map(function (x) { return x.uid })) });
-    API.shares().then(function (r) { SH = r || { list: [], claims: {} }; paint(); mailBadge() }, function (e) { lst.innerHTML = '<div class="none">信件讀取失敗' + (e && e.code === 'permission-denied' ? '（權限尚未開放）' : '') + '</div>' });
+    function load(n) {
+      lst.innerHTML = '<div class="none">讀取中…</div>';
+      API.shares().then(function (r) { SH = r || { list: [], claims: {} }; paint(); mailBadge() }, function (e) {
+        if (n < 1) { setTimeout(function () { load(n + 1) }, 1500); return } /* 第一次失敗先自動再讀一次 */
+        var c = e && e.code; lst.innerHTML = '<div class="none">信件讀取失敗' + (c === 'permission-denied' ? '（權限尚未開放）' : c === 'timeout' ? '（連線逾時）' : c ? '（' + esc(String(c)) + '）' : '') + '　<button type="button" class="pbtn mre">重新讀取</button></div>';
+        lst.querySelector('.mre').addEventListener('click', function () { load(1) })
+      })
+    }
+    load(0);
   }
   /* ---------- 資料（真的 Firebase 或 demo 假資料） ---------- */
   function realAPI() {

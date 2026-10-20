@@ -91,11 +91,15 @@ const FB = {
     await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), pl = (c && c.player) || {}, adv = Object.assign({}, pl.adv || {}); if (r.clear) adv[r.area] = r.clear;
     mePatch({ exp: (pl.exp | 0) + r.exp, stones: (pl.stones | 0) + r.stones, cookies: (pl.cookies | 0) + (r.cookie ? 1 : 0), adv }); },
   // 隊友分成：讀把我加進隊伍的隊長們，看各自累積了多少（owe.<我的uid>）
-  async shareList() { await ready; const u = auth.currentUser; if (!u) return { list: [], claims: {} }; const me = await withTimeout(FB.getPlayer(u.uid), 10000); const cur = ((me && me.leaders) || []).slice(0, 5), past = ((me && me.pastLeaders) || []);
+  async shareList() { await ready; const u = auth.currentUser; if (!u) return { list: [], claims: {} };
+    /* 讀自己的資料：連線慢時重試一次，還是不行就用本機快取（隊長名單、領取紀錄不常變） */
+    let me = null; try { me = await withTimeout(FB.getPlayer(u.uid), 8000); } catch (e) { try { me = await withTimeout(FB.getPlayer(u.uid), 12000); } catch (e2) { const c = meGet(); if (c && c.uid === u.uid) me = c.player; else throw e2; } }
+    const cur = ((me && me.leaders) || []).slice(0, 5), past = ((me && me.pastLeaders) || []);
     /* 現在的隊長補記到 pastLeaders（被移出後還能領以前累積的分成）；最多保留最近 20 位 */
-    const miss = cur.filter(l => past.indexOf(l) < 0); if (miss.length) { const np = past.concat(miss).slice(-20); try { await tmo(updateDoc(doc(db, 'players', u.uid), { pastLeaders: np })); } catch (e) {} }
+    const miss = cur.filter(l => past.indexOf(l) < 0); if (miss.length) { const np = past.concat(miss).slice(-20); updateDoc(doc(db, 'players', u.uid), { pastLeaders: np }).catch(() => {}); } /* 背景寫入，不卡讀信 */
     const old = past.filter(l => cur.indexOf(l) < 0).slice(-10), ls = cur.concat(old);
-    const docs = await Promise.all(ls.map(l => withTimeout(getDoc(doc(db, 'players', l)), 10000).then(s => s.exists() ? Object.assign({ uid: l }, ser(s.data())) : null).catch(() => null)));
+    const one = l => withTimeout(getDoc(doc(db, 'players', l)), 10000).catch(() => withTimeout(getDoc(doc(db, 'players', l)), 12000));
+    const docs = await Promise.all(ls.map(l => one(l).then(s => s.exists() ? Object.assign({ uid: l }, ser(s.data())) : null).catch(() => null)));
     return { list: docs.filter(Boolean).map(d => { const o = (d.owe || {})[u.uid] || {}; return { uid: d.uid, name: d.name, exp: o.exp | 0, stones: o.stones | 0, past: cur.indexOf(d.uid) < 0 }; }).filter(x => !x.past || x.exp || x.stones), claims: ser((me && me.claims) || {}) }; },
   // 領取某位隊長那邊的分成：自己加經驗、鍛造石並記下領取時間；隊長那邊的 owe.<我> 刪掉（同一批寫入，規則核對金額與每天早上 6 點的領取週期）
   async shareClaim(L) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const lr = doc(db, 'players', L), mr = doc(db, 'players', u.uid);
