@@ -12,6 +12,7 @@
 | monster_06 | 灰狼（怪物森林） | `monster_06.png`（原圖縮約 63%，喘氣＋流口水） |
 | monster_07 | 魔狼（怪物森林第 11 關起） | `monster_07.png`（舊尺寸灰狼改紫色，喘氣＋流口水） |
 | monster_08 | 哥布林巫師（怪物森林第 6 關起） | `monster_08.png`（身體）、`monster_08_blink.png`（眼睛圖層）；法杖寶珠的藍色光暈由程式畫 |
+| monster_09 | 綠幼龍（怪物森林第 15 關起） | `monster_09.png`（46×48，原圖左右翻轉、去背、縮回原像素大小；上半身呼吸） |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（79×66，原圖去背、左右翻轉、綠色壓暗後縮小；身體上半慢慢起伏，眼睛發紅光由程式畫） |
 
