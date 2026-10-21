@@ -92,6 +92,7 @@ html,body,*{touch-action:manipulation}
  <div class="main">
   <div id="loading">讀取資料中…</div>
   <div id="mapv" hidden><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
+  <div id="tacv" hidden></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
   <div class="frame" id="frame"><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
@@ -106,7 +107,8 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=10"></script>
+<script src="engine.js?v=11"></script>
+<script src="tactics.js?v=1"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -567,7 +569,7 @@ var NST=20;/* 每章節關數 */
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
 function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
-function showView(v){view=v;frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map';if(v==='map'){renderMap();window.scrollTo(0,0)}}
+function showView(v){view=v;frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';if(v==='map'){renderMap();window.scrollTo(0,0)}}
 function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
     var zn=el('span','zn',a.n);if(!OPEN[i]){b.classList.add('lock');zn.appendChild(el('small',null,'尚未開放'))}b.appendChild(zn);if(i===la){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
@@ -581,7 +583,10 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
   if(a==='lvx')closeLevels();
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
     $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">'+(isBoss(pickA,pickL)?'實際獎勵有 ±10% 浮動':'以 3 隻敵人為準，每多一隻 +1/3、每少一隻 −1/4，並有 ±10% 浮動')+'<br>同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地「組隊獎勵」領取</small>';$('lvov').querySelector('.go').disabled=false}
-  else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();startBattle(A2,L2)}});
+  else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();if(TACT)startTactics(A2,L2);else startBattle(A2,L2)}});
+/* 戰棋測試（?tactics=1，docs/tactics.md 第 0 階段）：選關後改用戰棋打；不存檔、不給獎勵 */
+function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
+  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,onExit:function(){showView('map')}})}
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
@@ -714,7 +719,7 @@ function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hi
   (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>1300){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */
 try{document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})())}catch(e){}
-var demo=/[?&]demo=\d/.test(location.search),VFXT=/[?&]vfx=1/.test(location.search);
+var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),VFXT=/[?&]vfx=1/.test(location.search);
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function demoPlayers(){var names=['阿明','小美','阿傑','雞湯'],ws=['劍','斧','匕','弓'];return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3][i],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i]}})}
 function loadPx(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
@@ -724,7 +729,7 @@ function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json(
 window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo||!MEMB.length||(B&&!B.done))return;MEMB[0]=Object.assign({},MEMB[0],p,{uid:MEMB[0].uid})});
 function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
-  $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、');
+  $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試：選關後用戰棋打，不存檔、不給獎勵':'');
   $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
 /* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
 var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',

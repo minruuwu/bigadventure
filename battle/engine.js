@@ -151,8 +151,10 @@
     return out;
   }
 
-  /* ---------- 戰鬥 ---------- */
-  function run(P, M, D) {
+  /* ---------- 戰鬥 ----------
+     session(P, M, D) 建立一場戰鬥但不跑：自動戰鬥（run）跟戰棋都用它，規則只有這一份。
+     戰棋一個單位的回合 = begin(u)（持續傷害、控制判定）→ 移動 → finish(u, 技能, 目標) 或 wait(u)。 */
+  function session(P, M, D) {
     var U = P.concat(M), ev = [], rounds = 0, nowAct = null;
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
@@ -338,7 +340,9 @@
     }
 
     /* --- 一次行動 --- */
-    function act(u) {
+    function act(u) { if (begin(u)) finish(u) }
+    /* 行動開始的結算；回傳 false = 這次不能行動（放逐中、被持續傷害打倒、昏迷／睡眠／石化），已經記完戰報 */
+    function begin(u) {
       nowAct = u;
       var e = line({ side: u.side, a: u.i, txt: '' });
       /* 行動開始：聖潔驅散 → 放逐回歸 → 持續傷害／回復 */
@@ -349,9 +353,9 @@
           var src = ban.src, r0 = ban.rows.filter(function (r) { return r.k === 'banish' })[0], c = RND() < stat(src, 'crit');
           var amt = Math.round(r0.amt * (1 + stat(src, 'mdmg')) * (1 - Math.min(stat(u, 'mred'), 0.9)) * (c ? 1 + stat(src, 'cdmg') : 1));
           var real = hurt(u, amt, src); e.txt = u.name + ' 從裂隙回來，' + (c ? '暴擊！' : '') + '受到 ' + real + ' 魔法傷害'; addStat(e, src, 'dmg', real, '秘法裂隙'); e.snap = 1;
-          if (checkDeath(u, e)) { e.hp = hpSnap(); return }
+          if (checkDeath(u, e)) { e.hp = hpSnap(); return false }
           e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' });
-        } else { ban.turns--; e.txt = u.name + ' 被放逐在時空裂隙中'; e.idle = 1; e.hp = hpSnap(); return }
+        } else { ban.turns--; e.txt = u.name + ' 被放逐在時空裂隙中'; e.idle = 1; e.hp = hpSnap(); return false }
       }
       var tick = [];
       u.st.slice().forEach(function (s) {
@@ -363,12 +367,23 @@
           if (r.k === 'hot' && r.amt) { var h = heal(s.src, u, r.amt); if (h) { tick.push('「' + s.n + '」恢復 ' + h); addStat(e, s.src, 'heal', h, s.n) } }
         });
       });
-      if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e)) { e.hp = hpSnap(); return } e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
+      if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e)) { e.hp = hpSnap(); return false } e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
       /* 無法行動 */
-      if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; endAct(u, null); e.hp = hpSnap(); return }
-      /* 選技能：封禁只能普攻；沒有可用目標就換下一招 */
+      if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; endAct(u, null); e.hp = hpSnap(); return false }
+      u._e = e;
+      return true;
+    }
+    /* 出手。forced = {sk: 技能 id, tg: [目標]} 時照指定的打（戰棋）；沒給就照技能循環自己選（自動戰鬥） */
+    function finish(u, forced) {
+      var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u;
       var charmed = ctrl(u, 'charm'), confused = ctrl(u, 'confuse'), sk = null, tg = [];
-      for (var tries = 0; tries < 4; tries++) {
+      if (forced) {
+        sk = D.SK[ctrl(u, 'seal') ? 'atk' : forced.sk] || D.SK.atk;
+        tg = (forced.tg || []).filter(function (x) { return x && !x.dead });
+        if (!tg.length && sk.t !== 'self') sk = null; else if (sk.t === 'self') tg = [u];
+      }
+      /* 選技能：封禁只能普攻；沒有可用目標就換下一招 */
+      for (var tries = 0; !forced && tries < 4; tries++) {
         var id = u.cycle[u.cy % u.cycle.length]; u.cy++;
         if (ctrl(u, 'seal')) id = 'atk';
         var k = D.SK[id] || D.SK.atk;
@@ -574,22 +589,35 @@
     /* --- 主迴圈 --- */
     function alive(a) { return a.some(function (x) { return !x.dead }) }
     if (lone) line({ kind: 'note', idle: true, txt: P[0].name + ' 獨自上陣，進入「獨狼」狀態：生命、物理攻擊力、魔法攻擊力 ×1.5' });
-    while (alive(P) && alive(M) && rounds < MAXR) {
+    /* 新的一回合：回傳這回合的行動順序（速度高先動，加一點隨機讓同速的隨機排） */
+    function round() {
       rounds++;
       line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(0.2, u.dragon - 0.05) });
-      var order = U.filter(function (u) { return !u.dead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } }).sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
+      return U.filter(function (u) { return !u.dead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } }).sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
+    }
+    /* 輪到 u 時先做的事（聖潔驅散），再 begin */
+    function start(u) { if (u.special.some(function (x) { return x.k === 'auto_cleanse' })) autoClean(u); return begin(u) }
+    /* 戰棋的「待機」：有行動但不出手，狀態照常減一次 */
+    function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1; endAct(u, null); e.hp = hpSnap() }
+    function over() { return !alive(P) || !alive(M) || rounds >= MAXR }
+    return { P: P, M: M, U: U, ev: ev, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, alive: alive, over: over,
+      rounds: function () { return rounds }, res: function () { return alive(M) ? (alive(P) ? 'draw' : 'lose') : 'win' }, MAXR: MAXR };
+  }
+  /* 自動戰鬥：整場一次跑完 */
+  function run(P, M, D) {
+    var S = session(P, M, D);
+    while (S.alive(P) && S.alive(M) && S.rounds() < MAXR) {
+      var order = S.round();
       for (var q = 0; q < order.length; q++) {
         var u = order[q]; if (u.dead) continue;
-        if (!alive(P) || !alive(M)) break;
-        if (u.special.some(function (x) { return x.k === 'auto_cleanse' })) autoClean(u);
-        act(u);
+        if (!S.alive(P) || !S.alive(M)) break;
+        if (S.start(u)) S.finish(u);
       }
     }
-    var res = alive(M) ? 'lose' : 'win';
-    return { ev: ev, res: res, rounds: rounds };
+    return { ev: S.ev, res: S.alive(M) ? 'lose' : 'win', rounds: S.rounds() };
   }
 
-  var API = { prepare: prepare, player: player, monster: monster, stageMonsters: stageMonsters, stageRow: stageRow, run: run, ELN: ELN };
+  var API = { prepare: prepare, player: player, monster: monster, stageMonsters: stageMonsters, stageRow: stageRow, run: run, session: session, ELN: ELN };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.BattleEngine = API;
 })(this);
