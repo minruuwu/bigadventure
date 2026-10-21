@@ -17,7 +17,10 @@
   var TYN = { damage: '傷害', heal: '治療', buff: '增益', debuff: '減益' };
 
   var CSS = '' +
-    '#tacv[hidden]{display:none}' +
+    '#tacv[hidden]{display:none}#tacv{padding-top:env(safe-area-inset-top);padding-bottom:48px}' +
+    '.tfx{position:absolute;inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);pointer-events:none;z-index:30;image-rendering:pixelated}' +
+    '.tnews{margin-top:8px;min-height:2.9em;padding:5px 10px;font-size:12.5px;line-height:1.45;font-weight:700;color:var(--fg);background:rgba(20,12,8,.86);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
+    '.tnews.rd{color:var(--accent)}.tnews.ko{color:#ff9a8a}' +
     '.ttop{display:flex;align-items:center;gap:6px;padding:2px 2px 6px}' +
     '.tq{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px;scrollbar-width:none}.tq::-webkit-scrollbar{display:none}' +
     '.tq>span{flex:none;font-size:11px;color:var(--dim);font-weight:700;margin-right:2px}' +
@@ -67,7 +70,7 @@
     '#tacv .log{height:150px}';
 
   /* phase：move = 等玩家移動（或點自己開選單）／menu = 選單開著／sub = 技能組子選單／target = 選好招在點目標 */
-  var ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
+  var FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
 
   function $(id) { return document.getElementById(id) }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e }
@@ -233,8 +236,10 @@
       c.setAttribute('aria-label', '第 ' + (y + 1) + ' 列第 ' + (x + 1) + ' 格'); g.appendChild(c); cells.push(c);
     }
     board.appendChild(g); layer = el('div', 'tl'); board.appendChild(layer);
+    fxc = el('canvas', 'tfx'); fxx = fxc.getContext('2d'); board.appendChild(fxc);
     menu = el('div', 'tm'); menu.hidden = true; menu.setAttribute('role', 'menu'); board.appendChild(menu);
     root$.appendChild(board);
+    var nw = el('div', 'tnews'); nw.id = 'tnews'; nw.setAttribute('aria-live', 'polite'); root$.appendChild(nw);
     g.addEventListener('click', function (ev) { var c = ev.target.closest('.tc'); if (c) tap(+c.dataset.x, +c.dataset.y) });
     menu.addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (b && !b.disabled) menuPick(b.dataset) });
     var pn = el('div', 'panel'); pn.style.marginTop = '12px';
@@ -275,7 +280,7 @@
       '<label style="display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:center;font-size:13px;font-weight:700">地圖展示<select id="tshow" style="font:inherit;font-size:13px;padding:4px;background:#2b1d13;color:var(--fg);border:2px solid #6b4a2a"><option value="">本關的怪</option><option value="n">全部一般怪物（' + kinds().filter(function (q) { return !q.boss }).length + ' 種）</option><option value="b">全部王（' + kinds().filter(function (q) { return q.boss }).length + ' 種）</option></select></label>' +
       '<div id="tzoo" style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 8px;padding:8px 4px 4px;background:rgba(0,0,0,.25);box-shadow:inset 0 -3px 0 #3b2713"></div>' +
       '<p class="note" id="tsum" style="margin:0"></p><div class="tbtn" style="display:flex;gap:8px"><button type="button" id="treset" style="font:inherit;font-weight:900;border:0;background:var(--btn);color:var(--fg);padding:6px 12px;box-shadow:0 0 0 2px #1d1008">還原預設</button></div>';
-    root$.insertBefore(pn, root$.children[3] || null);
+    var info = $('tav') && $('tav').closest('.panel'); root$.insertBefore(pn, info || null);
     function sync() {
       [].forEach.call(pn.querySelectorAll('[data-v]'), function (b) { var k = b.getAttribute('data-v'); b.textContent = (k === 'p' ? SZ[k].toFixed(2) : '×' + SZ[k].toFixed(2)) });
       $('tsum').textContent = '目前：人物 ' + SZ.p.toFixed(2) + ' 格高、怪物 ×' + SZ.m.toFixed(2) + '、王再 ×' + SZ.b.toFixed(2) + '（截圖或抄這行給我就好）';
@@ -340,6 +345,7 @@
   function flash(u, cls) { if (!u.node) return; u.node.classList.remove(cls); void u.node.offsetWidth; u.node.classList.add(cls) }
   function anim(now) {
     if (!loopOn) return;
+    drawFx(now);
     if (!lastDraw || now - lastDraw >= 100) {
       lastDraw = now;
       units.forEach(function (u) {
@@ -352,7 +358,11 @@
     raf = requestAnimationFrame(anim);
   }
   function icon(u) {
-    if (u.side === 'p') { var c = document.createElement('canvas'); c.width = c.height = 48; Doll.draw(c, u.look, 0); return c }
+    if (u.side === 'p') {
+      /* 人物：只截頭到胸口（跟隊伍頁、分頁列的頭像一樣：48 格紙娃娃取 (12,5) 起 22×24，不畫武器） */
+      var hd = document.createElement('canvas'); hd.width = hd.height = 48; Doll.draw(hd, Object.assign({}, u.look, { weapon: null, shield: null, halo: [], breath: false }), 1000);
+      var c = document.createElement('canvas'); c.width = 22; c.height = 24; c.getContext('2d').drawImage(hd, 12, 5, 22, 24, 0, 0, 22, 24); return c;
+    }
     var im = new Image(); im.alt = ''; var s = ctx.msrc(u.sprite, 0, 0); if (s) im.src = s; return im;
   }
   function renderQueue() {
@@ -373,7 +383,7 @@
   function flushLog() {
     var box = $('tlog'); if (!box) return;
     /* 引擎在行動開始時就先開好一行空白戰報、出手後才填字，所以最後一行還是空的就先停，等填完再印 */
-    for (; evSeen < S.ev.length; evSeen++) { var e = S.ev[evSeen]; if (!e.txt) { if (evSeen === S.ev.length - 1) break; continue } box.appendChild(el('div', 'lg' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : ''), e.txt)) }
+    for (; evSeen < S.ev.length; evSeen++) { var e = S.ev[evSeen]; if (!e.txt) { if (evSeen === S.ev.length - 1) break; continue } box.appendChild(el('div', 'lg' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : ''), e.txt)); var nw = $('tnews'); if (nw) { nw.textContent = e.txt; nw.className = 'tnews' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : '') } }
     box.scrollTop = box.scrollHeight;
   }
   function cell(x, y) { return cells[y * N + x] }
@@ -482,10 +492,74 @@
     path.forEach(function (c) { p = p.then(function () { u.tx = c[0]; u.ty = c[1]; setPos(u); return wait(STEP_MS) }) });
     return p;
   }
-  /* 出手：a = 招式、c = 點的格子、h = 打到的人 */
+  /* ---------- 特效：沿用自動戰鬥同一套（index.html 的 tacFx），座標換成格子 ----------
+     美術像素倍率 K = 格寬 × 人物格高 / 48（跟角色圖同一個比例），所以特效大小會跟著人物一起縮放 */
+  function artK() { return board.clientWidth / N * SZ.p / 48 }
+  function footXY(t) { var cw = board.clientWidth / N, K = artK(); return [(t.tx + 0.5) * cw / K, (t.ty + 0.94) * cw / K] }
+  function bodyH(t) { if (t.side === 'p') return 30; var z = ctx.msz(t.sprite), sc = ctx.msc ? ctx.msc(t.sprite, t.boss) : 1; return z[1] * sc * SZ.m * (t.boss ? SZ.b : 1) }
+  function chest(t) { var f = footXY(t); return [f[0], f[1] - (t.side === 'p' ? 15 : bodyH(t) * 0.45)] }
+  function fxAdd(kind, o, delay, dur) { FX.push({ kind: kind, o: o, t0: performance.now() + (delay || 0), dur: dur || 900 }) }
+  function drawFx(now) {
+    if (!fxc) return;
+    var dpr = Math.min(3, window.devicePixelRatio || 1), W = Math.round(fxc.clientWidth * dpr), H = Math.round(fxc.clientHeight * dpr);
+    if (fxc.width !== W || fxc.height !== H) { fxc.width = W; fxc.height = H } else if (!FX.length && !fxc._dirty) return;
+    fxx.setTransform(1, 0, 0, 1, 0, 0); fxx.clearRect(0, 0, W, H); fxc._dirty = FX.length > 0;
+    var sc = artK() * dpr;
+    FX = FX.filter(function (f) { return now - f.t0 <= f.dur });
+    FX.forEach(function (f) {
+      var d = now - f.t0; if (d < 0) return;
+      fxx.save();
+      try {
+        if (f.kind === 'ring' || f.kind === 'aoe') ownFx(f, d, sc);
+        else if (ctx.fx) {
+          if (f.o.rot) { var hx = f.o.hx * sc, hy = f.o.hy * sc; fxx.translate(hx, hy); if (f.o.flip) fxx.scale(-1, 1); fxx.rotate(f.o.rot); fxx.translate(-hx, -hy) }
+          ctx.fx(fxx, sc, f.kind, f.o, d);
+        }
+      } catch (e) { }
+      fxx.restore();
+    });
+  }
+  /* 戰棋自己畫的：音波（一圈圈往外擴的像素環）、範圍技中心的光（菱形範圍淡出） */
+  function ownFx(f, d, sc) {
+    var o = f.o, cw = board.clientWidth / N, dpr = sc / artK();
+    if (f.kind === 'ring') {
+      for (var r = 0; r < 3; r++) { var u = (d - r * 110) / 520; if (u < 0 || u > 1) continue; var R = (0.3 + u * o.r) * cw * dpr; fxx.globalAlpha = 1 - u; fxx.strokeStyle = o.c; fxx.lineWidth = Math.max(2, 2 * dpr); fxx.setLineDash([4 * dpr, 3 * dpr]); fxx.beginPath(); fxx.arc((o.x + 0.5) * cw * dpr, (o.y + 0.55) * cw * dpr, R, 0, Math.PI * 2); fxx.stroke() }
+      return;
+    }
+    var u2 = d / f.dur, a = u2 < 0.2 ? u2 / 0.2 : 1 - (u2 - 0.2) / 0.8;
+    fxx.fillStyle = o.c; o.cells.forEach(function (q) { var k = Math.abs(q[0] - o.x) + Math.abs(q[1] - o.y); fxx.globalAlpha = Math.max(0, a * (0.45 - k * 0.08)); fxx.fillRect(q[0] * cw * dpr, q[1] * cw * dpr, cw * dpr, cw * dpr) });
+  }
+  var MELEE = { sword: 1, axe: 1, dagger: 1, spear: 1 };
+  /* 放特效，回傳「打中」要等幾毫秒 */
+  function playFx(u, a, c, h) {
+    var info = ctx.fxInfo ? ctx.fxInfo(u, a.id) : null, ty = a.sk.ty;
+    if (!info) return 200;
+    var el = info.el || '', s0 = chest(u);
+    if (ty === 'heal') { h.forEach(function (t) { var f = footXY(t); fxAdd('heal', { x: f[0], y: f[1], el: el }, 0, 1500) }); return 260 }
+    if (ty === 'buff') { h.forEach(function (t) { var f = footXY(t); fxAdd('buff', { x: f[0], y: f[1], el: el, c: '#ffd76a' }, 0, 760) }); return 200 }
+    if (a.a === 'diamond') fxAdd('aoe', { x: c[0], y: c[1], c: ELC_T[el] || (a.side === 'foe' ? '#ff9a5a' : '#8ef09a'), cells: areaCells(a, pos(u), c) }, 0, 650);
+    if (ty === 'debuff') { if (info.wk === 'sonic') fxAdd('ring', { x: u.tx, y: u.ty, r: a.r + 0.5, c: info.c }, 0, 900); h.forEach(function (t) { var q = chest(t); fxAdd('burst', { x: q[0], y: q[1], el: PCOL_OK[el] ? el : 'dark', n: 14 }, 120, 900) }); return 260 }
+    var hits = Math.max(1, a.sk.hits || 1), each = a.sk.p === 'random_each' && hits > 1;
+    if (info.wk === 'sonic') fxAdd('ring', { x: u.tx, y: u.ty, r: Math.max(a.r, a.s || 0) + 0.5, c: info.c }, 0, 900);
+    for (var k = 0; k < hits; k++) {
+      (each ? [h[Math.floor(Math.random() * h.length)]] : h).forEach(function (t, i) {
+        var q = chest(t), f = footXY(t), delay = k * 130 + (a.a === 'line' ? i * 60 : 0);
+        if (info.wk === 'claw') { fxAdd('claw', { x: q[0], y: q[1] }, delay, 520); return }
+        if (info.wk === 'sonic') { fxAdd('burst', { x: q[0], y: q[1], el: PCOL_OK[el] ? el : 'arc', n: 10 }, delay + 200, 800); return }
+        var o = { e: { el: el, atk: info.atk, hit: info.hit }, wk: info.wk, c: info.c, sx: s0[0], sy: s0[1] - (info.wk === 'throw' ? 12 : 0), hx: q[0], hy: q[1], gy: f[1], scm: t.boss ? 1.4 : 1 };
+        if (MELEE[info.wk]) { var dx = t.tx - u.tx, dy = t.ty - u.ty, ang = Math.atan2(dy, dx); if (Math.abs(ang) > Math.PI / 2) { o.flip = true; ang = Math.PI - ang; if (ang > Math.PI) ang -= 2 * Math.PI } o.rot = ang }
+        fxAdd('hit', o, delay, 920);
+      });
+    }
+    return (info.hit || 200) + (hits - 1) * 130;
+  }
+  var ELC_T = { fire: '#ff7a3a', frost: '#9ad8ff', lightning: '#ffe95a', wind: '#7cf0c4', nature: '#8ed65a', light: '#fff4c4', dark: '#8a4ae0' };
+  var PCOL_OK = { fire: 1, frost: 1, lightning: 1, wind: 1, nature: 1, light: 1, dark: 1 };
+  /* 出手：a = 招式、c = 點的格子、h = 打到的人；先放特效，打中的那一刻才結算、跳數字 */
   function cast(u, a, c, h) {
     var before = snapHp(), each = a.sk.p === 'random_each' && a.sk.hits > 1;
-    return lunge(u, a.side === 'foe' ? c : pos(u)).then(function () {
+    var hitMs = playFx(u, a, c, h);
+    return Promise.all([lunge(u, a.side === 'foe' ? c : pos(u)), wait(hitMs)]).then(function () {
       if (each) S.hooks.pool = h;
       S.finish(u, { sk: a.id, tg: h });
       S.hooks.pool = null;
