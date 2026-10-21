@@ -236,3 +236,6 @@ skill234,擴散攻擊,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪�
 skill235,晶石爆裂,monster,0,combat,enemy_all,,damage,,,p,nature,0.8,,,,怪物技能（全體自然物理傷害 ×0.8，每個目標 20% 晶塵：魔法攻擊力 −20%，3 回合）,smash,,
 skill236,結晶拳,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技能（主目標物理傷害 ×1.0，其他隊員各受到減傷前傷害的 20%）,smash,,
 skill237,晶化,monster,0,combat,enemy_single,random,debuff,,,,,,,,,怪物技能（單體晶化：受到的物理傷害 +40%，3 回合）,,,
+skill238,毒牙,monster,0,combat,enemy_single,random,damage,,,p,nature,1,,,,怪物技能（單體自然物理傷害 ×1.0，附加蛛毒 3 回合）,thrust,,
+skill239,蛛網,monster,0,combat,enemy_single,random,damage,,,p,,0.6,,,,怪物技能（單體物理傷害 ×0.6，50% 束縛 1 回合）,throw,,
+skill240,毒液噴吐,monster,0,combat,enemy_all,,damage,,,p,nature,0.7,,,,怪物技能（全體自然物理傷害 ×0.7，附加蛛毒 3 回合）,throw,,

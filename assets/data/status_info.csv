@@ -106,3 +106,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 堅守,buff,p_reduce_rate,0.3,,,,物理減傷 +30%
 晶塵,debuff,m_atk_rate,-0.2,,,,魔法攻擊力 −20%
 晶化,debuff,p_dmg_taken_rate,0.4,,,,受到的物理傷害 +40%
+蛛毒,debuff,dot,0.25,p_atk,nature,p,每回合造成施加者物理攻擊力 25% 的自然物理傷害
+束縛,debuff,stun,,,,,被蛛網纏住，跳過行動
