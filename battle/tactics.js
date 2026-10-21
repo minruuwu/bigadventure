@@ -259,7 +259,7 @@
   function placeUnits() { layer.innerHTML = ''; units.forEach(addNode) }
   /* 人物、怪物用同一個像素倍率，維持原本戰鬥畫面的相對大小；人物（48 格紙娃娃）約 1.5 格高，超出格子沒關係 */
   /* SZ.p = 紙娃娃（48 px 畫布）佔幾格高；SZ.m = 怪物再乘的倍率（1 = 跟人物維持原本戰鬥畫面的比例）；SZ.b = 王再乘的倍率 */
-  var SZ0 = { p: 1.5, m: 1, b: 1 }, SZ = { p: SZ0.p, m: SZ0.m, b: SZ0.b };
+  var SZ0 = { p: 2, m: 1, b: 1 }   /* 2026-10-21 定案：人物 2 格高、怪物 ×1、王 ×1 */, SZ = { p: SZ0.p, m: SZ0.m, b: SZ0.b };
   function spriteW(k, boss, cw) { var z = ctx.msz(k), sc = ctx.msc ? ctx.msc(k, boss) : 1, K = cw * SZ.p / 48 * SZ.m * (boss ? SZ.b : 1); return [z[0] * sc * K, z[1] * sc * K] }
   function sizeSprite(u) {
     var cw = board.clientWidth / N;
