@@ -156,7 +156,8 @@
      戰棋一個單位的回合 = begin(u)（持續傷害、控制判定）→ 移動 → finish(u, 技能, 目標) 或 wait(u)。 */
   function session(P, M, D) {
     var U = P.concat(M), ev = [], rounds = 0, nowAct = null;
-    /* 戰棋用的掛勾：counter(d, a) 回傳 false = 反擊打不到；pool = 多段隨機技能挑目標的範圍（陣列） */
+    /* 戰棋用的掛勾：counter(d, a) 回傳 false = 反擊打不到；pool = 多段隨機技能挑目標的範圍（陣列）；
+       area = 這次是範圍／直線出手（不算單體，不觸發保護）；protector(t, a) = 回傳替 t 擋下單體攻擊的人（雙方都適用），沒有回傳 null */
     var hooks = {};
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
@@ -455,13 +456,13 @@
       /* 代價（奉獻詩歌） */
       var sac = 0; effs.forEach(function (r) { if (r.effect_kind === 'cost' && r.effect === 'hp_cur') { sac = Math.floor(u.hp * num(r.value)); u.hp -= sac; e.txt += '，犧牲 ' + sac + ' 生命' } });
       if (sk.ty === 'damage') {
-        var single = sk.t === 'enemy_single', H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
+        var single = sk.t === 'enemy_single' && !hooks.area, H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
         var each = sk.p === 'random_each' && H > 1;
         for (var h = 0; h < H; h++) {
           var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u)); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
           if (!list.length) break;
           list.forEach(function (t0) {
-            var t = t0, pr = single ? protectorFor(t0, u) : null; if (pr && u.side === 'm') t = pr;
+            var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr && (hooks.protector || u.side === 'm')) t = pr;
             if (!perT[t.i + t.side]) { perT[t.i + t.side] = { t: t, hs: [] }; order.push(t) }
             hitList.push(t);
             var mult = 1, xc = 0, sc = false;

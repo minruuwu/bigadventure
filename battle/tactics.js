@@ -70,7 +70,7 @@
     '#tacv .log{height:150px}';
 
   /* phase：move = 等玩家移動（或點自己開選單）／menu = 選單開著／sub = 技能組子選單／target = 選好招在點目標 */
-  var FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
+  var PROT = 0, M0 = [], FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
 
   function $(id) { return document.getElementById(id) }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e }
@@ -82,7 +82,15 @@
   function living() { return units.filter(function (u) { return !u.dead && u.tx != null }) }
   function foesOf(u) { return living().filter(function (x) { return x.side !== u.side }) }
   function friendsOf(u) { return living().filter(function (x) { return x.side === u.side }) }
-  function at(x, y) { var r = null; living().forEach(function (u) { if (u.tx === x && u.ty === y) r = u }); return r }
+  /* 佔地：monster_info.csv size = 3 的王佔 3×3（以中心格 tx, ty 計），其他都 1 格。rad = 中心往外幾格 */
+  function rad(u) { if (u._rad == null) u._rad = u.side === 'm' && int((ctx.D.mon[u.mid] || {}).size, 1) >= 3 ? 1 : 0; return u._rad }
+  function fpAt(u, x, y) { var r = rad(u), out = []; for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) out.push([x + dx, y + dy]); return out }
+  function cellsOf(u) { return fpAt(u, u.tx, u.ty) }
+  function inFp(u, x, y) { var r = rad(u); return Math.abs(x - u.tx) <= r && Math.abs(y - u.ty) <= r }
+  /* 兩組格子之間最近的曼哈頓距離 */
+  function dmin(A, B) { var m = 1e9; A.forEach(function (a) { B.forEach(function (b) { var d = Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]); if (d < m) m = d }) }); return m }
+  function udist(a, b) { return dmin(cellsOf(a), cellsOf(b)) }
+  function at(x, y) { var r = null; living().forEach(function (u) { if (inFp(u, x, y)) r = u }); return r }
   function onBoard(x, y) { return x >= 0 && y >= 0 && x < N && y < N }
   function int(v, dflt) { var n = parseInt(v, 10); return isNaN(n) ? dflt : n }
   function jobSn(p) { return p.jobSn || ('job' + ('0' + (((p.job | 0) + 1))).slice(-2)) }
@@ -93,32 +101,35 @@
     var row = u.side === 'p' ? ctx.D.attr[jobSn(u.p || {})] : ctx.D.mon[u.mid];
     return Math.max(1, int(row && row.move, 4));
   }
-  /* 可移動的格子（含原地）：曼哈頓步數、可穿過友軍、不能穿過敵人、不能停在有人的格子 */
+  /* 可移動的格子（含原地）：曼哈頓步數、可穿過友軍、不能穿過敵人、不能停在有人的格子。
+     3×3 的王以中心格移動：整塊要在地圖內，路上 9 格都不能碰到敵人，停下時 9 格都要沒有別人 */
+  function occMap(u) { var m = {}; living().forEach(function (o) { if (o !== u) cellsOf(o).forEach(function (c) { m[key(c[0], c[1])] = o }) }); return m }
+  function fits(u, x, y) { return fpAt(u, x, y).every(function (c) { return onBoard(c[0], c[1]) }) }
+  function passOk(u, M, x, y) { return fits(u, x, y) && fpAt(u, x, y).every(function (c) { var o = M[key(c[0], c[1])]; return !o || o.side === u.side }) }
+  function stopOk(u, M, x, y) { return fits(u, x, y) && fpAt(u, x, y).every(function (c) { return !M[key(c[0], c[1])] }) }
   function reach(u) {
-    var mv = moveOf(u), out = {}, q = [[u.tx, u.ty, 0]], seen = {};
+    var mv = moveOf(u), out = {}, q = [[u.tx, u.ty, 0]], seen = {}, M = occMap(u);
     seen[key(u.tx, u.ty)] = 1;
     while (q.length) {
-      var c = q.shift(), o = at(c[0], c[1]);
-      if (!o || o === u) out[key(c[0], c[1])] = { x: c[0], y: c[1], d: c[2] };
+      var c = q.shift();
+      if (stopOk(u, M, c[0], c[1])) out[key(c[0], c[1])] = { x: c[0], y: c[1], d: c[2] };
       if (c[2] >= mv) continue;
       DIRS.forEach(function (s) {
         var nx = c[0] + s[0], ny = c[1] + s[1], k = key(nx, ny);
-        if (!onBoard(nx, ny) || seen[k]) return;
-        var b = at(nx, ny); if (b && b.side !== u.side) return;
+        if (seen[k] || !passOk(u, M, nx, ny)) return;
         seen[k] = 1; q.push([nx, ny, c[2] + 1]);
       });
     }
     return out;
   }
   function pathTo(k, u) {
-    var prev = {}, q = [[u.tx, u.ty]], s0 = key(u.tx, u.ty); prev[s0] = null;
+    var prev = {}, q = [[u.tx, u.ty]], s0 = key(u.tx, u.ty), M = occMap(u); prev[s0] = null;
     while (q.length) {
       var c = q.shift(), ck = key(c[0], c[1]);
       if (ck === k) break;
       DIRS.forEach(function (s) {
         var nx = c[0] + s[0], ny = c[1] + s[1], nk = key(nx, ny);
-        if (!onBoard(nx, ny) || nk in prev) return;
-        var b = at(nx, ny); if (b && b.side !== u.side) return;
+        if (nk in prev || !passOk(u, M, nx, ny)) return;
         prev[nk] = ck; q.push([nx, ny]);
       });
     }
@@ -176,41 +187,51 @@
     if (a.others) L = L.filter(function (t) { return t !== u });
     return L;
   }
+  /* 距離都從出手者的佔地算起（3×3 的王從最靠近目標的那一格算）；目標也看整個佔地，蓋到好幾格只算一次 */
+  /* 直線：從中心往上下左右延伸，跳過自己佔的格子，長度 = 射程 */
+  function lineCells(u, P, dx, dy, r) { var out = [], R = rad(u); for (var i = R + 1; i <= R + r; i++) { var x = P[0] + dx * i, y = P[1] + dy * i; if (onBoard(x, y)) out.push([x, y]) } return out }
+  function dirOf(u, P, c) { var R = rad(u), dx = c[0] - P[0], dy = c[1] - P[1]; if (dx && dy) return null; var d = Math.abs(dx + dy); if (d <= R) return null; return [Math.sign(dx), Math.sign(dy)] }
   /* 從 P 這格出手，點 c 這格會打到誰；不能點就回傳 null */
   function hitsAt(u, a, P, c) {
-    var d = dist(P, c), L = pool(u, a);
-    if (a.side === 'self' && a.a !== 'diamond') return d === 0 ? [u] : null;
+    var O = fpAt(u, P[0], P[1]), L = pool(u, a), inO = O.some(function (q) { return q[0] === c[0] && q[1] === c[1] });
+    if (a.side === 'self' && a.a !== 'diamond') return inO ? [u] : null;
     if (a.a === 'line') {
-      if (d < 1 || d > a.r || (P[0] !== c[0] && P[1] !== c[1])) return null;
-      var dx = Math.sign(c[0] - P[0]), dy = Math.sign(c[1] - P[1]);
-      var h = L.filter(function (t) { var e = dist(P, pos(t)); return e >= 1 && e <= a.r && Math.sign(t.tx - P[0]) === dx && Math.sign(t.ty - P[1]) === dy && (dx === 0 ? t.tx === P[0] : t.ty === P[1]) });
+      var dd = dirOf(u, P, c); if (!dd) return null;
+      var Lc = lineCells(u, P, dd[0], dd[1], a.r); if (!Lc.some(function (q) { return q[0] === c[0] && q[1] === c[1] })) return null;
+      var h = L.filter(function (t) { return t !== u && dmin(cellsOf(t), Lc) === 0 });
       return h.length ? h : null;
     }
     if (a.a === 'diamond') {
-      if (d > a.r) return null;
-      var h2 = L.filter(function (t) { return dist(c, pos(t)) <= a.s });
+      if (a.r === 0) { if (!inO) return null; var h0 = L.filter(function (t) { return dmin(cellsOf(t), O) <= a.s }); return h0.length ? h0 : null }
+      if (dmin(O, [c]) > a.r) return null;
+      var h2 = L.filter(function (t) { return dmin(cellsOf(t), [c]) <= a.s });
       return h2.length ? h2 : null;
     }
+    var t0 = at(c[0], c[1]); if (!t0 || L.indexOf(t0) < 0) return null;
+    var d = dmin(O, cellsOf(t0));
     if (d > a.r || (a.side === 'foe' && d < 1)) return null;
-    var t0 = at(c[0], c[1]);
-    return t0 && L.indexOf(t0) >= 0 ? [t0] : null;
+    return [t0];
   }
-  function rangeCells(a, P) {
-    var out = [];
-    if (a.a === 'line') { DIRS.forEach(function (s) { for (var i = 1; i <= a.r; i++) { var x = P[0] + s[0] * i, y = P[1] + s[1] * i; if (onBoard(x, y)) out.push([x, y]) } }); return out }
-    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) { var d = dist(P, [x, y]); if (d <= a.r && (d > 0 || a.side !== 'foe' || a.a === 'diamond')) out.push([x, y]) }
+  /* 這招的射程格（畫淡紅／紅框用） */
+  function rangeCells(u, a, P) {
+    var O = fpAt(u, P[0], P[1]), out = [];
+    if (a.a === 'line') { DIRS.forEach(function (s) { out = out.concat(lineCells(u, P, s[0], s[1], a.r)) }); return out }
+    if (a.a === 'diamond' && a.r === 0) return O.filter(function (q) { return onBoard(q[0], q[1]) });
+    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) { var d = dmin(O, [[x, y]]); if (d <= a.r && (d > 0 || a.side !== 'foe' || a.a === 'diamond')) out.push([x, y]) }
     return out;
   }
-  function areaCells(a, P, c) {
+  /* 範圍預覽格：直線 = 那個方向整條；菱形 = 中心往外 s 格（射程 0 = 從自己的佔地往外） */
+  function areaCells(u, a, P, c) {
     var out = [];
-    if (a.a === 'line') { var dx = Math.sign(c[0] - P[0]), dy = Math.sign(c[1] - P[1]); for (var i = 1; i <= a.r; i++) { var x = P[0] + dx * i, y = P[1] + dy * i; if (onBoard(x, y)) out.push([x, y]) } return out }
-    if (a.a === 'diamond') { for (var yy = 0; yy < N; yy++) for (var xx = 0; xx < N; xx++) if (dist(c, [xx, yy]) <= a.s) out.push([xx, yy]); return out }
+    if (a.a === 'line') { var dd = dirOf(u, P, c); return dd ? lineCells(u, P, dd[0], dd[1], a.r) : [] }
+    if (a.a === 'diamond') { var C = a.r === 0 ? fpAt(u, P[0], P[1]) : [c]; for (var yy = 0; yy < N; yy++) for (var xx = 0; xx < N; xx++) if (dmin(C, [[xx, yy]]) <= a.s) out.push([xx, yy]); return out }
     return [c];
   }
+  /* 從 P 出手所有可以點的格子與打到的人（打到同一批人的只留一個） */
   function choices(u, a, P) {
     if (a.side === 'self' && a.a !== 'diamond') return [{ c: P, h: [u] }];
-    var out = [];
-    rangeCells(a, P).forEach(function (c) { var h = hitsAt(u, a, P, c); if (h) out.push({ c: c, h: h }) });
+    var out = [], seen = {};
+    rangeCells(u, a, P).forEach(function (c) { var h = hitsAt(u, a, P, c); if (!h) return; var k = h.map(function (t) { return t.name }).sort().join('|') + (a.a === 'single' ? '' : '@' + c); if (a.a !== 'single' && a.a !== 'line') k = h.map(function (t) { return t.name }).sort().join('|'); if (seen[k]) return; seen[k] = 1; out.push({ c: c, h: h }) });
     return out;
   }
   function actLabel(a) {
@@ -250,7 +271,13 @@
       if (done || auto) return; auto = true; $('tauto').classList.add('on'); $('tauto').disabled = true; closeMenu();
       if (cur && cur.side === 'p' && !busy) { var u = cur; pend = null; aiTurn(u).then(next) }
     };
-    $('tquit').onclick = function () { stop(); ctx.onExit() };
+    /* 離開 = 放棄（沒有獎勵）；按兩次才算，避免誤觸 */
+    $('tquit').onclick = function () {
+      if (done) { stop(); ctx.onExit(); return }
+      var b = $('tquit');
+      if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = '確定放棄？'; hint('再按一次「確定放棄？」就離開，這場不會有獎勵。'); setTimeout(function () { if (b.isConnected) { delete b.dataset.sure; b.textContent = '離開' } }, 3000); return }
+      stop(); ctx.onExit();
+    };
   }
   function sprite(u) {
     if (u.side === 'p') { var c = document.createElement('canvas'); c.width = c.height = 48; return c }
@@ -269,7 +296,7 @@
   function sizeSprite(u) {
     var cw = board.clientWidth / N;
     if (u.side === 'p') { var s = cw * SZ.p; u.sp.style.width = u.sp.style.height = s + 'px'; u.sp.style.bottom = '-4%'; return }
-    var w = spriteW(u.sprite, u.boss, cw); u.sp.style.width = w[0] + 'px'; u.sp.style.height = w[1] + 'px';
+    var w = spriteW(u.sprite, u.boss, cw); u.sp.style.width = w[0] + 'px'; u.sp.style.height = w[1] + 'px'; if (rad(u)) u.sp.style.bottom = '2%';
   }
   /* 比例調整面板（網址帶 &tune=1）：拉桿即時改大小，數值記在這台瀏覽器 */
   function tunePanel() {
@@ -336,10 +363,10 @@
     board.style.backgroundSize = (g.bw * k) + 'px ' + (g.bh * k) + 'px';
     board.style.backgroundPosition = (-x0 * k) + 'px ' + (-y0 * k) + 'px';
   }
-  function setPos(u) { u.node.style.left = (u.tx * 10) + '%'; u.node.style.top = (u.ty * 10) + '%'; u.node.style.zIndex = 10 + u.ty }
+  function setPos(u) { var R = rad(u); u.node.style.left = ((u.tx - R) * 10) + '%'; u.node.style.top = ((u.ty - R) * 10) + '%'; u.node.style.zIndex = 10 + u.ty + R; if (R) { u.node.style.width = u.node.style.height = ((2 * R + 1) * 10) + '%' } }
   function setHp(u) { u.hpn.style.width = Math.max(0, Math.min(100, u.hp / u.b.mhp * 100)) + '%'; u.node.classList.toggle('dead', !!u.dead) }
   function float(u, txt, cls, dy) {
-    var f = el('div', 'tf ' + cls, txt); f.style.left = (u.tx * 10 + 5) + '%'; f.style.top = (u.ty * 10 - 2 - (dy || 0)) + '%';
+    var f = el('div', 'tf ' + cls, txt); f.style.left = (u.tx * 10 + 5) + '%'; f.style.top = ((u.ty - rad(u)) * 10 - 2 - (dy || 0)) + '%';
     layer.appendChild(f); setTimeout(function () { f.remove() }, 950);
   }
   function flash(u, cls) { if (!u.node) return; u.node.classList.remove(cls); void u.node.offsetWidth; u.node.classList.add(cls) }
@@ -444,7 +471,7 @@
   function paint() {
     clearCells();
     if (!cur || done) return;
-    cell(cur.tx, cur.ty).classList.add('cur');
+    cellsOf(cur).forEach(function (q) { if (onBoard(q[0], q[1])) cell(q[0], q[1]).classList.add('cur') });
     if (!mine()) return;
     if (phase === 'move' || ((phase === 'menu' || phase === 'sub') && !cur.moved)) {
       cur.R = cur.moved ? null : reach(cur);
@@ -455,11 +482,10 @@
     }
     if (phase !== 'target') { hint('選一個指令。'); return }
     var a = skAct(cur, sel) || atkAct(cur), P = pos(cur);
-    rangeCells(a, P).forEach(function (c) { cell(c[0], c[1]).classList.add(a.id === 'atk' ? 'rg' : 'sr') });
+    rangeCells(cur, a, P).forEach(function (c) { cell(c[0], c[1]).classList.add(a.id === 'atk' ? 'rg' : 'sr') });
     var ch = choices(cur, a, P), tgCls = a.side === 'foe' ? 'tgt' : 'tga';
-    if (a.a === 'single') ch.forEach(function (o) { cell(o.c[0], o.c[1]).classList.add(tgCls) });
-    else ch.forEach(function (o) { o.h.forEach(function (t) { cell(t.tx, t.ty).classList.add(tgCls) }) });
-    if (pend && pend.id === a.id) areaCells(a, P, pend.c).forEach(function (c) { cell(c[0], c[1]).classList.add('ar') });
+    ch.forEach(function (o) { o.h.forEach(function (t) { cellsOf(t).forEach(function (q) { if (onBoard(q[0], q[1])) cell(q[0], q[1]).classList.add(tgCls) }) }) });
+    if (pend && pend.id === a.id) areaCells(cur, a, P, pend.c).forEach(function (c) { cell(c[0], c[1]).classList.add('ar') });
     var nm = a.sk.n;
     if (pend && pend.id === a.id) hint('「' + nm + '」會打到：' + pend.h.map(function (t) { return t.name }).join('、') + '。再點一次同一格確認；點其他地方回選單。');
     else if (!ch.length) hint('「' + nm + '」' + (a.a === 'single' ? '射程內沒有目標' : '範圍內沒有目標') + '：點任一格回選單。');
@@ -495,7 +521,7 @@
   /* ---------- 特效：沿用自動戰鬥同一套（index.html 的 tacFx），座標換成格子 ----------
      美術像素倍率 K = 格寬 × 人物格高 / 48（跟角色圖同一個比例），所以特效大小會跟著人物一起縮放 */
   function artK() { return board.clientWidth / N * SZ.p / 48 }
-  function footXY(t) { var cw = board.clientWidth / N, K = artK(); return [(t.tx + 0.5) * cw / K, (t.ty + 0.94) * cw / K] }
+  function footXY(t) { var cw = board.clientWidth / N, K = artK(); return [(t.tx + 0.5) * cw / K, (t.ty + rad(t) + 0.94) * cw / K] }
   function bodyH(t) { if (t.side === 'p') return 30; var z = ctx.msz(t.sprite), sc = ctx.msc ? ctx.msc(t.sprite, t.boss) : 1; return z[1] * sc * SZ.m * (t.boss ? SZ.b : 1) }
   function chest(t) { var f = footXY(t); return [f[0], f[1] - (t.side === 'p' ? 15 : bodyH(t) * 0.45)] }
   function fxAdd(kind, o, delay, dur) { FX.push({ kind: kind, o: o, t0: performance.now() + (delay || 0), dur: dur || 900 }) }
@@ -537,7 +563,7 @@
     var el = info.el || '', s0 = chest(u);
     if (ty === 'heal') { h.forEach(function (t) { var f = footXY(t); fxAdd('heal', { x: f[0], y: f[1], el: el }, 0, 1500) }); return 260 }
     if (ty === 'buff') { h.forEach(function (t) { var f = footXY(t); fxAdd('buff', { x: f[0], y: f[1], el: el, c: '#ffd76a' }, 0, 760) }); return 200 }
-    if (a.a === 'diamond') fxAdd('aoe', { x: c[0], y: c[1], c: ELC_T[el] || (a.side === 'foe' ? '#ff9a5a' : '#8ef09a'), cells: areaCells(a, pos(u), c) }, 0, 650);
+    if (a.a === 'diamond') fxAdd('aoe', { x: c[0], y: c[1], c: ELC_T[el] || (a.side === 'foe' ? '#ff9a5a' : '#8ef09a'), cells: areaCells(u, a, pos(u), c) }, 0, 650);
     if (ty === 'debuff') { if (info.wk === 'sonic') fxAdd('ring', { x: u.tx, y: u.ty, r: a.r + 0.5, c: info.c }, 0, 900); h.forEach(function (t) { var q = chest(t); fxAdd('burst', { x: q[0], y: q[1], el: PCOL_OK[el] ? el : 'dark', n: 14 }, 120, 900) }); return 260 }
     var hits = Math.max(1, a.sk.hits || 1), each = a.sk.p === 'random_each' && hits > 1;
     if (info.wk === 'sonic') fxAdd('ring', { x: u.tx, y: u.ty, r: Math.max(a.r, a.s || 0) + 0.5, c: info.c }, 0, 900);
@@ -561,19 +587,26 @@
     var hitMs = playFx(u, a, c, h);
     return Promise.all([lunge(u, a.side === 'foe' ? c : pos(u)), wait(hitMs)]).then(function () {
       if (each) S.hooks.pool = h;
+      S.hooks.area = a.a !== 'single';
       S.finish(u, { sk: a.id, tg: h });
-      S.hooks.pool = null;
+      S.hooks.pool = null; S.hooks.area = false;
       if (a.cost > 0) { u.cd = u.cd || {}; u.cd[a.id] = a.cost + 1 }   /* 開始行動時先減 1，所以 +1：之後 cost 次行動都不能用 */
       placeSummons(u);
-      showDiff(before, a.side === 'foe' ? h : null); flushLog(); renderCard(cur);
+      /* 單體攻擊被保護者擋下：原目標沒掉血、同陣營有別人掉血 → 標「被保護」而不是「未命中」 */
+      var prot = a.side === 'foe' && h.length === 1 && Math.round(h[0].hp) === Math.round(before.get(h[0]).hp) && units.some(function (x) { var b = before.get(x); return x !== h[0] && x.side === h[0].side && b && x.hp < b.hp });
+      showDiff(before, a.side === 'foe' && !prot ? h : null); if (prot) float(h[0], '被保護', 's');
+      flushLog(); renderCard(cur);
     });
   }
   /* 召喚：新叫出來的怪放在召喚者旁邊的空格；沒有空格就不召喚（docs/tactics.md「召喚」） */
   function placeSummons(src) {
     S.U.slice().forEach(function (m) {
       if (m.tx != null || m.dead) return;
-      var spot = null;
-      [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].some(function (s) { var x = src.tx + s[0], y = src.ty + s[1]; if (onBoard(x, y) && !at(x, y)) { spot = [x, y]; return true } });
+      /* 召喚者佔地外圍一圈（先找正下方、再找左右、最後其他）；3×3 的王也一樣找外圍 */
+      var spot = null, F = cellsOf(src), C = [];
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) if (dmin(F, [[x, y]]) === 1) C.push([x, y]);
+      C.sort(function (p, q) { return (q[1] - p[1]) || (Math.abs(p[0] - src.tx) - Math.abs(q[0] - src.tx)) });
+      C.some(function (c) { if (fpAt(m, c[0], c[1]).every(function (q) { return onBoard(q[0], q[1]) && !at(q[0], q[1]) })) { spot = c; return true } });
       if (!spot) { m.dead = true; [S.M, S.U].forEach(function (A) { var i = A.indexOf(m); if (i >= 0) A.splice(i, 1) }); var e = S.ev[S.ev.length - 1]; if (e) e.txt += '（' + m.name + ' 旁邊沒有空位，沒叫出來）'; return }
       m.tx = spot[0]; m.ty = spot[1]; m.ph = Math.random() * 900; addNode(m); float(m, '召喚', 's');
     });
@@ -633,7 +666,7 @@
     var fs = foesOf(u).filter(function (t) { return !S.banished(t) });
     if (!R || !fs.length) { S.wait(u); flushLog(); return wait(AFTER_MS) }
     var bk = null, bs = null;
-    Object.keys(R).forEach(function (k) { var r = R[k], near = Math.min.apply(null, fs.map(function (t) { return dist([r.x, r.y], pos(t)) })), s = near * 10 + r.d; if (bs == null || s < bs) { bs = s; bk = k } });
+    Object.keys(R).forEach(function (k) { var r = R[k], near = Math.min.apply(null, fs.map(function (t) { return dmin(fpAt(u, r.x, r.y), cellsOf(t)) })), s = near * 10 + r.d; if (bs == null || s < bs) { bs = s; bk = k } });
     return walk(u, pathTo(bk, u)).then(function () { S.wait(u); flushLog() }).then(function () { return wait(AFTER_MS) });
   }
 
@@ -642,7 +675,7 @@
   function tap(x, y) {
     var who = at(x, y);
     if (!mine()) { if (who) peek(who); return }
-    var self = x === cur.tx && y === cur.ty;
+    var self = inFp(cur, x, y);
     if (phase === 'target') {
       var a = skAct(cur, sel) || atkAct(cur), P = pos(cur), c = [x, y], h = hitsAt(cur, a, P, c);
       /* 點到亮起來的目標本身（範圍技的中心不一定在他身上）：挑包含他、打到最多人的中心 */
@@ -676,11 +709,14 @@
   function end() {
     if (done) return; done = true; busy = true; cur = null; closeMenu(); clearCells(); flushLog(); renderQueue(); hint('');
     $('tauto').disabled = true;
-    var r = S.res(), w = r === 'win';
-    var o = el('div', 'tres'); o.innerHTML = '<div class="rbox"><div class="rt ' + (w ? 'win' : 'lose') + '">' + (w ? '勝利' : '失敗') + '</div><p>' +
-      (w ? '打倒了所有敵人！' : r === 'draw' ? S.MAXR + ' 回合內沒分出勝負。' : '全隊倒下了。') + '<br><small>戰棋測試中，這場不會給獎勵</small></p>' +
-      '<button type="button" class="go" id="tback">回地圖</button></div>';
+    var r = S.res(), w = r === 'win', rw = w && ctx.reward ? ctx.reward({ mons: M0, lead: S.P[0] }) : null;
+    var o = el('div', 'tres'); o.innerHTML = '<div class="rbox"><div class="rt ' + (w ? 'win' : 'lose') + '">' + (w ? '勝利' : '失敗') + '</div><p id="trtxt">' +
+      (w ? (rw ? rw.html : '打倒了所有敵人！') : (r === 'draw' ? S.MAXR + ' 回合內沒分出勝負，' : '全隊倒下了，') + '這場沒有獎勵，下次再挑戰吧。') + '</p>' +
+      '<button type="button" class="go" id="tback">確認結果</button></div>';
     board.appendChild(o); $('tback').onclick = function () { stop(); ctx.onExit() };
+    o.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    /* 勝利：跟自動戰鬥同一套存檔（ctx.save）；存好之前不能按確認 */
+    if (rw && ctx.save) ctx.save(rw.req, { msg: function (t) { var q = $('trsave'); if (q) q.textContent = t }, lock: function (v) { var b = $('tback'); if (b) b.disabled = v } });
   }
   function onResize() { if (loopOn) { floor(); units.forEach(function (u) { if (u.node) sizeSprite(u) }); if (!menu.hidden) placeMenu() } }
   function stop() { loopOn = false; if (raf) cancelAnimationFrame(raf); raf = 0; done = true }
@@ -689,7 +725,14 @@
   function start(c) {
     SHOW = []; ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0; sel = null; pend = null; phase = 'move';
     S = BattleEngine.session(c.P, c.M, c.D);
-    units = S.U;
+    units = S.U; M0 = c.M.map(function (m) { return { k: m.sprite, n: m.name, boss: m.boss } });
+    /* 保護：身上有嘲諷或保護的單位，2 格內的同伴被「單體」攻擊時改由他承受（範圍、直線不算；多人時隨機；雙方都適用） */
+    S.hooks.protector = function (t, a) {
+      if (S.hooks.area || t.tx == null) return null;
+      var L = living().filter(function (x) { return x !== t && x.side === t.side && !S.banished(x) && (S.has(x, 'taunt') || S.has(x, 'protect')) && udist(x, t) <= 2 });
+      if (L.length) PROT++;
+      return L.length ? L[Math.floor(Math.random() * L.length)] : null;
+    };
     /* 反擊類反應技：攻擊者在自己的普攻射程內才發動 */
     S.hooks.counter = function (d, a) { return d.tx == null || a.tx == null || !!hitsAt(d, atkAct(d), pos(d), pos(a)) };
     S.P.forEach(function (u, i) { var s = PSPAWN[i] || [i, 9]; u.tx = s[0]; u.ty = s[1]; u.look = c.look(u.p || {}); u.ph = Math.random() * 2000 });
@@ -704,5 +747,5 @@
     begin();
   }
 
-  root.Tactics = { start: start, _dbg: function () { return { busy: busy, auto: auto, done: done, cur: cur && cur.name, phase: phase, sel: sel, oi: oi, round: S && S.rounds(), hint: $('thint') && $('thint').textContent } } };
+  root.Tactics = { start: start, _dbg: function () { return { prot: PROT, busy: busy, auto: auto, done: done, cur: cur && cur.name, phase: phase, sel: sel, oi: oi, round: S && S.rounds(), hint: $('thint') && $('thint').textContent } } };
 })(this);

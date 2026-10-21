@@ -57,6 +57,7 @@ button{font:inherit;color:inherit}
 .bres p{margin:0 0 10px;font-size:14px;line-height:1.7}.bres b{color:#ffd76a}.bres small{color:var(--dim)}
 .go{display:block;width:100%;font-weight:900;font-size:15px;border:0;background:#3f6a2c;color:#f0e2c4;padding:10px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c,inset 0 -2px 0 #24401a}
 .go:disabled{opacity:.45;cursor:default}
+.lvgo2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.go.alt{background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a,inset 0 -2px 0 #2a170a}
 .lvov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:10vh 18px 20px}
 .lvov[hidden]{display:none}.lvbg{position:fixed;inset:0;background:rgba(0,0,0,.62)}
 .lvbox{position:relative;width:100%;max-width:340px;background:#b98a57 var(--kraft,none) 0 0/288px 288px;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
@@ -107,8 +108,8 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=12"></script>
-<script src="tactics.js?v=11"></script>
+<script src="engine.js?v=13"></script>
+<script src="tactics.js?v=12"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -596,17 +597,25 @@ function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
     b.addEventListener('click',function(){if(OPEN[i])openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2><p class="lvh">打過一關才會開放下一關</p><div class="lvg">';
   var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
-  h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><button type="button" class="go" data-a="lvgo" disabled>開始冒險</button></div>';
+  var md=advMode();h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button><button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button></div></div>';
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
-    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">'+(isBoss(pickA,pickL)?'實際獎勵有 ±10% 浮動':'以 3 隻敵人為準，每多一隻 +1/3、每少一隻 −1/4，並有 ±10% 浮動')+'<br>同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地「組隊獎勵」領取</small>';$('lvov').querySelector('.go').disabled=false}
-  else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();if(TACT)startTactics(A2,L2);else startBattle(A2,L2)}});
-/* 戰棋測試（?tactics=1，docs/tactics.md 第 0 階段）：選關後改用戰棋打；不存檔、不給獎勵 */
+    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">'+(isBoss(pickA,pickL)?'實際獎勵有 ±10% 浮動':'以 3 隻敵人為準，每多一隻 +1/3、每少一隻 −1/4，並有 ±10% 浮動')+'<br>同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地「組隊獎勵」領取</small>';[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
+  else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;var M2=b.getAttribute('data-m')==='tac'?'tac':'auto';setAdvMode(M2);closeLevels();if(M2==='tac')startTactics(A2,L2);else startBattle(A2,L2)}});
+/* 上次選的模式（自動戰鬥／戰棋），記在這台瀏覽器；網址帶 ?tactics=1 時預設戰棋 */
+function advMode(){try{var v=localStorage.getItem('adv.mode');if(v==='tac'||v==='auto')return v}catch(e){}return TACT?'tac':'auto'}
+function setAdvMode(v){try{localStorage.setItem('adv.mode',v)}catch(e){}}
+/* 戰棋（docs/tactics.md）：勝利照自動戰鬥同一套發獎勵（makeReq + saveWin）；中途離開 = 放棄 */
 function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
-  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,fx:tacFx,fxInfo:tacFxInfo,jobs:JOBI,lv:l,tune:/[?&]tune=1/.test(location.search),bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
+  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關'+(isBoss(a,l)?'（Boss）':''),
+    reward:function(o){var b={res:'win',a:a,l:l,mons:o.mons,lead:o.lead},req=makeReq(b),mail=req.share||[];
+      return{req:req,html:'獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+
+        (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
+        (req.clear&&l<NST?'<br>解鎖第 '+(l+1)+' 關':req.clear?'<br>'+AREA[a].n+'全部通關！':'')+'<br><small id="trsave">獎勵寫入中…</small>'}},
+    save:function(req,ui){saveWin({saved:false},req,ui)},P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,fx:tacFx,fxInfo:tacFxInfo,jobs:JOBI,lv:l,tune:/[?&]tune=1/.test(location.search),bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
@@ -671,20 +680,24 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
     (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
     (req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
   $('rtxt').innerHTML=h;$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});
-  if(B.saved)return;
-  if(demo){$('rsave').textContent='示範模式：不寫入';return}
-  $('rok').disabled=true;var bb=B,wait=Math.max(0,lastAdv()+21000-Date.now());
+  saveWin(B,req,{msg:function(t){var q=$('rsave');if(q)q.textContent=t},lock:function(v){$('rok').disabled=v}})}
+
+/* 勝利存檔（自動戰鬥、戰棋共用）：bb = 這場的物件（存好會標 bb.saved），req = makeReq 的結果，ui = {msg(文字), lock(是否鎖住確認鈕)} */
+function saveWin(bb,req,ui){
+  if(bb.saved)return;
+  if(demo){ui.msg('示範模式：不寫入');return}
+  ui.lock(true);var me=MEMB[0],wait=Math.max(0,lastAdv()+21000-Date.now());
   var tries=0;function put(){tries++;withFB(function(FB){FB.advCheck(req).catch(function(){return{}}).then(function(ck){
     if(ck&&ck.party)req.share=(req.share||[]).filter(function(m){return ck.party.indexOf(m.to)>=0});
-    if(ck&&ck.at&&Date.now()-ck.at<21000&&tries<4){var q1=$('rsave');if(q1)q1.textContent='跟上一場隔太近，稍等一下自動存檔…';tries--;setTimeout(put,21500-(Date.now()-ck.at));return}
+    if(ck&&ck.at&&Date.now()-ck.at<21000&&tries<4){ui.msg('跟上一場隔太近，稍等一下自動存檔…');tries--;setTimeout(put,21500-(Date.now()-ck.at));return}
     return FB.advWin(req).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;if(req.cookie)me.cookies=(me.cookies|0)+1;if(req.clear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=req.clear}
-    var q=$('rsave');if(q)q.textContent='已存檔';$('rok').disabled=false}).catch(function(e){if(tries<2&&e&&e.code==='permission-denied'){var q0=$('rsave');if(q0)q0.textContent='存檔被擋，稍等一下自動重試…';setTimeout(put,22000);return}
+    ui.msg('已存檔');ui.lock(false)}).catch(function(e){if(tries<2&&e&&e.code==='permission-denied'){ui.msg('存檔被擋，稍等一下自動重試…');setTimeout(put,22000);return}
     /* 找出是哪一部分被擋：依序拿掉 隊友分成 → 寵物餅乾 → 關卡進度 再試，能存的部分先存起來 */
     var steps=[['share','隊友分成'],['cookie','寵物餅乾'],['clear','關卡進度']],cut=[],r2=Object.assign({},req);
-    (function tryCut(){var st=steps.shift();if(!st){FB.advCheck(req).catch(function(){return{}}).then(function(c2){var q=$('rsave');if(q)q.textContent='存檔失敗：'+(e&&(e.code||e.message))+((c2&&c2.why&&c2.why.length)?'；原因：'+c2.why.join('、'):'；原因不明，請截圖給開發者')+'（獎勵沒有寫入）'+(c2&&c2.types?'［'+c2.types+'］':'');$('rok').disabled=false});return}
-      var q3=$('rsave');if(q3)q3.textContent='存檔被擋，正在找出是哪一部分被擋（約 20 秒）…';r2[st[0]]=st[0]==='share'?[]:st[0]==='cookie'?false:0;cut.push(st[1]);
+    (function tryCut(){var st=steps.shift();if(!st){FB.advCheck(req).catch(function(){return{}}).then(function(c2){ui.msg('存檔失敗：'+(e&&(e.code||e.message))+((c2&&c2.why&&c2.why.length)?'；原因：'+c2.why.join('、'):'；原因不明，請截圖給開發者')+'（獎勵沒有寫入）'+(c2&&c2.types?'［'+c2.types+'］':''));ui.lock(false)});return}
+      ui.msg('存檔被擋，正在找出是哪一部分被擋（約 20 秒）…');r2[st[0]]=st[0]==='share'?[]:st[0]==='cookie'?false:0;cut.push(st[1]);
       setTimeout(function(){FB.advWin(r2).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;
-        var q=$('rsave');if(q)q.textContent='經驗、鍛造石已存檔；被擋下沒存到：'+cut.join('、')+'（請截圖給開發者）';$('rok').disabled=false},function(){tryCut()})},21500)})()})})})}setTimeout(put,wait)}
+        ui.msg('經驗、鍛造石已存檔；被擋下沒存到：'+cut.join('、')+'（請截圖給開發者）');ui.lock(false)},function(){tryCut()})},21500)})()})})})}setTimeout(put,wait)}
 $('rok').addEventListener('click',function(){curClear();showView('map')});
 /* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
 function resume(o){setLastArea(o.a);PARTS=[];B={ev:o.ev,mons:o.mons,pkl:o.pkl||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
@@ -749,7 +762,7 @@ function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json(
 window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo||!MEMB.length||(B&&!B.done))return;MEMB[0]=Object.assign({},MEMB[0],p,{uid:MEMB[0].uid})});
 function start(me,mem){
   MEMB=[me].concat(mem);NavIcons.setPlayer(me);
-  $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試：選關後用戰棋打，不存檔、不給獎勵':'');
+  $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試入口（選關預設戰棋）':'');
   $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
 /* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
 var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',
