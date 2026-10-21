@@ -25,8 +25,9 @@
     '.tq{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px;scrollbar-width:none}.tq::-webkit-scrollbar{display:none}' +
     '.tq>span{flex:none;font-size:11px;color:var(--dim);font-weight:700;margin-right:2px}' +
     '.tqi{flex:none;width:34px;height:34px;position:relative;background:#1a120c;box-shadow:0 0 0 2px #3b2713;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
-    '.tqi.p{box-shadow:0 0 0 2px #3f6a2c}.tqi.m{box-shadow:0 0 0 2px #8a2a20}.tqi.now{box-shadow:0 0 0 3px #ffd76a}.tqi.done{opacity:.35}' +
+    '.tqi.p{box-shadow:0 0 0 2px #3f6a2c}.tqi.m{box-shadow:0 0 0 2px #8a2a20}.tqi.now{box-shadow:0 0 0 3px #ffd76a}.tqi.done canvas,.tqi.done img{opacity:.35}.tqi.done{box-shadow:0 0 0 2px #2a2018}' +
     '.tqi canvas,.tqi img{width:32px;height:32px;image-rendering:pixelated;object-fit:contain}' +
+    '.tqi .qh{position:absolute;left:2px;right:2px;bottom:2px;height:4px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.tqi .qh i{display:block;height:100%;background:#5fd36a}.tqi.m .qh i{background:#e0503a}' +
     '.tsb{flex:none;display:flex;flex-direction:column;gap:4px}' +
     '.tsb button{font:inherit;font-weight:900;font-size:11px;line-height:1.2;border:0;background:var(--btn);color:var(--fg);padding:3px 7px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;white-space:nowrap}' +
     '.tsb button.on{background:#c9893f;color:#1d1008}.tsb button:disabled{opacity:.4;cursor:default}' +
@@ -411,9 +412,13 @@
     var q = $('tq'); q.innerHTML = '<span>行動順序</span>';
     order.forEach(function (u, i) {
       if (u.dead) return;
-      var b = el('div', 'tqi ' + u.side + (i === oi ? ' now' : i < oi ? ' done' : '')); b.title = u.name; b.appendChild(icon(u)); q.appendChild(b);
+      var b = el('div', 'tqi ' + u.side + (i === oi ? ' now' : i < oi ? ' done' : '')); b.title = u.name; b.appendChild(icon(u));
+      /* 行動順序裡也放血條：我方綠、敵方紅 */
+      var hb = el('div', 'qh'), hi = el('i'); hb.appendChild(hi); b.appendChild(hb); u.qh = hi; q.appendChild(b);
     });
+    queueHp();
   }
+  function queueHp() { units.forEach(function (u) { if (u.qh) u.qh.style.width = (u.dead ? 0 : Math.max(0, Math.min(100, u.hp / u.b.mhp * 100))) + '%' }) }
   function renderCard(u) {
     var av = $('tav'); av.innerHTML = ''; if (!u) return; av.appendChild(icon(u));
     var sets = setsOf(u).map(function (o) { return o.name }).join('／');
@@ -564,6 +569,7 @@
       if (u.st.length > b.st && !u.dead) float(u, '＋狀態', 's', d ? 4 : 0);
       setHp(u);
     });
+    queueHp();
   }
   function lunge(u, c) {
     var dx = c[0] - u.tx, dy = c[1] - u.ty, L = Math.max(1, Math.abs(dx) + Math.abs(dy)), k = Math.min(0.35, 0.35 / L * 1.5);
