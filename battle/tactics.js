@@ -61,6 +61,19 @@
     '.tm .tmh{font-size:11px;color:var(--gold);font-weight:900;padding:2px 4px 0}' +
     '.tm .back{background:none;color:var(--dim);font-size:12px;padding:3px 6px}' +
     '.tm .sl{max-height:var(--tmh,260px);overflow-y:auto;display:flex;flex-direction:column;gap:3px}' +
+    /* 地圖角落的單位資訊卡、狀態標籤、狀態說明 */
+    '.tinfo{position:absolute;top:6px;left:6px;z-index:36;width:min(60%,230px);background:rgba(20,12,8,.93);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a,3px 3px 0 rgba(0,0,0,.45);padding:7px 9px;font-size:12px;line-height:1.45}' +
+    '.tinfo[hidden]{display:none}.tinfo.r{left:auto;right:6px}' +
+    '.tinfo .nm{font-weight:900;font-size:14px;display:flex;justify-content:space-between;gap:6px}.tinfo .nm small{color:var(--dim);font-weight:700;font-size:11px}' +
+    '.tinfo .x{border:0;background:none;color:var(--dim);font:inherit;font-weight:900;padding:0 2px;cursor:pointer}' +
+    '.tinfo .hpl{height:6px;background:#1a0d08;box-shadow:0 0 0 1px #080503;margin:3px 0}.tinfo .hpl i{display:block;height:100%;background:#5fd36a}.tinfo.m .hpl i{background:#e0503a}' +
+    '.tinfo .sub{color:var(--dim);font-weight:700}' +
+    '.tsts{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}' +
+    '.tst{font:inherit;font-size:11px;font-weight:900;border:0;padding:1px 6px;cursor:pointer;line-height:1.5;box-shadow:0 0 0 1px #080503}' +
+    '.tst.buff{background:#2f5a2a;color:#d8f5c8}.tst.debuff{background:#6a2420;color:#ffd6cc}.tst.on{outline:2px solid #ffd76a}' +
+    '.tpop{position:relative;margin-top:6px;padding:6px 8px;background:#2b1d13;box-shadow:0 0 0 1px #080503,inset 0 0 0 1px #6b4a2a;font-size:12px;font-weight:500;line-height:1.5}' +
+    '.tpop::before{content:"";position:absolute;top:-6px;left:var(--ax,14px);border:6px solid transparent;border-top:0;border-bottom-color:#6b4a2a}' +
+    '.tpop b{font-weight:900}.tpop .k{font-size:10.5px;font-weight:900;margin-left:6px;padding:0 5px}.tpop .k.buff{background:#2f5a2a;color:#d8f5c8}.tpop .k.debuff{background:#6a2420;color:#ffd6cc}.tpop .t{color:var(--gold);font-weight:900;margin-top:2px}' +
     '.tcard{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center}' +
     '.tav{width:44px;height:44px;background:#1a120c;box-shadow:0 0 0 2px #6b4a2a;display:flex;align-items:center;justify-content:center;overflow:hidden}.tav canvas,.tav img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}' +
     '.tnm{font-weight:900;font-size:15px}.tnm small{font-weight:700;font-size:12px;color:var(--dim);margin-left:6px}' +
@@ -70,7 +83,7 @@
     '#tacv .log{height:150px}';
 
   /* phase：move = 等玩家移動（或點自己開選單）／menu = 選單開著／sub = 技能組子選單／target = 選好招在點目標 */
-  var PROT = 0, M0 = [], FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
+  var infoBox, infoU = null, infoSt = -1, cardSt = -1, PROT = 0, M0 = [], FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
 
   function $(id) { return document.getElementById(id) }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e }
@@ -259,12 +272,14 @@
     board.appendChild(g); layer = el('div', 'tl'); board.appendChild(layer);
     fxc = el('canvas', 'tfx'); fxx = fxc.getContext('2d'); board.appendChild(fxc);
     menu = el('div', 'tm'); menu.hidden = true; menu.setAttribute('role', 'menu'); board.appendChild(menu);
+    infoBox = el('div', 'tinfo'); infoBox.hidden = true; board.appendChild(infoBox);
+    infoBox.addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (!b) return; if (b.classList.contains('x')) return hideInfo(); if (b.dataset.st != null) { infoSt = infoSt === +b.dataset.st ? -1 : +b.dataset.st; renderInfo() } });
     root$.appendChild(board);
     var nw = el('div', 'tnews'); nw.id = 'tnews'; nw.setAttribute('aria-live', 'polite'); root$.appendChild(nw);
     g.addEventListener('click', function (ev) { var c = ev.target.closest('.tc'); if (c) tap(+c.dataset.x, +c.dataset.y) });
     menu.addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (b && !b.disabled) menuPick(b.dataset) });
     var pn = el('div', 'panel'); pn.style.marginTop = '12px';
-    pn.innerHTML = '<div class="tcard"><div class="tav" id="tav"></div><div><div class="tnm" id="tnm"></div><div class="thp" id="thp"><i></i></div></div></div><p class="thint" id="thint"></p>';
+    pn.innerHTML = '<div class="tcard"><div class="tav" id="tav"></div><div><div class="tnm" id="tnm"></div><div class="thp" id="thp"><i></i></div><div id="tcst"></div></div></div><p class="thint" id="thint"></p>';
     root$.appendChild(pn);
     var lp = el('div', 'panel'); lp.style.marginTop = '12px'; lp.innerHTML = '<h2>戰報</h2><div class="log" id="tlog"></div>'; root$.appendChild(lp);
     $('tauto').onclick = function () {
@@ -405,6 +420,30 @@
     var info = (u.side === 'p' ? (u.weapon || '徒手') + '・' : '') + '移動 ' + moveOf(u) + ' 格・普攻' + actLabel(atkAct(u)) + (sets ? '・' + sets : '');
     $('tnm').innerHTML = esc(u.name) + '<small>' + esc(info) + '</small>';
     $('thp').className = 'thp' + (u.side === 'm' ? ' m' : ''); $('thp').firstChild.style.width = Math.max(0, u.hp / u.b.mhp * 100) + '%';
+    var cs = $('tcst'); cs.innerHTML = stChips(u, cardSt); cs.onclick = function (ev) { var b = ev.target.closest('button[data-st]'); if (!b) return; cardSt = cardSt === +b.dataset.st ? -1 : +b.dataset.st; renderCard(u) };
+  }
+  /* ---------- 狀態標籤與說明 ---------- */
+  function stList(u) { return (u.st || []).filter(function (s) { return !s.paused || s.banish }) }
+  function stTurns(s) { return s.banish ? '放逐中' : s.turns === 'attack' ? '直到下次攻擊' : '還剩 ' + s.turns + ' 次行動' }
+  function stChips(u, open) {
+    var L = stList(u); if (!L.length) return '';
+    var h = '<div class="tsts">' + L.map(function (s, i) { var pol = s.pol === 'debuff' ? 'debuff' : 'buff'; return '<button type="button" class="tst ' + pol + (i === open ? ' on' : '') + '" data-st="' + i + '">' + esc(s.n) + (typeof s.turns === 'number' ? ' ' + s.turns : '') + '</button>' }).join('') + '</div>';
+    var s = L[open];
+    if (s) { var def = (ctx.D.STS || {})[s.n] || {}, pol = s.pol === 'debuff' ? 'debuff' : 'buff'; h += '<div class="tpop" role="note"><b>' + esc(s.n) + '</b><span class="k ' + pol + '">' + (pol === 'debuff' ? '減益' : '增益') + '</span><div>' + esc(def.d || '（沒有說明）') + '</div><div class="t">' + esc(stTurns(s)) + '</div></div>' }
+    return h;
+  }
+  /* 地圖角落的資訊卡：預設左上，被點的單位在左上那一塊時改放右上 */
+  function showInfo(u) { infoU = u; infoSt = -1; renderInfo() }
+  function hideInfo() { infoU = null; infoBox.hidden = true }
+  function renderInfo() {
+    var u = infoU; if (!u || u.dead || u.tx == null) { hideInfo(); return }
+    var R = rad(u), sz = R ? '・佔 ' + (2 * R + 1) + '×' + (2 * R + 1) : '';
+    infoBox.className = 'tinfo' + (u.side === 'm' ? ' m' : '') + (u.tx < 5 && u.ty < 5 ? ' r' : '');
+    infoBox.innerHTML = '<div class="nm"><span>' + esc(u.name) + (u.boss ? ' <small>王</small>' : '') + '</span><button type="button" class="x" aria-label="關閉">✕</button></div>' +
+      '<div class="hpl"><i style="width:' + Math.max(0, Math.min(100, u.hp / u.b.mhp * 100)) + '%"></i></div>' +
+      '<div class="sub">生命 ' + Math.max(0, Math.round(u.hp)) + '/' + u.b.mhp + '・移動 ' + moveOf(u) + '・普攻' + esc(actLabel(atkAct(u))) + sz + '</div>' +
+      (stList(u).length ? stChips(u, infoSt) : '<div class="sub" style="margin-top:3px">沒有狀態</div>');
+    infoBox.hidden = false;
   }
   function hint(t) { $('thint').textContent = t || '' }
   function flushLog() {
@@ -595,7 +634,7 @@
       /* 單體攻擊被保護者擋下：原目標沒掉血、同陣營有別人掉血 → 標「被保護」而不是「未命中」 */
       var prot = a.side === 'foe' && h.length === 1 && Math.round(h[0].hp) === Math.round(before.get(h[0]).hp) && units.some(function (x) { var b = before.get(x); return x !== h[0] && x.side === h[0].side && b && x.hp < b.hp });
       showDiff(before, a.side === 'foe' && !prot ? h : null); if (prot) float(h[0], '被保護', 's');
-      flushLog(); renderCard(cur);
+      flushLog(); renderCard(cur); if (infoU) renderInfo();
     });
   }
   /* 召喚：新叫出來的怪放在召喚者旁邊的空格；沒有空格就不召喚（docs/tactics.md「召喚」） */
@@ -618,11 +657,11 @@
     oi++;
     var u = order[oi];
     if (!u || u.dead || u.tx == null) return next();
-    cur = u; u.moved = false; u.from = pos(u); sel = null; pend = null; phase = 'move'; closeMenu();
+    cur = u; u.moved = false; u.from = pos(u); sel = null; pend = null; phase = 'move'; closeMenu(); cardSt = -1;
     if (u.cd) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });   /* 冷卻以自己的行動次數計（被控制跳過也算） */
     renderQueue(); renderCard(u);
     var before = snapHp(), ok = S.start(u);
-    showDiff(before, null); flushLog();
+    showDiff(before, null); flushLog(); renderCard(u); if (infoU) renderInfo();
     if (!ok) { busy = true; paint(); return wait(AFTER_MS).then(next) }
     if (u.side === 'p' && !auto) { busy = false; paint(); return }
     busy = true; paint();
@@ -674,7 +713,7 @@
   function go(a, c, h) { var u = cur; busy = true; pend = null; phase = 'busy'; closeMenu(); paint(); cast(u, a, c, h).then(function () { return wait(AFTER_MS) }).then(next) }
   function tap(x, y) {
     var who = at(x, y);
-    if (!mine()) { if (who) peek(who); return }
+    if (!mine()) { if (who) showInfo(who); else hideInfo(); return }
     var self = inFp(cur, x, y);
     if (phase === 'target') {
       var a = skAct(cur, sel) || atkAct(cur), P = pos(cur), c = [x, y], h = hitsAt(cur, a, P, c);
@@ -689,10 +728,11 @@
         if (pend && pend.id === a.id && pend.c[0] === x && pend.c[1] === y) return go(a, c, h);
         pend = { id: a.id, c: c, h: h }; paint(); return;
       }
-      /* 點到別的地方：回選單 */
+      /* 點到別的地方：回選單（點到單位就順便看他的資料） */
+      if (who) showInfo(who); else hideInfo();
       return openMenu('menu');
     }
-    if (self) { return openMenu('menu') }
+    if (self) { showInfo(cur); return openMenu('menu') }
     /* 移動：還沒移動過、點藍格 → 走過去，走到後跳出選單 */
     if (!cur.moved && cur.R && cur.R[key(x, y)] && cur.R[key(x, y)].d > 0) {
       var u2 = cur, k = key(x, y); pend = null; busy = true; closeMenu(); paint();
@@ -700,14 +740,13 @@
       return;
     }
     if (phase === 'menu' || phase === 'sub') { closeMenu(); phase = 'move'; paint() }
-    if (who) peek(who);
+    if (who) showInfo(who); else hideInfo();
   }
-  function peek(u) { hint(u.name + '　生命 ' + Math.max(0, Math.round(u.hp)) + '/' + u.b.mhp + '・移動 ' + moveOf(u) + '・普攻' + actLabel(atkAct(u)) + (u.st.length ? '・狀態：' + u.st.map(function (s) { return s.n }).join('、') : '')) }
   function undoMove() { if (!cur || !cur.moved || busy) return; cur.tx = cur.from[0]; cur.ty = cur.from[1]; cur.moved = false; pend = null; setPos(cur); closeMenu(); phase = 'move'; paint() }
   function doWait() { if (!cur || cur.side !== 'p' || busy) return; busy = true; pend = null; closeMenu(); S.wait(cur); flushLog(); next() }
 
   function end() {
-    if (done) return; done = true; busy = true; cur = null; closeMenu(); clearCells(); flushLog(); renderQueue(); hint('');
+    if (done) return; done = true; busy = true; cur = null; closeMenu(); hideInfo(); clearCells(); flushLog(); renderQueue(); hint('');
     $('tauto').disabled = true;
     var r = S.res(), w = r === 'win', rw = w && ctx.reward ? ctx.reward({ mons: M0, lead: S.P[0] }) : null;
     var o = el('div', 'tres'); o.innerHTML = '<div class="rbox"><div class="rt ' + (w ? 'win' : 'lose') + '">' + (w ? '勝利' : '失敗') + '</div><p id="trtxt">' +
