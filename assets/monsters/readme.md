@@ -18,6 +18,7 @@
 | monster_12 | 水晶魔像（魔晶礦洞，目前只在 `?vfx=1` 測試；顯示 1.2 倍） | `monster_12.png`（48×48 身體）、`monster_12_blink.png`（眼睛圖層）；起伏同石魔像 |
 | monster_13 | 巨蛛（魔晶礦洞，目前只在 `?vfx=1` 測試；顯示 0.7 倍） | `monster_13.png`（身體）、`monster_13_blink.png`（眼睛圖層）；身體起伏，腳不動 |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
+| monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
 | monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（79×66，原圖去背、左右翻轉、綠色壓暗後縮小；身體上半慢慢起伏，眼睛發紅光由程式畫） |
 
 規則：

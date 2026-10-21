@@ -239,3 +239,7 @@ skill237,晶化,monster,0,combat,enemy_single,random,debuff,,,,,,,,,怪物技能
 skill238,毒牙,monster,0,combat,enemy_single,random,damage,,,p,nature,1,,,,怪物技能（單體自然物理傷害 ×1.0，附加蛛毒 3 回合）,thrust,,
 skill239,蛛網,monster,0,combat,enemy_single,random,damage,,,p,,0.6,,,,怪物技能（單體物理傷害 ×0.6，50% 束縛 1 回合）,throw,,
 skill240,毒液噴吐,monster,0,combat,enemy_all,,damage,,,p,nature,0.7,,,,怪物技能（全體自然物理傷害 ×0.7，附加蛛毒 3 回合）,throw,,
+skill241,黑暗箭,monster,0,combat,enemy_single,random_each,damage,,,m,dark,0.3,,,,怪物技能（5 次黑暗魔法傷害 ×0.3，每一下各自隨機目標）,arrow,5,
+skill242,死亡之霧,monster,0,combat,enemy_all,,damage,,,m,dark,0.9,,,,怪物技能（全體黑暗魔法傷害 ×0.9，附加目盲 3 回合）,missile,,
+skill243,沉睡之咒,monster,0,combat,enemy_single,random,debuff,,,,,,,,,怪物技能（單體 50% 睡眠 5 回合，受到攻擊就醒）,,,
+skill244,召喚巨蛛,monster,0,combat,self,,buff,,,,,,,,,怪物技能（場上巨蛛少於 2 隻時，叫出一隻巨蛛）,,,

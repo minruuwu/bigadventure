@@ -487,7 +487,7 @@
         }
         e.tg = order.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i });
         e.tgP = order.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
-        e.hitsN = hitList.length; e.tgh = each ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null;
+        e.hitsN = hitList.length; e.tgh = each ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null; e.tghP = each ? hitList.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) : null;
         e._dealt = (e._dealt || 0) + totalDmg;
         e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs; return H > 1 ? t.name + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? t.name + ' 閃開了' : hs[0] === '擋下' ? t.name + ' 擋下了' : hs[0] === '無效' ? t.name + ' 不受影響' : t.name + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }

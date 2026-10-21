@@ -247,7 +247,7 @@ var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
 var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[];
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
-var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[9,25]}};
+var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:18,per:1400,sin:1,fx:'queen',at:[18,8],hand:[11,7]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[9,25]}};
 function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return '';A.c=A.c||{};var ph=(now%A.per)/A.per,dy=A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0);if(A.c[dy])return A.c[dy];
   var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,A.leg,w,h-A.leg,0,A.leg,w,h-A.leg);x.drawImage(im,0,0,w,A.leg,0,dy,w,A.leg);return A.c[dy]=c.toDataURL()}
 function aniDy(k,now){var A=ANI[k],ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
@@ -274,7 +274,7 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.k==='bat'?.8:m.k==='cgolem'?1.2:m.k==='spider'?.7:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
+  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.k==='queen'?1:m.k==='bat'?.8:m.k==='cgolem'?1.2:m.k==='spider'?.7:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
   frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
 }
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
@@ -416,14 +416,14 @@ function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
 }
 function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
-  B.ev.forEach(function(e){for(var hh=0;hh<(e.side==='p'&&e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
+  B.ev.forEach(function(e){for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
   function vOne(e,t,hh){var d=t-e.t;if(d<0||d>900||!e.side)return;
     if(e.side==='m'&&e.mhl){e.mhl.forEach(function(i){var mo=mons[i];if(mo&&mo.lx!=null)healFx([mo.lx,mo.gy],d,'')});return}
     if(e.side==='m'&&e.sonic){sonicFx(e,d);return}
     if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-msz(mo.k)[0]*mo.sc*.3,msy=mp0[1];
       /* 怪物技能特效：把畫面左右翻過來，沿用玩家那套（投擲、刺擊、飛彈……），起點是怪物、終點是被打的隊員 */
       pctx.save();pctx.translate(pfx.width,0);pctx.scale(-1,1);
-      e.tgts.forEach(function(tk){var pp=posOf(tk);hitFx(e,d,e.wk,e.vc||'#ffffff',WU-msx,msy,WU-pp[0],pp[1]-14,pp[1],1)});
+      (e.tgh?[e.tgh[hh]]:e.tgts).forEach(function(tk){if(tk==null)return;var pp=posOf(tk);hitFx(e,d,e.wk,e.vc||'#ffffff',WU-msx,msy,WU-pp[0],pp[1]-14,pp[1],1)});
       pctx.restore();return}
     if(e.side==='m'){if(!e.tgts||!e.tgts.length)return;e.tgts.forEach(function(tk){var pp=posOf(tk);
       /* 怪物攻擊：爪痕圖由上往下劃出約 0.13 秒，再放大淡出約 0.2 秒 */
@@ -447,6 +447,10 @@ function idleOne(m,now){(function(){
     if(Math.floor((now+m.ph*7)/170)%7===0)VP(gx+Math.round(Math.sin(now/90)*3),gy2-3-Math.floor((now%170)/60),'#e8f6ff',.85)}
   var A=ANI[m.k];if(!A||!m.alive)return;var MZ=msz(m.k),sc=m.sc,ox=m.lx-MZ[0]*sc/2,oy=m.gy-MZ[1]*sc,dy=aniDy(m.k,now),ax=ox+A.at[0]*sc,ay=oy+(A.at[1]+dy)*sc,t=now+m.ph*3;
   if(A.fx==='puff'){var c=t%1800;for(var i=0;i<3;i++){var u=(c-i*120)/700;if(u<0||u>1)continue;VP(ax-2-u*7,ay-u*3-i,'#e8e4dc',(1-u)*.85)}}
+  else if(A.fx==='queen'){/* 黑暗蛛后：兩眼紅光 + 左手藍紫光暈 */var pu=.75+.25*Math.sin(t/260);[[0,0],[2,0],[3,0]].forEach(function(o){var ex=ax+o[0]*sc;VP(ex,ay,'#ff5a3c',pu);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(q){VP(ex+q[0],ay+q[1],'#ff2a14',.35*pu)})});
+    var hx=ox+A.hand[0]*sc,hy=oy+(A.hand[1]+dy)*sc,hp=.8+.2*Math.sin((t)/420);
+    for(var hi=-7;hi<=7;hi++)for(var hj=-7;hj<=7;hj++){var hr=Math.sqrt(hi*hi+hj*hj);if(hr>7.2)continue;VP(hx+hi,hy+hj,hr<2?'#f0e6ff':hr<3.6?'#b48cff':hr<5.4?'#8050ff':'#5a2ad0',hp*(hr<2?1:hr<3.6?.85:hr<5.4?.6:.35)*(1-hr/9))}
+    var mp=Math.floor((t)/190)%9;if(mp<3)VP(hx+Math.round(Math.sin(t/110)*3),hy-3-mp*2,'#e6dcff',.85)}
   else if(A.fx==='eye'){var pu=.75+.25*Math.sin(t/260);VP(ax,ay,'#ff6a4a',pu);VP(ax+1,ay,'#ff3a24',.9*pu);[[-1,0],[2,0],[0,-1],[1,-1],[0,1],[1,1]].forEach(function(o){VP(ax+o[0],ay+o[1],'#ff2a14',.5*pu)});[[-2,0],[3,0],[-1,-1],[2,-1],[-1,1],[2,1],[0,-2],[1,-2],[0,2],[1,2]].forEach(function(o){VP(ax+o[0],ay+o[1],'#ff200c',.22*pu)})}
   else if(A.fx==='drool'){var c2=t%2600;if(c2<1300){var len=1+Math.floor(c2/1300*3);for(var j=0;j<len;j++)VP(ax,ay+1+j,'#d8ecf4',.85);VP(ax,ay+len,'#ffffff',.9)}
     else if(c2<1900){var u2=(c2-1300)/600,yy=ay+4+u2*u2*(m.gy-ay-4);VP(ax,yy,'#d8ecf4',.9);VP(ax,yy+1,'#ffffff',.7)}
@@ -600,7 +604,7 @@ function realBattle(a,l){
     if(e.sk&&!e.idle&&!e.tick){
       if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
         o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
-      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
+      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
     if(e.kind!=='round')t+=(e.tick||e.idle)?650:STEP;
     (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+260});
     (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
@@ -698,7 +702,7 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button></div>'+
-  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button><button type="button" data-m="bat">暗影魔蝠</button><button type="button" data-m="golem">石魔像</button><button type="button" data-m="cgolem">水晶魔像</button><button type="button" data-m="spider">巨蛛</button></div>'+
+  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button><button type="button" data-m="bat">暗影魔蝠</button><button type="button" data-m="golem">石魔像</button><button type="button" data-m="cgolem">水晶魔像</button><button type="button" data-m="spider">巨蛛</button><button type="button" data-m="queen">黑暗蛛后</button></div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
@@ -727,7 +731,7 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
   monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=3',
   monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
-  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',claw:'vfx/claw.png?v=1'};
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=1',claw:'vfx/claw.png?v=1'};
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}
