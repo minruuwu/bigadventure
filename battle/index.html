@@ -108,7 +108,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="engine.js?v=11"></script>
-<script src="tactics.js?v=1"></script>
+<script src="tactics.js?v=2"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -276,9 +276,11 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:m.k==='dragon'?1.4:m.k==='queen'?1.2:m.k==='bat'?.8:m.k==='cgolem'?1.2:m.k==='spider'?.9:m.k==='bdragon'?.8:m.boss?(m.k==='sk'?1.5:1.2):1,f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
+  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:mscale(m.k,m.boss),f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
   frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
 }
+/* 怪物畫面倍率（戰棋也用，維持跟人物的相對大小） */
+function mscale(k,boss){return k==='dragon'?1.4:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
@@ -586,7 +588,7 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();if(TACT)startTactics(A2,L2);else startBattle(A2,L2)}});
 /* 戰棋測試（?tactics=1，docs/tactics.md 第 0 階段）：選關後改用戰棋打；不存檔、不給獎勵 */
 function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
-  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,onExit:function(){showView('map')}})}
+  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,lv:l,bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}

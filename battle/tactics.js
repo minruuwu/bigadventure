@@ -7,10 +7,8 @@
   'use strict';
   var N = 10;
   var STEP_MS = 90, THINK_MS = 320, AFTER_MS = 520;
-  /* 普攻射程：劍、斧、錘、匕 1；槍 上下左右直線 1～2；弓 3；書、杖 4 */
-  var WRANGE = { '劍': 1, '斧': 1, '錘': 1, '匕': 1, '槍': 2, '弓': 3, '書': 4, '杖': 4 };
-  /* 法系怪普攻射程 4（docs/tactics.md：哥布林巫師、黑暗蛛后），其他怪 1。之後要加別的法系怪就加在這裡 */
-  var MAGE_MON = { gobw: 1, queen: 1 };
+  /* 移動、普攻射程都讀資料表（docs/tactics.md「移動」「射程與範圍」）：
+     job_attribute.csv move、monster_info.csv move／atk_range、weapon_info.csv range／area／area_size；空白：移動 4、射程 1、範圍單一格 */
   var PSPAWN = [[4, 8], [6, 8], [3, 9], [5, 9]];
   var MSPAWN = [[4, 1], [5, 1], [3, 1], [6, 1], [2, 1], [7, 1], [4, 0], [5, 0]];
   var MSPAWN_BOSS = [[6, 1], [2, 1], [6, 3], [2, 3], [7, 2], [1, 2], [8, 1], [0, 1]];
@@ -22,17 +20,17 @@
     '.tqi{flex:none;width:34px;height:34px;position:relative;background:#1a120c;box-shadow:0 0 0 2px #3b2713;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
     '.tqi.p{box-shadow:0 0 0 2px #3f6a2c}.tqi.m{box-shadow:0 0 0 2px #8a2a20}.tqi.now{box-shadow:0 0 0 3px #ffd76a}.tqi.done{opacity:.35}' +
     '.tqi canvas,.tqi img{width:32px;height:32px;image-rendering:pixelated;object-fit:contain}' +
-    '.tb{position:relative;width:100%;aspect-ratio:1;background:#2a2119;box-shadow:0 0 0 2px var(--edge),inset 0 0 0 2px var(--hi);touch-action:manipulation;user-select:none;-webkit-user-select:none}' +
+    '.tb{position:relative;width:100%;aspect-ratio:1;background:#2a2119 no-repeat;image-rendering:pixelated;box-shadow:0 0 0 2px var(--edge),inset 0 0 0 2px var(--hi);touch-action:manipulation;user-select:none;-webkit-user-select:none}' +
     '.tg{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr)}' +
-    '.tc{position:relative;border:0;padding:0;margin:0;background:#3a2e22;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
-    '.tc.k{background:#342a1f}' +
-    '.tc.mv{background:#2f5d9a}.tc.mv.k{background:#2b568f}' +
+    '.tc{position:relative;border:0;padding:0;margin:0;background:rgba(0,0,0,.06);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+    '.tc.k{background:rgba(0,0,0,.14)}' +
+    '.tc.mv{background:rgba(47,100,190,.55)}.tc.mv.k{background:rgba(40,88,170,.6)}' +
     '.tc.rg::after{content:"";position:absolute;inset:2px;box-shadow:inset 0 0 0 2px #d4553f;pointer-events:none}' +
-    '.tc.tgt{background:#7a2a20}.tc.tgt::after{content:"";position:absolute;inset:1px;box-shadow:inset 0 0 0 3px #ff6a50;pointer-events:none}' +
+    '.tc.tgt{background:rgba(150,30,20,.55)}.tc.tgt::after{content:"";position:absolute;inset:1px;box-shadow:inset 0 0 0 3px #ff6a50;pointer-events:none}' +
     '.tc.cur::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 3px #ffd76a;pointer-events:none;z-index:1}' +
     '.tl{position:absolute;inset:2px;pointer-events:none}' +
     '.tu{position:absolute;width:10%;height:10%;transition:left .085s linear,top .085s linear,opacity .4s}' +
-    '.tu canvas,.tu img{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);image-rendering:pixelated}' +
+    '.tu canvas,.tu img{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);image-rendering:pixelated;pointer-events:none}' +
     '.tu .hp{position:absolute;left:12%;right:12%;bottom:2%;height:4px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.tu .hp i{display:block;height:100%;background:#5fd36a}.tu.m .hp i{background:#e0503a}' +
     '.tu.dead{opacity:0}' +
     '.tu.hit{animation:thit .25s}@keyframes thit{0%,100%{filter:none}40%{filter:brightness(2.2) saturate(0)}}' +
@@ -66,15 +64,34 @@
   function at(x, y) { var r = null; living().forEach(function (u) { if (u.tx === x && u.ty === y) r = u }); return r }
 
   /* ---------- 規則：移動力、射程、可走格 ---------- */
-  function moveOf(u) { return Math.max(1, 4 + Math.floor((S.stat(u, 'speed') - 10) / 2)) }
-  function rangeOf(u) { if (u.side === 'p') return WRANGE[u.weapon] || 1; return MAGE_MON[u.sprite] ? 4 : 1 }
-  function isSpear(u) { return u.side === 'p' && u.weapon === '槍' }
-  function rangeLabel(u) { return isSpear(u) ? '直線 1～2' : String(rangeOf(u)) }
-  /* 從 from 格能不能普攻到 to 格 */
+  function int(v, dflt) { var n = parseInt(v, 10); return isNaN(n) ? dflt : n }
+  function jobSn(p) { return p.jobSn || ('job' + ('0' + (((p.job | 0) + 1))).slice(-2)) }
+  /* 普攻設定 {r: 射程, a: single / line / diamond, s: area_size} */
+  function atkOf(u) {
+    if (u._atk) return u._atk;
+    var D = ctx.D, o;
+    if (u.side === 'p') { var w = D.wpn[D.wbyname[u.weapon]] || {}; o = { r: int(w.range, 1), a: w.area || 'single', s: int(w.area_size, 0) } }
+    else { var m = D.mon[u.mid] || {}; o = { r: int(m.atk_range, 1), a: 'single', s: 0 } }
+    o.r = Math.max(1, o.r); return (u._atk = o);
+  }
+  function moveOf(u) {
+    var row = u.side === 'p' ? ctx.D.attr[jobSn(u.p || {})] : ctx.D.mon[u.mid];
+    return Math.max(1, int(row && row.move, 4));
+  }
+  function rangeOf(u) { return atkOf(u).r }
+  function isLine(u) { return atkOf(u).a === 'line' }
+  function rangeLabel(u) { return (isLine(u) ? '直線 ' : '') + rangeOf(u) }
+  /* 從 from 格能不能普攻到 to 格（直線 = 上下左右同一條線、長度 = 射程） */
   function inRange(u, from, to) {
     var d = dist(from, to); if (d < 1) return false;
-    if (isSpear(u)) return (from[0] === to[0] || from[1] === to[1]) && d <= 2;
+    if (isLine(u)) return (from[0] === to[0] || from[1] === to[1]) && d <= rangeOf(u);
     return d <= rangeOf(u);
+  }
+  /* 實際打到誰：單一格 = 那一個；直線 = 同方向整條線上的敵人（貫穿） */
+  function hitList(u, from, t) {
+    if (!isLine(u)) return [t];
+    var dx = Math.sign(t.tx - from[0]), dy = Math.sign(t.ty - from[1]);
+    return targetsFrom(u, from).filter(function (x) { return Math.sign(x.tx - from[0]) === dx && Math.sign(x.ty - from[1]) === dy && (dx === 0 ? x.tx === from[0] : x.ty === from[1]) });
   }
   /* 可移動的格子（含原地）：曼哈頓步數、可穿過友軍、不能穿過敵人、不能停在有人的格子。回傳 {key: {x,y,d,prev}} */
   function reach(u) {
@@ -149,11 +166,22 @@
       layer.appendChild(d); sizeSprite(u); setPos(u); setHp(u);
     });
   }
+  /* 人物、怪物用同一個像素倍率，維持原本戰鬥畫面的相對大小；人物（48 格紙娃娃）約 1.5 格高，超出格子沒關係 */
+  var SPRITE_K = 1.5 / 48;
   function sizeSprite(u) {
-    var cw = board.clientWidth / N;
-    if (u.side === 'p') { var s = cw * 1.25; u.sp.style.width = u.sp.style.height = s + 'px'; return }
-    var z = ctx.msz(u.sprite), m = Math.max(z[0], z[1]), s2 = cw * (u.boss ? 1.35 : 0.95) / m;
-    u.sp.style.width = (z[0] * s2) + 'px'; u.sp.style.height = (z[1] * s2) + 'px';
+    var K = board.clientWidth / N * SPRITE_K;
+    if (u.side === 'p') { var s = 48 * K; u.sp.style.width = u.sp.style.height = s + 'px'; u.sp.style.bottom = '-4%'; return }
+    var z = ctx.msz(u.sprite), sc = ctx.msc ? ctx.msc(u.sprite, u.boss) : 1;
+    u.sp.style.width = (z[0] * sc * K) + 'px'; u.sp.style.height = (z[1] * sc * K) + 'px';
+  }
+  /* 地板：該關原本橫向戰鬥背景的「走路那段」（地面線 band 往下到底），裁成正方形放大鋪滿 */
+  function floor() {
+    var g = ctx.bg; if (!g) return;
+    var y0 = Math.max(0, g.band), h = g.bh - y0, span = Math.max(0, g.bw - h), x0 = Math.round(span * (((ctx.lv || 1) * 0.37) % 1));
+    var k = board.clientWidth / h;
+    board.style.backgroundImage = 'url(' + g.src + ')';
+    board.style.backgroundSize = (g.bw * k) + 'px ' + (g.bh * k) + 'px';
+    board.style.backgroundPosition = (-x0 * k) + 'px ' + (-y0 * k) + 'px';
   }
   function setPos(u) { u.node.style.left = (u.tx * 10) + '%'; u.node.style.top = (u.ty * 10) + '%'; u.node.style.zIndex = 10 + u.ty }
   function setHp(u) { u.hpn.style.width = Math.max(0, Math.min(100, u.hp / u.b.mhp * 100)) + '%'; u.node.classList.toggle('dead', !!u.dead) }
@@ -241,9 +269,9 @@
     return p;
   }
   function attack(u, t) {
-    var before = snapHp();
+    var before = snapHp(), tg = hitList(u, pos(u), t);
     return lunge(u, t).then(function () {
-      S.finish(u, { sk: 'atk', tg: [t] });
+      S.finish(u, { sk: 'atk', tg: tg });
       showDiff(before, t); flushLog(); renderCard(cur);
     });
   }
@@ -288,7 +316,14 @@
       S.wait(u); flushLog();
     }).then(function () { return wait(AFTER_MS) });
   }
-  function pickTarget(list) { return list.slice().sort(function (a, b) { return a.hp / a.b.mhp - b.hp / b.b.mhp })[0] }
+  /* 挑目標：直線武器先挑能一次打到最多人的方向，其次挑生命比例最低的 */
+  function pickTarget(list) {
+    var u = cur;
+    return list.slice().sort(function (a, b) {
+      var n = u ? hitList(u, pos(u), b).length - hitList(u, pos(u), a).length : 0;
+      return n || a.hp / a.b.mhp - b.hp / b.b.mhp;
+    })[0];
+  }
 
   /* ---------- 玩家操作 ---------- */
   function tap(x, y) {
@@ -316,7 +351,7 @@
       '<button type="button" class="go" id="tback">回地圖</button></div>';
     board.appendChild(o); $('tback').onclick = function () { stop(); ctx.onExit() };
   }
-  function onResize() { if (loopOn) units.forEach(sizeSprite) }
+  function onResize() { if (loopOn) { floor(); units.forEach(sizeSprite) } }
   function stop() { loopOn = false; if (raf) cancelAnimationFrame(raf); raf = 0; done = true }
 
   /* ctx: {root, title, P: 玩家單位陣列, M: 怪物單位陣列, D, look(p), msrc(k, now, ph), msz(k), onExit()} */
@@ -330,7 +365,7 @@
       if (m.boss && hasBoss && m === S.M.filter(function (x) { return x.boss })[0]) { m.tx = 4; m.ty = 1 } else { var s = sl[j++] || [j % N, 0]; m.tx = s[0]; m.ty = s[1] }
       m.ph = Math.random() * 900;
     });
-    build(); placeUnits(); flushLog();
+    build(); floor(); placeUnits(); flushLog();
     loopOn = true; raf = requestAnimationFrame(anim);
     window.removeEventListener('resize', onResize); window.addEventListener('resize', onResize);
     begin();
