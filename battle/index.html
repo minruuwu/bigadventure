@@ -750,9 +750,9 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
-    return FB.getPlayers(pu).then(function(ms){start(me,(ms||[]).filter(Boolean));res()})})})})
+    return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];/* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=20"></script>
+<script type="module" src="../common/fb.js?v=21"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

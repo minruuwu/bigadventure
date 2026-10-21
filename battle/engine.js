@@ -109,12 +109,14 @@
   }
 
   /* ---------- 建立怪物單位 ---------- */
+  /* 全域怪物強度倍率（管理後台 meta/difficulty）：D.mul = {hp, atk}，沒設定就是 1 */
+  function MUL(D, k) { var v = D && D.mul ? Number(D.mul[k]) : 1; return v >= 0.5 && v <= 2 ? v : 1 }
   function monster(r, stg, D) {
     var hg = num(r.hp_growth), ag = num(r.atk_growth), k = stg - 1, res = {};
     ELS.forEach(function (e) { res[e] = num(r[e + '_res_rate']) }); res.none = num(r.none_res_rate);
     var cyc = [r.skill_1, r.skill_2, r.skill_3, r.skill_4].map(function (x) { x = String(x || '').trim(); return x && (x === 'atk' || D.SK[x]) ? x : 'atk' });
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
-      b: { mhp: Math.round(num(r.hp) * (1 + hg * k)), patk: Math.round(num(r.p_atk) * (1 + ag * k)), matk: Math.round(num(r.m_atk) * (1 + ag * k)), pdmg: 0, mdmg: 0,
+      b: { mhp: Math.round(num(r.hp) * (1 + hg * k) * MUL(D, 'hp')), patk: Math.round(num(r.p_atk) * (1 + ag * k) * MUL(D, 'atk')), matk: Math.round(num(r.m_atk) * (1 + ag * k) * MUL(D, 'atk')), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
       cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: [], special: monPassive(r, D), runes: [] };
   }

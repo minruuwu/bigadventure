@@ -36,14 +36,15 @@ function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function toast(t,err){var m=$('msg');m.textContent=t;m.className='on'+(err?' err':'');clearTimeout(toast.t);toast.t=setTimeout(function(){m.className=''},2600)}
 function csv(n){return fetch(BASE+n+'?v='+Math.floor(Date.now()/300000)).then(function(r){return r.ok?r.arrayBuffer():new ArrayBuffer(0)}).then(function(b){var t=new TextDecoder('utf-8').decode(b).replace(/^\ufeff/,''),L=t.split(/\r?\n/).filter(Boolean);if(!L.length)return[];var h=L[0].split(',');return L.slice(1).map(function(l){var c=l.split(','),o={};h.forEach(function(k,i){o[k.trim()]=(c[i]||'').trim()});return o})})}
-var NOTICE={text:'',on:false},NDRAFT=null,FB,ME=null,PL=[],JOBS=[],WPN=[],PETS=[],open={},WSEL={},JSEL={};
+var DIFF={hp:1,atk:1},DDRAFT=null,NOTICE={text:'',on:false},NDRAFT=null,FB,ME=null,PL=[],JOBS=[],WPN=[],PETS=[],open={},WSEL={},JSEL={};
 function boot(){withFB(function(f){FB=f;FB.ready.then(function(u){if(!u)return login();gate(u)})})}
 function login(){$('box').innerHTML='<p>請先用管理者的 Google 帳號登入。</p><button id="go" type="button">用 Google 登入</button>';$('go').onclick=function(){FB.signIn().then(function(u){gate(u)},function(){toast('登入失敗',1)})}}
 function gate(u){if(String(u.email||'').toLowerCase()!==ADMIN){$('box').innerHTML='<p>這個帳號（'+esc(u.email||'')+'）沒有管理權限。</p><button id="so" type="button" class="alt">登出</button>';$('so').onclick=function(){FB.signOut().then(function(){location.reload()})};return}
-  ME=u;Promise.all([csv('job_info.csv'),csv('weapon_info.csv'),csv('pet_info.csv'),FB.adminList(200),FB.noticeGet().catch(function(){return null})]).then(function(R){JOBS=R[0];WPN=R[1];PETS=R[2];PL=R[3];if(R[4])NOTICE={text:R[4].text||'',on:!!R[4].on};draw()},function(e){$('box').innerHTML='<p>載入失敗：'+esc(e&&(e.code||e.message)||'')+'</p>'})}
+  ME=u;Promise.all([csv('job_info.csv'),csv('weapon_info.csv'),csv('pet_info.csv'),FB.adminList(200),FB.noticeGet().catch(function(){return null}),FB.difficultyGet().catch(function(){return null})]).then(function(R){JOBS=R[0];WPN=R[1];PETS=R[2];PL=R[3];if(R[4])NOTICE={text:R[4].text||'',on:!!R[4].on};if(R[5])DIFF=R[5];draw()},function(e){$('box').innerHTML='<p>載入失敗：'+esc(e&&(e.code||e.message)||'')+'</p>'})}
 function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
   var h='<div id="top"><input id="q" type="search" placeholder="搜尋玩家名字" value="'+esc(q)+'"><button id="rf" type="button" class="alt">重新載入</button><button id="so" type="button" class="alt">登出</button></div>';
   var nv=NDRAFT!=null?NDRAFT:NOTICE.text;h+='<div class="pl" style="padding:10px 12px"><div class="nm">營地跑馬燈</div><div class="rw"><input id="nt" maxlength="200" placeholder="公告內容（最多 200 字）" value="'+esc(nv)+'" style="flex:1"><button id="ntOn" type="button">發布</button><button id="ntOff" type="button" class="alt">取消</button></div><p class="note">'+(NOTICE.on&&NOTICE.text?'目前顯示中：［公告］'+esc(NOTICE.text):'目前沒有公告（營地上方不顯示）')+'</p></div>';
+  var dv=DDRAFT||DIFF;h+='<div class="pl" style="padding:10px 12px"><div class="nm">怪物強度</div><div class="rw"><label>血量倍率</label><input id="dfh" type="number" min="0.5" max="2" step="0.05" value="'+dv.hp+'" style="width:80px"><label>攻擊倍率</label><input id="dfa" type="number" min="0.5" max="2" step="0.05" value="'+dv.atk+'" style="width:80px"><button id="dfOk" type="button">儲存</button></div><p class="note">所有怪物（含召喚出來的）的血量、物攻與魔攻乘上這個倍率；範圍 0.5～2，1 = 原本強度。目前：血量 ×'+DIFF.hp+'、攻擊 ×'+DIFF.atk+'。下一場戰鬥開始生效。</p></div>';
   var list=PL.filter(function(p){return !q||String(p.name||'').toLowerCase().indexOf(q)>=0});
   h+='<p class="note">共 '+PL.length+' 位玩家（依最近上線排序，最多 200 位）。點名字展開。</p>';
   list.forEach(function(p){var j=JOBS[p.job|0],on=open[p.uid];
@@ -51,6 +52,9 @@ function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
     if(on)h+=body(p);h+='</div>'});
   $('box').innerHTML=h;var qi=$('q');qi.addEventListener('input',function(){var pos=qi.selectionStart;draw();var n=$('q');n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}});
   $('nt').addEventListener('input',function(){NDRAFT=$('nt').value});
+  ['dfh','dfa'].forEach(function(id){$(id).addEventListener('input',function(){DDRAFT={hp:$('dfh').value,atk:$('dfa').value}})});
+  $('dfOk').onclick=function(){var hv=Number($('dfh').value),av=Number($('dfa').value);if(!(hv>=0.5&&hv<=2&&av>=0.5&&av<=2))return toast('倍率要在 0.5～2 之間',1);
+    hv=Math.round(hv*100)/100;av=Math.round(av*100)/100;FB.difficultySet(hv,av).then(function(){DIFF={hp:hv,atk:av};DDRAFT=null;draw();toast('怪物強度已儲存')},function(e){toast('儲存失敗：'+(e.code||e.message),1)})};
   $('ntOn').onclick=function(){var t=$('nt').value.trim();if(!t)return toast('請先輸入公告內容',1);FB.noticeSet(t,true).then(function(){NOTICE={text:t,on:true};NDRAFT=null;draw();toast('公告已發布')},function(e){toast('發布失敗：'+(e.code||e.message),1)})};
   $('ntOff').onclick=function(){FB.noticeSet(NOTICE.text,false).then(function(){NOTICE.on=false;draw();toast('公告已取消')},function(e){toast('取消失敗：'+(e.code||e.message),1)})};
   $('rf').onclick=function(){reload()};$('so').onclick=function(){FB.signOut().then(function(){location.reload()})}}
@@ -90,5 +94,5 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-a]')
 boot();
 })();
 </script>
-<script type="module" src="../common/fb.js?v=20"></script>
+<script type="module" src="../common/fb.js?v=21"></script>
 </body></html>
