@@ -272,18 +272,40 @@
     var pn = el('div', 'panel'); pn.style.marginTop = '12px';
     function row(k, label, min, max) { return '<label style="display:grid;grid-template-columns:86px 1fr 46px;gap:8px;align-items:center;font-size:13px;font-weight:700">' + label + '<input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="0.05" value="' + SZ[k] + '"><b data-v="' + k + '"></b></label>' }
     pn.innerHTML = '<h2>比例調整（只影響這台瀏覽器的測試畫面）</h2>' + row('p', '人物（格高）', 0.8, 3) + row('m', '怪物倍率', 0.5, 2.5) + row('b', '王再乘', 0.5, 2) +
-      '<div id="tzoo" style="display:flex;align-items:flex-end;gap:6px;overflow-x:auto;padding:8px 4px 4px;background:rgba(0,0,0,.25);box-shadow:inset 0 -3px 0 #3b2713"></div>' +
+      '<label style="display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:center;font-size:13px;font-weight:700">地圖展示<select id="tshow" style="font:inherit;font-size:13px;padding:4px;background:#2b1d13;color:var(--fg);border:2px solid #6b4a2a"><option value="">本關的怪</option><option value="n">全部一般怪物（' + kinds().filter(function (q) { return !q.boss }).length + ' 種）</option><option value="b">全部王（' + kinds().filter(function (q) { return q.boss }).length + ' 種）</option></select></label>' +
+      '<div id="tzoo" style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 8px;padding:8px 4px 4px;background:rgba(0,0,0,.25);box-shadow:inset 0 -3px 0 #3b2713"></div>' +
       '<p class="note" id="tsum" style="margin:0"></p><div class="tbtn" style="display:flex;gap:8px"><button type="button" id="treset" style="font:inherit;font-weight:900;border:0;background:var(--btn);color:var(--fg);padding:6px 12px;box-shadow:0 0 0 2px #1d1008">還原預設</button></div>';
     root$.insertBefore(pn, root$.children[3] || null);
     function sync() {
       [].forEach.call(pn.querySelectorAll('[data-v]'), function (b) { var k = b.getAttribute('data-v'); b.textContent = (k === 'p' ? SZ[k].toFixed(2) : '×' + SZ[k].toFixed(2)) });
       $('tsum').textContent = '目前：人物 ' + SZ.p.toFixed(2) + ' 格高、怪物 ×' + SZ.m.toFixed(2) + '、王再 ×' + SZ.b.toFixed(2) + '（截圖或抄這行給我就好）';
-      units.forEach(function (u) { if (u.node) sizeSprite(u) }); zoo();
+      units.forEach(function (u) { if (u.node) sizeSprite(u) }); SHOW.forEach(function (o) { sizeShow(o) }); zoo();
       try { localStorage.setItem('tac.size', JSON.stringify(SZ)) } catch (e) {}
     }
     pn.addEventListener('input', function (e) { var k = e.target.getAttribute('data-k'); if (k) { SZ[k] = +e.target.value; sync() } });
+    $('tshow').onchange = function () { showcase(this.value) };
     $('treset').onclick = function () { SZ.p = SZ0.p; SZ.m = SZ0.m; SZ.b = SZ0.b; [].forEach.call(pn.querySelectorAll('input'), function (i) { i.value = SZ[i.getAttribute('data-k')] }); sync() };
     sync();
+  }
+  /* 每種怪物（同圖同王與否算一種），王排最後 */
+  function kinds() {
+    var seen = {}, out = [];
+    Object.keys(ctx.D.mon).forEach(function (id) { var m = ctx.D.mon[id], k = m.sprite, boss = m.boss === '1'; if (!k || seen[k + boss]) return; seen[k + boss] = 1; out.push({ k: k, boss: boss, n: m.monster_name }) });
+    return out.sort(function (a, b) { return (a.boss ? 1 : 0) - (b.boss ? 1 : 0) });
+  }
+  /* 展示：把全部怪物擺在地圖上（只是圖，不參加戰鬥） */
+  var SHOW = [], SHOWPOS = { n: [[1, 1], [3, 1], [5, 1], [7, 1], [1, 3], [3, 3], [5, 3], [7, 3], [1, 5], [3, 5], [5, 5], [7, 5], [9, 2], [9, 4], [9, 6]], b: [[1, 4], [5, 4], [8, 4], [2, 1], [7, 1]] };
+  function sizeShow(o) { var w = spriteW(o.k, o.boss, board.clientWidth / N); o.sp.style.width = w[0] + 'px'; o.sp.style.height = w[1] + 'px' }
+  function showcase(mode) {
+    SHOW.forEach(function (o) { o.node.remove() }); SHOW = [];
+    S.M.forEach(function (m) { if (m.node) m.node.style.visibility = mode ? 'hidden' : '' });
+    if (!mode) return;
+    kinds().filter(function (q) { return mode === 'b' ? q.boss : !q.boss }).forEach(function (q, i) {
+      var p = SHOWPOS[mode][i] || [i % N, 0], d = el('div', 'tu m'), im = new Image(); im.alt = q.n; im.title = q.n;
+      d.appendChild(im); var lb = el('div', '', q.n); lb.style.cssText = 'position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);font-size:10px;font-weight:900;white-space:nowrap;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000';
+      d.appendChild(lb); d.style.left = (p[0] * 10) + '%'; d.style.top = (p[1] * 10) + '%'; d.style.zIndex = 10 + p[1];
+      layer.appendChild(d); var o = { k: q.k, boss: q.boss, node: d, sp: im, ph: Math.random() * 900 }; SHOW.push(o); sizeShow(o);
+    });
   }
   /* 對照列：一隻人物 + 每種怪物各一隻，用同一個格寬畫，底下的刻度是一格寬 */
   function zoo() {
@@ -325,6 +347,7 @@
         if (u.side === 'p') Doll.draw(u.sp, u.look, now + u.ph);
         else { var s = ctx.msrc(u.sprite, now, u.ph); if (s && u.sp.getAttribute('src') !== s) u.sp.src = s }
       });
+      SHOW.forEach(function (o) { var s2 = ctx.msrc(o.k, now, o.ph); if (s2 && o.sp.getAttribute('src') !== s2) o.sp.src = s2 });
     }
     raf = requestAnimationFrame(anim);
   }
@@ -590,7 +613,7 @@
 
   /* ctx: {root, title, P, M, D, jobs: job_info 依 u_sn, look(p), msrc(k, now, ph), msz(k), msc(k, boss), lv, bg, onExit()} */
   function start(c) {
-    ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0; sel = null; pend = null; phase = 'move';
+    SHOW = []; ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0; sel = null; pend = null; phase = 'move';
     S = BattleEngine.session(c.P, c.M, c.D);
     units = S.U;
     /* 反擊類反應技：攻擊者在自己的普攻射程內才發動 */
