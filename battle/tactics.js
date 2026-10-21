@@ -2,7 +2,8 @@
    10×10 地圖、依速度輪流、先移動再出手；普攻與技能共用一套「射程＋範圍」：single 單一格／line 直線貫穿／diamond 菱形。
    數值與結算全部交給 BattleEngine.session（跟自動戰鬥同一份規則），這裡只管站位、移動、選目標、冷卻、召喚站位。
    資料：job_attribute.csv move、monster_info.csv move／atk_range、weapon_info.csv range／area／area_size、
-         skill_info.csv range／area／area_size／cost（cost = 冷卻回合）。
+         skill_info.csv range／area／area_size／cost（cost = 冷卻回合）、job_info.csv skill_set（技能組名稱）。
+   操作：輪到我方 → 藍格移動 → 走到後（或點自己原地）在人物右邊跳出選單：攻擊／現職技能組／額外技能組／等待／取消移動。
    還沒做：王 3×3、嘲諷／保護 2 格規則、小地圖與縮放、技能特效動畫、獎勵。
    由 battle/index.html 在網址帶 ?tactics=1 時呼叫 Tactics.start(ctx)。 */
 (function (root) {
@@ -17,11 +18,15 @@
 
   var CSS = '' +
     '#tacv[hidden]{display:none}' +
-    '.tq{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}.tq::-webkit-scrollbar{display:none}' +
+    '.ttop{display:flex;align-items:center;gap:6px;padding:2px 2px 6px}' +
+    '.tq{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px;scrollbar-width:none}.tq::-webkit-scrollbar{display:none}' +
     '.tq>span{flex:none;font-size:11px;color:var(--dim);font-weight:700;margin-right:2px}' +
     '.tqi{flex:none;width:34px;height:34px;position:relative;background:#1a120c;box-shadow:0 0 0 2px #3b2713;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
     '.tqi.p{box-shadow:0 0 0 2px #3f6a2c}.tqi.m{box-shadow:0 0 0 2px #8a2a20}.tqi.now{box-shadow:0 0 0 3px #ffd76a}.tqi.done{opacity:.35}' +
     '.tqi canvas,.tqi img{width:32px;height:32px;image-rendering:pixelated;object-fit:contain}' +
+    '.tsb{flex:none;display:flex;flex-direction:column;gap:4px}' +
+    '.tsb button{font:inherit;font-weight:900;font-size:11px;line-height:1.2;border:0;background:var(--btn);color:var(--fg);padding:3px 7px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;white-space:nowrap}' +
+    '.tsb button.on{background:#c9893f;color:#1d1008}.tsb button:disabled{opacity:.4;cursor:default}' +
     '.tb{position:relative;width:100%;aspect-ratio:1;background:#2a2119 no-repeat;image-rendering:pixelated;box-shadow:0 0 0 2px var(--edge),inset 0 0 0 2px var(--hi);touch-action:manipulation;user-select:none;-webkit-user-select:none}' +
     '.tg{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(10,1fr)}' +
     '.tc{position:relative;border:0;padding:0;margin:0;background:rgba(0,0,0,.06);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
@@ -43,22 +48,25 @@
     '.tf{position:absolute;transform:translate(-50%,0);font-size:14px;font-weight:900;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;pointer-events:none;white-space:nowrap;animation:tfl .9s ease-out forwards;z-index:5}' +
     '.tf.d{color:#ff8a70}.tf.h{color:#8ef09a}.tf.x{color:#c9d4e0;font-size:12px}.tf.s{color:#ffd76a;font-size:12px}' +
     '@keyframes tfl{0%{opacity:0;margin-top:4px}15%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-22px}}' +
+    /* 人物旁的指令選單 */
+    '.tm{position:absolute;z-index:40;min-width:96px;max-width:58%;background:rgba(20,12,8,.94);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a,3px 3px 0 rgba(0,0,0,.45);padding:4px;display:flex;flex-direction:column;gap:3px}' +
+    '.tm button{font:inherit;text-align:left;border:0;background:#3a2414;color:var(--fg);font-weight:900;font-size:14px;padding:6px 9px;cursor:pointer;line-height:1.2;position:relative;white-space:nowrap}' +
+    '.tm button:active{background:#6b4a2a}.tm button:disabled{opacity:.38;cursor:default}' +
+    '.tm button small{display:block;font-size:10.5px;font-weight:700;color:#c9b48a}' +
+    '.tm button i{position:absolute;top:3px;right:5px;font-style:normal;font-size:10px;color:#ffb39e}' +
+    '.tm .tmh{font-size:11px;color:var(--gold);font-weight:900;padding:2px 4px 0}' +
+    '.tm .back{background:none;color:var(--dim);font-size:12px;padding:3px 6px}' +
+    '.tm .sl{max-height:var(--tmh,260px);overflow-y:auto;display:flex;flex-direction:column;gap:3px}' +
     '.tcard{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center}' +
     '.tav{width:44px;height:44px;background:#1a120c;box-shadow:0 0 0 2px #6b4a2a;display:flex;align-items:center;justify-content:center;overflow:hidden}.tav canvas,.tav img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}' +
     '.tnm{font-weight:900;font-size:15px}.tnm small{font-weight:700;font-size:12px;color:var(--dim);margin-left:6px}' +
     '.thp{height:6px;background:#1a0d08;box-shadow:0 0 0 1px #080503;margin-top:4px}.thp i{display:block;height:100%;background:#5fd36a}.thp.m i{background:#e0503a}' +
-    '.tbtn{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}' +
-    '.tbtn button{position:relative;font-weight:900;font-size:14px;border:0;background:var(--btn);padding:8px 4px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;line-height:1.25;min-width:0}' +
-    '.tbtn button small{display:block;font-size:11px;font-weight:700;color:#c9b48a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-    '.tbtn button.on{background:#c9893f;color:#1d1008;box-shadow:0 0 0 2px #1d1008,inset 0 0 0 2px #ffd76a}.tbtn button.on small{color:#4a2a12}' +
-    '.tbtn button:disabled{opacity:.4;cursor:default}' +
-    '.tbtn button i{position:absolute;top:2px;right:4px;font-style:normal;font-size:10px;font-weight:900;color:#ffb39e}' +
-    '.tsk{max-height:212px;overflow-y:auto;padding:2px}' +
     '.thint{font-size:12px;color:var(--gold);margin:0;min-height:1.5em;text-shadow:1px 1px 0 #000;font-weight:700}' +
-    '.tres{position:absolute;inset:0;z-index:20;background:rgba(6,4,2,.66);display:flex;align-items:center;justify-content:center;padding:10px}' +
+    '.tres{position:absolute;inset:0;z-index:60;background:rgba(6,4,2,.66);display:flex;align-items:center;justify-content:center;padding:10px}' +
     '#tacv .log{height:150px}';
 
-  var ctx, S, root$, board, layer, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend;
+  /* phase：move = 等玩家移動（或點自己開選單）／menu = 選單開著／sub = 技能組子選單／target = 選好招在點目標 */
+  var ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
 
   function $(id) { return document.getElementById(id) }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e }
@@ -74,6 +82,7 @@
   function onBoard(x, y) { return x >= 0 && y >= 0 && x < N && y < N }
   function int(v, dflt) { var n = parseInt(v, 10); return isNaN(n) ? dflt : n }
   function jobSn(p) { return p.jobSn || ('job' + ('0' + (((p.job | 0) + 1))).slice(-2)) }
+  function mine() { return cur && cur.side === 'p' && !auto && !done && !busy }
 
   /* ---------- 規則：移動 ---------- */
   function moveOf(u) {
@@ -136,9 +145,22 @@
     var s = int(w.area_size, a === 'diamond' ? 2 : 0);
     return (u._acts[id] = { id: id, sk: sk, r: Math.max(0, r), a: a, s: s, side: side, others: t === 'ally_others', cost: Math.max(0, int(w.cost, 0)) });
   }
-  /* 這個單位可以選的招：玩家 = 普攻 + 所有已學會的戰鬥技能；怪物 = 普攻 + 技能循環裡的招 */
+  /* 玩家的技能組：現職 + 額外一組（skills.extra，另一個職業）；只列已學會的戰鬥技能，依學會等級排 */
+  function setsOf(u) {
+    if (u.side !== 'p') return [];
+    var p = u.p || {}, js = jobSn(p), ex = p.skills && typeof p.skills.extra === 'string' ? p.skills.extra : '', out = [];
+    [js, ex].forEach(function (sn) {
+      if (!sn || out.some(function (o) { return o.sn === sn })) return;
+      var L = (u.learned || []).filter(function (k) { return k.j === sn }).slice().sort(function (a, b) { return a.lv - b.lv });
+      if (sn === ex && !L.length) return;
+      var row = (ctx.jobs || {})[sn] || {};
+      out.push({ sn: sn, name: row.skill_set || row.job_name || '技能', ids: L.map(function (k) { return k.id }) });
+    });
+    return out;
+  }
+  /* 這個單位可以選的招：玩家 = 普攻 + 兩組技能；怪物 = 普攻 + 技能循環裡的招 */
   function actsOf(u) {
-    var ids = u.side === 'p' ? (u.learned || []).map(function (k) { return k.id }) : (u.cycle || []).filter(function (x, i, a) { return x !== 'atk' && a.indexOf(x) === i });
+    var ids = u.side === 'p' ? [].concat.apply([], setsOf(u).map(function (o) { return o.ids })) : (u.cycle || []).filter(function (x, i, a) { return x !== 'atk' && a.indexOf(x) === i });
     return ['atk'].concat(ids).map(function (id) { return skAct(u, id) }).filter(Boolean);
   }
   function cdOf(u, id) { return (u.cd && u.cd[id]) || 0 }
@@ -165,30 +187,26 @@
       var h2 = L.filter(function (t) { return dist(c, pos(t)) <= a.s });
       return h2.length ? h2 : null;
     }
-    /* single：點到的那個人 */
     if (d > a.r || (a.side === 'foe' && d < 1)) return null;
     var t0 = at(c[0], c[1]);
     return t0 && L.indexOf(t0) >= 0 ? [t0] : null;
   }
-  /* 這招的射程格（畫淡紅 / 紅框用） */
   function rangeCells(a, P) {
     var out = [];
     if (a.a === 'line') { DIRS.forEach(function (s) { for (var i = 1; i <= a.r; i++) { var x = P[0] + s[0] * i, y = P[1] + s[1] * i; if (onBoard(x, y)) out.push([x, y]) } }); return out }
     for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) { var d = dist(P, [x, y]); if (d <= a.r && (d > 0 || a.side !== 'foe' || a.a === 'diamond')) out.push([x, y]) }
     return out;
   }
-  /* 範圍預覽格：直線 = 那個方向整條；菱形 = 中心往外 s 格 */
   function areaCells(a, P, c) {
     var out = [];
     if (a.a === 'line') { var dx = Math.sign(c[0] - P[0]), dy = Math.sign(c[1] - P[1]); for (var i = 1; i <= a.r; i++) { var x = P[0] + dx * i, y = P[1] + dy * i; if (onBoard(x, y)) out.push([x, y]) } return out }
     if (a.a === 'diamond') { for (var yy = 0; yy < N; yy++) for (var xx = 0; xx < N; xx++) if (dist(c, [xx, yy]) <= a.s) out.push([xx, yy]); return out }
     return [c];
   }
-  /* 從 P 出手所有可以點的格子與打到的人 */
   function choices(u, a, P) {
+    if (a.side === 'self' && a.a !== 'diamond') return [{ c: P, h: [u] }];
     var out = [];
     rangeCells(a, P).forEach(function (c) { var h = hitsAt(u, a, P, c); if (h) out.push({ c: c, h: h }) });
-    if (a.side === 'self' && a.a !== 'diamond') out = [{ c: P, h: [u] }];
     return out;
   }
   function actLabel(a) {
@@ -205,25 +223,27 @@
     $('tacstyle').textContent = CSS;
     root$ = ctx.root; root$.innerHTML = '';
     root$.appendChild(el('div', 'bhead', ctx.title + '・戰棋'));
-    var q = el('div', 'tq'); q.id = 'tq'; root$.appendChild(q);
+    var top = el('div', 'ttop'), q = el('div', 'tq'); q.id = 'tq'; top.appendChild(q);
+    var sb = el('div', 'tsb'); sb.innerHTML = '<button type="button" id="tauto">全隊自動</button><button type="button" id="tquit">離開</button>'; top.appendChild(sb);
+    root$.appendChild(top);
     board = el('div', 'tb'); var g = el('div', 'tg'); cells = [];
     for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
       var c = el('button', 'tc' + ((x + y) % 2 ? ' k' : '')); c.type = 'button'; c.dataset.x = x; c.dataset.y = y;
       c.setAttribute('aria-label', '第 ' + (y + 1) + ' 列第 ' + (x + 1) + ' 格'); g.appendChild(c); cells.push(c);
     }
-    board.appendChild(g); layer = el('div', 'tl'); board.appendChild(layer); root$.appendChild(board);
+    board.appendChild(g); layer = el('div', 'tl'); board.appendChild(layer);
+    menu = el('div', 'tm'); menu.hidden = true; menu.setAttribute('role', 'menu'); board.appendChild(menu);
+    root$.appendChild(board);
     g.addEventListener('click', function (ev) { var c = ev.target.closest('.tc'); if (c) tap(+c.dataset.x, +c.dataset.y) });
+    menu.addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (b && !b.disabled) menuPick(b.dataset) });
     var pn = el('div', 'panel'); pn.style.marginTop = '12px';
-    pn.innerHTML = '<div class="tcard"><div class="tav" id="tav"></div><div><div class="tnm" id="tnm"></div><div class="thp" id="thp"><i></i></div></div></div>' +
-      '<div class="tbtn tsk" id="tsk"></div>' +
-      '<div class="tbtn"><button type="button" id="tundo">↶ 取消移動</button><button type="button" id="twait">待機</button><button type="button" id="tauto">自動<small>剩下交給 AI</small></button></div>' +
-      '<p class="thint" id="thint"></p>' +
-      '<div class="tbtn"><button type="button" id="tquit" style="grid-column:3">離開<small>不算結果</small></button></div>';
+    pn.innerHTML = '<div class="tcard"><div class="tav" id="tav"></div><div><div class="tnm" id="tnm"></div><div class="thp" id="thp"><i></i></div></div></div><p class="thint" id="thint"></p>';
     root$.appendChild(pn);
     var lp = el('div', 'panel'); lp.style.marginTop = '12px'; lp.innerHTML = '<h2>戰報</h2><div class="log" id="tlog"></div>'; root$.appendChild(lp);
-    $('tsk').addEventListener('click', function (ev) { var b = ev.target.closest('button[data-id]'); if (b && !b.disabled) pick(b.dataset.id) });
-    $('tundo').onclick = undoMove; $('twait').onclick = doWait;
-    $('tauto').onclick = function () { if (done) return; auto = true; $('tauto').disabled = true; if (cur && cur.side === 'p' && !busy) { var u = cur; pend = null; aiTurn(u).then(next) } };
+    $('tauto').onclick = function () {
+      if (done || auto) return; auto = true; $('tauto').classList.add('on'); $('tauto').disabled = true; closeMenu();
+      if (cur && cur.side === 'p' && !busy) { var u = cur; pend = null; aiTurn(u).then(next) }
+    };
     $('tquit').onclick = function () { stop(); ctx.onExit() };
   }
   function sprite(u) {
@@ -284,26 +304,11 @@
     });
   }
   function renderCard(u) {
-    var av = $('tav'); av.innerHTML = ''; if (!u) { $('tsk').innerHTML = ''; return } av.appendChild(icon(u));
-    var info = (u.side === 'p' ? (u.weapon || '徒手') + '・' : '') + '移動 ' + moveOf(u) + ' 格・普攻' + actLabel(atkAct(u));
+    var av = $('tav'); av.innerHTML = ''; if (!u) return; av.appendChild(icon(u));
+    var sets = setsOf(u).map(function (o) { return o.name }).join('／');
+    var info = (u.side === 'p' ? (u.weapon || '徒手') + '・' : '') + '移動 ' + moveOf(u) + ' 格・普攻' + actLabel(atkAct(u)) + (sets ? '・' + sets : '');
     $('tnm').innerHTML = esc(u.name) + '<small>' + esc(info) + '</small>';
     $('thp').className = 'thp' + (u.side === 'm' ? ' m' : ''); $('thp').firstChild.style.width = Math.max(0, u.hp / u.b.mhp * 100) + '%';
-    renderSkills(u);
-  }
-  function renderSkills(u) {
-    var mine = u && u === cur && u.side === 'p' && !auto && !done && !busy, h = '';
-    actsOf(u).forEach(function (a) {
-      var cd = cdOf(u, a.id), ok = mine && usable(u, a);
-      h += '<button type="button" data-id="' + a.id + '"' + (a.id === sel && mine ? ' class="on"' : '') + (ok ? '' : ' disabled') + '>' + esc(a.sk.n) +
-        '<small>' + (a.id === 'atk' ? '' : esc(TYN[a.sk.ty] || '') + '・') + esc(actLabel(a)) + '</small>' + (cd > 0 ? '<i>CD ' + cd + '</i>' : '') + '</button>';
-    });
-    $('tsk').innerHTML = h;
-  }
-  function buttons() {
-    var mine = cur && cur.side === 'p' && !auto && !done && !busy;
-    $('twait').disabled = !mine; $('tundo').disabled = !(mine && cur.moved);
-    $('tauto').disabled = auto || done;
-    if (cur) renderSkills(cur);
   }
   function hint(t) { $('thint').textContent = t || '' }
   function flushLog() {
@@ -314,26 +319,83 @@
   }
   function cell(x, y) { return cells[y * N + x] }
   function clearCells() { cells.forEach(function (c) { c.className = 'tc' + ((+c.dataset.x + +c.dataset.y) % 2 ? ' k' : '') }) }
+
+  /* ---------- 指令選單（人物右邊；太靠右翻到左邊，太靠下往上長） ---------- */
+  function openMenu(p) { phase = p || 'menu'; pend = null; sel = null; paint(); renderMenu() }
+  function closeMenu() { menu.hidden = true; menu.innerHTML = '' }
+  function renderMenu() {
+    var u = cur, h = '', sealed = S.ctrl(u, 'seal');
+    if (phase === 'menu') {
+      h += '<button type="button" data-act="atk">攻擊<small>' + esc(actLabel(atkAct(u))) + '</small></button>';
+      setsOf(u).forEach(function (o) {
+        var any = o.ids.some(function (id) { return usable(u, skAct(u, id)) });
+        h += '<button type="button" data-set="' + o.sn + '"' + (o.ids.length && !sealed ? '' : ' disabled') + '>' + esc(o.name) + '<small>' + (sealed ? '封印中' : !o.ids.length ? '還沒學會技能' : any ? o.ids.length + ' 招' : '都在冷卻') + '</small></button>';
+      });
+      h += '<button type="button" data-act="wait">等待</button>';
+      if (u.moved) h += '<button type="button" data-act="undo">↶ 取消移動</button>';
+    } else {
+      var o = setsOf(u).filter(function (x) { return x.sn === subSn })[0] || { name: '', ids: [] };
+      h += '<button type="button" class="back" data-act="back">‹ 返回</button><div class="tmh">' + esc(o.name) + '</div><div class="sl">';
+      o.ids.forEach(function (id) {
+        var a = skAct(u, id), cd = cdOf(u, id);
+        h += '<button type="button" data-sk="' + id + '"' + (usable(u, a) ? '' : ' disabled') + '>' + esc(a.sk.n) + '<small>' + esc((TYN[a.sk.ty] || '') + '・' + actLabel(a)) + '</small>' + (cd > 0 ? '<i>CD ' + cd + '</i>' : '') + '</button>';
+      });
+      h += '</div>';
+    }
+    menu.innerHTML = h; menu.hidden = false;
+    placeMenu();
+  }
+  function placeMenu() {
+    var W = board.clientWidth, H = board.clientHeight, cw = W / N;
+    menu.style.setProperty('--tmh', Math.round(H * 0.62) + 'px');
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    var left = (cur.tx + 1) * cw + 4;
+    if (left + mw > W - 2) left = cur.tx * cw - mw - 4;
+    left = Math.max(2, Math.min(left, W - mw - 2));
+    var top = cur.ty * cw - cw * 0.5;
+    if (top + mh > H - 2) top = H - mh - 2;
+    top = Math.max(2, top);
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+  }
+  function menuPick(d) {
+    if (!mine()) return;
+    if (d.act === 'atk') { sel = 'atk'; phase = 'target'; closeMenu(); paint(); return }
+    if (d.act === 'wait') return doWait();
+    if (d.act === 'undo') return undoMove();
+    if (d.act === 'back') { phase = 'menu'; renderMenu(); paint(); return }
+    if (d.set) { subSn = d.set; phase = 'sub'; renderMenu(); paint(); return }
+    if (d.sk) {
+      var a = skAct(cur, d.sk); if (!a || !usable(cur, a)) return;
+      if (a.side === 'self' && a.a !== 'diamond') { closeMenu(); go(a, pos(cur), [cur]); return }
+      sel = d.sk; phase = 'target'; closeMenu(); paint();
+    }
+  }
+
   /* 塗格子：藍 = 可移動；紅框 = 普攻射程；淡紅 = 技能射程；紅底／綠底 = 可以點的目標；橘 = 範圍預覽 */
   function paint() {
     clearCells();
     if (!cur || done) return;
     cell(cur.tx, cur.ty).classList.add('cur');
-    if (cur.side !== 'p' || auto || busy) return;
+    if (!mine()) return;
+    if (phase === 'move' || ((phase === 'menu' || phase === 'sub') && !cur.moved)) {
+      cur.R = cur.moved ? null : reach(cur);
+      if (cur.R) Object.keys(cur.R).forEach(function (k) { var r = cur.R[k]; if (r.d > 0) cell(r.x, r.y).classList.add('mv') });
+      if (phase === 'move') hint(cur.moved ? '點自己（金框）打開指令選單。' : '點藍色格子移動；或點自己（金框）原地打開指令選單。');
+      else hint('選一個指令；點藍色格子可以改站別的位置。');
+      return;
+    }
+    if (phase !== 'target') { hint('選一個指令。'); return }
     var a = skAct(cur, sel) || atkAct(cur), P = pos(cur);
-    if (!cur.moved) { cur.R = reach(cur); Object.keys(cur.R).forEach(function (k) { var r = cur.R[k]; if (r.d > 0) cell(r.x, r.y).classList.add('mv') }) }
     rangeCells(a, P).forEach(function (c) { cell(c[0], c[1]).classList.add(a.id === 'atk' ? 'rg' : 'sr') });
     var ch = choices(cur, a, P), tgCls = a.side === 'foe' ? 'tgt' : 'tga';
     if (a.a === 'single') ch.forEach(function (o) { cell(o.c[0], o.c[1]).classList.add(tgCls) });
     else ch.forEach(function (o) { o.h.forEach(function (t) { cell(t.tx, t.ty).classList.add(tgCls) }) });
     if (pend && pend.id === a.id) areaCells(a, P, pend.c).forEach(function (c) { cell(c[0], c[1]).classList.add('ar') });
     var nm = a.sk.n;
-    if (pend && pend.id === a.id) hint('「' + nm + '」會打到：' + pend.h.map(function (t) { return t.name }).join('、') + '。再點一次同一格確認施放。');
-    else if (!ch.length) hint('「' + nm + '」' + (a.a === 'single' && a.side !== 'self' ? '射程內沒有目標' : '範圍內沒有目標') + (cur.moved ? '：換一招、「待機」或「取消移動」。' : '：先點藍色格子移動，或換一招。'));
-    else if (a.side === 'self' && a.a !== 'diamond') hint('點自己（金框）施放「' + nm + '」。');
-    else if (a.a === 'single') hint((cur.moved ? '' : '點藍色格子移動，或') + '點' + (a.side === 'foe' ? '紅色的敵人' : '綠色的隊友') + '施放「' + nm + '」；出手後就不能再移動。');
-    else hint('點' + (a.a === 'line' ? '直線上的一格選方向' : '射程內一格當中心') + '預覽範圍（橘色），再點同一格確認。');
-    buttons();
+    if (pend && pend.id === a.id) hint('「' + nm + '」會打到：' + pend.h.map(function (t) { return t.name }).join('、') + '。再點一次同一格確認；點其他地方回選單。');
+    else if (!ch.length) hint('「' + nm + '」' + (a.a === 'single' ? '射程內沒有目標' : '範圍內沒有目標') + '：點任一格回選單。');
+    else if (a.a === 'single') hint('點' + (a.side === 'foe' ? '紅色的敵人' : '綠色的隊友') + '施放「' + nm + '」；點其他地方回選單。');
+    else hint('點' + (a.a === 'line' ? '直線上的一格選方向' : '射程內一格（或亮起來的目標）') + '預覽範圍，再點同一格確認；點其他地方回選單。');
   }
 
   /* ---------- 流程 ---------- */
@@ -390,19 +452,19 @@
     oi++;
     var u = order[oi];
     if (!u || u.dead || u.tx == null) return next();
-    cur = u; u.moved = false; u.from = pos(u); sel = 'atk'; pend = null;
+    cur = u; u.moved = false; u.from = pos(u); sel = null; pend = null; phase = 'move'; closeMenu();
     if (u.cd) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });   /* 冷卻以自己的行動次數計（被控制跳過也算） */
     renderQueue(); renderCard(u);
     var before = snapHp(), ok = S.start(u);
     showDiff(before, null); flushLog();
-    if (!ok) { paint(); return wait(AFTER_MS).then(next) }
+    if (!ok) { busy = true; paint(); return wait(AFTER_MS).then(next) }
     if (u.side === 'p' && !auto) { busy = false; paint(); return }
-    busy = true; paint(); buttons();
+    busy = true; paint();
     return wait(THINK_MS).then(function () { return aiTurn(u) }).then(next);
   }
-  function next() { if (done) return; busy = false; pend = null; paint(); if (!S.alive(S.P) || !S.alive(S.M)) return end(); setTimeout(begin, 60) }
+  function next() { if (done) return; busy = false; pend = null; closeMenu(); paint(); if (!S.alive(S.P) || !S.alive(S.M)) return end(); setTimeout(begin, 60) }
 
-  /* ---------- AI（怪物、按「自動」後的我方） ----------
+  /* ---------- AI（怪物、按「全隊自動」後的我方） ----------
      每個可走的格子 × 每招可用的招 × 每個可以點的格子打分數，挑最高的；都沒有就往最近的敵人靠 */
   function statusOf(id) { return (ctx.D.EFF[id] || []).filter(function (e) { return e.effect_kind === 'status' && e.status_name }).map(function (e) { return e.status_name }) }
   function summons(id) { return (ctx.D.EFF[id] || []).some(function (e) { return e.effect_kind === 'summon' }) }
@@ -426,7 +488,7 @@
     return best;
   }
   function aiTurn(u) {
-    busy = true; pend = null; buttons(); paint();
+    busy = true; pend = null; closeMenu(); paint();
     var plan = null, R = u.moved ? null : reach(u);
     if (R) Object.keys(R).forEach(function (k) {
       var r = R[k], b = bestAt(u, [r.x, r.y]); if (!b) return;
@@ -435,7 +497,6 @@
     });
     else { plan = bestAt(u, pos(u)); if (plan) plan.k = key(u.tx, u.ty) }
     if (plan) return walk(u, pathTo(plan.k, u)).then(function () { paint(); return cast(u, plan.a, plan.c, plan.h) }).then(function () { return wait(AFTER_MS) });
-    /* 打不到也沒事做：往最近的敵人靠 */
     var fs = foesOf(u).filter(function (t) { return !S.banished(t) });
     if (!R || !fs.length) { S.wait(u); flushLog(); return wait(AFTER_MS) }
     var bk = null, bs = null;
@@ -444,53 +505,56 @@
   }
 
   /* ---------- 玩家操作 ---------- */
-  function pick(id) {
-    if (!cur || cur.side !== 'p' || auto || busy || done) return;
-    var a = skAct(cur, id); if (!a || !usable(cur, a)) return;
-    /* 自身技再點一次按鈕 = 施放 */
-    if (sel === id && a.side === 'self' && a.a !== 'diamond') { go(a, pos(cur), [cur]); return }
-    sel = id; pend = null; paint();
-  }
-  function go(a, c, h) { var u = cur; busy = true; pend = null; buttons(); paint(); cast(u, a, c, h).then(function () { return wait(AFTER_MS) }).then(next) }
+  function go(a, c, h) { var u = cur; busy = true; pend = null; phase = 'busy'; closeMenu(); paint(); cast(u, a, c, h).then(function () { return wait(AFTER_MS) }).then(next) }
   function tap(x, y) {
     var who = at(x, y);
-    if (!cur || cur.side !== 'p' || auto || busy || done) { if (who) peek(who); return }
-    var a = skAct(cur, sel) || atkAct(cur), P = pos(cur), c = [x, y], h = hitsAt(cur, a, P, c);
-    /* 點到亮起來的目標本身（範圍技的中心不一定在他身上）：挑包含他、打到最多人的中心 */
-    if (!h && who && a.a !== 'single') {
-      var best = null;
-      choices(cur, a, P).forEach(function (o) { if (o.h.indexOf(who) >= 0 && (!best || o.h.length > best.h.length)) best = o });
-      if (best) { if (pend && pend.id === a.id && pend.c[0] === best.c[0] && pend.c[1] === best.c[1]) return go(a, best.c, best.h); pend = { id: a.id, c: best.c, h: best.h }; paint(); return }
+    if (!mine()) { if (who) peek(who); return }
+    var self = x === cur.tx && y === cur.ty;
+    if (phase === 'target') {
+      var a = skAct(cur, sel) || atkAct(cur), P = pos(cur), c = [x, y], h = hitsAt(cur, a, P, c);
+      /* 點到亮起來的目標本身（範圍技的中心不一定在他身上）：挑包含他、打到最多人的中心 */
+      if (!h && who && a.a !== 'single') {
+        var best = null;
+        choices(cur, a, P).forEach(function (o) { if (o.h.indexOf(who) >= 0 && (!best || o.h.length > best.h.length)) best = o });
+        if (best) { if (pend && pend.id === a.id && pend.c[0] === best.c[0] && pend.c[1] === best.c[1]) return go(a, best.c, best.h); pend = { id: a.id, c: best.c, h: best.h }; paint(); return }
+      }
+      if (h) {
+        if (a.a === 'single') return go(a, c, h);
+        if (pend && pend.id === a.id && pend.c[0] === x && pend.c[1] === y) return go(a, c, h);
+        pend = { id: a.id, c: c, h: h }; paint(); return;
+      }
+      /* 點到別的地方：回選單 */
+      return openMenu('menu');
     }
-    if (h) {
-      if (a.a === 'single') return go(a, c, h);
-      if (pend && pend.id === a.id && pend.c[0] === x && pend.c[1] === y) return go(a, c, h);
-      pend = { id: a.id, c: c, h: h }; paint(); return;
+    if (self) { return openMenu('menu') }
+    /* 移動：還沒移動過、點藍格 → 走過去，走到後跳出選單 */
+    if (!cur.moved && cur.R && cur.R[key(x, y)] && cur.R[key(x, y)].d > 0) {
+      var u2 = cur, k = key(x, y); pend = null; busy = true; closeMenu(); paint();
+      walk(u2, pathTo(k, u2)).then(function () { u2.moved = true; busy = false; openMenu('menu') });
+      return;
     }
-    if (!cur.moved && cur.R) {
-      var k = key(x, y), r = cur.R[k];
-      if (r && r.d > 0) { var u2 = cur; pend = null; busy = true; buttons(); paint(); walk(u2, pathTo(k, u2)).then(function () { u2.moved = true; busy = false; paint() }); return }
-    }
+    if (phase === 'menu' || phase === 'sub') { closeMenu(); phase = 'move'; paint() }
     if (who) peek(who);
   }
   function peek(u) { hint(u.name + '　生命 ' + Math.max(0, Math.round(u.hp)) + '/' + u.b.mhp + '・移動 ' + moveOf(u) + '・普攻' + actLabel(atkAct(u)) + (u.st.length ? '・狀態：' + u.st.map(function (s) { return s.n }).join('、') : '')) }
-  function undoMove() { if (!cur || !cur.moved || busy) return; cur.tx = cur.from[0]; cur.ty = cur.from[1]; cur.moved = false; pend = null; setPos(cur); paint() }
-  function doWait() { if (!cur || cur.side !== 'p' || busy) return; busy = true; pend = null; S.wait(cur); flushLog(); next() }
+  function undoMove() { if (!cur || !cur.moved || busy) return; cur.tx = cur.from[0]; cur.ty = cur.from[1]; cur.moved = false; pend = null; setPos(cur); closeMenu(); phase = 'move'; paint() }
+  function doWait() { if (!cur || cur.side !== 'p' || busy) return; busy = true; pend = null; closeMenu(); S.wait(cur); flushLog(); next() }
 
   function end() {
-    if (done) return; done = true; busy = true; cur = null; clearCells(); buttons(); flushLog(); renderQueue(); renderCard(null);
+    if (done) return; done = true; busy = true; cur = null; closeMenu(); clearCells(); flushLog(); renderQueue(); hint('');
+    $('tauto').disabled = true;
     var r = S.res(), w = r === 'win';
     var o = el('div', 'tres'); o.innerHTML = '<div class="rbox"><div class="rt ' + (w ? 'win' : 'lose') + '">' + (w ? '勝利' : '失敗') + '</div><p>' +
       (w ? '打倒了所有敵人！' : r === 'draw' ? S.MAXR + ' 回合內沒分出勝負。' : '全隊倒下了。') + '<br><small>戰棋測試中，這場不會給獎勵</small></p>' +
       '<button type="button" class="go" id="tback">回地圖</button></div>';
     board.appendChild(o); $('tback').onclick = function () { stop(); ctx.onExit() };
   }
-  function onResize() { if (loopOn) { floor(); units.forEach(function (u) { if (u.node) sizeSprite(u) }) } }
+  function onResize() { if (loopOn) { floor(); units.forEach(function (u) { if (u.node) sizeSprite(u) }); if (!menu.hidden) placeMenu() } }
   function stop() { loopOn = false; if (raf) cancelAnimationFrame(raf); raf = 0; done = true }
 
-  /* ctx: {root, title, P, M, D, look(p), msrc(k, now, ph), msz(k), msc(k, boss), lv, bg, onExit()} */
+  /* ctx: {root, title, P, M, D, jobs: job_info 依 u_sn, look(p), msrc(k, now, ph), msz(k), msc(k, boss), lv, bg, onExit()} */
   function start(c) {
-    ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0; sel = 'atk'; pend = null;
+    ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0; sel = null; pend = null; phase = 'move';
     S = BattleEngine.session(c.P, c.M, c.D);
     units = S.U;
     /* 反擊類反應技：攻擊者在自己的普攻射程內才發動 */
@@ -507,5 +571,5 @@
     begin();
   }
 
-  root.Tactics = { start: start, _dbg: function () { return { busy: busy, auto: auto, done: done, cur: cur && cur.name, sel: sel, oi: oi, round: S && S.rounds(), hint: $('thint') && $('thint').textContent } } };
+  root.Tactics = { start: start, _dbg: function () { return { busy: busy, auto: auto, done: done, cur: cur && cur.name, phase: phase, sel: sel, oi: oi, round: S && S.rounds(), hint: $('thint') && $('thint').textContent } } };
 })(this);

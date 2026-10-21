@@ -108,7 +108,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="engine.js?v=12"></script>
-<script src="tactics.js?v=3"></script>
+<script src="tactics.js?v=4"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -589,11 +589,11 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();if(TACT)startTactics(A2,L2);else startBattle(A2,L2)}});
 /* 戰棋測試（?tactics=1，docs/tactics.md 第 0 階段）：選關後改用戰棋打；不存檔、不給獎勵 */
 function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
-  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,lv:l,bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
+  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,jobs:JOBI,lv:l,bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
-var ENG=null,AREAID=['area01','area02','area03','area04','area05','area06','area07','area08'],OPEN={0:1};
+var JOBI={}/* job_info.csv 依 u_sn（戰棋技能組名稱 skill_set） */,ENG=null,AREAID=['area01','area02','area03','area04','area05','area06','area07','area08'],OPEN={0:1};
 function cleared(a){if(demo)return NST-1;var m=MEMB[0]&&MEMB[0].adv||{};return m[AREAID[a]]|0}
 function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?{exp:parseInt(r.exp,10)||0,stones:parseInt(r.stones,10)||0}:rewardOf(a,l)}
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
@@ -743,8 +743,8 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}
-Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadImgs()].map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
-  var csv=r[0];ENG=BattleEngine.prepare({weapon_info:csv[0],skill_info:csv[3],skill_effect:csv[4],status_info:csv[5],job_attribute:csv[6],job_level_up:csv[7],pet_info:csv[8],monster_info:csv[9],stage_info:csv[10]});CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||q.part2_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
+Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv','job_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadImgs()].map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
+  var csv=r[0];(csv[11]||[]).forEach(function(q){if(q.u_sn)JOBI[q.u_sn]=q});ENG=BattleEngine.prepare({weapon_info:csv[0],skill_info:csv[3],skill_effect:csv[4],status_info:csv[5],job_attribute:csv[6],job_level_up:csv[7],pet_info:csv[8],monster_info:csv[9],stage_info:csv[10]});CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||q.part2_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   var I=IMG,m=I.monster_01;if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}
@@ -754,7 +754,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})
 }).then(function(){
   if(VFXT){vtStart();return}
-  if(demo&&/demo=2/.test(location.search)){var d2=demoPlayers().concat(demoPlayers().slice(0,1).map(function(q){return Object.assign({},q,{uid:'d4',name:'小強'})}));d2.forEach(function(q,i){var jn='job0'+((i%5)+1),k=WBYNAME[q.weapon];q.jobSn=jn;q.job=i%5;q.lv=12;q.jobLv={};q.jobLv[jn]=12;q.alloc={str:30,int:0,agi:10,vit:15,luk:0};q.weapons={};if(k)q.weapons[k]={lv:15};q.skills={combat:['skill001','skill006','skill003','skill008'],reaction:'',passive:[]}});start(d2[0],d2.slice(1));return}
+  if(demo&&/demo=2/.test(location.search)){var d2=demoPlayers().concat(demoPlayers().slice(0,1).map(function(q){return Object.assign({},q,{uid:'d4',name:'小強'})}));d2.forEach(function(q,i){var jn='job0'+((i%5)+1),k=WBYNAME[q.weapon];q.jobSn=jn;q.job=i%5;q.lv=12;q.jobLv={};q.jobLv[jn]=12;q.alloc={str:30,int:0,agi:10,vit:15,luk:0};q.weapons={};if(k)q.weapons[k]={lv:15};q.skills={combat:['skill001','skill006','skill003','skill008'],reaction:'',passive:[]};var jx='job0'+(((i+1)%5)+1);q.jobLv[jx]=8;q.skills.extra=jx/* 示範：另練一個職業，戰棋帶它當額外技能組 */});start(d2[0],d2.slice(1));return}
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
