@@ -50,6 +50,7 @@
     '@keyframes tfl{0%{opacity:0;margin-top:4px}15%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-22px}}' +
     /* 人物旁的指令選單 */
     '.tm{position:absolute;z-index:40;min-width:96px;max-width:58%;background:rgba(20,12,8,.94);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a,3px 3px 0 rgba(0,0,0,.45);padding:4px;display:flex;flex-direction:column;gap:3px}' +
+    '.tm[hidden]{display:none}' +
     '.tm button{font:inherit;text-align:left;border:0;background:#3a2414;color:var(--fg);font-weight:900;font-size:14px;padding:6px 9px;cursor:pointer;line-height:1.2;position:relative;white-space:nowrap}' +
     '.tm button:active{background:#6b4a2a}.tm button:disabled{opacity:.38;cursor:default}' +
     '.tm button small{display:block;font-size:10.5px;font-weight:700;color:#c9b48a}' +
