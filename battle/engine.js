@@ -545,10 +545,10 @@
         nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0.5; nu.summoned = true;
         M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
       });
-      /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…） */
+      /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…）；target 填 target = 跟技能同一個目標（堅毅禱言、意志禱言） */
       effs.forEach(function (r) {
         if (r.effect_kind !== 'heal') return;
-        var who = r.target === 'self' ? [u] : r.target === 'ally_all' ? friends(u) : r.target === 'ally_others' ? friends(u).filter(function (x) { return x !== u }) : r.target === 'ally_single' ? [choose(friends(u), r.condition || 'lowest_hp')] : [];
+        var who = r.target === 'target' ? tg.filter(function (t) { return !t.dead && t.side === u.side }) : r.target === 'self' ? [u] : r.target === 'ally_all' ? friends(u) : r.target === 'ally_others' ? friends(u).filter(function (x) { return x !== u }) : r.target === 'ally_single' ? [choose(friends(u), r.condition || 'lowest_hp')] : [];
         var out = [], tot = 0;
         who.forEach(function (t) {
           if (!t) return;
@@ -559,7 +559,7 @@
         });
         if (out.length) e.txt += '，' + out.join('，');
         if (tot > 0 && r.base !== 'sacrificed_hp') echo(u, tot, e);
-        e.hl = (e.hl || []).concat(who.filter(function (t) { return t && t.side === 'p' }).map(function (t) { return t.i }));
+        e.hl = (e.hl || []).concat(who.filter(function (t) { return t && t.side === 'p' && (e.hl || []).indexOf(t.i) < 0 }).map(function (t) { return t.i }));
       });
       /* 鹿之守護、月之淨化：主動治療時 */
     }
