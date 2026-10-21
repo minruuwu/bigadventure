@@ -1,17 +1,19 @@
-/* 戰棋模式（第 0 階段，規格見 docs/tactics.md）
-   10×10 地圖、依速度輪流、先移動再出手、普通攻擊射程、怪物走近就打、勝負判定。
-   數值與結算全部交給 BattleEngine.session（跟自動戰鬥同一份規則），這裡只管站位、移動、選目標。
-   還沒做：技能與冷卻、範圍技、王 3×3、召喚、嘲諷／保護射程、小地圖與縮放、獎勵。
+/* 戰棋模式（規格見 docs/tactics.md）
+   10×10 地圖、依速度輪流、先移動再出手；普攻與技能共用一套「射程＋範圍」：single 單一格／line 直線貫穿／diamond 菱形。
+   數值與結算全部交給 BattleEngine.session（跟自動戰鬥同一份規則），這裡只管站位、移動、選目標、冷卻、召喚站位。
+   資料：job_attribute.csv move、monster_info.csv move／atk_range、weapon_info.csv range／area／area_size、
+         skill_info.csv range／area／area_size／cost（cost = 冷卻回合）。
+   還沒做：王 3×3、嘲諷／保護 2 格規則、小地圖與縮放、技能特效動畫、獎勵。
    由 battle/index.html 在網址帶 ?tactics=1 時呼叫 Tactics.start(ctx)。 */
 (function (root) {
   'use strict';
   var N = 10;
-  var STEP_MS = 90, THINK_MS = 320, AFTER_MS = 520;
-  /* 移動、普攻射程都讀資料表（docs/tactics.md「移動」「射程與範圍」）：
-     job_attribute.csv move、monster_info.csv move／atk_range、weapon_info.csv range／area／area_size；空白：移動 4、射程 1、範圍單一格 */
+  var STEP_MS = 90, THINK_MS = 320, AFTER_MS = 560;
   var PSPAWN = [[4, 8], [6, 8], [3, 9], [5, 9]];
   var MSPAWN = [[4, 1], [5, 1], [3, 1], [6, 1], [2, 1], [7, 1], [4, 0], [5, 0]];
   var MSPAWN_BOSS = [[6, 1], [2, 1], [6, 3], [2, 3], [7, 2], [1, 2], [8, 1], [0, 1]];
+  var DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  var TYN = { damage: '傷害', heal: '治療', buff: '增益', debuff: '減益' };
 
   var CSS = '' +
     '#tacv[hidden]{display:none}' +
@@ -25,8 +27,11 @@
     '.tc{position:relative;border:0;padding:0;margin:0;background:rgba(0,0,0,.06);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);cursor:pointer;-webkit-tap-highlight-color:transparent}' +
     '.tc.k{background:rgba(0,0,0,.14)}' +
     '.tc.mv{background:rgba(47,100,190,.55)}.tc.mv.k{background:rgba(40,88,170,.6)}' +
+    '.tc.sr{background:rgba(170,50,35,.32)}' +
     '.tc.rg::after{content:"";position:absolute;inset:2px;box-shadow:inset 0 0 0 2px #d4553f;pointer-events:none}' +
     '.tc.tgt{background:rgba(150,30,20,.55)}.tc.tgt::after{content:"";position:absolute;inset:1px;box-shadow:inset 0 0 0 3px #ff6a50;pointer-events:none}' +
+    '.tc.tga{background:rgba(40,140,60,.45)}.tc.tga::after{content:"";position:absolute;inset:1px;box-shadow:inset 0 0 0 3px #7ee08a;pointer-events:none}' +
+    '.tc.ar,.tc.ar.k,.tc.ar.mv{background:rgba(225,140,40,.62)}.tc.ar::after{content:"";position:absolute;inset:1px;box-shadow:inset 0 0 0 2px #ffcf6a;pointer-events:none}' +
     '.tc.cur::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 3px #ffd76a;pointer-events:none;z-index:1}' +
     '.tl{position:absolute;inset:2px;pointer-events:none}' +
     '.tu{position:absolute;width:10%;height:10%;transition:left .085s linear,top .085s linear,opacity .4s}' +
@@ -34,23 +39,26 @@
     '.tu .hp{position:absolute;left:12%;right:12%;bottom:2%;height:4px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.tu .hp i{display:block;height:100%;background:#5fd36a}.tu.m .hp i{background:#e0503a}' +
     '.tu.dead{opacity:0}' +
     '.tu.hit{animation:thit .25s}@keyframes thit{0%,100%{filter:none}40%{filter:brightness(2.2) saturate(0)}}' +
+    '.tu.cast{animation:tcast .4s}@keyframes tcast{0%,100%{filter:none}50%{filter:brightness(1.7) drop-shadow(0 0 4px #ffd76a)}}' +
     '.tf{position:absolute;transform:translate(-50%,0);font-size:14px;font-weight:900;color:#fff;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;pointer-events:none;white-space:nowrap;animation:tfl .9s ease-out forwards;z-index:5}' +
-    '.tf.d{color:#ff8a70}.tf.h{color:#8ef09a}.tf.x{color:#c9d4e0;font-size:12px}' +
+    '.tf.d{color:#ff8a70}.tf.h{color:#8ef09a}.tf.x{color:#c9d4e0;font-size:12px}.tf.s{color:#ffd76a;font-size:12px}' +
     '@keyframes tfl{0%{opacity:0;margin-top:4px}15%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-22px}}' +
     '.tcard{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center}' +
     '.tav{width:44px;height:44px;background:#1a120c;box-shadow:0 0 0 2px #6b4a2a;display:flex;align-items:center;justify-content:center;overflow:hidden}.tav canvas,.tav img{width:42px;height:42px;image-rendering:pixelated;object-fit:contain}' +
     '.tnm{font-weight:900;font-size:15px}.tnm small{font-weight:700;font-size:12px;color:var(--dim);margin-left:6px}' +
     '.thp{height:6px;background:#1a0d08;box-shadow:0 0 0 1px #080503;margin-top:4px}.thp i{display:block;height:100%;background:#5fd36a}.thp.m i{background:#e0503a}' +
     '.tbtn{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}' +
-    '.tbtn button{font-weight:900;font-size:14px;border:0;background:var(--btn);padding:8px 4px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;line-height:1.25}' +
-    '.tbtn button small{display:block;font-size:11px;font-weight:700;color:#c9b48a}' +
-    '.tbtn button.on{background:#c9893f;color:#1d1008}.tbtn button.on small{color:#4a2a12}' +
+    '.tbtn button{position:relative;font-weight:900;font-size:14px;border:0;background:var(--btn);padding:8px 4px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;line-height:1.25;min-width:0}' +
+    '.tbtn button small{display:block;font-size:11px;font-weight:700;color:#c9b48a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+    '.tbtn button.on{background:#c9893f;color:#1d1008;box-shadow:0 0 0 2px #1d1008,inset 0 0 0 2px #ffd76a}.tbtn button.on small{color:#4a2a12}' +
     '.tbtn button:disabled{opacity:.4;cursor:default}' +
+    '.tbtn button i{position:absolute;top:2px;right:4px;font-style:normal;font-size:10px;font-weight:900;color:#ffb39e}' +
+    '.tsk{max-height:212px;overflow-y:auto;padding:2px}' +
     '.thint{font-size:12px;color:var(--gold);margin:0;min-height:1.5em;text-shadow:1px 1px 0 #000;font-weight:700}' +
     '.tres{position:absolute;inset:0;z-index:20;background:rgba(6,4,2,.66);display:flex;align-items:center;justify-content:center;padding:10px}' +
     '#tacv .log{height:150px}';
 
-  var ctx, S, root$, board, layer, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn;
+  var ctx, S, root$, board, layer, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend;
 
   function $(id) { return document.getElementById(id) }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e }
@@ -59,68 +67,44 @@
   function key(x, y) { return x + ',' + y }
   function dist(a, b) { return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) }
   function pos(u) { return [u.tx, u.ty] }
-  function living() { return units.filter(function (u) { return !u.dead }) }
+  function living() { return units.filter(function (u) { return !u.dead && u.tx != null }) }
   function foesOf(u) { return living().filter(function (x) { return x.side !== u.side }) }
+  function friendsOf(u) { return living().filter(function (x) { return x.side === u.side }) }
   function at(x, y) { var r = null; living().forEach(function (u) { if (u.tx === x && u.ty === y) r = u }); return r }
-
-  /* ---------- 規則：移動力、射程、可走格 ---------- */
+  function onBoard(x, y) { return x >= 0 && y >= 0 && x < N && y < N }
   function int(v, dflt) { var n = parseInt(v, 10); return isNaN(n) ? dflt : n }
   function jobSn(p) { return p.jobSn || ('job' + ('0' + (((p.job | 0) + 1))).slice(-2)) }
-  /* 普攻設定 {r: 射程, a: single / line / diamond, s: area_size} */
-  function atkOf(u) {
-    if (u._atk) return u._atk;
-    var D = ctx.D, o;
-    if (u.side === 'p') { var w = D.wpn[D.wbyname[u.weapon]] || {}; o = { r: int(w.range, 1), a: w.area || 'single', s: int(w.area_size, 0) } }
-    else { var m = D.mon[u.mid] || {}; o = { r: int(m.atk_range, 1), a: 'single', s: 0 } }
-    o.r = Math.max(1, o.r); return (u._atk = o);
-  }
+
+  /* ---------- 規則：移動 ---------- */
   function moveOf(u) {
     var row = u.side === 'p' ? ctx.D.attr[jobSn(u.p || {})] : ctx.D.mon[u.mid];
     return Math.max(1, int(row && row.move, 4));
   }
-  function rangeOf(u) { return atkOf(u).r }
-  function isLine(u) { return atkOf(u).a === 'line' }
-  function rangeLabel(u) { return (isLine(u) ? '直線 ' : '') + rangeOf(u) }
-  /* 從 from 格能不能普攻到 to 格（直線 = 上下左右同一條線、長度 = 射程） */
-  function inRange(u, from, to) {
-    var d = dist(from, to); if (d < 1) return false;
-    if (isLine(u)) return (from[0] === to[0] || from[1] === to[1]) && d <= rangeOf(u);
-    return d <= rangeOf(u);
-  }
-  /* 實際打到誰：單一格 = 那一個；直線 = 同方向整條線上的敵人（貫穿） */
-  function hitList(u, from, t) {
-    if (!isLine(u)) return [t];
-    var dx = Math.sign(t.tx - from[0]), dy = Math.sign(t.ty - from[1]);
-    return targetsFrom(u, from).filter(function (x) { return Math.sign(x.tx - from[0]) === dx && Math.sign(x.ty - from[1]) === dy && (dx === 0 ? x.tx === from[0] : x.ty === from[1]) });
-  }
-  /* 可移動的格子（含原地）：曼哈頓步數、可穿過友軍、不能穿過敵人、不能停在有人的格子。回傳 {key: {x,y,d,prev}} */
+  /* 可移動的格子（含原地）：曼哈頓步數、可穿過友軍、不能穿過敵人、不能停在有人的格子 */
   function reach(u) {
-    var mv = moveOf(u), out = {}, q = [[u.tx, u.ty, 0, null]], seen = {};
+    var mv = moveOf(u), out = {}, q = [[u.tx, u.ty, 0]], seen = {};
     seen[key(u.tx, u.ty)] = 1;
     while (q.length) {
       var c = q.shift(), o = at(c[0], c[1]);
-      if (!o || o === u) out[key(c[0], c[1])] = { x: c[0], y: c[1], d: c[2], prev: c[3] };
+      if (!o || o === u) out[key(c[0], c[1])] = { x: c[0], y: c[1], d: c[2] };
       if (c[2] >= mv) continue;
-      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (s) {
+      DIRS.forEach(function (s) {
         var nx = c[0] + s[0], ny = c[1] + s[1], k = key(nx, ny);
-        if (nx < 0 || ny < 0 || nx >= N || ny >= N || seen[k]) return;
+        if (!onBoard(nx, ny) || seen[k]) return;
         var b = at(nx, ny); if (b && b.side !== u.side) return;
-        seen[k] = 1; q.push([nx, ny, c[2] + 1, key(c[0], c[1])]);
+        seen[k] = 1; q.push([nx, ny, c[2] + 1]);
       });
     }
     return out;
   }
-  /* 走到 R[k] 的路徑（不含起點） */
-  function pathTo(R, k, u) {
-    /* reach 只存了可停留的格子，穿過友軍的中間格要重算：用 BFS 再找一次完整路徑 */
-    var tgt = R[k]; if (!tgt) return [];
+  function pathTo(k, u) {
     var prev = {}, q = [[u.tx, u.ty]], s0 = key(u.tx, u.ty); prev[s0] = null;
     while (q.length) {
       var c = q.shift(), ck = key(c[0], c[1]);
       if (ck === k) break;
-      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (s) {
+      DIRS.forEach(function (s) {
         var nx = c[0] + s[0], ny = c[1] + s[1], nk = key(nx, ny);
-        if (nx < 0 || ny < 0 || nx >= N || ny >= N || nk in prev) return;
+        if (!onBoard(nx, ny) || nk in prev) return;
         var b = at(nx, ny); if (b && b.side !== u.side) return;
         prev[nk] = ck; q.push([nx, ny]);
       });
@@ -128,13 +112,99 @@
     var path = [], p = k; while (p && p !== s0) { path.unshift(p.split(',').map(Number)); p = prev[p] }
     return path;
   }
-  function targetsFrom(u, from) { return foesOf(u).filter(function (t) { return !S.banished(t) && inRange(u, from, pos(t)) }) }
+
+  /* ---------- 規則：射程與範圍（普攻、技能共用） ----------
+     act = {id, sk, r: 射程, a: single/line/diamond, s: area_size, side: foe/ally/self, others: 不含自己, cost} */
+  function atkAct(u) {
+    if (u._atk) return u._atk;
+    var D = ctx.D, o;
+    if (u.side === 'p') { var w = D.wpn[D.wbyname[u.weapon]] || {}; o = { r: int(w.range, 1), a: w.area || 'single', s: int(w.area_size, 0) } }
+    else { var m = D.mon[u.mid] || {}; o = { r: int(m.atk_range, 1), a: 'single', s: 0 } }
+    o.r = Math.max(1, o.r); o.id = 'atk'; o.sk = D.SK.atk; o.side = 'foe'; o.cost = 0;
+    if (o.a === 'diamond' && !o.s) o.s = 1;
+    return (u._atk = o);
+  }
+  function skAct(u, id) {
+    if (id === 'atk') return atkAct(u);
+    u._acts = u._acts || {}; if (u._acts[id]) return u._acts[id];
+    var sk = ctx.D.SK[id]; if (!sk) return null;
+    var w = sk.raw || {}, t = sk.t, wide = t === 'enemy_all' || t === 'ally_all' || t === 'ally_others';
+    var side = t === 'self' ? 'self' : /^ally/.test(t) ? 'ally' : 'foe';
+    /* 空白時：range → 自身 0、我方 3、其他跟普攻；area → 全體類 diamond 2、其他 single */
+    var r = int(w.range, side === 'self' ? 0 : side === 'ally' ? 3 : atkAct(u).r);
+    var a = w.area || (wide ? 'diamond' : 'single');
+    var s = int(w.area_size, a === 'diamond' ? 2 : 0);
+    return (u._acts[id] = { id: id, sk: sk, r: Math.max(0, r), a: a, s: s, side: side, others: t === 'ally_others', cost: Math.max(0, int(w.cost, 0)) });
+  }
+  /* 這個單位可以選的招：玩家 = 普攻 + 所有已學會的戰鬥技能；怪物 = 普攻 + 技能循環裡的招 */
+  function actsOf(u) {
+    var ids = u.side === 'p' ? (u.learned || []).map(function (k) { return k.id }) : (u.cycle || []).filter(function (x, i, a) { return x !== 'atk' && a.indexOf(x) === i });
+    return ['atk'].concat(ids).map(function (id) { return skAct(u, id) }).filter(Boolean);
+  }
+  function cdOf(u, id) { return (u.cd && u.cd[id]) || 0 }
+  function usable(u, a) { return a.id === 'atk' || (!S.ctrl(u, 'seal') && cdOf(u, a.id) <= 0) }
+  /* 這招能作用的對象（還沒看射程） */
+  function pool(u, a) {
+    if (a.side === 'self') return [u];
+    var L = a.side === 'foe' ? foesOf(u).filter(function (t) { return !S.banished(t) }) : friendsOf(u);
+    if (a.others) L = L.filter(function (t) { return t !== u });
+    return L;
+  }
+  /* 從 P 這格出手，點 c 這格會打到誰；不能點就回傳 null */
+  function hitsAt(u, a, P, c) {
+    var d = dist(P, c), L = pool(u, a);
+    if (a.side === 'self' && a.a !== 'diamond') return d === 0 ? [u] : null;
+    if (a.a === 'line') {
+      if (d < 1 || d > a.r || (P[0] !== c[0] && P[1] !== c[1])) return null;
+      var dx = Math.sign(c[0] - P[0]), dy = Math.sign(c[1] - P[1]);
+      var h = L.filter(function (t) { var e = dist(P, pos(t)); return e >= 1 && e <= a.r && Math.sign(t.tx - P[0]) === dx && Math.sign(t.ty - P[1]) === dy && (dx === 0 ? t.tx === P[0] : t.ty === P[1]) });
+      return h.length ? h : null;
+    }
+    if (a.a === 'diamond') {
+      if (d > a.r) return null;
+      var h2 = L.filter(function (t) { return dist(c, pos(t)) <= a.s });
+      return h2.length ? h2 : null;
+    }
+    /* single：點到的那個人 */
+    if (d > a.r || (a.side === 'foe' && d < 1)) return null;
+    var t0 = at(c[0], c[1]);
+    return t0 && L.indexOf(t0) >= 0 ? [t0] : null;
+  }
+  /* 這招的射程格（畫淡紅 / 紅框用） */
+  function rangeCells(a, P) {
+    var out = [];
+    if (a.a === 'line') { DIRS.forEach(function (s) { for (var i = 1; i <= a.r; i++) { var x = P[0] + s[0] * i, y = P[1] + s[1] * i; if (onBoard(x, y)) out.push([x, y]) } }); return out }
+    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) { var d = dist(P, [x, y]); if (d <= a.r && (d > 0 || a.side !== 'foe' || a.a === 'diamond')) out.push([x, y]) }
+    return out;
+  }
+  /* 範圍預覽格：直線 = 那個方向整條；菱形 = 中心往外 s 格 */
+  function areaCells(a, P, c) {
+    var out = [];
+    if (a.a === 'line') { var dx = Math.sign(c[0] - P[0]), dy = Math.sign(c[1] - P[1]); for (var i = 1; i <= a.r; i++) { var x = P[0] + dx * i, y = P[1] + dy * i; if (onBoard(x, y)) out.push([x, y]) } return out }
+    if (a.a === 'diamond') { for (var yy = 0; yy < N; yy++) for (var xx = 0; xx < N; xx++) if (dist(c, [xx, yy]) <= a.s) out.push([xx, yy]); return out }
+    return [c];
+  }
+  /* 從 P 出手所有可以點的格子與打到的人 */
+  function choices(u, a, P) {
+    var out = [];
+    rangeCells(a, P).forEach(function (c) { var h = hitsAt(u, a, P, c); if (h) out.push({ c: c, h: h }) });
+    if (a.side === 'self' && a.a !== 'diamond') out = [{ c: P, h: [u] }];
+    return out;
+  }
+  function actLabel(a) {
+    if (a.id === 'atk') return (a.a === 'line' ? '直線 ' : '射程 ') + a.r;
+    if (a.a === 'diamond') return (a.r === 0 ? '自身周圍' : (a.side === 'ally' ? '我方範圍' : '範圍') + '・射程 ' + a.r);
+    if (a.a === 'line') return '直線 ' + a.r;
+    if (a.side === 'self') return '自身';
+    return (a.side === 'ally' ? '我方單體' : '單體') + '・射程 ' + a.r;
+  }
 
   /* ---------- 畫面 ---------- */
   function build() {
-    if (!$('tacstyle')) { var st = el('style'); st.id = 'tacstyle'; st.textContent = CSS; document.head.appendChild(st) }
+    if (!$('tacstyle')) { var st = el('style'); st.id = 'tacstyle'; document.head.appendChild(st) }
+    $('tacstyle').textContent = CSS;
     root$ = ctx.root; root$.innerHTML = '';
-    var head = el('div', 'bhead', ctx.title + '・戰棋'); root$.appendChild(head);
+    root$.appendChild(el('div', 'bhead', ctx.title + '・戰棋'));
     var q = el('div', 'tq'); q.id = 'tq'; root$.appendChild(q);
     board = el('div', 'tb'); var g = el('div', 'tg'); cells = [];
     for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
@@ -145,27 +215,27 @@
     g.addEventListener('click', function (ev) { var c = ev.target.closest('.tc'); if (c) tap(+c.dataset.x, +c.dataset.y) });
     var pn = el('div', 'panel'); pn.style.marginTop = '12px';
     pn.innerHTML = '<div class="tcard"><div class="tav" id="tav"></div><div><div class="tnm" id="tnm"></div><div class="thp" id="thp"><i></i></div></div></div>' +
-      '<div class="tbtn"><button type="button" id="tatk" class="on">普通攻擊<small id="tatkr"></small></button><button type="button" id="tundo">↶ 取消移動</button><button type="button" id="twait">待機</button>' +
-      '<button type="button" id="tauto">自動<small>剩下交給 AI</small></button><button type="button" id="tquit">離開<small>不算結果</small></button></div>' +
-      '<p class="thint" id="thint"></p>';
+      '<div class="tbtn tsk" id="tsk"></div>' +
+      '<div class="tbtn"><button type="button" id="tundo">↶ 取消移動</button><button type="button" id="twait">待機</button><button type="button" id="tauto">自動<small>剩下交給 AI</small></button></div>' +
+      '<p class="thint" id="thint"></p>' +
+      '<div class="tbtn"><button type="button" id="tquit" style="grid-column:3">離開<small>不算結果</small></button></div>';
     root$.appendChild(pn);
     var lp = el('div', 'panel'); lp.style.marginTop = '12px'; lp.innerHTML = '<h2>戰報</h2><div class="log" id="tlog"></div>'; root$.appendChild(lp);
-    $('tundo').onclick = undoMove; $('twait').onclick = doWait; $('tatk').onclick = function () { if (cur && cur.side === 'p' && !busy) paint() };
-    $('tauto').onclick = function () { if (done) return; auto = true; $('tauto').disabled = true; if (cur && cur.side === 'p' && !busy) { var u = cur; aiTurn(u).then(function () { next() }) } };
+    $('tsk').addEventListener('click', function (ev) { var b = ev.target.closest('button[data-id]'); if (b && !b.disabled) pick(b.dataset.id) });
+    $('tundo').onclick = undoMove; $('twait').onclick = doWait;
+    $('tauto').onclick = function () { if (done) return; auto = true; $('tauto').disabled = true; if (cur && cur.side === 'p' && !busy) { var u = cur; pend = null; aiTurn(u).then(next) } };
     $('tquit').onclick = function () { stop(); ctx.onExit() };
   }
   function sprite(u) {
     if (u.side === 'p') { var c = document.createElement('canvas'); c.width = c.height = 48; return c }
     var im = new Image(); im.draggable = false; im.alt = ''; return im;
   }
-  function placeUnits() {
-    layer.innerHTML = '';
-    units.forEach(function (u) {
-      var d = el('div', 'tu ' + u.side); u.node = d; u.sp = sprite(u); d.appendChild(u.sp);
-      var hb = el('div', 'hp'); hb.appendChild(el('i')); d.appendChild(hb); u.hpn = hb.firstChild;
-      layer.appendChild(d); sizeSprite(u); setPos(u); setHp(u);
-    });
+  function addNode(u) {
+    var d = el('div', 'tu ' + u.side); u.node = d; u.sp = sprite(u); d.appendChild(u.sp);
+    var hb = el('div', 'hp'); hb.appendChild(el('i')); d.appendChild(hb); u.hpn = hb.firstChild;
+    layer.appendChild(d); sizeSprite(u); setPos(u); setHp(u);
   }
+  function placeUnits() { layer.innerHTML = ''; units.forEach(addNode) }
   /* 人物、怪物用同一個像素倍率，維持原本戰鬥畫面的相對大小；人物（48 格紙娃娃）約 1.5 格高，超出格子沒關係 */
   var SPRITE_K = 1.5 / 48;
   function sizeSprite(u) {
@@ -174,10 +244,10 @@
     var z = ctx.msz(u.sprite), sc = ctx.msc ? ctx.msc(u.sprite, u.boss) : 1;
     u.sp.style.width = (z[0] * sc * K) + 'px'; u.sp.style.height = (z[1] * sc * K) + 'px';
   }
-  /* 地板：該關原本橫向戰鬥背景的「走路那段」（地面線 band 往下到底），裁成正方形放大鋪滿 */
+  /* 地板：該關原本橫向戰鬥背景，從天空下方（BG 的 ft）裁到底，裁成正方形放大鋪滿 */
   function floor() {
     var g = ctx.bg; if (!g) return;
-    var y0 = Math.max(0, g.band), h = g.bh - y0, span = Math.max(0, g.bw - h), x0 = Math.round(span * (((ctx.lv || 1) * 0.37) % 1));
+    var y0 = Math.max(0, g.ft != null ? g.ft : g.band), h = g.bh - y0, span = Math.max(0, g.bw - h), x0 = Math.round(span * (((ctx.lv || 1) * 0.37) % 1));
     var k = board.clientWidth / h;
     board.style.backgroundImage = 'url(' + g.src + ')';
     board.style.backgroundSize = (g.bw * k) + 'px ' + (g.bh * k) + 'px';
@@ -185,23 +255,24 @@
   }
   function setPos(u) { u.node.style.left = (u.tx * 10) + '%'; u.node.style.top = (u.ty * 10) + '%'; u.node.style.zIndex = 10 + u.ty }
   function setHp(u) { u.hpn.style.width = Math.max(0, Math.min(100, u.hp / u.b.mhp * 100)) + '%'; u.node.classList.toggle('dead', !!u.dead) }
-  function float(u, txt, cls) {
-    var f = el('div', 'tf ' + cls, txt); f.style.left = (u.tx * 10 + 5) + '%'; f.style.top = (u.ty * 10 - 2) + '%';
+  function float(u, txt, cls, dy) {
+    var f = el('div', 'tf ' + cls, txt); f.style.left = (u.tx * 10 + 5) + '%'; f.style.top = (u.ty * 10 - 2 - (dy || 0)) + '%';
     layer.appendChild(f); setTimeout(function () { f.remove() }, 950);
   }
+  function flash(u, cls) { if (!u.node) return; u.node.classList.remove(cls); void u.node.offsetWidth; u.node.classList.add(cls) }
   function anim(now) {
     if (!loopOn) return;
     if (!lastDraw || now - lastDraw >= 100) {
       lastDraw = now;
       units.forEach(function (u) {
-        if (u.dead) return;
+        if (u.dead || !u.sp) return;
         if (u.side === 'p') Doll.draw(u.sp, u.look, now + u.ph);
         else { var s = ctx.msrc(u.sprite, now, u.ph); if (s && u.sp.getAttribute('src') !== s) u.sp.src = s }
       });
     }
     raf = requestAnimationFrame(anim);
   }
-  function icon(u, size) {
+  function icon(u) {
     if (u.side === 'p') { var c = document.createElement('canvas'); c.width = c.height = 48; Doll.draw(c, u.look, 0); return c }
     var im = new Image(); im.alt = ''; var s = ctx.msrc(u.sprite, 0, 0); if (s) im.src = s; return im;
   }
@@ -213,16 +284,26 @@
     });
   }
   function renderCard(u) {
-    var av = $('tav'); av.innerHTML = ''; if (!u) return; av.appendChild(icon(u));
-    var info = u.side === 'p' ? (u.weapon || '徒手') + '・移動 ' + moveOf(u) + ' 格・普攻射程 ' + rangeLabel(u) : '移動 ' + moveOf(u) + ' 格・普攻射程 ' + rangeLabel(u);
+    var av = $('tav'); av.innerHTML = ''; if (!u) { $('tsk').innerHTML = ''; return } av.appendChild(icon(u));
+    var info = (u.side === 'p' ? (u.weapon || '徒手') + '・' : '') + '移動 ' + moveOf(u) + ' 格・普攻' + actLabel(atkAct(u));
     $('tnm').innerHTML = esc(u.name) + '<small>' + esc(info) + '</small>';
     $('thp').className = 'thp' + (u.side === 'm' ? ' m' : ''); $('thp').firstChild.style.width = Math.max(0, u.hp / u.b.mhp * 100) + '%';
-    $('tatkr').textContent = '射程 ' + rangeLabel(u);
+    renderSkills(u);
+  }
+  function renderSkills(u) {
+    var mine = u && u === cur && u.side === 'p' && !auto && !done && !busy, h = '';
+    actsOf(u).forEach(function (a) {
+      var cd = cdOf(u, a.id), ok = mine && usable(u, a);
+      h += '<button type="button" data-id="' + a.id + '"' + (a.id === sel && mine ? ' class="on"' : '') + (ok ? '' : ' disabled') + '>' + esc(a.sk.n) +
+        '<small>' + (a.id === 'atk' ? '' : esc(TYN[a.sk.ty] || '') + '・') + esc(actLabel(a)) + '</small>' + (cd > 0 ? '<i>CD ' + cd + '</i>' : '') + '</button>';
+    });
+    $('tsk').innerHTML = h;
   }
   function buttons() {
     var mine = cur && cur.side === 'p' && !auto && !done && !busy;
-    $('tatk').disabled = !mine; $('twait').disabled = !mine; $('tundo').disabled = !(mine && cur.moved);
+    $('twait').disabled = !mine; $('tundo').disabled = !(mine && cur.moved);
     $('tauto').disabled = auto || done;
+    if (cur) renderSkills(cur);
   }
   function hint(t) { $('thint').textContent = t || '' }
   function flushLog() {
@@ -231,35 +312,47 @@
     for (; evSeen < S.ev.length; evSeen++) { var e = S.ev[evSeen]; if (!e.txt) { if (evSeen === S.ev.length - 1) break; continue } box.appendChild(el('div', 'lg' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : ''), e.txt)) }
     box.scrollTop = box.scrollHeight;
   }
-  /* 塗格子：沒移動過 → 藍色可移動 + 紅框普攻射程；可以打的敵人 → 紅底 */
+  function cell(x, y) { return cells[y * N + x] }
+  function clearCells() { cells.forEach(function (c) { c.className = 'tc' + ((+c.dataset.x + +c.dataset.y) % 2 ? ' k' : '') }) }
+  /* 塗格子：藍 = 可移動；紅框 = 普攻射程；淡紅 = 技能射程；紅底／綠底 = 可以點的目標；橘 = 範圍預覽 */
   function paint() {
-    cells.forEach(function (c) { c.className = 'tc' + ((+c.dataset.x + +c.dataset.y) % 2 ? ' k' : '') });
+    clearCells();
     if (!cur || done) return;
     cell(cur.tx, cur.ty).classList.add('cur');
     if (cur.side !== 'p' || auto || busy) return;
+    var a = skAct(cur, sel) || atkAct(cur), P = pos(cur);
     if (!cur.moved) { cur.R = reach(cur); Object.keys(cur.R).forEach(function (k) { var r = cur.R[k]; if (r.d > 0) cell(r.x, r.y).classList.add('mv') }) }
-    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) if (inRange(cur, pos(cur), [x, y])) cell(x, y).classList.add('rg');
-    targetsFrom(cur, pos(cur)).forEach(function (t) { cell(t.tx, t.ty).classList.add('tgt') });
-    var n = targetsFrom(cur, pos(cur)).length;
-    hint(cur.moved ? (n ? '點紅色的敵人攻擊，或按「待機」。' : '射程內沒有敵人：按「待機」或「取消移動」。') : '點藍色格子移動，或直接點紅色的敵人攻擊；出手後就不能再移動。');
+    rangeCells(a, P).forEach(function (c) { cell(c[0], c[1]).classList.add(a.id === 'atk' ? 'rg' : 'sr') });
+    var ch = choices(cur, a, P), tgCls = a.side === 'foe' ? 'tgt' : 'tga';
+    if (a.a === 'single') ch.forEach(function (o) { cell(o.c[0], o.c[1]).classList.add(tgCls) });
+    else ch.forEach(function (o) { o.h.forEach(function (t) { cell(t.tx, t.ty).classList.add(tgCls) }) });
+    if (pend && pend.id === a.id) areaCells(a, P, pend.c).forEach(function (c) { cell(c[0], c[1]).classList.add('ar') });
+    var nm = a.sk.n;
+    if (pend && pend.id === a.id) hint('「' + nm + '」會打到：' + pend.h.map(function (t) { return t.name }).join('、') + '。再點一次同一格確認施放。');
+    else if (!ch.length) hint('「' + nm + '」' + (a.a === 'single' && a.side !== 'self' ? '射程內沒有目標' : '範圍內沒有目標') + (cur.moved ? '：換一招、「待機」或「取消移動」。' : '：先點藍色格子移動，或換一招。'));
+    else if (a.side === 'self' && a.a !== 'diamond') hint('點自己（金框）施放「' + nm + '」。');
+    else if (a.a === 'single') hint((cur.moved ? '' : '點藍色格子移動，或') + '點' + (a.side === 'foe' ? '紅色的敵人' : '綠色的隊友') + '施放「' + nm + '」；出手後就不能再移動。');
+    else hint('點' + (a.a === 'line' ? '直線上的一格選方向' : '射程內一格當中心') + '預覽範圍（橘色），再點同一格確認。');
     buttons();
   }
-  function cell(x, y) { return cells[y * N + x] }
 
   /* ---------- 流程 ---------- */
-  function snapHp() { var o = new Map(); units.forEach(function (u) { o.set(u, { hp: u.hp, dead: u.dead }) }); return o }
-  function showDiff(before, target) {
+  function snapHp() { var o = new Map(); units.forEach(function (u) { o.set(u, { hp: u.hp, st: u.st.length }) }); return o }
+  function showDiff(before, hit) {
     units.forEach(function (u) {
-      var b = before.get(u); if (!b) { b = { hp: u.b.mhp, dead: false } }
+      if (!u.node) return;
+      var b = before.get(u) || { hp: u.b.mhp, st: 0 };
       var d = Math.round(u.hp - b.hp);
-      if (d < 0) { float(u, String(d), 'd'); u.node.classList.remove('hit'); void u.node.offsetWidth; u.node.classList.add('hit') }
+      if (d < 0) { float(u, String(d), 'd'); flash(u, 'hit') }
       else if (d > 0) float(u, '+' + d, 'h');
-      else if (u === target && !u.dead) float(u, '未命中', 'x');
+      else if (hit && hit.indexOf(u) >= 0 && !u.dead && u.st.length <= b.st) float(u, '未命中', 'x');
+      if (u.st.length > b.st && !u.dead) float(u, '＋狀態', 's', d ? 4 : 0);
       setHp(u);
     });
   }
-  function lunge(u, t) {
-    var dx = t.tx - u.tx, dy = t.ty - u.ty, L = Math.max(1, Math.abs(dx) + Math.abs(dy)), k = Math.min(0.35, 0.35 / L * 1.5);
+  function lunge(u, c) {
+    var dx = c[0] - u.tx, dy = c[1] - u.ty, L = Math.max(1, Math.abs(dx) + Math.abs(dy)), k = Math.min(0.35, 0.35 / L * 1.5);
+    if (!dx && !dy) { flash(u, 'cast'); return wait(220) }
     u.node.style.left = ((u.tx + dx * k) * 10) + '%'; u.node.style.top = ((u.ty + dy * k) * 10) + '%';
     return wait(110).then(function () { setPos(u); return wait(90) });
   }
@@ -268,11 +361,26 @@
     path.forEach(function (c) { p = p.then(function () { u.tx = c[0]; u.ty = c[1]; setPos(u); return wait(STEP_MS) }) });
     return p;
   }
-  function attack(u, t) {
-    var before = snapHp(), tg = hitList(u, pos(u), t);
-    return lunge(u, t).then(function () {
-      S.finish(u, { sk: 'atk', tg: tg });
-      showDiff(before, t); flushLog(); renderCard(cur);
+  /* 出手：a = 招式、c = 點的格子、h = 打到的人 */
+  function cast(u, a, c, h) {
+    var before = snapHp(), each = a.sk.p === 'random_each' && a.sk.hits > 1;
+    return lunge(u, a.side === 'foe' ? c : pos(u)).then(function () {
+      if (each) S.hooks.pool = h;
+      S.finish(u, { sk: a.id, tg: h });
+      S.hooks.pool = null;
+      if (a.cost > 0) { u.cd = u.cd || {}; u.cd[a.id] = a.cost + 1 }   /* 開始行動時先減 1，所以 +1：之後 cost 次行動都不能用 */
+      placeSummons(u);
+      showDiff(before, a.side === 'foe' ? h : null); flushLog(); renderCard(cur);
+    });
+  }
+  /* 召喚：新叫出來的怪放在召喚者旁邊的空格；沒有空格就不召喚（docs/tactics.md「召喚」） */
+  function placeSummons(src) {
+    S.U.slice().forEach(function (m) {
+      if (m.tx != null || m.dead) return;
+      var spot = null;
+      [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].some(function (s) { var x = src.tx + s[0], y = src.ty + s[1]; if (onBoard(x, y) && !at(x, y)) { spot = [x, y]; return true } });
+      if (!spot) { m.dead = true; [S.M, S.U].forEach(function (A) { var i = A.indexOf(m); if (i >= 0) A.splice(i, 1) }); var e = S.ev[S.ev.length - 1]; if (e) e.txt += '（' + m.name + ' 旁邊沒有空位，沒叫出來）'; return }
+      m.tx = spot[0]; m.ty = spot[1]; m.ph = Math.random() * 900; addNode(m); float(m, '召喚', 's');
     });
   }
   function begin() {
@@ -281,88 +389,116 @@
     if (!order || oi >= order.length - 1) { if (S.over()) return end(); order = S.round(); oi = -1; flushLog() }
     oi++;
     var u = order[oi];
-    if (!u || u.dead) return next();
-    if (!S.alive(S.P) || !S.alive(S.M)) return end();
-    cur = u; u.moved = false; u.from = pos(u);
+    if (!u || u.dead || u.tx == null) return next();
+    cur = u; u.moved = false; u.from = pos(u); sel = 'atk'; pend = null;
+    if (u.cd) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });   /* 冷卻以自己的行動次數計（被控制跳過也算） */
     renderQueue(); renderCard(u);
     var before = snapHp(), ok = S.start(u);
     showDiff(before, null); flushLog();
     if (!ok) { paint(); return wait(AFTER_MS).then(next) }
-    if (u.side === 'p' && !auto) { busy = false; paint(); buttons(); return }
+    if (u.side === 'p' && !auto) { busy = false; paint(); return }
     busy = true; paint(); buttons();
     return wait(THINK_MS).then(function () { return aiTurn(u) }).then(next);
   }
-  function next() { if (done) return; busy = false; paint(); if (!S.alive(S.P) || !S.alive(S.M)) return end(); setTimeout(begin, 60) }
-  /* 第 0 階段 AI：打得到就打（挑生命比例最低的）；打不到就走到打得到的格子，再不行就往最近的敵人靠 */
-  function aiTurn(u) {
-    busy = true; buttons(); paint();
-    var tg = targetsFrom(u, pos(u));
-    if (tg.length) return attack(u, pickTarget(tg)).then(function () { return wait(AFTER_MS) });
-    if (u.moved) { S.wait(u); flushLog(); return wait(AFTER_MS) }
-    var R = reach(u), best = null, bs = null, fs = foesOf(u).filter(function (t) { return !S.banished(t) });
-    if (!fs.length) { S.wait(u); flushLog(); return wait(AFTER_MS) }
-    Object.keys(R).forEach(function (k) {
-      var r = R[k], p = [r.x, r.y], can = fs.some(function (t) { return inRange(u, p, pos(t)) });
-      var near = Math.min.apply(null, fs.map(function (t) { return dist(p, pos(t)) }));
-      /* 分數：能打到最優先；其次離最近的敵人越近越好（遠程怪不會硬貼上去）；再其次少走一點 */
-      var sc = (can ? 0 : 1000) + (can ? 0 : near * 10) + r.d;
-      if (bs == null || sc < bs) { bs = sc; best = k }
-    });
-    var path = best ? pathTo(R, best, u) : [];
-    return walk(u, path).then(function () {
-      paint();
-      var t2 = targetsFrom(u, pos(u));
-      if (t2.length) return attack(u, pickTarget(t2));
-      S.wait(u); flushLog();
-    }).then(function () { return wait(AFTER_MS) });
+  function next() { if (done) return; busy = false; pend = null; paint(); if (!S.alive(S.P) || !S.alive(S.M)) return end(); setTimeout(begin, 60) }
+
+  /* ---------- AI（怪物、按「自動」後的我方） ----------
+     每個可走的格子 × 每招可用的招 × 每個可以點的格子打分數，挑最高的；都沒有就往最近的敵人靠 */
+  function statusOf(id) { return (ctx.D.EFF[id] || []).filter(function (e) { return e.effect_kind === 'status' && e.status_name }).map(function (e) { return e.status_name }) }
+  function summons(id) { return (ctx.D.EFF[id] || []).some(function (e) { return e.effect_kind === 'summon' }) }
+  function power(a) { var r = 0; a.sk.parts.forEach(function (p) { r += p.r }); return (r || 1) * (a.sk.hits || 1) }
+  function score(u, a, h) {
+    var ty = a.sk.ty, sts = statusOf(a.id), sc = 0;
+    function lacks(t) { return sts.length && !t.st.some(function (s) { return sts.indexOf(s.n) >= 0 }) }
+    if (ty === 'damage') h.forEach(function (t) { sc += power(a) * (1 + 0.3 * (1 - t.hp / t.b.mhp)) + (lacks(t) ? 0.3 : 0) });
+    else if (ty === 'heal') h.forEach(function (t) { var miss = 1 - t.hp / t.b.mhp; if (miss > 0.25) sc += miss * 4 });
+    else if (ty === 'debuff') h.forEach(function (t) { if (lacks(t)) sc += 1.1 });
+    else h.forEach(function (t) { if (lacks(t)) sc += 0.7 });
+    if (summons(a.id)) sc += 1.2;
+    return sc;
   }
-  /* 挑目標：直線武器先挑能一次打到最多人的方向，其次挑生命比例最低的 */
-  function pickTarget(list) {
-    var u = cur;
-    return list.slice().sort(function (a, b) {
-      var n = u ? hitList(u, pos(u), b).length - hitList(u, pos(u), a).length : 0;
-      return n || a.hp / a.b.mhp - b.hp / b.b.mhp;
-    })[0];
+  function bestAt(u, P) {
+    var best = null;
+    actsOf(u).forEach(function (a) {
+      if (!usable(u, a)) return;
+      choices(u, a, P).forEach(function (o) { var s = score(u, a, o.h); if (s > 0 && (!best || s > best.s)) best = { a: a, c: o.c, h: o.h, s: s } });
+    });
+    return best;
+  }
+  function aiTurn(u) {
+    busy = true; pend = null; buttons(); paint();
+    var plan = null, R = u.moved ? null : reach(u);
+    if (R) Object.keys(R).forEach(function (k) {
+      var r = R[k], b = bestAt(u, [r.x, r.y]); if (!b) return;
+      b.s -= r.d * 0.02; b.k = k;
+      if (!plan || b.s > plan.s) plan = b;
+    });
+    else { plan = bestAt(u, pos(u)); if (plan) plan.k = key(u.tx, u.ty) }
+    if (plan) return walk(u, pathTo(plan.k, u)).then(function () { paint(); return cast(u, plan.a, plan.c, plan.h) }).then(function () { return wait(AFTER_MS) });
+    /* 打不到也沒事做：往最近的敵人靠 */
+    var fs = foesOf(u).filter(function (t) { return !S.banished(t) });
+    if (!R || !fs.length) { S.wait(u); flushLog(); return wait(AFTER_MS) }
+    var bk = null, bs = null;
+    Object.keys(R).forEach(function (k) { var r = R[k], near = Math.min.apply(null, fs.map(function (t) { return dist([r.x, r.y], pos(t)) })), s = near * 10 + r.d; if (bs == null || s < bs) { bs = s; bk = k } });
+    return walk(u, pathTo(bk, u)).then(function () { S.wait(u); flushLog() }).then(function () { return wait(AFTER_MS) });
   }
 
   /* ---------- 玩家操作 ---------- */
+  function pick(id) {
+    if (!cur || cur.side !== 'p' || auto || busy || done) return;
+    var a = skAct(cur, id); if (!a || !usable(cur, a)) return;
+    /* 自身技再點一次按鈕 = 施放 */
+    if (sel === id && a.side === 'self' && a.a !== 'diamond') { go(a, pos(cur), [cur]); return }
+    sel = id; pend = null; paint();
+  }
+  function go(a, c, h) { var u = cur; busy = true; pend = null; buttons(); paint(); cast(u, a, c, h).then(function () { return wait(AFTER_MS) }).then(next) }
   function tap(x, y) {
     var who = at(x, y);
     if (!cur || cur.side !== 'p' || auto || busy || done) { if (who) peek(who); return }
-    if (who && who.side !== cur.side) {
-      if (inRange(cur, pos(cur), [x, y]) && !S.banished(who)) { var u = cur; busy = true; buttons(); paint(); attack(u, who).then(function () { return wait(AFTER_MS) }).then(next); return }
-      peek(who); return;
+    var a = skAct(cur, sel) || atkAct(cur), P = pos(cur), c = [x, y], h = hitsAt(cur, a, P, c);
+    /* 點到亮起來的目標本身（範圍技的中心不一定在他身上）：挑包含他、打到最多人的中心 */
+    if (!h && who && a.a !== 'single') {
+      var best = null;
+      choices(cur, a, P).forEach(function (o) { if (o.h.indexOf(who) >= 0 && (!best || o.h.length > best.h.length)) best = o });
+      if (best) { if (pend && pend.id === a.id && pend.c[0] === best.c[0] && pend.c[1] === best.c[1]) return go(a, best.c, best.h); pend = { id: a.id, c: best.c, h: best.h }; paint(); return }
+    }
+    if (h) {
+      if (a.a === 'single') return go(a, c, h);
+      if (pend && pend.id === a.id && pend.c[0] === x && pend.c[1] === y) return go(a, c, h);
+      pend = { id: a.id, c: c, h: h }; paint(); return;
     }
     if (!cur.moved && cur.R) {
       var k = key(x, y), r = cur.R[k];
-      if (r && r.d > 0) { var u2 = cur, path = pathTo(cur.R, k, cur); busy = true; buttons(); paint(); walk(u2, path).then(function () { u2.moved = true; busy = false; paint() }); return }
+      if (r && r.d > 0) { var u2 = cur; pend = null; busy = true; buttons(); paint(); walk(u2, pathTo(k, u2)).then(function () { u2.moved = true; busy = false; paint() }); return }
     }
     if (who) peek(who);
   }
-  function peek(u) { hint(u.name + '　生命 ' + Math.max(0, Math.round(u.hp)) + '/' + u.b.mhp + '・移動 ' + moveOf(u) + '・普攻射程 ' + rangeLabel(u)) }
-  function undoMove() { if (!cur || !cur.moved || busy) return; cur.tx = cur.from[0]; cur.ty = cur.from[1]; cur.moved = false; setPos(cur); paint() }
-  function doWait() { if (!cur || cur.side !== 'p' || busy) return; busy = true; S.wait(cur); flushLog(); next() }
+  function peek(u) { hint(u.name + '　生命 ' + Math.max(0, Math.round(u.hp)) + '/' + u.b.mhp + '・移動 ' + moveOf(u) + '・普攻' + actLabel(atkAct(u)) + (u.st.length ? '・狀態：' + u.st.map(function (s) { return s.n }).join('、') : '')) }
+  function undoMove() { if (!cur || !cur.moved || busy) return; cur.tx = cur.from[0]; cur.ty = cur.from[1]; cur.moved = false; pend = null; setPos(cur); paint() }
+  function doWait() { if (!cur || cur.side !== 'p' || busy) return; busy = true; pend = null; S.wait(cur); flushLog(); next() }
 
   function end() {
-    if (done) return; done = true; busy = true; cur = null; paint(); buttons(); flushLog(); renderQueue();
+    if (done) return; done = true; busy = true; cur = null; clearCells(); buttons(); flushLog(); renderQueue(); renderCard(null);
     var r = S.res(), w = r === 'win';
     var o = el('div', 'tres'); o.innerHTML = '<div class="rbox"><div class="rt ' + (w ? 'win' : 'lose') + '">' + (w ? '勝利' : '失敗') + '</div><p>' +
       (w ? '打倒了所有敵人！' : r === 'draw' ? S.MAXR + ' 回合內沒分出勝負。' : '全隊倒下了。') + '<br><small>戰棋測試中，這場不會給獎勵</small></p>' +
       '<button type="button" class="go" id="tback">回地圖</button></div>';
     board.appendChild(o); $('tback').onclick = function () { stop(); ctx.onExit() };
   }
-  function onResize() { if (loopOn) { floor(); units.forEach(sizeSprite) } }
+  function onResize() { if (loopOn) { floor(); units.forEach(function (u) { if (u.node) sizeSprite(u) }) } }
   function stop() { loopOn = false; if (raf) cancelAnimationFrame(raf); raf = 0; done = true }
 
-  /* ctx: {root, title, P: 玩家單位陣列, M: 怪物單位陣列, D, look(p), msrc(k, now, ph), msz(k), onExit()} */
+  /* ctx: {root, title, P, M, D, look(p), msrc(k, now, ph), msz(k), msc(k, boss), lv, bg, onExit()} */
   function start(c) {
-    ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0;
+    ctx = c; done = false; busy = false; auto = false; order = null; oi = -1; cur = null; evSeen = 0; lastDraw = 0; sel = 'atk'; pend = null;
     S = BattleEngine.session(c.P, c.M, c.D);
     units = S.U;
+    /* 反擊類反應技：攻擊者在自己的普攻射程內才發動 */
+    S.hooks.counter = function (d, a) { return d.tx == null || a.tx == null || !!hitsAt(d, atkAct(d), pos(d), pos(a)) };
     S.P.forEach(function (u, i) { var s = PSPAWN[i] || [i, 9]; u.tx = s[0]; u.ty = s[1]; u.look = c.look(u.p || {}); u.ph = Math.random() * 2000 });
-    var hasBoss = S.M.some(function (m) { return m.boss }), sl = hasBoss ? MSPAWN_BOSS : MSPAWN, j = 0;
-    S.M.slice().sort(function (a, b) { return (b.boss ? 1 : 0) - (a.boss ? 1 : 0) }).forEach(function (m) {
-      if (m.boss && hasBoss && m === S.M.filter(function (x) { return x.boss })[0]) { m.tx = 4; m.ty = 1 } else { var s = sl[j++] || [j % N, 0]; m.tx = s[0]; m.ty = s[1] }
+    var hasBoss = S.M.some(function (m) { return m.boss }), sl = hasBoss ? MSPAWN_BOSS : MSPAWN, j = 0, boss = S.M.filter(function (x) { return x.boss })[0];
+    S.M.forEach(function (m) {
+      if (m === boss) { m.tx = 4; m.ty = 1 } else { var s = sl[j++] || [j % N, 0]; m.tx = s[0]; m.ty = s[1] }
       m.ph = Math.random() * 900;
     });
     build(); floor(); placeUnits(); flushLog();
@@ -371,5 +507,5 @@
     begin();
   }
 
-  root.Tactics = { start: start, _rules: { reach: function (u) { return reach(u) }, inRange: inRange, moveOf: function (u) { return moveOf(u) } } };
+  root.Tactics = { start: start, _dbg: function () { return { busy: busy, auto: auto, done: done, cur: cur && cur.name, sel: sel, oi: oi, round: S && S.rounds(), hint: $('thint') && $('thint').textContent } } };
 })(this);

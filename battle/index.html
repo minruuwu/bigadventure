@@ -107,8 +107,8 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=11"></script>
-<script src="tactics.js?v=2"></script>
+<script src="engine.js?v=12"></script>
+<script src="tactics.js?v=3"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -225,15 +225,16 @@ var AS='../assets/battle/';
 var $=function(i){return document.getElementById(i)},frame=$('frame');
 var UW=160,UH=140,U=1,els=[];
 var THR={fl:[[49.5,26,6],[57,26,7],[62.5,25,6],[69,26,6],[76,25,6],[128.5,24,5],[134,26,5],[142,24,7],[155,25,6],[209.5,26,7],[217,26,6],[223,25,6],[228.5,26,4],[235.5,26,7]],br:[[110.5,76,14],[174.5,76,14]],eyes:[[26,14],[29,14],[252,14],[255,14]]};
+/* ft = 戰棋地板從第幾列開始裁（天空最底下那列再往下 1～2 列，地板不會碰到天空） */
 var BG={
- A:{src:AS+'bg_01.png',fg:AS+'fg_01.png',sky:'day',band:93,bw:209,bh:140},
- B:{src:AS+'bg_02.png',fg:AS+'fg_02.png',band:94,bw:282,bh:140,sky:'cave',fx:'cave',gl:{b:[],f:[]}},
- C:{src:AS+'bg_03.png',fg:AS+'fg_03.png',mask:AS+'sky_mask_03.png',band:94,bw:282,bh:140,sky:'dusk',cy:.62},
- D:{src:AS+'bg_04.png?v=2',fg:AS+'fg_04.png?v=2',band:94,bw:564,bh:140,sky:'cave',fx:'lava'},
- E:{src:AS+'bg_05.png?v=2',fg:AS+'fg_05.png?v=2',mask:AS+'sky_mask_05.png?v=2',band:94,bw:552,bh:140,sky:'ice',cy:.22,fx:'snow'},
- F:{src:AS+'bg_06.png',fg:AS+'fg_06.png',band:94,bw:564,bh:140,sky:'cave',fx:'crypt',gl:{b:[],f:[]}},
- G:{src:AS+'bg_07.png',fg:null,band:94,bw:282,bh:140,sky:'cave',fx:'throne'},
- H:{src:AS+'bg_09.png?v=2',fg:AS+'fg_09.png?v=2',band:96,bw:564,bh:140,sky:'cave',fx:'castle'}};
+ A:{ft:41,src:AS+'bg_01.png',fg:AS+'fg_01.png',sky:'day',band:93,bw:209,bh:140},
+ B:{ft:41,src:AS+'bg_02.png',fg:AS+'fg_02.png',band:94,bw:282,bh:140,sky:'cave',fx:'cave',gl:{b:[],f:[]}},
+ C:{ft:42,src:AS+'bg_03.png',fg:AS+'fg_03.png',mask:AS+'sky_mask_03.png',band:94,bw:282,bh:140,sky:'dusk',cy:.62},
+ D:{ft:41,src:AS+'bg_04.png?v=2',fg:AS+'fg_04.png?v=2',band:94,bw:564,bh:140,sky:'cave',fx:'lava'},
+ E:{ft:42,src:AS+'bg_05.png?v=2',fg:AS+'fg_05.png?v=2',mask:AS+'sky_mask_05.png?v=2',band:94,bw:552,bh:140,sky:'ice',cy:.22,fx:'snow'},
+ F:{ft:41,src:AS+'bg_06.png',fg:AS+'fg_06.png',band:94,bw:564,bh:140,sky:'cave',fx:'crypt',gl:{b:[],f:[]}},
+ G:{ft:41,src:AS+'bg_07.png',fg:null,band:94,bw:282,bh:140,sky:'cave',fx:'throne'},
+ H:{ft:41,src:AS+'bg_09.png?v=2',fg:AS+'fg_09.png?v=2',band:96,bw:564,bh:140,sky:'cave',fx:'castle'}};
 var SCN=[['A','怪物森林'],['B','魔晶礦洞'],['C','塵嵐荒漠'],['F','幽暗墓穴'],['E','凜冬雪山'],['H','聖教城領'],['D','熔岩火原'],['G','惡魔王城']];
 var cur='A',off=0,lastNow=0,CLD=[];
 /* 我方站位：依人數 1～4 各有站法，[x, 往下位移]；0 號是隊長，前排在右邊（靠近怪物），故意錯落不排成方陣；我方 x ≤ 48、怪物 x ≥ 110，中間留一段空地隔開兩邊 */

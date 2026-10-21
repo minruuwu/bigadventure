@@ -29,7 +29,7 @@
       if (r.part1_dmg) parts.push({ d: r.part1_dmg, e: r.part1_element || '', r: num(r.part1_ratio) });
       if (r.part2_dmg) parts.push({ d: r.part2_dmg, e: r.part2_element || '', r: num(r.part2_ratio) });
       D.SK[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, kind: r.kind, t: r.target, p: r.pick, ty: r.type,
-        cr: num(r.extra_crit_rate), cd: num(r.extra_crit_damage), parts: parts, vfx: r.vfx || '', hits: parseInt(r.hits, 10) || 1, sure: r.sure_hit === '1', ds: r.skill_desc || '' };
+        cr: num(r.extra_crit_rate), cd: num(r.extra_crit_damage), parts: parts, vfx: r.vfx || '', hits: parseInt(r.hits, 10) || 1, sure: r.sure_hit === '1', ds: r.skill_desc || '', raw: r /* 原始欄位（戰棋讀 range / area / area_size / cost） */ };
     });
     D.SK.atk = { id: 'atk', n: '普通攻擊', kind: 'combat', t: 'enemy_single', p: 'random', ty: 'damage', cr: 0, cd: 0, parts: [{ d: 'p', e: '', r: 1 }], vfx: '', hits: 1, atk: true };
     (c.skill_effect || []).forEach(function (r) { if (r.skill_id) (D.EFF[r.skill_id] = D.EFF[r.skill_id] || []).push(r) });
@@ -156,6 +156,8 @@
      戰棋一個單位的回合 = begin(u)（持續傷害、控制判定）→ 移動 → finish(u, 技能, 目標) 或 wait(u)。 */
   function session(P, M, D) {
     var U = P.concat(M), ev = [], rounds = 0, nowAct = null;
+    /* 戰棋用的掛勾：counter(d, a) 回傳 false = 反擊打不到；pool = 多段隨機技能挑目標的範圍（陣列） */
+    var hooks = {};
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
     var lone = P.length === 1 && !P[0].lone;
@@ -327,7 +329,7 @@
       if (!re) return;
       e.txt += '（' + d.name + ' 發動「' + re.name + '」' + (re.block ? '擋下' : re.reduce ? '減傷' : re.absorb ? '吸收' : '') + '）';
       var ctr = re.post.filter(function (r) { return r.effect === 'counter' });
-      if (ctr.length && !a.dead && !d.dead) {
+      if (ctr.length && !a.dead && !d.dead && (!hooks.counter || hooks.counter(d, a))) {
         var parts = ctr.map(function (r) { return { d: r.dmg_type || 'p', e: r.element || '', r: num(r.value) } });
         var x = dmgOnce(d, a, parts, { cr: 0, cd: 0 }, { noReact: true });
         if (x.miss) e.txt += '，反擊被閃開';
@@ -456,7 +458,7 @@
         var single = sk.t === 'enemy_single', H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
         var each = sk.p === 'random_each' && H > 1;
         for (var h = 0; h < H; h++) {
-          var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u)); return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
+          var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u)); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
           if (!list.length) break;
           list.forEach(function (t0) {
             var t = t0, pr = single ? protectorFor(t0, u) : null; if (pr && u.side === 'm') t = pr;
@@ -601,7 +603,7 @@
     /* 戰棋的「待機」：有行動但不出手，狀態照常減一次 */
     function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1; endAct(u, null); e.hp = hpSnap() }
     function over() { return !alive(P) || !alive(M) || rounds >= MAXR }
-    return { P: P, M: M, U: U, ev: ev, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, alive: alive, over: over,
+    return { P: P, M: M, U: U, ev: ev, hooks: hooks, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, alive: alive, over: over,
       rounds: function () { return rounds }, res: function () { return alive(M) ? (alive(P) ? 'draw' : 'lose') : 'win' }, MAXR: MAXR };
   }
   /* 自動戰鬥：整場一次跑完 */
