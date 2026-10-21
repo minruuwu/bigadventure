@@ -253,6 +253,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
+<script src="../common/skilldesc.js?v=1"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -421,13 +422,9 @@ var SKT={enemy_single:'敵方單體',enemy_all:'敵方全體',self:'自身',ally
 function skPc(x){return Math.round(parseFloat(x)*100)+'%'}
 /* 附帶治療列（skill_effect 的 heal）：自動接在說明後面 */
 var SKHL={},SKHT={target:'目標',self:'自身',ally_all:'我方全體',ally_others:'其他隊友全體',ally_single:'我方單體'},SKHB={m_atk:'魔法攻擊力',p_atk:'物理攻擊力',sacrificed_hp:'犧牲生命'};
-function skHealTxt(sk){return (SKHL[sk.id]||[]).map(function(h){var who=h.tg==='ally_single'?'我方單體（'+(SKP[h.c||'lowest_hp']||'生命力最低')+'）':(SKHT[h.tg]||'');return '恢復'+who+' '+skPc(h.v)+' '+(SKHB[h.b]||'魔法攻擊力')+(h.b==='sacrificed_hp'?'':'')+'的生命'}).join('，')}
-function skDesc(sk){if(sk.id==='atk')return '對敵方單體（隨機）造成 100% 物理傷害。';if(sk.k!=='combat')return sk.ds;
-  var a=(SKT[sk.t]||'')+(sk.p?'（'+(SKP[sk.p]||sk.p)+'）':''),o='',r=parseFloat(sk.r)||0;
-  if(sk.ty==='damage'){o='對'+a+'造成 '+skPc(r)+' '+(SKEL[sk.e]||'')+(sk.d==='m'?'魔法':'物理')+'傷害'+(sk.h>1?' × '+sk.h+' 次':'');if(parseFloat(sk.r2))o+=' + '+skPc(sk.r2)+' '+(SKEL[sk.e2]||'')+(sk.d2==='m'?'魔法':'物理')+'傷害'}
-  else if(sk.ty==='heal'&&r>0)o='恢復'+a+'魔法攻擊力 '+skPc(r)+' 的生命';else o='對'+a+'施放';
-  if(sk.sh)o+='，必定命中';if(parseFloat(sk.cr))o+='，暴擊率 +'+skPc(sk.cr);if(parseFloat(sk.cd))o+='，暴擊傷害 +'+skPc(sk.cd);
-  var st=SKST[sk.id];if(st){var sd=STI[st.n]?STI[st.n].d:sk.ds;o+='；'+(sk.ty==='damage'&&st.tg==='self'?'自身':'')+(st.ch<1?Math.round(st.ch*100)+'% 機率':'')+'附加「'+st.n+'」'+(st.turns==='attack'?'，持續到下次攻擊':st.turns?st.turns+' 回合':'')+(sd?'：'+sd:'')}else if(sk.ds)o+='；'+sk.ds;var hx=skHealTxt(sk);if(hx&&!(sk.ds&&!st&&/恢復/.test(sk.ds)))o+='；'+hx;return o+'。'}
+function skHealTxt(sk){return SkillDesc.healTxt(SKHL[sk.id])}
+/* 說明文字改由 common/skilldesc.js 產生（戰棋也用同一套） */
+function skDesc(sk){return SkillDesc.text(sk,SKST[sk.id],SKHL[sk.id]||[],function(n){return STI[n]?STI[n].d:''})}
 var SWORD='<svg viewBox="0 0 11 11" shape-rendering="crispEdges" aria-hidden="true"><path fill="#d3bf8f" d="M8 1h2v2H9v1H8v1H7v1H6v1H5V6H4V5h1V4h1V3h1V2h1z"/><path fill="#8a6a3a" d="M2 6h1v1h1v1h1v1H4v1H3V9H2V8H1V7h1z"/></svg>';
 function skIcon(sk){if(!sk)return '<span class="ski bl"></span>';if(sk.id==='atk'){var wsn=WNAME2K[S.weapon];if(wsn&&WEAPON[wsn])return '<span class="ski" style="background:url('+wframe(wInfo(wsn).st-1)+') center/100% 100%"><img alt="" style="display:block;width:100%;height:100%" src="../assets/icons/weapons/'+wsn+'.png?v=2" onerror="this.remove()"></span>';return '<span class="ski bl">'+SWORD+'</span>'}return '<img class="ski" alt="'+esc(jobName(sk.j))+'" src="../assets/icons/jobs/framed/'+sk.j+'.png?v=2" onerror="this.remove()">'}
 var skTab='cfg',skDraft=null,skPick=null,skFlt='all',skJob=null,skMsg='';

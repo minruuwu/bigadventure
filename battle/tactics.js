@@ -20,7 +20,7 @@
     '#tacv[hidden]{display:none}#tacv{padding-top:env(safe-area-inset-top);padding-bottom:48px}' +
     '.tfx{position:absolute;inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);pointer-events:none;z-index:30;image-rendering:pixelated}' +
     '.tnews{margin-top:8px;min-height:2.9em;padding:5px 10px;font-size:12.5px;line-height:1.45;font-weight:700;color:var(--fg);background:rgba(20,12,8,.86);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}' +
-    '.tnews.rd{color:var(--accent)}.tnews.ko{color:#ff9a8a}' +
+    '.tnews.rd{color:var(--accent)}.tnews.ko{color:#ff9a8a}.tnews.sk{display:block;-webkit-line-clamp:unset;color:var(--fg)}.tnews.sk b{color:var(--gold)}.tnews.sk small{color:var(--dim);font-weight:700}' +
     '.ttop{display:flex;align-items:center;gap:6px;padding:2px 2px 6px}' +
     '.tq{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px;scrollbar-width:none}.tq::-webkit-scrollbar{display:none}' +
     '.tq>span{flex:none;font-size:11px;color:var(--dim);font-weight:700;margin-right:2px}' +
@@ -83,7 +83,7 @@
     '#tacv .log{height:150px}';
 
   /* phase：move = 等玩家移動（或點自己開選單）／menu = 選單開著／sub = 技能組子選單／target = 選好招在點目標 */
-  var infoBox, infoU = null, infoSt = -1, cardSt = -1, PROT = 0, M0 = [], FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
+  var lastNews = null, infoBox, infoU = null, infoSt = -1, cardSt = -1, PROT = 0, M0 = [], FX = [], fxc, fxx, ctx, S, root$, board, layer, menu, cells, units, order, oi, cur, busy, auto, done, evSeen, raf, lastDraw, loopOn, sel, pend, phase, subSn;
 
   function $(id) { return document.getElementById(id) }
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e }
@@ -446,17 +446,35 @@
     infoBox.hidden = false;
   }
   function hint(t) { $('thint').textContent = t || '' }
+  /* 地圖下方公告列：平常顯示最新戰報；選好招、在點目標時改顯示這招的說明 */
+  function logNews() { var nw = $('tnews'); if (nw && lastNews) { nw.textContent = lastNews.t; nw.className = lastNews.c } }
+  function skillNews(a) { var nw = $('tnews'); if (!nw) return; nw.className = 'tnews sk'; nw.innerHTML = '<b>' + esc(a.sk.n) + '</b>　' + esc(actDesc(a)) + '<br><small>' + esc(actInfo(a)) + '</small>' }
+  /* 說明文字：跟技能書同一套（common/skilldesc.js），目標字眼換成戰棋的講法 */
+  function actDesc(a) {
+    if (a.id === 'atk') return a.a === 'line' ? '直線上的敵人各受到 100% 物理傷害（貫穿）。' : a.a === 'diamond' ? '範圍內的敵人各受到 100% 物理傷害。' : '對一個敵人造成 100% 物理傷害。';
+    if (!root.SkillDesc || !a.sk.raw) return a.sk.ds || '';
+    var sk = SkillDesc.fromRow(a.sk.raw), fx = SkillDesc.fromEff(ctx.D.EFF[a.id]);
+    sk.p = '';
+    sk.t = a.side === 'self' ? 'self' : a.a === 'single' ? (a.side === 'foe' ? 'enemy_single' : 'ally_single') : (a.side === 'foe' ? 'enemy_all' : a.others ? 'ally_others' : 'ally_all');
+    return SkillDesc.text(sk, fx.st, fx.hl, function (n) { var d = ctx.D.STS[n]; return d ? d.d : '' })
+      .replace('敵方全體', '範圍內的敵人').replace('其他隊友全體', '範圍內的其他隊友').replace('我方全體', '範圍內的隊友').replace('敵方單體', '一個敵人').replace('我方單體', '一位隊友');
+  }
+  function actInfo(a) {
+    var t = a.id === 'atk' ? '普通攻擊' : (TYN[a.sk.ty] || '技能');
+    var area = a.a === 'line' ? '直線 ' + a.r + ' 格（貫穿）' : a.a === 'diamond' ? (a.r === 0 ? '以自己為中心' : '射程 ' + a.r) + '・往外 ' + a.s + ' 格' : a.side === 'self' ? '自身' : '射程 ' + a.r;
+    return t + '・' + area + (a.cost ? '・冷卻 ' + a.cost + ' 回合' : '');
+  }
   function flushLog() {
     var box = $('tlog'); if (!box) return;
     /* 引擎在行動開始時就先開好一行空白戰報、出手後才填字，所以最後一行還是空的就先停，等填完再印 */
-    for (; evSeen < S.ev.length; evSeen++) { var e = S.ev[evSeen]; if (!e.txt) { if (evSeen === S.ev.length - 1) break; continue } box.appendChild(el('div', 'lg' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : ''), e.txt)); var nw = $('tnews'); if (nw) { nw.textContent = e.txt; nw.className = 'tnews' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : '') } }
+    for (; evSeen < S.ev.length; evSeen++) { var e = S.ev[evSeen]; if (!e.txt) { if (evSeen === S.ev.length - 1) break; continue } box.appendChild(el('div', 'lg' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : ''), e.txt)); lastNews = { t: e.txt, c: 'tnews' + (e.kind === 'round' ? ' rd' : '') + (e.dead || e.pko ? ' ko' : '') }; if (phase !== 'target') logNews() }
     box.scrollTop = box.scrollHeight;
   }
   function cell(x, y) { return cells[y * N + x] }
   function clearCells() { cells.forEach(function (c) { c.className = 'tc' + ((+c.dataset.x + +c.dataset.y) % 2 ? ' k' : '') }) }
 
   /* ---------- 指令選單（人物右邊；太靠右翻到左邊，太靠下往上長） ---------- */
-  function openMenu(p) { phase = p || 'menu'; pend = null; sel = null; paint(); renderMenu() }
+  function openMenu(p) { phase = p || 'menu'; pend = null; sel = null; paint(); renderMenu(); logNews() }
   function closeMenu() { menu.hidden = true; menu.innerHTML = '' }
   function renderMenu() {
     var u = cur, h = '', sealed = S.ctrl(u, 'seal');
@@ -494,15 +512,15 @@
   }
   function menuPick(d) {
     if (!mine()) return;
-    if (d.act === 'atk') { sel = 'atk'; phase = 'target'; closeMenu(); paint(); return }
+    if (d.act === 'atk') { sel = 'atk'; phase = 'target'; closeMenu(); paint(); skillNews(atkAct(cur)); return }
     if (d.act === 'wait') return doWait();
     if (d.act === 'undo') return undoMove();
     if (d.act === 'back') { phase = 'menu'; renderMenu(); paint(); return }
     if (d.set) { subSn = d.set; phase = 'sub'; renderMenu(); paint(); return }
     if (d.sk) {
       var a = skAct(cur, d.sk); if (!a || !usable(cur, a)) return;
-      if (a.side === 'self' && a.a !== 'diamond') { closeMenu(); go(a, pos(cur), [cur]); return }
-      sel = d.sk; phase = 'target'; closeMenu(); paint();
+      /* 自身技也要再點自己一下才施放 */
+      sel = d.sk; phase = 'target'; closeMenu(); paint(); skillNews(a);
     }
   }
 
@@ -528,6 +546,7 @@
     var nm = a.sk.n;
     if (pend && pend.id === a.id) hint('「' + nm + '」會打到：' + pend.h.map(function (t) { return t.name }).join('、') + '。再點一次同一格確認；點其他地方回選單。');
     else if (!ch.length) hint('「' + nm + '」' + (a.a === 'single' ? '射程內沒有目標' : '範圍內沒有目標') + '：點任一格回選單。');
+    else if (a.side === 'self' && a.a !== 'diamond') hint('點自己（綠框）施放「' + nm + '」；點其他地方回選單。');
     else if (a.a === 'single') hint('點' + (a.side === 'foe' ? '紅色的敵人' : '綠色的隊友') + '施放「' + nm + '」；點其他地方回選單。');
     else hint('點' + (a.a === 'line' ? '直線上的一格選方向' : '射程內一格（或亮起來的目標）') + '預覽範圍，再點同一格確認；點其他地方回選單。');
   }
@@ -710,7 +729,7 @@
   }
 
   /* ---------- 玩家操作 ---------- */
-  function go(a, c, h) { var u = cur; busy = true; pend = null; phase = 'busy'; closeMenu(); paint(); cast(u, a, c, h).then(function () { return wait(AFTER_MS) }).then(next) }
+  function go(a, c, h) { var u = cur; busy = true; pend = null; phase = 'busy'; logNews(); closeMenu(); paint(); cast(u, a, c, h).then(function () { return wait(AFTER_MS) }).then(next) }
   function tap(x, y) {
     var who = at(x, y);
     if (!mine()) { if (who) showInfo(who); else hideInfo(); return }
