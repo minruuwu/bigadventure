@@ -258,12 +258,47 @@
   }
   function placeUnits() { layer.innerHTML = ''; units.forEach(addNode) }
   /* 人物、怪物用同一個像素倍率，維持原本戰鬥畫面的相對大小；人物（48 格紙娃娃）約 1.5 格高，超出格子沒關係 */
-  var SPRITE_K = 1.5 / 48;
+  /* SZ.p = 紙娃娃（48 px 畫布）佔幾格高；SZ.m = 怪物再乘的倍率（1 = 跟人物維持原本戰鬥畫面的比例）；SZ.b = 王再乘的倍率 */
+  var SZ0 = { p: 1.5, m: 1, b: 1 }, SZ = { p: SZ0.p, m: SZ0.m, b: SZ0.b };
+  function spriteW(k, boss, cw) { var z = ctx.msz(k), sc = ctx.msc ? ctx.msc(k, boss) : 1, K = cw * SZ.p / 48 * SZ.m * (boss ? SZ.b : 1); return [z[0] * sc * K, z[1] * sc * K] }
   function sizeSprite(u) {
-    var K = board.clientWidth / N * SPRITE_K;
-    if (u.side === 'p') { var s = 48 * K; u.sp.style.width = u.sp.style.height = s + 'px'; u.sp.style.bottom = '-4%'; return }
-    var z = ctx.msz(u.sprite), sc = ctx.msc ? ctx.msc(u.sprite, u.boss) : 1;
-    u.sp.style.width = (z[0] * sc * K) + 'px'; u.sp.style.height = (z[1] * sc * K) + 'px';
+    var cw = board.clientWidth / N;
+    if (u.side === 'p') { var s = cw * SZ.p; u.sp.style.width = u.sp.style.height = s + 'px'; u.sp.style.bottom = '-4%'; return }
+    var w = spriteW(u.sprite, u.boss, cw); u.sp.style.width = w[0] + 'px'; u.sp.style.height = w[1] + 'px';
+  }
+  /* 比例調整面板（網址帶 &tune=1）：拉桿即時改大小，數值記在這台瀏覽器 */
+  function tunePanel() {
+    try { var o = JSON.parse(localStorage.getItem('tac.size') || 'null'); if (o) { SZ.p = +o.p || SZ0.p; SZ.m = +o.m || SZ0.m; SZ.b = +o.b || SZ0.b } } catch (e) {}
+    var pn = el('div', 'panel'); pn.style.marginTop = '12px';
+    function row(k, label, min, max) { return '<label style="display:grid;grid-template-columns:86px 1fr 46px;gap:8px;align-items:center;font-size:13px;font-weight:700">' + label + '<input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="0.05" value="' + SZ[k] + '"><b data-v="' + k + '"></b></label>' }
+    pn.innerHTML = '<h2>比例調整（只影響這台瀏覽器的測試畫面）</h2>' + row('p', '人物（格高）', 0.8, 3) + row('m', '怪物倍率', 0.5, 2.5) + row('b', '王再乘', 0.5, 2) +
+      '<div id="tzoo" style="display:flex;align-items:flex-end;gap:6px;overflow-x:auto;padding:8px 4px 4px;background:rgba(0,0,0,.25);box-shadow:inset 0 -3px 0 #3b2713"></div>' +
+      '<p class="note" id="tsum" style="margin:0"></p><div class="tbtn" style="display:flex;gap:8px"><button type="button" id="treset" style="font:inherit;font-weight:900;border:0;background:var(--btn);color:var(--fg);padding:6px 12px;box-shadow:0 0 0 2px #1d1008">還原預設</button></div>';
+    root$.insertBefore(pn, root$.children[3] || null);
+    function sync() {
+      [].forEach.call(pn.querySelectorAll('[data-v]'), function (b) { var k = b.getAttribute('data-v'); b.textContent = (k === 'p' ? SZ[k].toFixed(2) : '×' + SZ[k].toFixed(2)) });
+      $('tsum').textContent = '目前：人物 ' + SZ.p.toFixed(2) + ' 格高、怪物 ×' + SZ.m.toFixed(2) + '、王再 ×' + SZ.b.toFixed(2) + '（截圖或抄這行給我就好）';
+      units.forEach(function (u) { if (u.node) sizeSprite(u) }); zoo();
+      try { localStorage.setItem('tac.size', JSON.stringify(SZ)) } catch (e) {}
+    }
+    pn.addEventListener('input', function (e) { var k = e.target.getAttribute('data-k'); if (k) { SZ[k] = +e.target.value; sync() } });
+    $('treset').onclick = function () { SZ.p = SZ0.p; SZ.m = SZ0.m; SZ.b = SZ0.b; [].forEach.call(pn.querySelectorAll('input'), function (i) { i.value = SZ[i.getAttribute('data-k')] }); sync() };
+    sync();
+  }
+  /* 對照列：一隻人物 + 每種怪物各一隻，用同一個格寬畫，底下的刻度是一格寬 */
+  function zoo() {
+    var box = $('tzoo'); if (!box) return; box.innerHTML = '';
+    var cw = board.clientWidth / N, seen = {};
+    var c = document.createElement('canvas'); c.width = c.height = 48; c.style.cssText = 'flex:none;image-rendering:pixelated;width:' + cw * SZ.p + 'px;height:' + cw * SZ.p + 'px;margin-bottom:' + (-cw * SZ.p * 0.04) + 'px';
+    var me = S.P[0]; if (me) Doll.draw(c, me.look, 0); box.appendChild(c);
+    Object.keys(ctx.D.mon).forEach(function (id) {
+      var m = ctx.D.mon[id], k = m.sprite, boss = m.boss === '1'; if (!k || seen[k + boss]) return; seen[k + boss] = 1;
+      var src = ctx.msrc(k, 0, 0); if (!src) return;
+      var w = spriteW(k, boss, cw), im = new Image(); im.src = src; im.title = m.monster_name; im.alt = m.monster_name;
+      im.style.cssText = 'flex:none;image-rendering:pixelated;width:' + w[0] + 'px;height:' + w[1] + 'px';
+      box.appendChild(im);
+    });
+    var tick = el('div'); tick.style.cssText = 'flex:none;align-self:flex-end;width:' + cw + 'px;height:6px;background:#ffd76a;margin-left:6px'; tick.title = '一格寬'; box.appendChild(tick);
   }
   /* 地板：該關原本橫向戰鬥背景，從天空下方（BG 的 ft）裁到底，裁成正方形放大鋪滿 */
   function floor() {
@@ -566,7 +601,7 @@
       if (m === boss) { m.tx = 4; m.ty = 1 } else { var s = sl[j++] || [j % N, 0]; m.tx = s[0]; m.ty = s[1] }
       m.ph = Math.random() * 900;
     });
-    build(); floor(); placeUnits(); flushLog();
+    build(); floor(); if (c.tune) tunePanel(); placeUnits(); flushLog(); if (c.tune) zoo();
     loopOn = true; raf = requestAnimationFrame(anim);
     window.removeEventListener('resize', onResize); window.addEventListener('resize', onResize);
     begin();

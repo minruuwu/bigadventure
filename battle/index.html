@@ -108,7 +108,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="engine.js?v=12"></script>
-<script src="tactics.js?v=5"></script>
+<script src="tactics.js?v=6"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -589,7 +589,7 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;closeLevels();if(TACT)startTactics(A2,L2);else startBattle(A2,L2)}});
 /* 戰棋測試（?tactics=1，docs/tactics.md 第 0 階段）：選關後改用戰棋打；不存檔、不給獎勵 */
 function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
-  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,jobs:JOBI,lv:l,bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
+  showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關',P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,jobs:JOBI,lv:l,tune:/[?&]tune=1/.test(location.search),bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
