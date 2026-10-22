@@ -131,7 +131,7 @@ skill129,無雙裂空閃,job12,8,combat,enemy_single,random_each,damage,,,p,wind
 skill130,劍精通,job12,10,passive,,,passive,,,,,,,,,裝備劍時暴擊率 +10%、暴擊傷害 +50%,,,,,,,
 skill131,劍氣蕩漾,job12,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3
 skill132,星天翠光破,job12,15,combat,enemy_all,,damage,,,p,nature,1,,,,,slash,,,3,diamond,2,3
-skill133,瞬影稻妻突,job12,20,combat,enemy_single,random_each,damage,,,p,lightning,0.8,,,,,slash,3,,4,line,,2
+skill133,雷神斷影衝,job12,20,combat,enemy_single,random_each,damage,,,p,lightning,0.8,,,,,slash,3,,4,line,,2
 skill134,人劍合一,job12,25,passive,,,passive,,,,,,,,,裝備劍時，最終物理攻擊力的 5% 加到生命力上,,,,,,,
 skill135,雷汞風暴,job10,1,combat,enemy_all,,damage,0.1,,m,lightning,0.85,,,,,smash,,,4,diamond,2,3
 skill136,書專精,job10,3,passive,,,passive,,,,,,,,,裝備書時魔法攻擊力 +8%,,,,,,,
