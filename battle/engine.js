@@ -390,7 +390,7 @@
         s.rows.forEach(function (r) {
           if (r.k === 'dot' && r.amt) { var red = r.dt === 'm' ? stat(u, 'mred') : stat(u, 'pred'), v = Math.max(1, Math.round(r.amt * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(u, r.el), 0.9)) * (1 + sv(u, 'dmg_taken_rate'))));
             var real = hurt(u, v, s.src, true); tick.push('「' + s.n + '」' + real + ' 傷害'); addStat(e, s.src, 'dmg', real, s.n); addStat(e, u, 'taken', real, s.n);
-            if (s.rows.some(function (q) { return q.k === 'drain' }) && !s.src.dead) { var g = heal(s.src, s.src, real, null, true); if (g) addStat(e, s.src, 'heal', g, s.n) } }
+            if (s.rows.some(function (q) { return q.k === 'drain' }) && !s.src.dead) { var g = heal(s.src, s.src, real, null, true); if (g) { addStat(e, s.src, 'heal', g, s.n); (e.drain = e.drain || []).push([s.src.side, s.src.i]) } } }
           if (r.k === 'hot' && r.amt) { var h = heal(s.src, u, r.amt); if (h) { tick.push('「' + s.n + '」恢復 ' + h); addStat(e, s.src, 'heal', h, s.n) } }
         });
       });
@@ -549,7 +549,7 @@
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
         var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
-        if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血') } }
+        if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
         /* 熊之力量：濺射 */
         if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bn = 0; foes(u).forEach(function (t) { var sp = hurt(t, Math.round(totalDmg * RV(D, 'rune22', 0, 0.3)), u); addStat(e, u, 'dmg', sp, '熊之力量'); if (sp > 0) bn++; (e.thr = e.thr || []).push([t.side, t.i]); checkDeath(t, e) }); if (bn) e.txt += '；熊之力量：' + bn + ' 個敵人各受到 ' + Math.round(totalDmg * RV(D, 'rune22', 0, 0.3)) + ' 真實傷害' }
         /* 舞台魅力等「攻擊時」觸發 */

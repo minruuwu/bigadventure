@@ -54,7 +54,7 @@ skill052,錘專長,job04,27,passive,,,passive,,,,,,,,,裝備錘時魔法攻擊�
 skill053,調配,job05,20,passive,,,passive,,,,,,,,,魔法增傷+3%,,,,,,,
 skill054,實踐,job05,22,passive,,,passive,,,,,,,,,物理增傷+3%,,,,,,,
 skill055,元素試驗,job05,27,passive,,,passive,,,,,,,,,火焰、冰霜、疾風、雷電、自然、光明、黑暗七種元素抗性各+2%,,,,,,,
-skill056,血裂斬,job01,25,combat,enemy_single,random,damage,,,p,,1.5,,,,每回合造成物理攻擊力30%的物理傷害,slash,,,1,single,,2
+skill056,血裂斬,job01,25,combat,enemy_single,random,damage,,,p,,1.5,,,,每回合造成物理攻擊力30%的物理傷害,blood,,,1,single,,2
 skill057,旋風斬,job01,30,combat,enemy_all,,damage,,,p,wind,0.9,,,,,slash,,,0,diamond,2,3
 skill058,火焰爆破,job02,25,combat,enemy_all,,damage,,,m,fire,0.9,,,,,missile,,,3,diamond,2,3
 skill059,魔力守護,job02,30,combat,self,,buff,,,,,,,,,物理減傷+15%、魔法減傷+15%,,,,0,single,,3
@@ -89,7 +89,7 @@ skill087,魔刃共鳴,job11,3,passive,,,passive,,,,,,,,,物理攻擊力+5%、魔
 skill088,奧術護甲,job11,10,passive,,,passive,,,,,,,,,物理減傷+3%、魔法減傷+3%,,,,,,,
 skill089,權能協調,job11,25,passive,,,passive,,,,,,,,,力量的15%加到魔法攻擊力,,,,,,,
 skill090,暴戾斬,job06,1,combat,enemy_single,random,damage,,,p,,2,,,,20%機率暈眩1回合,,,,1,single,,2
-skill091,血腥暴風,job06,5,combat,enemy_all,,damage,,,p,,0.8,,,,每回合造成物理攻擊力30%的物理傷害，與撕裂傷獨立計算,,,,0,diamond,2,3
+skill091,血腥暴風,job06,5,combat,enemy_all,,damage,,,p,,0.8,,,,每回合造成物理攻擊力30%的物理傷害，與撕裂傷獨立計算,blood,,,0,diamond,2,3
 skill092,嚎叫,job06,8,combat,enemy_all,,damage,,,p,,0.5,,,,自身嘲諷2回合：敵人的單體攻擊優先打自己,,,,0,diamond,4,3
 skill093,英勇突進,job06,12,combat,enemy_single,random,damage,,,p,,1.8,,,,自身物理減傷+15%，持續2回合,,,,2,single,,2
 skill094,怒意,job06,15,combat,self,,buff,,,,,,,,,物理增傷+40%,,,,0,single,,3
@@ -190,7 +190,7 @@ skill188,竊取精血,job17,25,passive,,,passive,,,,,,,,,造成傷害時，吸�
 skill189,罪證烙印,job18,1,combat,enemy_single,random,damage,,,p,light,1.5,,,,,,,,7,single,,2
 skill190,異端追獵,job18,3,passive,,,passive,,,,,,,,,暴擊傷害 +50%,,,,,,,
 skill191,制裁之鎖,job18,5,combat,enemy_all,,damage,,,p,dark,0.7,,,,,smash,,,5,diamond,2,3
-skill192,拷問,job18,8,combat,enemy_single,random,damage,,,p,dark,0.6,,,,每一下 20% 機率附加「出血」3 回合,,3,,3,single,,2
+skill192,拷問,job18,8,combat,enemy_single,random,damage,,,p,dark,0.6,,,,每一下 20% 機率附加「出血」3 回合,blood,3,,3,single,,2
 skill193,狂熱靈氣,job18,10,passive,,,passive,,,,,,,,,全體隊友（含自己）物理增傷 +8%、魔法增傷 +8%（靈氣：同種不疊加，審判官倒下時消失）,,,,,,,
 skill194,狂信,job18,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3
 skill195,異端裁決,job18,15,combat,enemy_all,,damage,,,p,light,0.85,,,,目標身上有減益時，對牠的暴擊率 +30%,,,,3,diamond,2,3
