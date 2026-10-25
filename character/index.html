@@ -254,6 +254,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="../common/skilldesc.js?v=1"></script>
+<script src="../common/runevals.js?v=1"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -368,11 +369,14 @@ var KEYS=['str','int','agi','vit','luk'],NAMES={str:'力量',int:'智力',agi:'�
 var RES=[['fire','火炎'],['frost','冰霜'],['lightning','雷電'],['wind','疾風'],['nature','自然'],['light','光明'],['dark','黑暗']];
 var MAXREN=3;
 var PETINFO={};
-var RUNEC={};
+var RUNEC={},RUNEROWS=[];
+/* 符文數值讀 rune_info.csv（common/runevals.js），跟戰鬥引擎同一份 */
+function RVc(id,k,d){return window.RuneVals?RuneVals.v(RUNEROWS,id,k,d):d}
+function RVp(id,k,d){return window.RuneVals?RuneVals.pc(RVc(id,k,d)):Math.round(d*100)+'%'}
 function slotsOf(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
 function haloOf(sn){var w=wInfo(sn);return w.en.slice(0,slotsOf(w.lv)).map(function(id){return RUNEC[id]||null})}
 function buildData(R){
-  (R[5]||[]).forEach(function(r){if(r.u_sn)RUNEC[r.u_sn]=r.color||'#d0a0ff'});
+  RUNEROWS=R[5]||[];(R[5]||[]).forEach(function(r){if(r.u_sn)RUNEC[r.u_sn]=r.color||'#d0a0ff'});
   (R[4]||[]).forEach(function(r){if(r.pet_id)PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,per:(parseFloat(r.bonus_per_level)||0)/100,perTxt:String(r.bonus_per_level||'').trim()}});
   R[0].forEach(function(r){if(!r.u_sn)return;JOB[r.u_sn]=r;JOBORDER.push(r.u_sn)});
   R[1].forEach(function(r){if(r.u_sn)ATTR[r.u_sn]=r});
@@ -486,7 +490,7 @@ function jobName(sn){return JOB[sn]?JOB[sn].job_name:'—'}
 function growthOf(sn,k){var g=GROWTH[sn];return g?(parseFloat(g['per_level_'+k])||0):0}
 function rOn(id){var sn=WNAME2K[S.weapon];return !!sn&&wInfo(sn).en.indexOf(id)>=0}
 function A(){var r={};KEYS.forEach(function(k){var j=0,parts=[];JOBORDER.forEach(function(sn){var lv=S.jobLvs[sn]|0;if(lv>0){var g=growthOf(sn,k);if(g){j+=g*lv;parts.push(jobName(sn)+' Lv'+lv+' × '+g+' = +'+g*lv)}}});
-  var a=S.alloc[k]+S.pend[k];var bs=10+j+a,rb=rOn('rune08')?Math.round(bs*0.1):0;r[k]={job:j,jobParts:parts,alloc:a,rune:rb,total:bs+rb}});return r}
+  var a=S.alloc[k]+S.pend[k];var bs=10+j+a,rb=rOn('rune08')?Math.round(bs*RVc('rune08',0,0.1)):0;r[k]={job:j,jobParts:parts,alloc:a,rune:rb,total:bs+rb}});return r}
 function wEq(){var sn=WNAME2K[S.weapon],w=sn&&WEAPON[sn];return w?{w:w,lv:wInfo(sn).lv}:null}
 function wsum(key){var e=wEq(),t=0;if(!e)return 0;e.w.stats.forEach(function(x){if(x.k!==key)return;var pc=/%/.test(x.per),v=(parseFloat(x.per)||0)*e.lv;t+=pc?v/100:v});var pt=wInfo(WNAME2K[S.weapon]).pts;(e.w.temper||[]).forEach(function(x,q){if(!x||x.k!==key||!pt[q])return;t+=(parseFloat(x.per)||0)*pt[q]/100});return t}
 function wline(key,label){var e=wEq(),o=[];if(!e)return o;e.w.stats.forEach(function(x){if(x.k!==key)return;var pc=/%/.test(x.per),v=(parseFloat(x.per)||0)*e.lv;o.push('武器 '+e.w.n+' Lv '+e.lv+'：'+label+' '+x.per+' × '+e.lv+' = +'+(pc?wNum(v)+'%':wNum(v)))});var pt=wInfo(WNAME2K[S.weapon]).pts;(e.w.temper||[]).forEach(function(x,q){if(!x||x.k!==key||!pt[q])return;var per=parseFloat(x.per)||0;o.push('淬火 '+e.w.n+'：'+label+' '+x.per+' × '+pt[q]+' 點 = +'+wNum(per*pt[q])+'%')});return o}
@@ -497,23 +501,23 @@ function derived(){var a=A(),v=a.vit.total,s=a.str.total,i=a.int.total,g=a.agi.t
   var kH=skPas('hp_rate'),kP=skPas('p_atk_rate'),kM=skPas('m_atk_rate'),kPD=skPas('p_damage_rate'),kMD=skPas('m_damage_rate'),kE=skPas('eva_rate'),kC=skPas('crit_rate'),kCD=skPas('crit_damage_rate'),kPR=skPas('p_reduce_rate'),kMR=skPas('m_reduce_rate'),kSM=skPas('str_to_m_atk'),kVP=skPas('vit_to_p_atk'),kAH=skPas('agi_to_hp'),kIH=skPas('int_to_hp'),kPH=skPas('p_atk_to_hp'),kAP=skPas('atk_per_ally'),apL=kAP.v?['技能 觀眾熱情：每位隊友 +'+pct(kAP.v)+'（依組隊人數，這裡不算進去，組隊介面會顯示）']:[];
   var wh=wsum('hp_rate'),wp=wsum('p_atk'),wm=wsum('m_atk'),we=wsum('eva_rate'),wc=wsum('crit_rate'),wd=wsum('crit_damage_rate'),wpr=wsum('p_reduce_rate'),wmr=wsum('m_reduce_rate');
   var vpA=Math.round(v*kVP.v),P0=Math.round((s+wp+vpA)*(1+pb+kP.v)),smA=Math.round(s*kSM.v),M0=Math.round((i+wm+smA)*(1+mb+kM.v)),sn0=WNAME2K[S.weapon],bal=sn0&&wInfo(sn0).en.indexOf('rune09')>=0,balP=0,balM=0;
-  if(bal){var hi=Math.max(P0,M0),lo=Math.min(P0,M0),ad=Math.max(0,Math.min(Math.round(hi*0.5),hi-lo));if(P0>M0)balM=ad;else if(M0>P0)balP=ad}
-  var balL=function(isP){var x=isP?balP:balM;return x?['符文 平衡之機會：較高者（'+(isP?'魔攻 '+M0:'物攻 '+P0)+'）的 50% 補到這邊 → +'+x]:[]};
+  if(bal){var hi=Math.max(P0,M0),lo=Math.min(P0,M0),ad=Math.max(0,Math.min(Math.round(hi*RVc('rune09',0,0.5)),hi-lo));if(P0>M0)balM=ad;else if(M0>P0)balP=ad}
+  var balL=function(isP){var x=isP?balP:balM;return x?['符文 平衡之機會：較高者（'+(isP?'魔攻 '+M0:'物攻 '+P0)+'）的 '+RVp('rune09',0,0.5)+' 補到這邊 → +'+x]:[]};
   var L=[];
   var hpL=10*Math.max(0,S.lv-1),ahA=Math.round(g*kAH.v*5),ihA=Math.round(i*kIH.v*5),phA=Math.round((P0+balP)*kPH.v),hpBase=v*5+hpL+ahA+ihA+phA;
   L.push(['生命力',Math.round(hpBase*(1+hpb+wh+kH.v)),['體質 '+v+' × 5 = '+v*5].concat(hpL?['人物等級 Lv '+S.lv+'：10 × '+(S.lv-1)+' = +'+hpL]:[]).concat(kAH.L.map(function(x){return x+'：敏捷 '+g+' × '+pct(kAH.v)+' × 5 = +'+ahA})).concat(kIH.L.map(function(x){return x+'：智力 '+i+' × '+pct(kIH.v)+' × 5 = +'+ihA})).concat(kPH.L.map(function(x){return x.indexOf('未生效')>=0?x:x+'：物理攻擊力 '+(P0+balP)+' × '+pct(kPH.v)+' = +'+phA})).concat(wline('hp_rate','生命')).concat(hpb?[jn+'職業加成 生命 +'+pct(hpb)]:[]).concat(kH.L).concat((hpb||wh||kH.v)?['百分比加成合計 +'+pct(hpb+wh+kH.v)+' → +'+Math.round(hpBase*(hpb+wh+kH.v))]:[])]);
   L.push(['物理攻擊力',P0+balP,['力量 '+s+' × 1 = '+s].concat(wline('p_atk','物攻')).concat(vpA?['技能 血氣昇華：體質 '+v+' × '+pct(kVP.v)+' = +'+vpA]:[]).concat(pb?[jn+'職業加成 物攻 +'+pct(pb)+' → +'+Math.round((s+wp)*pb)]:[]).concat(kP.L).concat(kP.v?['技能加成合計 +'+pct(kP.v)+' → +'+Math.round((s+wp)*kP.v)]:[]).concat(balL(true)).concat(apL)]);
   L.push(['魔法攻擊力',M0+balM,['智力 '+i+' × 1 = '+i].concat(wline('m_atk','魔攻')).concat(smA?['技能 權能協調：力量 '+s+' × '+pct(kSM.v)+' = +'+smA]:[]).concat(mb?[jn+'職業加成 魔攻 +'+pct(mb)+' → +'+Math.round((i+wm)*mb)]:[]).concat(kM.L).concat(kM.v?['技能加成合計 +'+pct(kM.v)+' → +'+Math.round((i+wm)*kM.v)]:[]).concat(balL(false)).concat(apL)]);
   /* 符文 羊之新生：物理／魔法減傷（角色本身的，不含戰鬥中的狀態）同時加成為物理／魔法增傷，跟 battle/engine.js 一致 */
-  var prT=pd+wpr+petSum('p_reduce_rate')+(rOn('rune06')?0.2:0)+kPR.v,mrT=md+wmr+petSum('m_reduce_rate')+(rOn('rune07')?0.2:0)+kMR.v,r24=rOn('rune24');
-  L.push(['物理傷害加成',pct(wsum('p_damage_rate')+kPD.v+(r24?prT:0)),['基礎 0%'].concat(wline('p_damage_rate','物理傷害加成')).concat(kPD.L).concat(r24?['符文 羊之新生：物理減傷 '+pct(prT)+' → 物理增傷 +'+pct(prT)]:[])]);
-  L.push(['魔法傷害加成',pct(wsum('m_damage_rate')+kMD.v+(r24?mrT:0)),['基礎 0%'].concat(wline('m_damage_rate','魔法傷害加成')).concat(kMD.L).concat(r24?['符文 羊之新生：魔法減傷 '+pct(mrT)+' → 魔法增傷 +'+pct(mrT)]:[])]);
+  var prT=pd+wpr+petSum('p_reduce_rate')+(rOn('rune06')?RVc('rune06',0,0.2):0)+kPR.v,mrT=md+wmr+petSum('m_reduce_rate')+(rOn('rune07')?RVc('rune07',0,0.2):0)+kMR.v,r24=rOn('rune24'),k24=RVc('rune24',0,1),c24=RVc('rune24',1,9),pr24=Math.min(prT*k24,c24),mr24=Math.min(mrT*k24,c24);
+  L.push(['物理傷害加成',pct(wsum('p_damage_rate')+kPD.v+(r24?pr24:0)),['基礎 0%'].concat(wline('p_damage_rate','物理傷害加成')).concat(kPD.L).concat(r24?['符文 羊之新生：物理減傷 '+pct(prT)+' → 物理增傷 +'+pct(pr24)+(pr24<prT*k24?'（上限 '+pct(c24)+'）':'')]:[])]);
+  L.push(['魔法傷害加成',pct(wsum('m_damage_rate')+kMD.v+(r24?mr24:0)),['基礎 0%'].concat(wline('m_damage_rate','魔法傷害加成')).concat(kMD.L).concat(r24?['符文 羊之新生：魔法減傷 '+pct(mrT)+' → 魔法增傷 +'+pct(mr24)+(mr24<mrT*k24?'（上限 '+pct(c24)+'）':'')]:[])]);
   L.push(['閃避率',pct(g/(g+800)+eb+we+petSum('eva_rate')+kE.v),['敏捷 '+g+' ÷ ('+g+' + 800) = '+pct(g/(g+800))].concat(eb?[jn+'職業加成 +'+pct(eb)]:[]).concat(wline('eva_rate','閃避率')).concat(petLine('eva_rate')).concat(kE.L)]);
-  var r5=rOn('rune05')?0.2:0;
-  L.push(['暴擊率',pct(g/(g+500)+cb+wc+r5+kC.v),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[]).concat(wline('crit_rate','暴擊率')).concat(r5?['符文 狼之野性 +20%']:[]).concat(kC.L)]);
-  L.push(['暴擊傷害',pct(0.5+l*0.01+db+wd+(r5?1:0)+kCD.v),['基礎 50%','幸運 '+l+' × 1% = '+l+'%'].concat(db?[jn+'職業加成 +'+pct(db)]:[]).concat(wline('crit_damage_rate','暴擊傷害')).concat(r5?['符文 狼之野性 +100%']:[]).concat(kCD.L)]);
-  L.push(['物理減傷',pct(pd+wpr+petSum('p_reduce_rate')+(rOn('rune06')?0.2:0)+kPR.v),['基礎 0%'].concat(pd?[jn+'職業加成 +'+pct(pd)]:[]).concat(wline('p_reduce_rate','物理減傷')).concat(petLine('p_reduce_rate')).concat(rOn('rune06')?['符文 紫杉之堅韌 +20%']:[]).concat(kPR.L).concat(['（另有狀態加成）'])]);
-  L.push(['魔法減傷',pct(md+wmr+petSum('m_reduce_rate')+(rOn('rune07')?0.2:0)+kMR.v),['基礎 0%'].concat(md?[jn+'職業加成 +'+pct(md)]:[]).concat(wline('m_reduce_rate','魔法減傷')).concat(petLine('m_reduce_rate')).concat(rOn('rune07')?['符文 逆境之意志 +20%']:[]).concat(kMR.L).concat(['（另有狀態加成）'])]);
+  var r5=rOn('rune05')?RVc('rune05',0,0.2):0,r5d=rOn('rune05')?RVc('rune05',1,1):0;
+  L.push(['暴擊率',pct(g/(g+500)+cb+wc+r5+kC.v),['敏捷 '+g+' ÷ ('+g+' + 500) = '+pct(g/(g+500))].concat(cb?[jn+'職業加成 +'+pct(cb)]:[]).concat(wline('crit_rate','暴擊率')).concat(r5?['符文 狼之野性 +'+RVp('rune05',0,0.2)]:[]).concat(kC.L)]);
+  L.push(['暴擊傷害',pct(0.5+l*0.01+db+wd+r5d+kCD.v),['基礎 50%','幸運 '+l+' × 1% = '+l+'%'].concat(db?[jn+'職業加成 +'+pct(db)]:[]).concat(wline('crit_damage_rate','暴擊傷害')).concat(r5?['符文 狼之野性 +'+RVp('rune05',1,1)]:[]).concat(kCD.L)]);
+  L.push(['物理減傷',pct(pd+wpr+petSum('p_reduce_rate')+(rOn('rune06')?RVc('rune06',0,0.2):0)+kPR.v),['基礎 0%'].concat(pd?[jn+'職業加成 +'+pct(pd)]:[]).concat(wline('p_reduce_rate','物理減傷')).concat(petLine('p_reduce_rate')).concat(rOn('rune06')?['符文 紫杉之堅韌 +'+RVp('rune06',0,0.2)]:[]).concat(kPR.L).concat(['（另有狀態加成）'])]);
+  L.push(['魔法減傷',pct(md+wmr+petSum('m_reduce_rate')+(rOn('rune07')?RVc('rune07',0,0.2):0)+kMR.v),['基礎 0%'].concat(md?[jn+'職業加成 +'+pct(md)]:[]).concat(wline('m_reduce_rate','魔法減傷')).concat(petLine('m_reduce_rate')).concat(rOn('rune07')?['符文 逆境之意志 +'+RVp('rune07',0,0.2)]:[]).concat(kMR.L).concat(['（另有狀態加成）'])]);
   return L}
 function resOf(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])+skPas(key+'_res_rate').v}
 function resJob(key){return pctNum((ATTR[S.jobSn]||{})[key+'_res_rate_bonus'])}
@@ -603,7 +607,7 @@ function sheetHTML(k){
     KEYS.forEach(function(k2){var d=a[k2],o=open['a'+k2];
       h+='<div class="row"><button class="nm" data-a="open" data-id="a'+k2+'" type="button">'+ic(k2)+NAMES[k2]+'<small>'+(o?'收起':'來源')+'</small></button><div class="step"><span class="v">'+d.total+(S.pend[k2]?'<span class="dl">+'+S.pend[k2]+'</span>':'')+'</span>'+
         '<button data-a="sub" data-k="'+k2+'" type="button" '+(S.pend[k2]?'':'disabled')+' aria-label="減少">−</button><button data-a="add" data-k="'+k2+'" type="button" '+(u>0?'':'disabled')+' aria-label="增加">＋</button></div>'+
-        (o?'<div class="src"><div>天生 10</div>'+(d.jobParts.length?d.jobParts.map(function(l){return '<div>職業永久加成：'+esc(l)+'</div>'}).join(''):'<div>職業永久加成 +0</div>')+'<div>自由配點 +'+d.alloc+'</div>'+(d.rune?'<div>符文 戰神之榮耀 +10% → +'+d.rune+'</div>':'')+'<div>其他加成 +0</div></div>':'')+'</div>'});
+        (o?'<div class="src"><div>天生 10</div>'+(d.jobParts.length?d.jobParts.map(function(l){return '<div>職業永久加成：'+esc(l)+'</div>'}).join(''):'<div>職業永久加成 +0</div>')+'<div>自由配點 +'+d.alloc+'</div>'+(d.rune?'<div>符文 戰神之榮耀 +'+RVp('rune08',0,0.1)+' → +'+d.rune+'</div>':'')+'<div>其他加成 +0</div></div>':'')+'</div>'});
     h+='<div class="sec">戰鬥屬性</div>';
     var db=derivedBase();derived().forEach(function(r,i){var o=open['d'+i];h+='<div class="row"><button class="nm" data-a="open" data-id="d'+i+'" type="button">'+ic(DKEYS[i])+r[0]+'<small>'+(o?'收起':'來源')+'</small></button><span class="v">'+r[1]+(ps?diffStr(db[i][1],r[1]):'')+'</span>'+(o?'<div class="src">'+r[2].map(function(l){return '<div>'+esc(l)+'</div>'}).join('')+'</div>':'')+'</div>'});
     h+='<div class="sec">元素抗性</div>';

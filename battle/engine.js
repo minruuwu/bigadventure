@@ -47,8 +47,11 @@
     (c.monster_info || []).forEach(function (r) { if (r.monster_id) D.mon[r.monster_id] = r });
     (c.stage_info || []).forEach(function (r) { if (r.area_id) D.stage.push(r) });
     D.wbyname = {}; Object.keys(D.wpn).forEach(function (k) { D.wbyname[D.wpn[k].weapon_name] = k });
+    /* 符文數值：rune_info.csv 的 value_1～3（有 % 的換成小數，純數字照原樣，文字不算）；空的就用程式內的預設值 */
+    D.RV = {}; (c.rune_info || []).forEach(function (r) { if (r.u_sn) D.RV[r.u_sn] = [r.value_1, r.value_2, r.value_3].map(function (x) { var t = String(x == null ? '' : x).trim(); return /^-?[\d.]+%?$/.test(t) ? pn(t) : null }) });
     return D;
   }
+  function RV(D, id, k, dflt) { var a = D && D.RV && D.RV[id], v = a ? a[k] : null; return v == null || isNaN(v) ? dflt : v }
   function stageRow(D, area, l) { var x = null; D.stage.forEach(function (r) { if (r.area_id === area && (parseInt(r.stage, 10) || 0) === l) x = r }); return x }
 
   /* ---------- 建立玩家單位（算法跟角色頁、營地一致） ---------- */
@@ -75,7 +78,7 @@
     var T = {};
     ['str', 'int', 'agi', 'vit', 'luk'].forEach(function (k) {
       var j = 0; Object.keys(jl).forEach(function (s) { var l = jl[s] | 0, g = D.grow[s]; if (l > 0 && g) j += num(g['per_level_' + k]) * l });
-      var bs = 10 + j + ((p.alloc || {})[k] | 0); T[k] = bs + (rOn('rune08') ? Math.round(bs * 0.1) : 0);
+      var bs = 10 + j + ((p.alloc || {})[k] | 0); T[k] = bs + (rOn('rune08') ? Math.round(bs * RV(D, 'rune08', 0, 0.1)) : 0);
     });
     var at = D.attr[jobSn(p)] || {}, row = D.wpn[ws];
     function wsum(key) { var t = 0; if (!row) return 0; for (var q = 1; q <= 6; q++) { if (row['auto_stat_' + q] !== key) continue; var per = String(row['auto_per_level_' + q] || '').trim(), v = num(per) * wlv; t += /%/.test(per) ? v / 100 : v }
@@ -84,8 +87,8 @@
     var v = T.vit, s = T.str, i = T.int, a = T.agi, l = T.luk, apa = sp('atk_per_ally') * (opt.allies || 0);
     var P0 = Math.round((s + wsum('p_atk') + Math.round(v * sp('vit_to_p_atk'))) * (1 + pn(at.p_atk_bonus) + sp('p_atk_rate') + apa));
     var M0 = Math.round((i + wsum('m_atk') + Math.round(s * sp('str_to_m_atk'))) * (1 + pn(at.m_atk_bonus) + sp('m_atk_rate') + apa)), bP = 0, bM = 0;
-    if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * 0.5), hi - lo)); if (P0 > M0) bM = ad; else if (M0 > P0) bP = ad }
-    var r5 = rOn('rune05') ? 0.2 : 0;
+    if (rOn('rune09')) { var hi = Math.max(P0, M0), lo = Math.min(P0, M0), ad = Math.max(0, Math.min(Math.round(hi * RV(D, 'rune09', 0, 0.5)), hi - lo)); if (P0 > M0) bM = ad; else if (M0 > P0) bP = ad }
+    var r5 = rOn('rune05') ? RV(D, 'rune05', 0, 0.2) : 0, r5d = rOn('rune05') ? RV(D, 'rune05', 1, 1) : 0;
     var mhp = Math.round((v * 5 + 10 * (lv - 1) + Math.round(a * sp('agi_to_hp') * 5) + Math.round(i * sp('int_to_hp') * 5) + Math.round((P0 + bP) * sp('p_atk_to_hp'))) * (1 + pn(at.hp_bonus) + wsum('hp_rate') + sp('hp_rate')));
     var res = {}; ELS.forEach(function (e) { res[e] = pn(at[e + '_res_rate_bonus']) + sp(e + '_res_rate') });
     var u = {
@@ -93,9 +96,9 @@
       b: { mhp: Math.max(1, mhp), patk: P0 + bP, matk: M0 + bM, pdmg: wsum('p_damage_rate') + sp('p_damage_rate'), mdmg: wsum('m_damage_rate') + sp('m_damage_rate'),
         eva: a / (a + 800) + pn(at.eva_rate_bonus) + wsum('eva_rate') + ps('eva_rate') + sp('eva_rate'),
         crit: a / (a + 500) + pn(at.crit_rate_bonus) + wsum('crit_rate') + r5 + sp('crit_rate'),
-        cdmg: 0.5 + l * 0.01 + pn(at.crit_damage_rate_bonus) + wsum('crit_damage_rate') + (r5 ? 1 : 0) + sp('crit_damage_rate'),
-        pred: pn(at.p_def_bonus) + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? 0.2 : 0) + sp('p_reduce_rate'),
-        mred: pn(at.m_def_bonus) + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? 0.2 : 0) + sp('m_reduce_rate'),
+        cdmg: 0.5 + l * 0.01 + pn(at.crit_damage_rate_bonus) + wsum('crit_damage_rate') + r5d + sp('crit_damage_rate'),
+        pred: pn(at.p_def_bonus) + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? RV(D, 'rune06', 0, 0.2) : 0) + sp('p_reduce_rate'),
+        mred: pn(at.m_def_bonus) + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? RV(D, 'rune07', 0, 0.2) : 0) + sp('m_reduce_rate'),
         res: res, heal: sp('heal_rate'), speed: 10 + num(at.speed_bonus) + a / 20, hit: 0 },
       cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) ? id : 'atk' }),
       reaction: sv.reaction && D.SK[sv.reaction] && learned(p, D.SK[sv.reaction]) ? sv.reaction : '',
@@ -104,7 +107,8 @@
       learned: Object.keys(D.SK).map(function (id) { return D.SK[id] }).filter(function (k) { return k.kind === 'combat' && k.id !== 'atk' && k.j && k.j !== 'monster' && learned(p, k) })
     };
     while (u.cycle.length < 4) u.cycle.push('atk');
-    if (rOn('rune24')) { u.b.pdmg += u.b.pred; u.b.mdmg += u.b.mred }
+    /* 羊之新生：減傷 × v1 加成為增傷，轉換來的加成最多 v2 */
+    if (rOn('rune24')) { var k24 = RV(D, 'rune24', 0, 1), c24 = RV(D, 'rune24', 1, 9); u.b.pdmg += Math.min(u.b.pred * k24, c24); u.b.mdmg += Math.min(u.b.mred * k24, c24) }
     return u;
   }
 
@@ -163,7 +167,7 @@
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
     var lone = P.length === 1 && !P[0].lone;
     if (lone) { var L0 = P[0]; L0.lone = true; L0.b.mhp = Math.round(L0.b.mhp * 1.5); L0.b.patk = Math.round(L0.b.patk * 1.5); L0.b.matk = Math.round(L0.b.matk * 1.5) }
-    U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = 0.5 });
+    U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = RV(D, 'rune18', 0, 0.5) });
     /* 靈氣：同一招只算一次，套到同陣營每個人（自己的已算在基礎值） */
     var auraSeen = {};
     P.forEach(function (src) { src.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (auraSeen[key]) return; auraSeen[key] = src; }) });
@@ -298,7 +302,7 @@
       if (u.dead || u.hp > 0) return false;
       u.hp = 0;
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
-      if (u.runes.indexOf('rune17') >= 0 && !u.flags.r17) { u.flags.r17 = 1; revive(u, 0.5, '先祖之鄉', e); return false }
+      if (u.runes.indexOf('rune17') >= 0 && !u.flags.r17) { u.flags.r17 = 1; revive(u, RV(D, 'rune17', 0, 0.5), '先祖之鄉', e); return false }
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
@@ -408,18 +412,18 @@
     function afterSkill(u, sk, tg, e, isExtra) {
       if (u.dead || !u.runes.length) return;
       var dealt = (e._dealt || 0) > 0;
-      if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * 0.05)); u.hp -= loss; e.txt += '；墓之土：失去 ' + loss + ' 生命，全體敵人受到 ' + loss * 2 + ' 真實傷害'; trueAll(u, loss * 2, e, '墓之土'); checkDeath(u, e) }
+      if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * RV(D, 'rune26', 0, 0.05))), lt = Math.round(loss * RV(D, 'rune26', 1, 2)); u.hp -= loss; e.txt += '；墓之土：失去 ' + loss + ' 生命，全體敵人受到 ' + lt + ' 真實傷害'; trueAll(u, lt, e, '墓之土'); checkDeath(u, e) }
       if (!isExtra && dealt && u.runes.indexOf('rune21') >= 0 && sk.parts.some(function (x) { return x.d === 'm' })) {
         u.r21 = (u.r21 || 0) + 1;
-        if (u.r21 >= 3) { u.r21 = 0; var wv = Math.round(stat(u, 'matk') * 2); e.txt += '；啟示之書：魔力幽界波對全體敵人造成 ' + wv + ' 真實傷害'; trueAll(u, wv, e, '啟示之書') }
+        if (u.r21 >= RV(D, 'rune21', 1, 3)) { u.r21 = 0; var wv = Math.round(stat(u, 'matk') * RV(D, 'rune21', 0, 2)); e.txt += '；啟示之書：魔力幽界波對全體敵人造成 ' + wv + ' 真實傷害'; trueAll(u, wv, e, '啟示之書') }
       }
       e.hp = hpSnap();
       if (isExtra || u.dead || !foes(u).length) return;
-      if (dealt && u.runes.indexOf('rune19') >= 0 && RND() < 0.3) {
+      if (dealt && u.runes.indexOf('rune19') >= 0 && RND() < RV(D, 'rune19', 0, 0.3)) {
         var t2 = tg.filter(function (x) { return !x.dead }); if (!t2.length) t2 = pickTargets(u, sk, false, false);
         if (t2.length) { var e2 = line({ side: u.side, a: u.i, sk: sk.id, ty: sk.ty, txt: u.name + ' 的「鷹之勇氣」再次使用「' + sk.n + '」' }); doSkill(u, sk, t2, e2); flushSt(e2); afterSkill(u, sk, t2, e2, true); e2.hp = hpSnap() }
       }
-      if (sk.id !== 'atk' && u.runes.indexOf('rune20') >= 0 && u.learned && u.learned.length && RND() < 0.5 && !u.dead && foes(u).length) {
+      if (sk.id !== 'atk' && u.runes.indexOf('rune20') >= 0 && u.learned && u.learned.length && RND() < RV(D, 'rune20', 0, 0.5) && !u.dead && foes(u).length) {
         var k3 = pickOne(u.learned), t3 = pickTargets(u, k3, false, false);
         var e3 = line({ side: u.side, a: u.i, sk: k3.id, ty: k3.ty, txt: u.name + ' 的「命運之輪」發動「' + k3.n + '」' });
         if (t3.length) { doSkill(u, k3, t3, e3); flushSt(e3); afterSkill(u, k3, t3, e3, true) } else { e3.txt += '，但沒有合法目標'; e3.idle = 1 }
@@ -480,11 +484,11 @@
             /* 武器淬毒：該次傷害的一定比例，額外的屬性傷害 */
             u.special.forEach(function (s) { if (s.k === 'extra_dmg' && real > 0 && !t.dead) { var ex = Math.round(real * s.v * (1 - Math.min(resOf(t, s.el), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
             /* 元素符文：額外 50% 屬性魔法傷害 */
-            [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * 0.5 * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
-            if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round(real * 0.5); real += hurt(t, cr, u); totalDmg += cr }
+            [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * RV(D, q[0], 0, 0.5) * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
+            if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round(real * RV(D, 'rune12', 0, 0.5)); real += hurt(t, cr, u); totalDmg += cr }
             rec.hs.push((x.crit ? '暴擊 ' : '') + real + (x.absorbed ? '（吸收 ' + x.absorbed + '）' : ''));
             /* 水之幽暗：每次暴擊，對隨機一名敵人造成物攻、魔攻較高者 200% 的黑暗魔法傷害（不再暴擊、不連鎖） */
-            if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * 2 * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); var wr = hurt(wt, Math.max(1, wa), u); totalDmg += wr; addStat(e, u, 'dmg', wr, '水之幽暗'); addStat(e, wt, 'taken', wr, u.name + ' 水之幽暗'); (e._x = e._x || []).push('水之幽暗 → ' + wt.name + ' ' + wr); checkDeath(wt, e) } }
+            if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * RV(D, 'rune25', 0, 2) * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); var wr = hurt(wt, Math.max(1, wa), u); totalDmg += wr; addStat(e, u, 'dmg', wr, '水之幽暗'); addStat(e, wt, 'taken', wr, u.name + ' 水之幽暗'); (e._x = e._x || []).push('水之幽暗 → ' + wt.name + ' ' + wr); checkDeath(wt, e) } }
             addStat(e, u, 'dmg', real, sk.n); addStat(e, t, 'taken', real, u.name + ' ' + sk.n);
             /* 擴散（skill_effect 的 bonus / splash）：其他敵方各受到主目標「減傷前」傷害的 value 倍，再吃各自的減傷；
                跟著主目標的暴擊，主目標閃開就不擴散；擴散本身不能閃避、不觸發反應與符文 */
@@ -496,9 +500,9 @@
                 (e._x = e._x || []).push('擴散 → ' + q.name + ' ' + sr); (e.spl = e.spl || []).push([q.side, q.i]); checkDeath(q, e);
               });
             }
-            if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * 0.5), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); (e._x = e._x || []).push('荊棘之皇冠反彈 ' + th + ' → ' + u.name); (e.thr = e.thr || []).push([u.side, u.i]); checkDeath(u, e) }
-            if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < 0.2) { if (applyStatus(t, u, '石化', 5, 1, null)) (e._x = e._x || []).push('石之正義：' + u.name + ' 被石化') }
-            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < 0.3) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' }) }); var dn = pickOne(dbs); if (applyStatus(u, t, dn, 3, 1, null)) (e._x = e._x || []).push('夢靨之預兆：' + t.name + ' 陷入「' + dn + '」') }
+            if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * RV(D, 'rune11', 0, 0.5)), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); (e._x = e._x || []).push('荊棘之皇冠反彈 ' + th + ' → ' + u.name); (e.thr = e.thr || []).push([u.side, u.i]); checkDeath(u, e) }
+            if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2)) { if (applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5), 1, null)) (e._x = e._x || []).push('石之正義：' + u.name + ' 被石化') }
+            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' }) }); var dn = pickOne(dbs); if (applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) (e._x = e._x || []).push('夢靨之預兆：' + t.name + ' 陷入「' + dn + '」') }
             /* 每一下附加的狀態 */
             effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'per_hit' && !t.dead) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, null) });
             reactPost(t, u, x.re, e);
@@ -512,10 +516,10 @@
         e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs; return H > 1 ? t.name + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? t.name + ' 閃開了' : hs[0] === '擋下' ? t.name + ' 擋下了' : hs[0] === '無效' ? t.name + ' 不受影響' : t.name + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
-        var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? 0.25 : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
+        var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
         if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血') } }
         /* 熊之力量：濺射 */
-        if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bn = 0; foes(u).forEach(function (t) { var sp = hurt(t, Math.round(totalDmg * 0.3), u); addStat(e, u, 'dmg', sp, '熊之力量'); if (sp > 0) bn++; (e.thr = e.thr || []).push([t.side, t.i]); checkDeath(t, e) }); if (bn) e.txt += '；熊之力量：' + bn + ' 個敵人各受到 ' + Math.round(totalDmg * 0.3) + ' 真實傷害' }
+        if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bn = 0; foes(u).forEach(function (t) { var sp = hurt(t, Math.round(totalDmg * RV(D, 'rune22', 0, 0.3)), u); addStat(e, u, 'dmg', sp, '熊之力量'); if (sp > 0) bn++; (e.thr = e.thr || []).push([t.side, t.i]); checkDeath(t, e) }); if (bn) e.txt += '；熊之力量：' + bn + ' 個敵人各受到 ' + Math.round(totalDmg * RV(D, 'rune22', 0, 0.3)) + ' 真實傷害' }
         /* 舞台魅力等「攻擊時」觸發 */
         u.special.forEach(function (s) { if (s.k === 'apply_status' && s.tr === 'attack' && order.length && RND() < s.ch) { var cand = order.filter(function (t) { return !t.dead && !(s.cond === 'not_boss' && t.boss) && t.side !== u.side }); if (cand.length) applyStatus(u, pickOne(cand), s.st, s.turns, 1, e) } });
         /* 一般狀態（每個目標擲一次） */
@@ -549,7 +553,7 @@
         });
         if (sk.ty === 'debuff') { e.tg = tg.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }); e.tgP = tg.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) }
         /* 太陽之照耀 */
-        if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) applyStatus(u, u, '輝煌', 5, 1, null);
+        if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) applyStatus(u, u, '輝煌', RV(D, 'rune14', 1, 5), 1, null);
       }
       /* 召喚：effect = 怪物 id，value = 上限；condition 填 all_monsters 時上限算「全場活著的怪」，空白則只算同種怪（龍之叫喚）；
          apply_chance = 成功機率（空白 = 必定）。未滿且成功就叫一隻出來，下一回合開始行動 */
@@ -562,7 +566,7 @@
         if (RND() >= ch) { e.txt += '，但沒有同伴回應'; return }
         var nu = monster(D.mon[r.effect], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs;
         var same = M.filter(function (m) { return m.mid === r.effect }).length; nu.name += ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.min(25, same)];
-        nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0.5; nu.summoned = true;
+        nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = RV(D, 'rune18', 0, 0.5); nu.summoned = true;
         M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
       });
       /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…）；target 填 target = 跟技能同一個目標（堅毅禱言、意志禱言） */
@@ -585,8 +589,8 @@
     }
     function echo(u, tot, e) {
       u.special.forEach(function (s) { if (s.k === 'heal_echo') { var g = heal(u, u, tot * s.v, null, true); if (g) { e.txt += '，' + u.name + ' 同調恢復 ' + g; addStat(e, u, 'heal', g, '生命同調') } } });
-      if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); var shv = 0; u.st.forEach(function (s) { if (s.n === '生命守護') { s.shield = Math.min(tot * 0.5, u.b.mhp * 0.3); shv = s.shield } }); if (shv > 0) e.txt += '，鹿之守護：' + u.name + ' 獲得 ' + Math.round(shv) + ' 護盾' }
-      if (u.runes.indexOf('rune15') >= 0) { var f = foes(u); if (f.length) { var t = pickOne(f), d = hurt(t, Math.round(tot * 0.5), u); e.txt += '，月之淨化對 ' + t.name + ' 造成 ' + d + ' 傷害'; addStat(e, u, 'dmg', d, '月之淨化'); checkDeath(t, e) } }
+      if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); var shv = 0; u.st.forEach(function (s) { if (s.n === '生命守護') { s.shield = Math.min(tot * RV(D, 'rune16', 0, 0.5), u.b.mhp * RV(D, 'rune16', 1, 0.3)); shv = s.shield } }); if (shv > 0) e.txt += '，鹿之守護：' + u.name + ' 獲得 ' + Math.round(shv) + ' 護盾' }
+      if (u.runes.indexOf('rune15') >= 0) { var f = foes(u); if (f.length) { var t = pickOne(f), d = hurt(t, Math.round(tot * RV(D, 'rune15', 0, 0.5)), u); e.txt += '，月之淨化對 ' + t.name + ' 造成 ' + d + ' 傷害'; addStat(e, u, 'dmg', d, '月之淨化'); checkDeath(t, e) } }
     }
 
     /* --- 主迴圈 --- */
@@ -596,7 +600,7 @@
     function round() {
       rounds++;
       line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
-      if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(0.2, u.dragon - 0.05) });
+      if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2), u.dragon - RV(D, 'rune18', 1, 0.05)) });
       return U.filter(function (u) { return !u.dead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } }).sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }
     /* 輪到 u 時先做的事（聖潔驅散），再 begin */
