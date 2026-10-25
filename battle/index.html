@@ -457,14 +457,15 @@ function RGrid(){var C={};return{put:function(x,y,v){x=Math.round(x);y=Math.roun
     if(oc)ks.forEach(function(k){var q=k.split(','),x=+q[0],y=+q[1];[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(o){var k2=(x+o[0])+','+(y+o[1]);if(!C[k2]){C[k2]=-1;dr(x+o[0],y+o[1],oc,a*(fadeY?fadeY(y+o[1]):1))}})});
     ks.forEach(function(k){var v=C[k];if(v<0)return;var q=k.split(',');dr(+q[0],+q[1],pal[v],a*(fadeY?fadeY(+q[1]):1))});pctx.globalAlpha=1}}}
 /* 冥王之握：目標頭上浮現一隻半透明金色巨手（含一截手臂），張開往下壓、五指收攏握緊，金光炸開、畫面震動 */
-function graspFx(d,hx,hy){var u=d/600;if(u<0||u>1.45)return;var drop=Math.min(1,u/.5),e1=drop*drop*(3-2*drop),close=Math.max(0,Math.min(1,(u-.5)/.2)),a=u<1?Math.min(1,u/.12)*.92:.92*(1-(u-1)/.45),cx=Math.round(hx),cy=Math.round(hy-44+e1*26),G=RGrid();
-  for(var y=-22;y<=-7;y++){var hw=4+Math.round((y+22)/8);for(var x=-hw;x<=hw;x++)G.put(cx+x,cy+y,Math.abs(x)<2?2:1)}
-  for(var y=-7;y<=4;y++)for(var x=-7;x<=7;x++){if(Math.abs(x)===7&&(y===-7||y===4))continue;G.put(cx+x,cy+y,(Math.abs(x)<4&&y>-4&&y<3)?3:2)}
-  [-7,-3,1,5].forEach(function(bx,fi){var sg=fi<2?-1:1,len=fi===1||fi===2?13:11,dir=(fi-1.5)*.22*(1-close),px0=cx+bx+.5,py0=cy+4.5;
-    for(var k=0;k<=len;k++){var bend=close*Math.pow(k/len,1.4)*2.4,th=dir-sg*bend*.55+(sg*-1)*0,xx=px0+Math.sin(th)*k,yy=py0+Math.cos(th)*k-close*Math.pow(k/len,2)*k*.9;var v=(k===Math.round(len*.45)||k===Math.round(len*.8))?1:2;G.put(xx-.5,yy,v);G.put(xx+.5,yy,v)}});
-  for(var k=0;k<=8;k++){var th=-.15-.85*(1-close)+close*1.2,xx=cx+8+Math.sin(-th)*k*(1-close*.5),yy=cy-2+Math.cos(th)*k*.8;G.put(xx,yy,2);G.put(xx,yy+1,2)}
-  pctx.save();pctx.shadowColor='#ffd040';pctx.shadowBlur=6*U;G.draw({1:'#d9a530',2:'#ffd860',3:'#fff4c8'},a*.85,'#7a4a08',function(y){return y<cy-10?Math.max(0,1-(cy-10-y)/12):1});pctx.restore();
-  if(u>.66&&u<1.3){var v=(u-.66)/.64;pBurst('light',hx,hy,v*520,28,VS*1.5);if(v<.35)shakeY=Math.round(Math.sin(d)*2*U)}}
+function graspFx(d,hx,hy){var u=d/600;if(u<0||u>1.45)return;var drop=Math.min(1,u/.5),e1=drop*drop*(3-2*drop),close=Math.max(0,Math.min(1,(u-.5)/.2)),a=u<1?Math.min(1,u/.12)*.92:.92*(1-(u-1)/.45),cx=Math.round(hx),cy=Math.round(hy-52+e1*42),G=RGrid();
+  /* 手掌最後停在頭頂附近，手指往下包住整個人（腳邊） */
+  for(var y=-27;y<=-9;y++){var hw=5+Math.round((y+27)/7);for(var x=-hw;x<=hw;x++)G.put(cx+x,cy+y,Math.abs(x)<2?2:1)}
+  for(var y=-9;y<=5;y++)for(var x=-9;x<=9;x++){if(Math.abs(x)===9&&(y===-9||y===5))continue;G.put(cx+x,cy+y,(Math.abs(x)<5&&y>-5&&y<3)?3:2)}
+  [-9,-4,1,6].forEach(function(bx,fi){var sg=fi<2?-1:1,len=fi===1||fi===2?19:17,dir=(fi-1.5)*.24*(1-close),px0=cx+bx+1,py0=cy+5.5;
+    for(var k=0;k<=len;k++){var bend=close*Math.pow(k/len,1.6)*2.2,th=dir-sg*bend*.5,xx=px0+Math.sin(th)*k,yy=py0+Math.cos(th)*k-close*Math.pow(k/len,2.2)*k*.55;var v=(k===Math.round(len*.45)||k===Math.round(len*.8))?1:2;G.put(xx-1,yy,v);G.put(xx,yy,v);G.put(xx+1,yy,v)}});
+  for(var k=0;k<=11;k++){var th=-.15-.85*(1-close)+close*1.2,xx=cx+10+Math.sin(-th)*k*(1-close*.5),yy=cy-2+Math.cos(th)*k*.8;G.put(xx,yy,2);G.put(xx,yy+1,2);G.put(xx+1,yy,2)}
+  pctx.save();pctx.shadowColor='#ffd040';pctx.shadowBlur=7*U;G.draw({1:'#d9a530',2:'#ffd860',3:'#fff4c8'},a*.85,'#7a4a08',function(y){return y<cy-13?Math.max(0,1-(cy-13-y)/14):1});pctx.restore();
+  if(u>.66&&u<1.3){var v=(u-.66)/.64;pBurst('light',hx,hy,v*560,34,VS*1.8);if(v<.35)shakeY=Math.round(Math.sin(d)*2.4*U)}}
 /* 冥河呼喚：每個隊員腳下一圈暗紫漩渦，竄出好幾縷亡魂氣流往上衝過頭頂、淡出 */
 function soulsFx(d,px,py){var u0=d/900;if(u0<0||u0>1)return;var G=RGrid(),cx=Math.round(px),gy=Math.round(py);
   var ra=Math.min(1,u0*5)*(1-Math.max(0,(u0-.7)/.3));for(var k=0;k<26;k++){var an=k/26*Math.PI*2+d/250;G.put(cx+Math.cos(an)*9,gy+Math.sin(an)*2.6,1)}
