@@ -581,7 +581,8 @@ function idleOne(m,now){(function(){
   else if(A.fx==='drool'){/* dw = 口水寬幾格、dl = 最長幾格（蠕蟲嘴大，口水比較粗長） */var c2=t%2600,DL=A.dl||3,dr=function(ax){if(c2<1300){var len=1+Math.floor(c2/1300*DL);for(var j=0;j<len;j++)VP(ax,ay+1+j,'#d8ecf4',.85);VP(ax,ay+len,'#ffffff',.9)}
     else if(c2<1900){var u2=(c2-1300)/600,yy=ay+DL+1+u2*u2*(m.gy-ay-DL-1);VP(ax,yy,'#d8ecf4',.9);VP(ax,yy+1,'#ffffff',.7)}
     else if(c2<2150){var u3=(c2-1900)/250;VP(ax-1,m.gy-1,'#d8ecf4',.6*(1-u3));VP(ax+1,m.gy-1,'#d8ecf4',.6*(1-u3))}};for(var dq=0;dq<(A.dw||1);dq++)dr(ax+dq)}
-  else if(A.fx==='sand'){/* 沙蟲：嘴邊一直漏細沙，落到地上散開 */for(var sq=0;sq<9;sq++){var su=((t+sq*170)%1530)/1530,sxx=ax-((sq*3)%3)-su*2,syy=ay+su*su*(m.gy-ay);VP(sxx,syy,sq%3===0?'#fff0c0':sq%3===1?'#e0c070':'#8a6430',1);if(sq%3===0)VP(sxx,syy+1,'#e0c070',.8);if(su>.92){VP(sxx-1,m.gy-1,'#e0c070',.7);VP(sxx+1,m.gy-1,'#e0c070',.7)}}}
+  else if(A.fx==='sand'){/* 沙蟲：沙子從嘴巴左、下、右三處隨機零星落下（每顆每輪重新抽位置），偏灰白的沙色 */var SP=[[4,12],[7,16],[12,17],[17,16],[21,13]],wq2=wormSq(now,m.ph);for(var sq=0;sq<7;sq++){var per2=1300+sq*170,cyc2=Math.floor((t+sq*397)/per2),su=((t+sq*397)%per2)/per2;if(hsh(cyc2,sq)<.35)continue;var sp0=SP[Math.floor(hsh(cyc2,sq+40)*SP.length)],bx2=m.lx+(sp0[0]-MZ[0]/2)*sc*wq2[0],by2=m.gy-(MZ[1]-sp0[1])*sc*wq2[1],dr=(hsh(cyc2,sq+80)-.5)*4,sxx=bx2+dr*su,syy=by2+su*su*(m.gy-by2);
+    VP(sxx,syy,sq%3===0?'#f6ecd2':sq%3===1?'#d6c29a':'#9a8460',.95);if(su>.92){VP(sxx-1,m.gy-1,'#d6c29a',.6);VP(sxx+1,m.gy-1,'#d6c29a',.6)}}}
   else if(A.fx==='tongue'){var c3=t%2200,fl=function(s0){var u=(c3-s0)/260;return u<0||u>1?0:Math.sin(u*Math.PI)},n2=Math.round(Math.max(fl(0),fl(320))*3);for(var q=1;q<=n2;q++)VP(ax-q,ay,'#d8344a',1);if(n2>=2){VP(ax-n2-1,ay-1,'#d8344a',1);VP(ax-n2-1,ay+1,'#d8344a',1)}}})()}
 /* ---- 狀態特效：戰報每行帶著各單位身上的狀態（hp.sp／hp.sm），畫面照當下的狀態畫 ----
    控制類：封禁（對話框＋紅叉）、麻痺／束縛／恐懼（不呼吸＋晃）、暈眩（漩渦）、凍結（藍色＋藍框）、睡眠（Zzz、不眨眼）、石化（變灰）、魅惑（愛心）、混亂（星星）
