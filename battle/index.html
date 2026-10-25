@@ -289,7 +289,7 @@ function build(){
 /* 怪物畫面倍率（戰棋也用，維持跟人物的相對大小） */
 /* 個別怪物的影子：w = 寬（圖寬的比例）、h = 高、up = 影子上緣離地面幾格、dx = 左右偏移；巨蛛的腳張很開，前腳比較高，影子要高一點才接得到 */
 var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
-function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.9:boss?(k==='sk'?1.5:1.2):1}
+function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.9:k==='scorpion'?.7:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
@@ -331,14 +331,15 @@ function tick(now){
     else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
     else if((m.k==='slime'||m.k==='pslime')&&(dt==null||t<dt)&&!mst){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
     else if(WORMS[m.k]&&(dt==null||t<dt)&&!mst){var wq=wormSq(now,m.ph);sx=wq[0];sy=wq[1]}/* 洞穴蠕蟲：整隻伸縮當蠕動 */
-    m.act=0;var bur=0;B.ev.forEach(function(e){if(e.side==='m'&&e.a===i&&e.wk==='burrow'){var bd=t-e.t;if(bd>=0&&bd<1000){m.act=1;bur=bd<280?ease(bd/280):bd<720?1:1-ease((bd-720)/260)}return}/* 潛地：先沉進沙裡、再從原位冒出來 */if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0){mx-=Math.sin(u*Math.PI)*14;m.act=1}}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}if(e.thr&&e.thr.some(function(q){return q[0]==='m'&&q[1]===i})){var v3=win(t,e.t+(e.hit||180)+140,160);if(v3>=0)fl=1}});
+    m.act=0;var bur=0,shx=null;B.ev.forEach(function(e){if(e.side==='m'&&e.a===i&&e.wk==='burrow'){var bd=t-e.t;if(bd>=0&&bd<1000){m.act=1;bur=bd<280?ease(bd/280):bd<720?1:1-ease((bd-720)/260);
+      /* 潛在沙裡時影子往目標滑過去、刺完再滑回來 */var tk=(e.tgts||[])[0];if(tk!=null&&bd>=260&&bd<720){var tp=posOf(tk)[0]+10,kk=bd<440?ease((bd-260)/180):bd<560?1:1-ease((bd-560)/160);shx=m.x+(tp-m.x)*kk}}return}/* 潛地：先沉進沙裡、再從原位冒出來 */if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0){mx-=Math.sin(u*Math.PI)*14;m.act=1}}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}if(e.thr&&e.thr.some(function(q){return q[0]==='m'&&q[1]===i})){var v3=win(t,e.t+(e.hit||180)+140,160);if(v3>=0)fl=1}});
     if(sf.fx.shake&&(dt==null||t<dt))mx+=Math.sin(now/45+m.ph)*.8;
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh+bur*mh)+'px';m.f.style.clipPath=bur>0?'inset(0 0 '+(bur*100).toFixed(1)+'% 0)':'';
     m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf;m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)).trim()||'none');m.sfx=sf;
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
-    else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=((mx-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
+    else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=(((shx!=null?shx:mx)-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
   drawAura(t,now);drawParts(t);drawVfx(t);drawIdle(now);drawStatus(now);drawSongs(t,now);
@@ -512,7 +513,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
     if(e.wk==='sandstorm'){if(e.side==='m')sandFx(d,e.tgts||[]);return}
     if(e.wk==='burrow'){if(e.side!=='m')return;var mo=mons[e.a];if(mo&&mo.lx!=null){pBurst('sand',mo.lx,mo.gy-2,d,14,VS);pBurst('sand',mo.lx,mo.gy-2,d-720,14,VS)}/* 沉下去、冒出來時原地噴沙 */
       (e.tgts||[]).forEach(function(tk){var pp=posOf(tk),u=(d-400)/420;pBurst('sand',pp[0],pp[1]-3,d-400,24,VS*1.2);if(u>=0&&u<=1){VO(pp[0],pp[1]-1,Math.round(5+u*9),Math.max(1,Math.round(2+u*2)),'#d8b46a',.45*(1-u))}
-        var sp=(d-380)/160;if(sp>=0&&sp<=1)for(var q=0;q<5;q++){var sx2=pp[0]-6+q*3,h=Math.sin(sp*Math.PI)*(6+q%2*4);for(var j=0;j<h;j++)VP(sx2,pp[1]-1-j,'#2a2440',1)}});return}/* 目標腳下噴沙＋尾針從地面刺出 */
+        var sp=(d-370)/200;if(sp>=0&&sp<=1)for(var q=0;q<5;q++){var sx2=pp[0]-8+q*4,H=(q%2?14:20)*Math.sin(sp*Math.PI);/* 地刺：底部 3 格寬、往上收成尖端 */for(var j=0;j<H;j++){var wv=j<H*.35?3:j<H*.7?2:1,x0=sx2-Math.floor(wv/2);for(var w2=0;w2<wv;w2++)VP(x0+w2,pp[1]-1-j,w2===0&&wv>1?'#4a4068':'#1e1830',1)}}});return}/* 目標腳下噴沙＋尾針從地面刺出 */
     if(e.wk==='pillar'){var L=1e9,R=-1e9,gy=0,any=false;
       if(e.side==='p')(e.tg||[]).forEach(function(ti){var mo=mons[ti],mp=monPos(ti);if(!mo||!mp)return;var hw=msz(mo.k)[0]*mo.sc/2;L=Math.min(L,mp[0]-hw);R=Math.max(R,mp[0]+hw);gy=Math.max(gy,BG[cur].band+mo.dy);any=true});
       else (e.tgts||[]).forEach(function(tk){var pp=posOf(tk);L=Math.min(L,pp[0]-9);R=Math.max(R,pp[0]+9);gy=Math.max(gy,pp[1]);any=true});
