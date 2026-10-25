@@ -408,6 +408,7 @@ function pillarFx(d,el,L,R,gy){if(d<0||d>900)return;var cx=(L+R)/2,full=(R-L),co
   var us=(d-340)/460;if(us>=0&&us<=1){var C=PCOL[pk];for(var k=0;k<28;k++){var dir=k%2?1:-1,sp=(full/2+6)*(.35+hsh(k,7)*.75),xx=cx+dir*(W/2*.6+sp*us),yy=gy-1-Math.sin(us*Math.PI)*(3+hsh(k,9)*6)-hsh(k,5)*2;VP(xx,yy,C[k%3],(1-us)*.95)}
     for(var k2=0;k2<10;k2++){var ax=cx+(hsh(k2,11)-.5)*full,ay=gy-2-us*(6+hsh(k2,13)*10);VP(ax,ay,'#ffffff',(1-us)*.8)}}}
 /* 射線：從起點射到目標（約 0.1 秒），維持到 0.42 秒，再從兩邊收細淡出；總寬 5 格＝中間 3 格白、上下各 1 格屬性色（無屬性藍色），寬度輕微抖動 */
+var BHE=[[21,1,4,4,23.0,2.5],[13,2,5,6,16.0,4.5],[5,5,5,5,7.0,6.5],[28,9,4,4,29.5,11.0],[1,13,4,4,3.5,15.0],[27,17,4,4,29.0,18.5],[0,21,4,5,2.0,24.5],[29,22,4,4,31.5,24.0],[18,24,5,5,21.0,26.5],[11,25,4,6,13.5,29.0]];/* 眼魔觸手眼的位置 */
 var BEAMC={fire:'#ff6a2a',frost:'#6cc0ff',lightning:'#ffe14a',wind:'#3fdcaa',nature:'#5cc83a',light:'#ffd23a',dark:'#8a3ae0'};
 function beamFx(d,el,sx,sy,hx,hy){if(d<60)return;var g=Math.min(1,(d-60)/100),f=(d-420)/160;if(f>1)return;
   var L=Math.hypot(hx-sx,hy-sy),ang=Math.atan2(hy-sy,hx-sx),len=L*g*g*(3-2*g),W=f>0?5*(1-f):5+Math.sin(d/22)*.5,a=f>0?1-f*.6:1,col=BEAMC[el]||'#3f8cff';
@@ -517,12 +518,13 @@ function idleOne(m,now){(function(){
     pctx.globalCompositeOperation='lighter';for(var gi=-5;gi<=5;gi++)for(var gj=-5;gj<=5;gj++){var gr=Math.sqrt(gi*gi+gj*gj);if(gr>5.3)continue;VP(gx+gi,gy2+gj,gr<2.5?'#7ec4ff':'#3d8bff',gp*(gr<2.5?.95:.75)*(1-gr/6.5))}pctx.globalCompositeOperation='source-over';
     if(Math.floor((now+m.ph*7)/170)%7===0)VP(gx+Math.round(Math.sin(now/90)*3),gy2-3-Math.floor((now%170)/60),'#e8f6ff',.85)}
   /* 眼魔：十隻觸手末端的眼睛各自閃黃光（錯開閃爍） */
-  /* 眼魔：十隻觸手眼各自隨機眨眼（程式蓋眼皮：紫色＋下排深色眼縫），睜著的閃黃光；出手那一下全部睜開、更亮；睡眠全閉 */
-  if(m.k==='beholder'&&m.alive){var BZ=msz('beholder'),bs=m.sc,bx0=m.lx-BZ[0]*bs/2,by0=m.gy-(m.lift||0)-BZ[1]*bs,slp=m.sfx&&m.sfx.fx.sleep,PX=Math.max(1,Math.round(bs*U));
-    [[22,2],[15,3],[6,6],[29,10],[2,14],[28,18],[1,23],[30,23],[20,26],[12,28]].forEach(function(q,qi){
+  /* 眼魔：十隻觸手眼各自隨機眨眼——閉眼時從「觸手眼全閉」圖（monster_boss_04_tc）截那一顆的小方塊蓋上去；睜著的閃黃光；出手那一下全部睜開、更亮；睡眠全閉
+     BHE = [截圖 x, y, 寬, 高, 光暈中心 x, y]（圖上的格子座標） */
+  if(m.k==='beholder'&&m.alive){var BZ=msz('beholder'),bs=m.sc,bx0=m.lx-BZ[0]*bs/2,by0=m.gy-(m.lift||0)-BZ[1]*bs,slp=m.sfx&&m.sfx.fx.sleep,TC=IMG.monster_boss_04_tc;
+    BHE.forEach(function(q,qi){
       var P=2300+qi*370,off=qi*911+Math.round(m.ph*13),tt=now+off,n=Math.floor(tt/P),h=((n*2654435761+qi*40503)>>>0)%1000,dur=h<100?1100+h*8:200+h%300,closed=slp||(!m.act&&(tt%P)<dur);
-      if(closed){var X0=Math.round((bx0+q[0]*bs)*U),Y0=Math.round((by0+q[1]*bs)*U);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=1;pctx.fillStyle='#8e6294';pctx.fillRect(X0,Y0,PX*2,PX);pctx.fillStyle='#432447';pctx.fillRect(X0,Y0+PX,PX*2,PX);return}
-      var cx=bx0+(q[0]+1)*bs,cy=by0+(q[1]+1)*bs,fp=Math.sin((now+m.ph*3)/(230+qi*23)+qi*1.7),fa=m.act?1:.35+.65*Math.max(0,fp);pctx.globalCompositeOperation='lighter';
+      if(closed){if(TC&&TC.naturalWidth){pctx.globalCompositeOperation='source-over';pctx.globalAlpha=1;pctx.imageSmoothingEnabled=false;pctx.drawImage(TC,q[0],q[1],q[2],q[3],Math.round((bx0+q[0]*bs)*U),Math.round((by0+q[1]*bs)*U),Math.round(q[2]*bs*U),Math.round(q[3]*bs*U))}return}
+      var cx=bx0+q[4]*bs,cy=by0+q[5]*bs,fp=Math.sin((now+m.ph*3)/(230+qi*23)+qi*1.7),fa=m.act?1:.35+.65*Math.max(0,fp);pctx.globalCompositeOperation='lighter';
       for(var bi=-3;bi<=3;bi++)for(var bj=-3;bj<=3;bj++){var br=Math.sqrt(bi*bi+bj*bj);if(br>3.3)continue;VP(cx+bi-.5,cy+bj-.5,br<1.2?'#fff2a0':br<2.3?'#ffd23a':'#ffaa10',fa*(br<1.2?.8:br<2.3?.45:.2)*(m.act?1.3:1))}});pctx.globalCompositeOperation='source-over'}
   /* 洞穴巨魔：紅眼發光＋喘氣時嘴邊冒白氣（跟著上半身起伏） */
   if(m.k==='troll'&&m.alive){var TZ=msz('troll'),ts=m.sc,tdy=Math.sin(now/200)>0?1:0,tx0=m.lx-TZ[0]*ts/2,ty0=m.gy-TZ[1]*ts,tp=.7+.3*Math.sin((now+m.ph*3)/300);
@@ -922,7 +924,7 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
   monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=4',
   monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
-  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_boss_04:'monsters/monster_boss_04.png?v=3',monster_boss_04_blink:'monsters/monster_boss_04_blink.png?v=2',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_boss_04:'monsters/monster_boss_04.png?v=4',monster_boss_04_blink:'monsters/monster_boss_04_blink.png?v=4',monster_boss_04_tc:'monsters/monster_boss_04_tc.png?v=1',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}
