@@ -802,9 +802,12 @@ function saveWin(bb,req,ui){
   ui.lock(true);var me=MEMB[0],wait=Math.max(0,lastAdv()+21000-Date.now());
   var tries=0;function put(){tries++;withFB(function(FB){FB.advCheck(req).catch(function(){return{}}).then(function(ck){
     if(ck&&ck.party)req.share=(req.share||[]).filter(function(m){return ck.party.indexOf(m.to)>=0});
+    /* 換手機打過：資料庫進度已經到這關（或更後面），這場就不算新解鎖，照一般勝利存；本機記的進度也一起更新 */
+    var other=false;if(ck&&ck.adv){me.adv=Object.assign({},me.adv||{});Object.keys(ck.adv).forEach(function(k){if((ck.adv[k]|0)>(me.adv[k]|0))me.adv[k]=ck.adv[k]|0})}
+    if(ck&&ck.cur!=null&&req.clear&&req.clear<=ck.cur){req.clear=0;other=true}
     if(ck&&ck.at&&Date.now()-ck.at<21000&&tries<4){ui.msg('跟上一場隔太近，稍等一下自動存檔…');tries--;setTimeout(put,21500-(Date.now()-ck.at));return}
     return FB.advWin(req).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;if(req.cookie)me.cookies=(me.cookies|0)+1;if(req.clear){me.adv=Object.assign({},me.adv||{});me.adv[req.area]=req.clear}
-    ui.msg('已存檔');ui.lock(false)}).catch(function(e){if(tries<2&&e&&e.code==='permission-denied'){ui.msg('存檔被擋，稍等一下自動重試…');setTimeout(put,22000);return}
+    ui.msg(other?'已存檔（這關已經在其他裝置解鎖過）':'已存檔');ui.lock(false)}).catch(function(e){if(tries<2&&e&&e.code==='permission-denied'){ui.msg('存檔被擋，稍等一下自動重試…');setTimeout(put,22000);return}
     /* 找出是哪一部分被擋：依序拿掉 隊友分成 → 寵物餅乾 → 關卡進度 再試，能存的部分先存起來 */
     var steps=[['share','隊友分成'],['cookie','寵物餅乾'],['clear','關卡進度']],cut=[],r2=Object.assign({},req);
     (function tryCut(){var st=steps.shift();if(!st){FB.advCheck(req).catch(function(){return{}}).then(function(c2){ui.msg('存檔失敗：'+(e&&(e.code||e.message))+((c2&&c2.why&&c2.why.length)?'；原因：'+c2.why.join('、'):'；原因不明，請截圖給開發者')+'（獎勵沒有寫入）'+(c2&&c2.types?'［'+c2.types+'］':''));ui.lock(false)});return}
@@ -914,5 +917,5 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=23"></script>
+<script type="module" src="../common/fb.js?v=24"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

@@ -127,7 +127,7 @@ const FB = {
       const ty = v => v ? Object.keys(v)[0] : '無'; const types = ['exp', 'stones', 'cookies', 'advAt', 'party', 'owe'].map(k => k + '=' + ty(F[k])); const ad = F.adv && F.adv.mapValue && F.adv.mapValue.fields || {}; types.push('adv.area01=' + ty(ad.area01));
       ['exp', 'stones', 'cookies'].forEach(k => { if (F[k] && !('integerValue' in F[k])) why.push(k + ' 存成了' + ty(F[k]) + '（規則要整數）'); }); if (ad.area01 && !('integerValue' in ad.area01)) why.push('adv.area01 存成了' + ty(ad.area01));
       why.types = types.join(' '); } catch (e) { why.types = 'REST 讀取失敗 ' + (e && e.message); }
-    return { party, at, why, types: why.types }; },
+    return { party, at, why, types: why.types, cur, adv: d.adv || {} }; }, /* cur = 資料庫裡這一章目前的進度（換手機打過時會比這台新） */
   async advWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { exp: increment(r.exp), stones: increment(r.stones), advAt: serverTimestamp() };
     if (r.cookie) f.cookies = increment(1); if (r.clear) f['adv.' + r.area] = r.clear;
     (r.share || []).forEach(m => { f['owe.' + m.to + '.exp'] = increment(m.exp); f['owe.' + m.to + '.stones'] = increment(m.stones); });
