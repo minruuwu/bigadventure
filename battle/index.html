@@ -109,7 +109,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=3"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=19"></script>
+<script src="engine.js?v=20"></script>
 <script src="../common/skilldesc.js?v=1"></script>
 <script src="tactics.js?v=16"></script>
 <script>
@@ -267,10 +267,10 @@ function flyLift(k,now,ph){var F=FLY[k];if(!F)return 0;return F.hov+F.amp*(1+Mat
 function msz(k){return k==='sk'?[40,40]:FLY[k]?(FLY[k].im&&FLY[k].im[0]?[FLY[k].im[0].naturalWidth,FLY[k].im[0].naturalHeight]:[42,50]):LAY[k]?LAY[k].sz:ANI[k]&&ANI[k].im?[ANI[k].im.naturalWidth,ANI[k].im.naturalHeight]:[20,16]}
 function skFrame(now){var bl=(now%3200)<180?1:0,dy=Math.sin(now/330)>0?1:0,k=bl+'_'+dy;if(SKC[k])return SKC[k];var im=SKI[bl];if(!im||!im.naturalWidth)return '';var c=document.createElement('canvas');c.width=40;c.height=40;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,34,40,6,0,34,40,6);x.drawImage(im,0,0,40,34,0,dy,40,34);return SKC[k]=c.toDataURL()}
 /* 眼睛圖層型的怪物：_blink 是眼睛圖層，平常疊上去、眨眼時藏起來；膝蓋以上每 0.66 秒上下 1 格 */
-var LAY={gob:{sz:[25,27],c:{},per:2900,kn:6},orc:{sz:[36,45],c:{},per:3400,kn:7},gobw:{sz:[24,27],c:{},per:2600,kn:6},golem:{sz:[44,45],c:{},per:3600,kn:7},cgolem:{sz:[44,45],c:{},per:3800,kn:7},spider:{sz:[48,30],c:{},per:3000,kn:8},troll:{sz:[49,53],c:{},per:1e12,kn:15,br:200}};/* br = 起伏速度（預設 330，數字小 = 喘得快）；巨魔不眨眼，紅眼和鼻息在 idleOne 畫 */
-function layFrame(k,now){var L=LAY[k],cl=(now%L.per)<160?1:0,dy=Math.sin(now/(L.br||330))>0?1:0,key=cl+'_'+dy;if(L.c[key])return L.c[key];var b=L.base,e=L.eyes;if(!b||!b.naturalWidth||!L.bb)return '';
+var LAY={gob:{sz:[25,27],c:{},per:2900,kn:6},orc:{sz:[36,45],c:{},per:3400,kn:7},gobw:{sz:[24,27],c:{},per:2600,kn:6},golem:{sz:[44,45],c:{},per:3600,kn:7},cgolem:{sz:[44,45],c:{},per:3800,kn:7},spider:{sz:[48,30],c:{},per:3000,kn:8},troll:{sz:[49,53],c:{},per:1e12,kn:15,br:200},sandsnake:{sz:[31,36],c:{},per:3100,kn:12,br:380,tgp:2000}};/* tgp = 吐舌週期（舌頭圖層每週期快速吐兩下） *//* br = 起伏速度（預設 330，數字小 = 喘得快）；巨魔不眨眼，紅眼和鼻息在 idleOne 畫 */
+function layFrame(k,now){var L=LAY[k],cl=(now%L.per)<160?1:0,dy=Math.sin(now/(L.br||330))>0?1:0,tq=L.tgp?now%L.tgp:9999,tg=L.tg&&((tq<150)||(tq>=300&&tq<450))?1:0,key=cl+'_'+dy+'_'+tg;if(L.c[key])return L.c[key];var b=L.base,e=L.eyes;if(!b||!b.naturalWidth||!L.bb)return '';
   var bb=L.bb,w=bb[2],h=bb[3],kn=h-L.kn,N=b.naturalWidth,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;
-  var t=document.createElement('canvas');t.width=N;t.height=b.naturalHeight;var tx=t.getContext('2d');tx.drawImage(b,0,0);if(!cl&&e)tx.drawImage(e,0,0);
+  var t=document.createElement('canvas');t.width=N;t.height=b.naturalHeight;var tx=t.getContext('2d');tx.drawImage(b,0,0);if(!cl&&e)tx.drawImage(e,0,0);if(tg)tx.drawImage(L.tg,0,0);
   x.drawImage(t,bb[0],bb[1]+kn,w,h-kn,0,kn,w,h-kn);x.drawImage(t,bb[0],bb[1],w,kn,0,dy,w,kn);return L.c[key]=c.toDataURL()}
 function layInit(k,b,e){var L=LAY[k];L.base=b;L.eyes=e;if(!b)return;var W=b.naturalWidth,H=b.naturalHeight,gc=document.createElement('canvas');gc.width=W;gc.height=H;var gx=gc.getContext('2d');gx.drawImage(b,0,0);if(e)gx.drawImage(e,0,0);
   var gd=gx.getImageData(0,0,W,H).data,a0=W,b0=H,a1=-1,b1=-1;for(var y=0;y<H;y++)for(var xx=0;xx<W;xx++)if(gd[(y*W+xx)*4+3]>0){if(xx<a0)a0=xx;if(xx>a1)a1=xx;if(y<b0)b0=y;if(y>b1)b1=y}
@@ -287,7 +287,7 @@ function build(){
   frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
 }
 /* 怪物畫面倍率（戰棋也用，維持跟人物的相對大小） */
-function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:boss?(k==='sk'?1.5:1.2):1}
+function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
@@ -510,7 +510,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
       if(any){pillarFx(d,e.el,L-4,R+4,gy);/* 被光柱打到的每個人身上也有屬性特效（雷電、火花……） */var pk2=PCOL[e.el]?e.el:'arc';
         if(e.side==='p')(e.tg||[]).forEach(function(ti){var mp=monPos(ti),mo=mons[ti];if(mp&&mo)pBurst(pk2,mp[0],mp[1],d-440,18,VS*Math.min(1.6,mo.sc||1))});
         else (e.tgts||[]).forEach(function(tk){var pp=posOf(tk);pBurst(pk2,pp[0],pp[1]-14,d-440,18,VS)})}return}
-    if(e.side==='m'&&e.mhl){e.mhl.forEach(function(i){var mo=mons[i];if(mo&&mo.lx!=null)healFx([mo.lx,mo.gy],d,'')});return}
+    if(e.side==='m'&&e.mhl){e.mhl.forEach(function(i){var mo=mons[i];if(mo&&mo.lx!=null){healFx([mo.lx,mo.gy],d,'');if(e.skid==='skill264')pBurst('sand',mo.lx,mo.gy-10,d-40,22,VS)}});return}/* 褪皮：再噴一圈蛻皮碎屑 */
     if(e.side==='m'&&e.sonic){sonicFx(e,d);return}
     if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-(e.wk==='beam'?0:msz(mo.k)[0]*mo.sc*.3),msy=mp0[1];/* 射線從怪物身體中間（眼魔＝大眼）射出 */
       /* 怪物技能特效：把畫面左右翻過來，沿用玩家那套（投擲、刺擊、飛彈……），起點是怪物、終點是被打的隊員 */
@@ -812,7 +812,7 @@ function realBattle(a,l){
     if(e.sk&&!e.idle&&!e.tick){
       if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
         o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
-      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='sandstorm'?650:mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
+      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;if(e.ty==='heal'&&e.hlM&&e.hlM.length&&!o.mhl)o.mhl=e.hlM;o.skid=e.sk;var mk=SKN[e.sk];if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='sandstorm'?650:mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
     if(e.side==='p'&&e.sk&&SONG[e.sk]&&!e.idle&&!e.tick){o.song=SONG[e.sk];o.cast=o.song;o.castLen=1000;o.sid=e.sk;/* 吟遊詩人的歌：施法光暈＋音符；打敵人的歌用音符特效 */
       if(o.wk==='notes'){o.vc=o.song;o.nsp=SONGSP[e.sk]||300;o.nn=(e.tg&&e.tg.length===1)?6:3;o.hit=o.nsp+60}}
     if(e.kind!=='round')t+=(e.tick||e.idle)?650:STEP;
@@ -971,7 +971,7 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
   monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=4',
   monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
-  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_18:'monsters/monster_18.png?v=1',monster_boss_04:'monsters/monster_boss_04.png?v=5',monster_boss_04_blink:'monsters/monster_boss_04_blink.png?v=5',monster_boss_04_tc:'monsters/monster_boss_04_tc.png?v=2',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_19:'monsters/monster_19.png?v=1',monster_19_blink:'monsters/monster_19_blink.png?v=1',monster_19_tongue:'monsters/monster_19_tongue.png?v=1',monster_18:'monsters/monster_18.png?v=1',monster_boss_04:'monsters/monster_boss_04.png?v=5',monster_boss_04_blink:'monsters/monster_boss_04_blink.png?v=5',monster_boss_04_tc:'monsters/monster_boss_04_tc.png?v=2',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}
@@ -982,7 +982,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   var I=IMG;function cropSl(m){if(!m)return null;var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
     var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);return c2.toDataURL()}
   SLIME=cropSl(I.monster_01);PSLIME=cropSl(I.monster_16)||SLIME;
-  SKI[0]=I.monster_02;SKI[1]=I.monster_02_blink;layInit('gob',I.monster_03,I.monster_03_blink);layInit('orc',I.monster_boss_01,I.monster_boss_01_blink);layInit('gobw',I.monster_08,I.monster_08_blink);layInit('golem',I.monster_11,I.monster_11_blink);layInit('cgolem',I.monster_12,I.monster_12_blink);layInit('spider',I.monster_13,I.monster_13_blink);layInit('troll',I.monster_17,null);
+  SKI[0]=I.monster_02;SKI[1]=I.monster_02_blink;layInit('gob',I.monster_03,I.monster_03_blink);layInit('orc',I.monster_boss_01,I.monster_boss_01_blink);layInit('gobw',I.monster_08,I.monster_08_blink);layInit('golem',I.monster_11,I.monster_11_blink);layInit('cgolem',I.monster_12,I.monster_12_blink);layInit('spider',I.monster_13,I.monster_13_blink);layInit('troll',I.monster_17,null);layInit('sandsnake',I.monster_19,I.monster_19_blink);LAY.sandsnake.tg=I.monster_19_tongue;
   Object.keys(ANI).forEach(function(k){ANI[k].im=I[ANI[k].f]});Object.keys(FLY).forEach(function(k){FLY[k].im=FLY[k].f.map(function(f){return I[f]})});
   for(var vi=0;vi<8;vi++){SLASH[vi]=I['slash_0'+vi];ARROW[vi]=I['arrow_0'+vi];MISSILE[vi]=I['missile_0'+vi];THRUST[vi]=I['thrust_0'+vi];SMASH[vi]=I['smash_0'+vi]}CLAW=I.claw;
   return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})

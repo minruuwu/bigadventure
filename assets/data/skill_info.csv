@@ -261,3 +261,6 @@ skill259,魅惑射線,monster,0,combat,enemy_single,random,damage,,,m,light,1,,,
 skill260,冷凝射線,monster,0,combat,enemy_single,random,damage,,,m,frost,1.2,,,,怪物技能（單體冰霜魔法傷害 ×1.2，附加冷凝：閃避率 −30%，3 回合）,beam,,,5,single,,2
 skill261,千眼射線,monster,0,combat,enemy_all,,damage,,,m,fire,0.8,,,,怪物技能（全體火焰魔法傷害 ×0.8，附加灼燒 3 回合）,beam,,,4,diamond,2,3
 skill262,沙塵暴,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體無屬性物理傷害 ×0.7，每個目標 50% 目盲 3 回合）,sandstorm,,,0,diamond,3,3
+skill263,沙蛇毒牙,monster,0,combat,enemy_single,random,damage,,,p,nature,1.2,,,,怪物技能（單體自然物理傷害 ×1.2，附加蛇毒 3 回合）,thrust,,,1,single,,2
+skill264,褪皮,monster,0,combat,self,,heal,,,m,,0,,,,怪物技能（恢復自身最大生命 30%，並解除所有負面狀態）,,,,0,single,,3
+skill265,致幻毒牙,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技能（單體物理傷害 ×1.0，命中後 40% 混亂 3 回合）,thrust,,,1,single,,2

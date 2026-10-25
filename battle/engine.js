@@ -610,6 +610,7 @@
           if (!t) return;
           var v, c = false;
           if (r.base === 'sacrificed_hp') v = sac * num(r.value);
+          else if (r.base === 'mhp') v = num(r.value) * t.b.mhp; /* 照目標最大生命的比例（褪皮），不擲暴擊 */
           else { c = RND() < stat(u, 'crit'); v = num(r.value) * (r.base === 'p_atk' ? stat(u, 'patk') : stat(u, 'matk')) * (1 + u.b.heal) * (c ? 1 + stat(u, 'cdmg') : 1) }
           var got = heal(u, t, v); tot += got; if (got) { out.push(t.name + (c ? ' 暴擊！' : ' ') + '恢復 ' + got); addStat(e, u, 'heal', got, sk.n) }
         });
