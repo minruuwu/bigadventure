@@ -379,6 +379,7 @@ html,body,*{touch-action:manipulation}
 <div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="ptabs" id="pcTabs" hidden></div><div class="pn" id="pcPanel" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="tp" id="pcTeam" hidden></div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
+<script src="../common/aura.js?v=2"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="../common/runevals.js?v=1"></script>
@@ -622,7 +623,7 @@ var SAY_MS=24*3600*1000;
 function sayLive(p){return !!(p.say&&Date.now()-tms(p.sayAt)<SAY_MS)}
 function placeAll(list){ACT=[];list.forEach(function(p,i){var sl=SLOTS[i%SLOTS.length],x=sl[0],y=sl[1];
   var a={p:p,x:x,y:y,tx:x,ty:y,face:x<FIRE.x?1:x>FIRE.x?-1:(Math.random()<.5?-1:1),still:true,wait:1,tmp:document.createElement('canvas'),phase:rnd(0,4000)};
-  a.tmp.width=a.tmp.height=48;a.look=look(p);
+  a.tmp.width=a.tmp.height=48;a.look=look(p);a.au=window.Aura?Aura.ids(p):[];/* 靈氣特效 */
   var t=document.createElement('div');t.className='tag'+(p.uid===ME_UID?' me':'');var im=new Image();im.src=jobIcon(p);im.alt=JOBN[p.job|0]||'';t.appendChild(im);
   var nm=document.createElement('span');nm.textContent=p.name;t.appendChild(nm);
   if(p.uid!==ME_UID&&p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS){var d=document.createElement('i');d.className='on';d.title='線上';t.appendChild(d)}
@@ -773,7 +774,7 @@ function tick(now){if(STOP)return;if(last&&now-last<FRAME_MS-2){requestAnimation
   var fireDone=false;ACT.slice().sort(function(a,b){return a.y-b.y}).forEach(function(a){if(!fireDone&&a.y>FIRE.y){fire(now);fireDone=true}var px=Math.round(a.x),py=Math.round(a.y),tagY=a.y-36;
     if(a.pet){var P=a.pet,moving=a.wait<=0,fr=P.frames>1&&moving?Math.floor((now+a.phase)/140)%P.frames:0,hop=P.frames===1&&moving?-Math.round(Math.abs(Math.sin((now+a.phase)/110))*2):0;
       sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);px=0}sx.drawImage(P.img,fr*P.fw,0,P.fw,P.fh,px-Math.round(P.dw/2),py-P.dh+hop,P.dw,P.dh);sx.restore();tagY=a.y-P.dh-4}
-    else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore()}
+    else{if(!a.drawn||now-a.drawn>=90){Doll.draw(a.tmp,a.look,now+a.phase);a.drawn=now}if(a.au&&a.au.length)Aura.ring(sx,px,py-4,1,now+a.phase,a.au);sx.save();if(a.face<0){sx.translate(px,0);sx.scale(-1,1);sx.drawImage(a.tmp,-24,py-44)}else sx.drawImage(a.tmp,px-24,py-44);sx.restore();if(a.au&&a.au.length)Aura.motes(sx,px,py-4,1,now+a.phase,a.au);sx.globalAlpha=1}
     a.tag.style.left=(a.x/SW*100)+'%';a.tag.style.top=(tagY/SH*100)+'%';a.tag.style.zIndex=Math.round(a.y)+1000});
   if(!fireDone)fire(now);sparks(now,dt);if(FRONT.complete)sx.drawImage(FRONT,0,0);
   ACT.forEach(function(a){if(!a.pet&&sayLive(a.p))bubble(a,now)});

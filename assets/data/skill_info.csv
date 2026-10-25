@@ -162,12 +162,12 @@ skill160,法器破壞,job14,20,combat,enemy_single,random,damage,,,p,,1.7,,,,,,,
 skill161,鍛造專精,job14,25,passive,,,passive,,,,,,,,,擔任隊長時，戰鬥勝利有 50% 機率讓整場鍛造石變成 1.5 倍（隊友分到的也一起變多，無條件進位）,,,,,,,
 skill162,英雄之讚美詩,job15,1,combat,ally_all,,buff,,,,,,,,,,,,,0,diamond,4,3
 skill163,靈動,job15,3,passive,,,passive,,,,,,,,,閃避率 +10%,,,,,,,
-skill164,冥河之安眠曲,job15,5,combat,enemy_all,,debuff,,,,,,,,,,,,,0,diamond,4,3
-skill165,獸之和弦,job15,8,combat,enemy_all,,damage,,,p,,0.8,m,,0.8,,arrow,,,0,diamond,3,3
+skill164,冥河之安眠曲,job15,5,combat,enemy_all,,debuff,,,,,,,,,,notes,,,0,diamond,4,3
+skill165,獸之和弦,job15,8,combat,enemy_all,,damage,,,p,,0.8,m,,0.8,,notes,,,0,diamond,3,3
 skill166,觀眾熱情,job15,10,passive,,,passive,,,,,,,,,每有一位活著的隊友（不含自己），物理攻擊力、魔法攻擊力各 +4%（最多 3 位 +12%；組隊介面會顯示目前加成）,,,,,,,
 skill167,奉獻詩歌,job15,12,combat,ally_others,,heal,,,,,,,,,犧牲自己目前生命的 50%，其他每位隊友各恢復犧牲量 × 3 的生命（不擲暴擊、不吃治療加成；沒有其他活著的隊友時跳過）,,,,0,diamond,4,3
-skill168,放浪小步舞曲,job15,15,combat,enemy_all,,debuff,,,,,,,,,,,,,0,diamond,4,3
-skill169,命運交響曲,job15,20,combat,enemy_single,random,damage,,,p,,1.3,m,,1.3,,arrow,,,6,single,,2
+skill168,放浪小步舞曲,job15,15,combat,enemy_all,,debuff,,,,,,,,,,notes,,,0,diamond,4,3
+skill169,命運交響曲,job15,20,combat,enemy_single,random,damage,,,p,,1.3,m,,1.3,,notes,,,6,single,,2
 skill170,舞台魅力,job15,25,passive,,,passive,,,,,,,,,攻擊時（普通攻擊與傷害技能，一招擲一次）10% 機率使一名被打到的敵人陷入魅惑 1 回合（對 Boss 無效）,,,,,,,
 skill171,祕法飛彈,job16,1,combat,enemy_single,random_each,damage,,,m,,0.2,,,,,missile,8,,5,single,,2
 skill172,祕法專研,job16,3,passive,,,passive,,,,,,,,,魔法增傷 +10%,,,,,,,

@@ -97,7 +97,7 @@ html,body,*{touch-action:manipulation}
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
   <div class="frame" id="frame"><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
-   <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas><canvas id="pfx" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250"></canvas>
+   <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><canvas id="auc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas><canvas id="pfx" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250"></canvas>
   </div>
   <div class="panel"><div class="btabs" id="btabs" role="tablist"><button type="button" role="tab" data-v="log" class="on">戰報</button><button type="button" role="tab" data-v="dmg">傷害</button><button type="button" role="tab" data-v="taken">承受</button><button type="button" role="tab" data-v="heal">恢復</button></div><div class="log" id="log" aria-live="polite"></div><div class="stats" id="stats" hidden></div></div>
   </div>
@@ -106,6 +106,7 @@ html,body,*{touch-action:manipulation}
  <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
 </div>
 <script src="../common/doll.js?v=12"></script>
+<script src="../common/aura.js?v=2"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="engine.js?v=19"></script>
@@ -279,7 +280,7 @@ function tileW(){return frame.clientHeight*BG[cur].bw/BG[cur].bh}
 function build(){
   els.forEach(function(e){e.remove()});els=[];party=[];mons=[];
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
-    var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
+    var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0,au:window.Aura?Aura.ids(p):[]});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
   B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:mscale(m.k,m.boss),f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
   frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
@@ -318,7 +319,7 @@ function tick(now){
     p.f.style.opacity=sw.a;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':((stFilter(sf.fx,p.fireT&&now-p.fireT<260)+' '+castGlow('p',k,t)).trim()||'none');
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
     hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
-    p.sfx=sf;p.sx=x;p.gy=pp[1];p.top=y-34;p.vis=!ko&&!walk&&sw.a>.5;
+    p.auOk=!ko&&sw.a>.5;p.sfx=sf;p.sx=x;p.gy=pp[1];p.top=y-34;p.vis=!ko&&!walk&&sw.a>.5;
   });
   mons.forEach(function(m,i){var sf=stNowM(i),mst=sf.fx.shake||sf.fx.frozen||sf.fx.stone||sf.fx.sleep;if(mst){if(!m.stT)m.stT=now}else m.stT=0;var an=mst?m.stT:now;/* 定身、睡眠：動畫停在那一格 */if(sf.fx.fire&&!m.fireOn)m.fireT=now;m.fireOn=!!sf.fx.fire;
     var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=sf.fx.sleep&&FLY[m.k]&&FLY[m.k].bl&&FLY[m.k].im&&FLY[m.k].im[1]?FLY[m.k].im[1].src:msrc(m.k,an,m.ph)/* 會眨眼的飛行怪（眼魔）睡著就閉眼 */,lift=FLY[m.k]?flyLift(m.k,an,m.ph):0;if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
@@ -336,14 +337,14 @@ function tick(now){
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
-  drawParts(t);drawVfx(t);drawIdle(now);drawStatus(now);
+  drawAura(t,now);drawParts(t);drawVfx(t);drawIdle(now);drawStatus(now);drawSongs(t,now);
   raf=requestAnimationFrame(tick);
 }
 /* ---- 攻擊特效（依武器種類；顏色：普攻白／魔法淡紫、無屬性技能淡金、有屬性用屬性色） ---- */
 /* 特效圖編號：00 無屬性、01 火焰、02 冰霜、03 雷電、04 疾風、05 自然、06 光明、07 黑暗 */
 var ELN={'':0,fire:1,frost:2,lightning:3,wind:4,nature:5,light:6,dark:7},SLASH=[],ARROW=[],MISSILE=[],THRUST=[],SMASH=[],CLAW=null;var THROT=[0,0,0,0,0,0,0,Math.PI/4],THSQ=[1,1,1,1,1,1,1,.6];
 function vimg(L,el){var i=L[ELN[el]||0];return i&&i.naturalWidth?i:(L[0]&&L[0].naturalWidth?L[0]:null)}
-var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'},beam:function(){return 'beam'},pillar:function(){return 'pillar'}},FARK=['bow','staff','book','throw','beam','pillar'];
+var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'},beam:function(){return 'beam'},pillar:function(){return 'pillar'},notes:function(){return 'notes'}},FARK=['bow','staff','book','throw','beam','pillar','notes'];
 var WKIND={'劍':'sword','斧':'axe','錘':'hammer','匕':'dagger','槍':'spear','弓':'bow','杖':'staff','書':'book'};
 var ELC={fire:'#ff7a3a',frost:'#9ad8ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#fff4c4',dark:'#6a1fc0'};
 function vfxColor(wk,s){if(s.el&&ELC[s.el])return ELC[s.el];if(!s.atk)return '#f3d98a';return wk==='staff'||wk==='book'?'#d6b8ff':'#ffffff'}
@@ -392,9 +393,30 @@ function healFx(hp,d,el){if(PCOL[el])pBurst(el,hp[0],hp[1]-10,d-150,12,.8*VS);fo
 var CASTC={fire:'#ff7a3a',frost:'#8ed4ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#ffe9a0',dark:'#a35af0'};
 function castCol(el,ty){return CASTC[el]||(ty==='damage'||ty==='debuff'?'#ffe7a0':'#fff4d0')}
 /* 某個單位這一刻的施法光暈：出手 0.06 秒亮起、0.4 秒淡掉 → CSS drop-shadow */
-function castGlow(side,i,t){var g=null;B.ev.forEach(function(e){if(e.side===side&&e.a===i&&e.cast){var d=t-e.t;if(d>=0&&d<460)g={c:e.cast,a:d<60?d/60:1-(d-60)/400}}});
+function castGlow(side,i,t){var g=null;B.ev.forEach(function(e){if(!e.cast)return;var me=e.side===side&&e.a===i,al=!me&&side==='p'&&e.side==='p'&&e.song&&e.hl!=null&&[].concat(e.hl).indexOf(i)>=0;if(!me&&!al)return;var L=e.castLen||400,d=t-e.t;if(d>=0&&d<L+60)g={c:e.cast,a:(d<60?d/60:1-(d-60)/L)*(al?.8:1)}});
+  if(!g&&side==='p'&&B.stNow&&B.stNow.p&&(B.stNow.p[i]||[]).indexOf('英雄之歌')>=0)g={c:SONG.skill162,a:.45+.2*Math.sin(t/300+i)};/* 英雄之歌持續期間：淡淡金色光暈 */
   if(!g)return '';var r1=Math.max(1,Math.round(U*1.2)),r2=Math.max(2,Math.round(U*3)),hx=function(a){return g.c+('0'+Math.round(Math.max(0,Math.min(1,a))*255).toString(16)).slice(-2)};
   return 'drop-shadow(0 0 '+r1+'px '+hx(g.a)+') drop-shadow(0 0 '+r2+'px '+hx(g.a*.8)+')'}
+/* ---- 吟遊詩人：歌曲顏色、音符 ---- */
+var SONG={skill162:'#ffd24a',skill167:'#ff8ac8',skill164:'#6a5cff',skill168:'#3fd8b0',skill165:'#ff4a3a',skill169:'#9a3ae0'},SONGSP={skill164:420,skill168:320,skill165:240,skill169:240};
+var NOTE1=['..XX.','..X.X','..X..','..X..','.XX..','XXX..','.X...'],NOTE2=['..XXXXX','..X...X','..X...X','..X...X','.XX..XX','XXX.XXX','.X...X.'];
+function drawNote(x,y,k,c,a){var P=k%2?NOTE2:NOTE1,w=P[0].length;stPat(0,x-w/2+.6,y-3+.6,P,'#1a0d08',a*.7);stPat(0,x-w/2,y-3,P,c,a)}
+var auc=$('auc'),aux=auc.getContext('2d');
+function VTAU(){return Object.keys(VT.au||{}).filter(function(k){return VT.au[k]})}
+/* 靈氣：持有者腳下完整光環（光點在 drawSongs 畫在前面），其他活著的隊友腳下淡光環；持有者倒下就消失 */
+function drawAura(t,now){var W=frame.clientWidth,H=frame.clientHeight;if(auc.width!==W||auc.height!==H){auc.width=W;auc.height=H}else aux.clearRect(0,0,W,H);B&&(B._auH=[]);if(!B||!window.Aura||view!=='battle')return;
+  var un=[];party.forEach(function(p,k){var ids=VFXT?(k===0&&!VT.auAlly?VTAU():[]):p.au||[];if(!ids.length||!p.auOk)return;B._auH.push([k,ids]);ids.forEach(function(id){if(un.indexOf(id)<0)un.push(id)})});
+  if(VFXT&&VT.auAlly)un=VTAU();
+  party.forEach(function(p,k){if(p.sx==null||!p.auOk)return;var h=B._auH.filter(function(q){return q[0]===k})[0],ids=h?h[1]:un;if(!ids.length)return;Aura.ring(aux,p.sx,p.gy-.5,U,now+p.ph,ids,!h)});aux.globalAlpha=1}
+/* 前景：靈氣光點、歌曲施放時飄出的音符、英雄之歌期間詩人偶爾飄音符 */
+function drawSongs(t,now){if(!B||view!=='battle')return;
+  (B._auH||[]).forEach(function(q){var p=party[q[0]];if(p&&p.sx!=null)Aura.motes(pctx,p.sx,p.gy-.5,U,now+p.ph,q[1])});
+  var bard=VFXT?(VT.st&&VT.st['英雄之歌']?0:-1):-1;
+  B.ev.forEach(function(e){if(!e.song||e.side!=='p')return;if(e.sid==='skill162'&&e.t<=t)bard=e.a;var d=t-e.t;if(d<0||d>1100)return;var p=party[e.a];if(!p||p.sx==null)return;
+    for(var k=0;k<5;k++){var u=(d-k*90)/800;if(u<0||u>1)continue;var dir=k%2?1:-1;drawNote(p.sx+dir*(4+u*10)+Math.sin(u*6+k)*1.5,p.top+6-u*16,k,e.song,Math.sin(u*Math.PI))}});
+  if(bard>=0&&!VFXT&&!(B.stNow&&B.stNow.p&&(B.stNow.p[bard]||[]).indexOf('英雄之歌')>=0))bard=-1;
+  var bp=party[bard];if(bp&&bp.sx!=null&&bp.auOk){var u=((now+bp.ph)%1400)/1400;drawNote(bp.sx+4+u*6,bp.top+2-u*12,Math.floor((now+bp.ph)/1400),SONG.skill162,Math.sin(u*Math.PI)*.85)}
+  pctx.globalAlpha=1}
 /* 光柱：敵陣中間先出現一條細線＋地上光圈 → 往兩邊撐開蓋住整個敵陣（中間白、兩邊屬性色）→ 維持抖動、地面濺射 → 收回淡出；L、R = 左右邊界，gy = 地面 */
 function pillarFx(d,el,L,R,gy){if(d<0||d>900)return;var cx=(L+R)/2,full=(R-L),col=BEAMC[el]||'#3f8cff',pk=PCOL[el]?el:'arc',W,a=1;
   if(d<150)W=1;else if(d<350){var u=(d-150)/200;W=1+(full-1)*u*u*(3-2*u)}else if(d<600)W=full+Math.sin(d/28)*1.2;else{var f=(d-600)/300;W=Math.max(.5,full*(1-f)*(1-f));a=1-f}
@@ -421,6 +443,11 @@ function beamFx(d,el,sx,sy,hx,hy){if(d<60)return;var g=Math.min(1,(d-60)/100),f=
   pctx.restore();pctx.globalAlpha=1}
 function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
       if(wk==='beam')beamFx(d,e.el,sx,sy,hx,hy);
+      else if(wk==='notes'){/* 音符砸中：拋物線飛過去（安眠曲慢又飄、獸之和弦快又重），打到碎成同色光點 */var sp=e.nsp||300,nn=e.nn||3,slow=sp>380;
+        for(var k=0;k<nn;k++){var d0=d-60-k*(nn>3?70:90),u=d0/sp;if(u<0)continue;
+          if(u<=1){var x=sx+(hx-sx)*u+Math.sin(u*9+k)*(slow?2.5:1),y=sy+(hy-sy)*u-Math.sin(u*Math.PI)*(slow?14:8)+((k%3)-1)*2;drawNote(x,y,k,c,1)}
+          else{var v=(u-1)*sp/260;if(v<=1)for(var q=0;q<6;q++){var an=q/6*Math.PI*2+k;VP(hx+Math.cos(an)*(2+v*7),hy+((k%3)-1)*2+Math.sin(an)*(2+v*5),q%2?c:'#ffffff',1-v)}}}
+        if(sp<=260&&d>e.hit&&d<e.hit+140)shakeY=Math.round(Math.sin(d)*1.2*U)}
       else if(wk==='bow'&&vimg(ARROW,e.el)){var ai=vimg(ARROW,e.el),tc=ELC[e.el]||'#ffffff',u=(d-80)/140,ex=hx-6,ang=Math.atan2(hy-sy,ex-sx);
         var head=Math.min(1,Math.max(0,u)),tailFade=u>1?1-(d-220)/320:1;
         if(u>=0&&tailFade>0){var t0=Math.max(0,head-.55);for(var q=t0;q<=head;q+=.012){var k=(q-t0)/(head-t0+1e-6),px0=sx+(ex-sx)*q-12*Math.cos(ang)*(u<=1?1:0),py0=sy+(hy-sy)*q;VP(px0,py0,tc,k*.75*tailFade);if(k>.55){VP(px0,py0-1,tc,(k-.55)*.9*tailFade);VP(px0,py0+1,tc,(k-.55)*.9*tailFade)}if(k>.85&&Math.random()<.25)VP(px0-1,py0+(Math.random()<.5?-2:2),'#ffffff',.6*tailFade)}}
@@ -487,7 +514,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
         else if(c2>=0&&c2<=1){var k2=cs*(1+.12*c2);pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1-c2;pctx.drawImage(CLAW,ccx-k2/2,ccy-k2/2,k2,k2);pctx.restore()}
         return}
       var u=(d-170)/260;if(u<0||u>1)return;var a=1-u;for(var k=0;k<3;k++){for(var j=0;j<7;j++){var x=pp[0]-4+k*3+j*.6,y=pp[1]-24+j*1.4;VP(x,y,j<2?'#ffffff':'#ff9a8a',a*(j<5?1:.6))}}});return}
-    var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'||wk==='beam'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
+    var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'||wk==='beam'||wk==='notes'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
     if(e.ty==='heal'&&e.hl!=null){[].concat(e.hl).forEach(function(hk){healFx(posOf(hk),d,e.el)});return}
     if(e.ty==='buff'){if(PCOL[e.el])pBurst(e.el,pp[0],pp[1]-12,d-60,12,.8*VS);var u2=d/700;if(u2>1)return;var R=6+u2*6;for(var k2=0;k2<28;k2++){var an=k2/28*Math.PI*2;VP(pp[0]+Math.cos(an)*R,pp[1]-1+Math.sin(an)*R*.3,k2%2?'#ffd76a':'#fff4c4',1-u2)}return}
     (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;hitFx(e,d,wk,c,sx,sy,mp[0],mp[1],BG[cur].band+mons[ti].dy,mons[ti].sc||1)})}
@@ -774,6 +801,8 @@ function realBattle(a,l){
       if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
         o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
       else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;var mk=SKN[e.sk];if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
+    if(e.side==='p'&&e.sk&&SONG[e.sk]&&!e.idle&&!e.tick){o.song=SONG[e.sk];o.cast=o.song;o.castLen=1000;o.sid=e.sk;/* 吟遊詩人的歌：施法光暈＋音符；打敵人的歌用音符特效 */
+      if(o.wk==='notes'){o.vc=o.song;o.nsp=SONGSP[e.sk]||300;o.nn=(e.tg&&e.tg.length===1)?6:3;o.hit=o.nsp+60}}
     if(e.kind!=='round')t+=(e.tick||e.idle)?650:STEP;
     (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+260});
     (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
@@ -872,8 +901,8 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 
 /* ---- data / start ---- */
 /* ================= 特效測試模式：battle/?vfx=1 ================= */
-var VT={w:'劍',el:'',atk:true,kind:'damage',mon:'sk',lastT:-99999,st:{}};
-var VTS=[['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破']];
+var VT={w:'劍',el:'',atk:true,kind:'damage',mon:'sk',lastT:-99999,st:{},au:{},auAlly:false};
+var VTS=[['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破'],['英雄之歌','英雄之歌']];
 var VTW=[['劍','sword'],['斧','axe'],['錘','hammer'],['匕','dagger'],['槍','spear'],['弓','bow'],['杖','staff'],['書','book'],['拋擲','throw']];
 var VTE=[['','00 無屬性'],['fire','01 火焰'],['frost','02 冰霜'],['lightning','03 雷電'],['wind','04 疾風'],['nature','05 自然'],['light','06 光明'],['dark','07 黑暗']];
 function vtChar(){var w=VT.w==='拋擲'?'書':VT.w,k=WBYNAME[w],p={uid:'t',name:'測試員',job:0,jobSn:'job01',skin:0,style:0,hair:0,eyes:6,outfit:0,weapon:w,weapons:{}};if(k)p.weapons[k]={lv:1};return p}
@@ -881,11 +910,15 @@ function vtChar(){var w=VT.w==='拋擲'?'書':VT.w,k=WBYNAME[w],p={uid:'t',name:
 function vtMonBtns(){var seen={sk:1},h='<button type="button" data-m="sk">骷髏士兵</button>';Object.keys(ENG.mon).sort().forEach(function(id){var r=ENG.mon[id];if(!r.sprite||seen[r.sprite])return;seen[r.sprite]=1;h+='<button type="button" data-m="'+esc(r.sprite)+'">'+esc(r.monster_name)+(r.boss==='1'?'（王）':'')+'</button>'});return h}
 function vtBoss(k){return Object.keys(ENG.mon).some(function(id){return ENG.mon[id].sprite===k&&ENG.mon[id].boss==='1'})}
 function vtBuild(){MEMB=[vtChar()];var keep=B&&B.t0;B={ev:[],mons:[{k:VT.mon,n:'標靶',boss:vtBoss(VT.mon)}],pko:{},mko:{},res:'win',end:1e15,li:1e9,done:false,stat:{dmg:[],taken:[],heal:[]},sopen:{},a:0,l:1,t0:keep||performance.now()-WALK-50};build()}
+function vtSong(t,sid){var c=SONG[sid],e={side:'p',a:0,t:t,song:c,cast:c,castLen:1000,sid:sid,el:'',vc:c,atk:false,far:true};
+  if(sid==='skill162'){e.ty='buff';e.tg=[];e.hl=[0]}else if(sid==='skill167'){e.ty='heal';e.tg=[];e.hl=[0]}
+  else{e.ty='damage';e.tg=[0];e.wk='notes';e.nsp=SONGSP[sid]||300;e.nn=sid==='skill169'?6:3;e.hit=e.nsp+60}return e}
 function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
   if(VT.kind==='claw')e={side:'m',a:0,tgt:0,tgts:[0],t:t};
   else if(VT.kind==='sonic')e={side:'m',a:0,tgt:0,tgts:[0],t:t,sonic:1};
   else if(VT.kind==='mbeam')e={side:'m',a:0,tgt:0,tgts:[0],t:t,wk:'beam',el:VT.el,vc:'#ffffff',hit:180};
   else if(VT.kind==='beam')e={side:'p',a:0,t:t,tg:[0],wk:'beam',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:180};
+  else if(VT.kind.indexOf('song:')===0)e=vtSong(t,VT.kind.slice(5));
   else if(VT.kind==='pillar')e={side:'p',a:0,t:t,tg:[0],wk:'pillar',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:330};
   else{e={side:'p',a:0,t:t,tg:[0],wk:wk,vc:vfxColor(wk,s),atk:VT.atk&&!VT.el,el:VT.el,ty:VT.kind,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
     if(VT.kind==='heal'){e.tg=[];e.hl=0}if(VT.kind==='buff')e.tg=[]}
@@ -893,16 +926,17 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
   B.ev=B.ev.filter(function(x){return t-x.t<1500});B.ev.push(e)}
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
-  '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button><button type="button" data-k="beam">射線</button><button type="button" data-k="mbeam">怪物射線</button><button type="button" data-k="pillar">光柱</button></div>'+
+  '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button><button type="button" data-k="beam">射線</button><button type="button" data-k="mbeam">怪物射線</button><button type="button" data-k="pillar">光柱</button><button type="button" data-k="song:skill162">讚美詩</button><button type="button" data-k="song:skill167">奉獻詩歌</button><button type="button" data-k="song:skill164">安眠曲</button><button type="button" data-k="song:skill168">小步舞曲</button><button type="button" data-k="song:skill165">獸之和弦</button><button type="button" data-k="song:skill169">命運交響曲</button></div>'+
   '<div class="vth">怪物</div><div class="vtr" id="vtm">'+vtMonBtns()+'</div>'+
+  '<div class="vth">靈氣（可多選，套在角色身上）</div><div class="vtr" id="vta">'+Object.keys(Aura.DEF).map(function(id){return '<button type="button" data-au="'+id+'">'+Aura.DEF[id].n+'</button>'}).join('')+'<button type="button" data-aa="1">當成受加成隊友</button></div>'+
   '<div class="vth">狀態（可多選，角色和怪物同時套用）</div><div class="vtr" id="vts">'+VTS.map(function(x){return '<button type="button" data-s="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
-    if(b.dataset.w!=null){VT.w=b.dataset.w;vtBuild()}else if(b.dataset.e!=null){VT.el=b.dataset.e}else if(b.dataset.k){var k=b.dataset.k;VT.atk=k==='atk';VT.kind=k==='atk'?'damage':k}else if(b.dataset.m){VT.mon=b.dataset.m;vtBuild()}else if(b.dataset.s!=null){VT.st[b.dataset.s]=!VT.st[b.dataset.s]}
+    if(b.dataset.w!=null){VT.w=b.dataset.w;vtBuild()}else if(b.dataset.e!=null){VT.el=b.dataset.e}else if(b.dataset.k){var k=b.dataset.k;VT.atk=k==='atk';VT.kind=k==='atk'?'damage':k}else if(b.dataset.m){VT.mon=b.dataset.m;vtBuild()}else if(b.dataset.s!=null){VT.st[b.dataset.s]=!VT.st[b.dataset.s]}else if(b.dataset.au){VT.au[b.dataset.au]=!VT.au[b.dataset.au]}else if(b.dataset.aa){VT.auAlly=!VT.auAlly}
     VT.lastT=-99999;vtSync()})}
 function vtSync(){function on(id,f){[].forEach.call(document.querySelectorAll('#'+id+' button'),function(b){b.classList.toggle('on',f(b))})}
-  on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon});on('vts',function(b){return !!VT.st[b.dataset.s]})}
+  on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon});on('vts',function(b){return !!VT.st[b.dataset.s]});on('vta',function(b){return b.dataset.aa?VT.auAlly:!!VT.au[b.dataset.au]})}
 function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hidden=true;$('batv').hidden=false;$('bhead').textContent='特效測試';setBG('A');vtBuild();vtUI();lastNow=performance.now();
   (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>1300){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */

@@ -251,6 +251,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <div class="back" id="back" hidden><div class="swo"><div class="sw" id="sw"><i class="edge l"></i><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div><i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div></div>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
+<script src="../common/aura.js?v=2"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
 <script src="../common/skilldesc.js?v=1"></script>
@@ -780,7 +781,9 @@ var HS=[{k:'rack',l:'武器架：更換武器',x:2,y:47,w:36,h:41,p:'武器架',
 var WSPEC=null,SSPEC=null;
 var SHOWW=true,HALO=[];
 function updateWeaponSprites(){var w=WEAPON[WNAME2K[S.weapon]],s=w?wInfo(w.sn).st-1:0;HALO=w?haloOf(w.sn):[];var im=w&&(w.img[s]||w.img[0]),oi=w&&(w.offImg[s]||w.offImg[0]);WSPEC=im?{img:im,key:w.sn+'_'+s,cut:w.cut,ox:w.ox,oy:w.oy}:null;SSPEC=oi?{img:oi,key:'off_'+w.sn+'_'+s}:null}
-function tick(now){var L=S.look,cu=L.outfit==='cur',lk={skin:L.skin,style:L.style,hair:L.hair,eyes:L.eyes,outfit:cu?S.job:L.outfit,bare:cu&&!Doll.assets.outfits[S.job],weapon:SHOWW?WSPEC:null,shield:SHOWW?SSPEC:null,halo:SHOWW?HALO:[],breath:true};Doll.draw(dollCv,lk,now);var m=$('mdoll');if(m&&cur==='mirror')Doll.draw(m,Object.assign({},lk,{weapon:null,shield:null}),now);requestAnimationFrame(tick)}
+function tick(now){var L=S.look,cu=L.outfit==='cur',lk={skin:L.skin,style:L.style,hair:L.hair,eyes:L.eyes,outfit:cu?S.job:L.outfit,bare:cu&&!Doll.assets.outfits[S.job],weapon:SHOWW?WSPEC:null,shield:SHOWW?SSPEC:null,halo:SHOWW?HALO:[],breath:true};Doll.draw(dollCv,lk,now);
+  /* 靈氣：角色頁的人物站在桌子後面、腳被桌子擋住，所以不畫腳下光環，改成輪廓外一圈靈氣色光暈＋從腰部往上飄的光點 */if(window.Aura&&S&&S.skills){var au=Aura.ids({lv:S.lv,jobLv:S.jobLvs,skills:{passive:skValid(S.skills).passive}}),ac=au.length?Aura.color(au,now):null;
+    if(ac){var hx2=('0'+Math.round(ac.a*(.55+.25*Math.sin(now/500))*255).toString(16)).slice(-2);dollCv.style.filter='drop-shadow(0 0 3px '+ac.c+hx2+') drop-shadow(0 0 1px '+ac.c+hx2+')';var dx=dollCv.getContext('2d'),ds=dollCv.width/48;Aura.motes(dx,24,34,ds,now,au);dx.globalAlpha=1}else if(dollCv.style.filter)dollCv.style.filter=''}var m=$('mdoll');if(m&&cur==='mirror')Doll.draw(m,Object.assign({},lk,{weapon:null,shield:null}),now);requestAnimationFrame(tick)}
 function pushNavPlayer(){if(window.NavIcons)NavIcons.setPlayer(Object.assign({uid:S.uid,name:S.name,job:S.job,jobSn:S.jobSn,weapon:S.weapon},S.saved,{outfit:S.saved.outfit==='cur'?null:S.saved.outfit}))}
 
 /* ================= tabs ================= */
