@@ -572,7 +572,7 @@ function idleOne(m,now){(function(){
   /* 木乃伊：紅眼光暈＋嘴巴緩緩吐出紫色毒煙（往左上飄、變大變淡） */
   if(m.k==='mummy'&&m.alive){var QZ=msz('mummy'),qs=m.sc,qdy=Math.sin(now/430)>0?1:0,qx0=m.lx-QZ[0]*qs/2,qy0=m.gy-QZ[1]*qs,qp=.7+.3*Math.sin((now+m.ph*3)/320),ex=qx0+4.5*qs-.5,ey=qy0+(8.5+qdy)*qs-.5;
     VP(ex,ey,'#ff5a3a',qp);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ex+o[0],ey+o[1],'#ff2a14',.45*qp)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){VP(ex+o[0],ey+o[1],'#ff200c',.18*qp)});
-    var mx1=qx0+6*qs,my1=qy0+(13+qdy)*qs;for(var qi=0;qi<4;qi++){var qu=((now+m.ph*3+qi*650)%2600)/2600,qr=1+Math.floor(qu*3),qa=.55*Math.sin(qu*Math.PI),cxm=mx1-qu*9+Math.sin(qu*4+qi)*1.5,cym=my1-qu*11;
+    var mx1=qx0+4*qs,my1=qy0+(13+qdy)*qs,QP=Math.PI*2*430;/* 一次呼吸吐一口：從嘴巴前方往前（左）飄、稍微往上 */for(var qi=0;qi<2;qi++){var qt=(now+m.ph*3-qi*260)%QP;if(qt<0)qt+=QP;var qu=qt/(QP*.9);if(qu>1)continue;var qr=qi?1:1+Math.floor(qu*2.5),qa=(qi?.4:.6)*Math.sin(qu*Math.PI),cxm=mx1-2-qu*12+Math.sin(qu*3)*.8,cym=my1-qu*3;
       for(var aa=-qr;aa<=qr;aa++)for(var bb=-qr;bb<=qr;bb++){if(aa*aa+bb*bb>qr*qr+.5)continue;VP(cxm+aa,cym+bb,(aa+bb<0)?'#b07ae0':'#6a3a9a',qa*(aa*aa+bb*bb>=qr*qr-1?.6:1))}}}
   /* 洞穴巨魔：紅眼發光＋喘氣時嘴邊冒白氣（跟著上半身起伏） */
   if(m.k==='troll'&&m.alive){var TZ=msz('troll'),ts=m.sc,tdy=Math.sin(now/200)>0?1:0,tx0=m.lx-TZ[0]*ts/2,ty0=m.gy-TZ[1]*ts,tp=.7+.3*Math.sin((now+m.ph*3)/300);
