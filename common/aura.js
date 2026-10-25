@@ -8,11 +8,11 @@
 (function (g) {
   'use strict';
   var DEF = {
-    skill148: { n: '虔誠靈氣', j: 'job13', lv: 10, c: ['#f4f7ff', '#c9d4e6', '#8f9db6'], m: 'shield' },
+    skill148: { n: '虔誠靈氣', j: 'job13', lv: 10, c: ['#eef4ff', '#a8c4ff', '#6a8cd8'], m: 'shield' },
     skill152: { n: '抵抗靈氣', j: 'job13', lv: 25, c: ['#ff7a3a', '#8ed4ff', '#ffe95a', '#7cf0c4', '#8ed65a', '#ffe9a0', '#a35af0'], m: 'rainbow' },
     skill175: { n: '引導靈光', j: 'job16', lv: 10, c: ['#e6d4ff', '#b48cff', '#7a4ae0'], m: 'rune' },
     skill193: { n: '狂熱靈氣', j: 'job18', lv: 10, c: ['#ffd06a', '#ff7a2a', '#d8341a'], m: 'ember' },
-    skill197: { n: '審判靈氣', j: 'job18', lv: 25, c: ['#fff6c8', '#ffd23a', '#c99a1a'], m: 'star' }
+    skill197: { n: '審判靈氣', j: 'job18', lv: 25, c: ['#fff2c0', '#ffb42a', '#e0442a'], m: 'star' }
   };
   var PSLOT = [1, 30, 60, 90];
   function ids(p) {
@@ -33,6 +33,9 @@
   /* 腳下光環：橢圓（寬 rx、高 ry），一圈淡色＋兩段亮的轉動弧；狂熱會一跳一跳 */
   function ring(ctx, x, y, s, t, list, faint) {
     var q = pick(list, t); if (!q) return; var d = q.d, A = q.a * (faint ? .45 : 1), rx = 10, ry = 3.2, N = 40;
+    /* 持有者：外面再一圈更大的同心光環（反方向轉、比較淡，用第三個顏色：審判是紅、虔誠是深藍） */
+    if (!faint) for (var o = 0; o < 56; o++) { var ao = o / 56 * Math.PI * 2, so = -t / 1300, ho = Math.pow(Math.max(0, Math.cos(ao - so), Math.cos(ao - so - Math.PI)), 6);
+      px(ctx, x + Math.cos(ao) * 14.5, y + Math.sin(ao) * 4.6, s, d.m === 'rainbow' ? d.c[Math.floor((o / 56 * 7 - t / 700 + 70) % 7)] : (ho > .5 ? d.c[1] : d.c[2]), q.a * (.25 + .45 * ho)) }
     var beat = d.m === 'ember' ? 1 + .12 * Math.max(0, Math.sin(t / 140)) : 1;
     for (var i = 0; i < N; i++) {
       var an = i / N * Math.PI * 2, xx = x + Math.cos(an) * rx * beat, yy = y + Math.sin(an) * ry * beat;
