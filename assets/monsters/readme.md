@@ -32,7 +32,7 @@
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
 | monster_boss_04 | 眼魔（魔晶礦洞第 10 關 Boss；顯示 1.8 倍） | `monster_boss_04.png`（33×32，觸手眼全開＋大眼睜開）、`monster_boss_04_blink.png`（觸手眼全開＋大眼閉，眨大眼用）、`monster_boss_04_tc.png`（觸手眼全閉，程式依 `BHE` 的位置一顆一顆截來蓋，讓十顆各自眨眼）；懸空上下飄，觸手眼黃光由程式畫 |
-| monster_boss_05 | 沙晶龍‧伊格尼斯（塵嵐荒漠第 10 關 Boss；顯示 1.4 倍） | `monster_boss_05.png`（61×54，從約 5.8 倍圖縮回）；腿以上起伏（翅膀跟著動），紅眼光暈、晶翼閃光由程式畫 |
+| monster_boss_05 | 沙晶龍‧伊格尼斯（塵嵐荒漠第 10 關 Boss；顯示 1.15 倍） | `monster_boss_05.png`（61×54，從約 5.8 倍圖縮回）；腿以上起伏（翅膀跟著動），紅眼光暈、晶翼閃光由程式畫 |
 | monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（79×66，原圖去背、左右翻轉、綠色壓暗後縮小；身體上半慢慢起伏，眼睛發紅光由程式畫） |
 
 規則：

@@ -289,7 +289,7 @@ function build(){
 /* 怪物畫面倍率（戰棋也用，維持跟人物的相對大小） */
 /* 個別怪物的影子：w = 寬（圖寬的比例）、h = 高、up = 影子上緣離地面幾格、dx = 左右偏移；巨蛛的腳張很開，前腳比較高，影子要高一點才接得到 */
 var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
-function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.9:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.4:boss?(k==='sk'?1.5:1.2):1}
+function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.9:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.15:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
