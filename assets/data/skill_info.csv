@@ -102,7 +102,7 @@ skill100,閃電雷雲,job07,5,combat,enemy_all,,damage,,,m,lightning,0.95,,,,,mi
 skill101,龍捲塵沙嵐,job07,8,combat,enemy_all,,damage,,,m,wind,0.85,,,,20%機率目盲2回合,missile,,,4,diamond,2,3
 skill102,元素屏障,job07,12,combat,self,,buff,,,,,,,,,火焰、冰霜、雷電、疾風抗性各+30%，持續3回合,,,,0,single,,3
 skill103,魔力紊亂,job07,15,combat,enemy_single,random,debuff,,,,,,,,,對敵方隨機一名施加封禁3回合（對Boss機率減半）,,,,4,single,,3
-skill104,狂龍怒焰,job07,20,combat,enemy_single,random,damage,,,m,fire,2.5,,,,,missile,,,5,line,,2
+skill104,狂龍怒焰,job07,20,combat,enemy_single,random,damage,,,m,fire,2.5,,,,,pillar,,,5,line,,2
 skill105,魔力增幅,job07,3,passive,,,passive,,,,,,,,,魔法增傷+10%,,,,,,,
 skill106,杖專精,job07,10,passive,,,passive,,,,,,,,,裝備杖時魔法攻擊力+8%,,,,,,,
 skill107,元素護體,job07,25,passive,,,passive,,,,,,,,,火焰、冰霜、雷電、疾風抗性各+10%,,,,,,,
@@ -140,7 +140,7 @@ skill138,水銀奔流,job10,8,combat,enemy_all,,damage,,,m,,0.9,,,,,missile,,,4,
 skill139,原理,job10,10,passive,,,passive,,,,,,,,,暴擊傷害 +50%,,,,,,,
 skill140,零度反應,job10,12,combat,enemy_all,,damage,,,m,frost,0.5,,,,,smash,,,4,diamond,2,3
 skill141,分析弱點,job10,15,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,,,,,6,single,,3
-skill142,熾熵熱線,job10,20,combat,enemy_single,random,damage,,,m,fire,2.3,,,,,missile,,,7,line,,2
+skill142,熾熵熱線,job10,20,combat,enemy_single,random,damage,,,m,fire,2.3,,,,,beam,,,7,line,,2
 skill143,定律,job10,25,passive,,,passive,,,,,,,,,魔法增傷 +10%,,,,,,,
 skill144,聖光擊,job13,1,combat,enemy_single,random,damage,,,p,light,1.7,,,,,,,1,1,single,,2
 skill145,槍專精,job13,3,passive,,,passive,,,,,,,,,裝備槍時物理攻擊力 +6%、物理減傷 +3%、魔法減傷 +3%,,,,,,,
@@ -212,7 +212,7 @@ skill210,萬物復甦,job20,8,combat,ally_all,,buff,,,,,,,,,,,,,4,diamond,3,3
 skill211,治療大師,job20,10,passive,,,passive,,,,,,,,,治療恢復量 +30%（只加成施放當下的恢復，對持續回血無效）,,,,,,,
 skill212,森之庇護,job20,12,combat,ally_all,,buff,,,,,,,,,,,,,3,diamond,3,3
 skill213,生命綻放,job20,15,combat,ally_all,,heal,,,m,,1.2,,,,身上有持續回復的隊友，這次多恢復 30%,,,,3,diamond,3,3
-skill214,大地之怒,job20,20,combat,enemy_single,random,damage,,,m,nature,2.2,,,,我方全體各恢復魔法攻擊力 40% 的生命,smash,,,5,diamond,1,2
+skill214,大地之怒,job20,20,combat,enemy_single,random,damage,,,m,nature,2.2,,,,我方全體各恢復魔法攻擊力 40% 的生命,pillar,,,5,diamond,1,2
 skill215,聖潔,job20,25,passive,,,passive,,,,,,,,,輪到自己行動時，先隨機驅散自己身上 1 個減益，再結算持續傷害（被暈眩、睡眠時也會觸發）,,,,,,,
 skill216,酸液,monster,0,combat,enemy_all,,damage,,,p,nature,1.4,,,,怪物技能（比照催化酸雨）,throw,,,3,diamond,2,3
 skill217,再生,monster,0,combat,ally_single,lowest_hp,heal,,,m,,0,,,,怪物技能（比照再生藥劑）,,,,3,single,,3
