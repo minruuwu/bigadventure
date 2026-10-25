@@ -118,3 +118,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 暴怒,buff,p_reduce_rate,-0.3,,,,
 冷凝,debuff,eva_rate,-0.3,,,,閃避率 −30%
 灼燒,debuff,dot,0.25,m_atk,fire,m,每回合造成施加者魔法攻擊力 25% 的火焰魔法傷害
+千年詛咒,debuff,dark_res_rate,-0.5,,,,黑暗抗性 −50%、受到的物理傷害 +20%、受到的魔法傷害 +20%
+千年詛咒,debuff,p_dmg_taken_rate,0.2,,,,
+千年詛咒,debuff,m_dmg_taken_rate,0.2,,,,
+瘴毒,debuff,dot,0.3,m_atk,dark,m,每回合造成施加者魔法攻擊力 30% 的黑暗魔法傷害
