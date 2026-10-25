@@ -108,7 +108,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=13"></script>
+<script src="engine.js?v=14"></script>
 <script src="../common/skilldesc.js?v=1"></script>
 <script src="tactics.js?v=16"></script>
 <script>
@@ -303,7 +303,7 @@ function tick(now){
     var pp=posOf(p.i),bob=0,lx=0,ks=koAt(k,t),kt=ks.t,ko=ks.ko,fl=0;
     if(!ko&&p.look.closed){p.look=look(MEMB[k]);p.dr=0}
     if(walk&&!ko)bob=Math.abs(Math.sin(now/110+p.ph*3))*2.4;
-    B.ev.forEach(function(e){if(e.side==='p'&&e.a===k){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*(e.far?6:18)}if(e.side==='m'&&e.tgts&&e.tgts.indexOf(k)>=0){var v=win(t,e.t+180,160);if(v>=0)fl=1}if(e.side==='m'&&e.spl&&e.spl.indexOf(k)>=0){var v2=win(t,e.t+(e.hit||180)+90,160);if(v2>=0)fl=1}});
+    B.ev.forEach(function(e){if(e.side==='p'&&e.a===k){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*(e.far?6:18)}if(e.side==='m'&&e.tgts&&e.tgts.indexOf(k)>=0){var v=win(t,e.t+180,160);if(v>=0)fl=1}if(e.side==='m'&&e.spl&&e.spl.indexOf(k)>=0){var v2=win(t,e.t+(e.hit||180)+90,160);if(v2>=0)fl=1}if(e.thr&&e.thr.some(function(q){return q[0]==='p'&&q[1]===k})){var v4=win(t,e.t+(e.hit||180)+140,160);if(v4>=0)fl=1}});
     if(ko&&!p.look.closed){p.look=Object.assign({},p.look,{closed:true,breath:false,halo:[]});p.dr=0}
     if(!p.dr||now-p.dr>=90){Doll.draw(p.f,p.look,now+p.ph);p.dr=now}
     var x=pp[0]+lx,y=pp[1]-bob,s=48*U,fall=ko?ease((t-kt)/420):0;
@@ -318,7 +318,7 @@ function tick(now){
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
     else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
     else if(m.k==='slime'&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
-    B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}});
+    B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}if(e.thr&&e.thr.some(function(q){return q[0]==='m'&&q[1]===i})){var v3=win(t,e.t+(e.hit||180)+140,160);if(v3>=0)fl=1}});
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh)+'px';
@@ -635,7 +635,7 @@ function realBattle(a,l){
   var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG);
   var ms=M.map(function(m){return{k:m.sprite,n:m.name,boss:m.boss}}),pkl={},mko={},ev=[],STEP=1000,t=WALK+400;
   R.ev.forEach(function(e){
-    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t};
+    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null};/* thr = 被荊棘反彈／熊之力量濺射打到的單位 [陣營, 編號]，畫面上閃一下 */
     if(e.sk&&!e.idle&&!e.tick){
       if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
         o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}

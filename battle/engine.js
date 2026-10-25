@@ -496,9 +496,9 @@
                 (e._x = e._x || []).push('擴散 → ' + q.name + ' ' + sr); (e.spl = e.spl || []).push([q.side, q.i]); checkDeath(q, e);
               });
             }
-            if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * 0.5), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); checkDeath(u, e) }
-            if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < 0.2) applyStatus(t, u, '石化', 5, 1, null);
-            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < 0.3) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' }) }); applyStatus(u, t, pickOne(dbs), 3, 1, null) }
+            if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * 0.5), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); (e._x = e._x || []).push('荊棘之皇冠反彈 ' + th + ' → ' + u.name); (e.thr = e.thr || []).push([u.side, u.i]); checkDeath(u, e) }
+            if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < 0.2) { if (applyStatus(t, u, '石化', 5, 1, null)) (e._x = e._x || []).push('石之正義：' + u.name + ' 被石化') }
+            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < 0.3) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' }) }); var dn = pickOne(dbs); if (applyStatus(u, t, dn, 3, 1, null)) (e._x = e._x || []).push('夢靨之預兆：' + t.name + ' 陷入「' + dn + '」') }
             /* 每一下附加的狀態 */
             effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'per_hit' && !t.dead) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, null) });
             reactPost(t, u, x.re, e);
@@ -515,7 +515,7 @@
         var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? 0.25 : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
         if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血') } }
         /* 熊之力量：濺射 */
-        if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) foes(u).forEach(function (t) { var sp = hurt(t, Math.round(totalDmg * 0.3), u); addStat(e, u, 'dmg', sp, '熊之力量'); checkDeath(t, e) });
+        if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bn = 0; foes(u).forEach(function (t) { var sp = hurt(t, Math.round(totalDmg * 0.3), u); addStat(e, u, 'dmg', sp, '熊之力量'); if (sp > 0) bn++; (e.thr = e.thr || []).push([t.side, t.i]); checkDeath(t, e) }); if (bn) e.txt += '；熊之力量：' + bn + ' 個敵人各受到 ' + Math.round(totalDmg * 0.3) + ' 真實傷害' }
         /* 舞台魅力等「攻擊時」觸發 */
         u.special.forEach(function (s) { if (s.k === 'apply_status' && s.tr === 'attack' && order.length && RND() < s.ch) { var cand = order.filter(function (t) { return !t.dead && !(s.cond === 'not_boss' && t.boss) && t.side !== u.side }); if (cand.length) applyStatus(u, pickOne(cand), s.st, s.turns, 1, e) } });
         /* 一般狀態（每個目標擲一次） */
@@ -585,7 +585,7 @@
     }
     function echo(u, tot, e) {
       u.special.forEach(function (s) { if (s.k === 'heal_echo') { var g = heal(u, u, tot * s.v, null, true); if (g) { e.txt += '，' + u.name + ' 同調恢復 ' + g; addStat(e, u, 'heal', g, '生命同調') } } });
-      if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); u.st.forEach(function (s) { if (s.n === '生命守護') s.shield = Math.min(tot * 0.5, u.b.mhp * 0.3) }) }
+      if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); var shv = 0; u.st.forEach(function (s) { if (s.n === '生命守護') { s.shield = Math.min(tot * 0.5, u.b.mhp * 0.3); shv = s.shield } }); if (shv > 0) e.txt += '，鹿之守護：' + u.name + ' 獲得 ' + Math.round(shv) + ' 護盾' }
       if (u.runes.indexOf('rune15') >= 0) { var f = foes(u); if (f.length) { var t = pickOne(f), d = hurt(t, Math.round(tot * 0.5), u); e.txt += '，月之淨化對 ' + t.name + ' 造成 ' + d + ' 傷害'; addStat(e, u, 'dmg', d, '月之淨化'); checkDeath(t, e) } }
     }
 
