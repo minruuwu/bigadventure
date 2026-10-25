@@ -108,7 +108,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=15"></script>
+<script src="engine.js?v=16"></script>
 <script src="../common/skilldesc.js?v=1"></script>
 <script src="tactics.js?v=16"></script>
 <script>
@@ -252,10 +252,12 @@ var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
 var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[],REW={step:3,cut:0.1,floor:0.1};
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
-var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]}};
-function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return '';A.c=A.c||{};var ph=(now%A.per)/A.per,dy=A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0);if(A.c[dy])return A.c[dy];
+var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]},worm:{n:'洞穴蠕蟲',f:'monster_14',still:1,fx:'drool',at:[11,17],dw:2,dl:5}};
+/* still = 整張圖不切上下半身，改用 wormSq 整隻伸縮（以腳底為支點） */
+function wormSq(now,ph){var b=Math.sin(now/190+ph);return[1-b*.04,1+b*.06]}
+function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return '';if(A.still)return im.src;A.c=A.c||{};var ph=(now%A.per)/A.per,dy=A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0);if(A.c[dy])return A.c[dy];
   var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,A.leg,w,h-A.leg,0,A.leg,w,h-A.leg);x.drawImage(im,0,0,w,A.leg,0,dy,w,A.leg);return A.c[dy]=c.toDataURL()}
-function aniDy(k,now){var A=ANI[k],ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
+function aniDy(k,now){var A=ANI[k];if(A.still)return 0;var ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
 /* 會飛的怪物：兩張圖輪播當拍翅（flap 毫秒換一張），整隻懸空 hov 格、上下浮動 amp 格（bper 毫秒一輪），換到第二張（收翅）時多往上提 1 格；cy = 身體中心離圖底幾格 */
 var FLY={bat:{n:'暗影魔蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26}};
 function flyFr(k,now,ph){var F=FLY[k];return Math.floor((now+(ph||0))/F.flap)%2}
@@ -288,6 +290,8 @@ function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
 /* 倒下／復活：B.pkl[k] = [{t, d:true 倒下 / false 復活}] */
+/* 被吞噬：B.psw[k] = [{t, d:true 被吞 / false 出來}] → 回傳 {a: 透明度, s: 縮放} */
+function swAt(k,t){var L=(B&&B.psw&&B.psw[k])||[],x=null;L.forEach(function(q){if(t>=q.t)x=q});if(!x)return{a:1,s:1};var u=Math.min(1,(t-x.t)/350);return x.d?{a:1-u,s:1-.6*u}:{a:u,s:.4+.6*u}}
 function koAt(k,t){var L=(B&&B.pkl&&B.pkl[k])||[],r={ko:false,t:null};L.forEach(function(x){if(t>=x.t){r.ko=x.d;if(x.d)r.t=x.t}});return r}
 var WALK=2400;
 /* 某個時間點附近的動作進度（0~1，超出區間回 -1） */
@@ -308,21 +312,22 @@ function tick(now){
     if(!p.dr||now-p.dr>=90){Doll.draw(p.f,p.look,now+p.ph);p.dr=now}
     var x=pp[0]+lx,y=pp[1]-bob,s=48*U,fall=ko?ease((t-kt)/420):0;
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
-    p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=fall?'rotate('+(-90*fall)+'deg)':'none';
-    p.f.style.opacity=1;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':'none';
-    p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=1-fall;
-    hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk);
+    var sw=swAt(k,t);p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=(fall?'rotate('+(-90*fall)+'deg)':'')+(sw.s<1?' scale('+sw.s+')':'')||'none';
+    p.f.style.opacity=sw.a;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':'none';
+    p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
+    hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
   });
   mons.forEach(function(m,i){var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=msrc(m.k,now,m.ph),lift=FLY[m.k]?flyLift(m.k,now,m.ph):0;if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
     else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
     else if(m.k==='slime'&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
+    else if(m.k==='worm'&&(dt==null||t<dt)){var wq=wormSq(now,m.ph);sx=wq[0];sy=wq[1]}/* 洞穴蠕蟲：整隻伸縮當蠕動 */
     B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}if(e.thr&&e.thr.some(function(q){return q[0]==='m'&&q[1]===i})){var v3=win(t,e.t+(e.hit||180)+140,160);if(v3>=0)fl=1}});
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh)+'px';
-    m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
+    m.f.style.transformOrigin=m.k==='worm'?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.f.style.opacity=op;m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':'none';
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
@@ -470,15 +475,16 @@ function idleOne(m,now){(function(){
     pctx.globalCompositeOperation='lighter';for(var gi=-5;gi<=5;gi++)for(var gj=-5;gj<=5;gj++){var gr=Math.sqrt(gi*gi+gj*gj);if(gr>5.3)continue;VP(gx+gi,gy2+gj,gr<2.5?'#7ec4ff':'#3d8bff',gp*(gr<2.5?.95:.75)*(1-gr/6.5))}pctx.globalCompositeOperation='source-over';
     if(Math.floor((now+m.ph*7)/170)%7===0)VP(gx+Math.round(Math.sin(now/90)*3),gy2-3-Math.floor((now%170)/60),'#e8f6ff',.85)}
   var A=ANI[m.k];if(!A||!m.alive)return;var MZ=msz(m.k),sc=m.sc,ox=m.lx-MZ[0]*sc/2,oy=m.gy-MZ[1]*sc,dy=aniDy(m.k,now),ax=ox+A.at[0]*sc,ay=oy+(A.at[1]+dy)*sc,t=now+m.ph*3;
+  if(A.still&&m.k==='worm'){var wq=wormSq(now,m.ph);ax=m.lx+(A.at[0]-MZ[0]/2)*sc*wq[0];ay=m.gy-(MZ[1]-A.at[1])*sc*wq[1]}
   if(A.fx==='puff'){var c=t%1800;for(var i=0;i<3;i++){var u=(c-i*120)/700;if(u<0||u>1)continue;VP(ax-2-u*7,ay-u*3-i,'#e8e4dc',(1-u)*.85)}}
   else if(A.fx==='queen'){/* 黑暗蛛后：兩眼紅光 + 雙手藍紫光暈 */var pu=.75+.25*Math.sin(t/260);A.eyes.forEach(function(o){var ex=ax+o[0]*sc;VP(ex,ay,'#ff5a3c',pu);VP(ex,ay,'#ffd0c0',.5*pu);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(q){VP(ex+q[0]*sc,ay+q[1]*sc,'#ff2a14',.45*pu)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(q){VP(ex+q[0]*sc,ay+q[1]*sc,'#ff200c',.2*pu)})});
     A.hands.forEach(function(hd,hn){var hx=ox+hd[0]*sc,hy=oy+(hd[1]+dy)*sc,hp=.8+.2*Math.sin((t+hn*700)/420),R=10;
       for(var hi=-R;hi<=R;hi++)for(var hj=-R;hj<=R;hj++){var hr=Math.sqrt(hi*hi+hj*hj);if(hr>R+.2)continue;VP(hx+hi,hy+hj,hr<2.5?'#f0e6ff':hr<4.8?'#b48cff':hr<7.4?'#8050ff':'#5a2ad0',hp*(hr<2.5?1:hr<4.8?.8:hr<7.4?.5:.28)*(1-hr/(R+2.5)))}
       var mp=Math.floor((t+hn*400)/190)%9;if(mp<3)VP(hx+Math.round(Math.sin((t+hn*300)/110)*3),hy-4-mp*2,'#e6dcff',.9)})}
   else if(A.fx==='eye'){var pu=.75+.25*Math.sin(t/260);VP(ax,ay,'#ff6a4a',pu);VP(ax+1,ay,'#ff3a24',.9*pu);[[-1,0],[2,0],[0,-1],[1,-1],[0,1],[1,1]].forEach(function(o){VP(ax+o[0],ay+o[1],'#ff2a14',.5*pu)});[[-2,0],[3,0],[-1,-1],[2,-1],[-1,1],[2,1],[0,-2],[1,-2],[0,2],[1,2]].forEach(function(o){VP(ax+o[0],ay+o[1],'#ff200c',.22*pu)})}
-  else if(A.fx==='drool'){var c2=t%2600;if(c2<1300){var len=1+Math.floor(c2/1300*3);for(var j=0;j<len;j++)VP(ax,ay+1+j,'#d8ecf4',.85);VP(ax,ay+len,'#ffffff',.9)}
-    else if(c2<1900){var u2=(c2-1300)/600,yy=ay+4+u2*u2*(m.gy-ay-4);VP(ax,yy,'#d8ecf4',.9);VP(ax,yy+1,'#ffffff',.7)}
-    else if(c2<2150){var u3=(c2-1900)/250;VP(ax-1,m.gy-1,'#d8ecf4',.6*(1-u3));VP(ax+1,m.gy-1,'#d8ecf4',.6*(1-u3))}}
+  else if(A.fx==='drool'){/* dw = 口水寬幾格、dl = 最長幾格（蠕蟲嘴大，口水比較粗長） */var c2=t%2600,DL=A.dl||3,dr=function(ax){if(c2<1300){var len=1+Math.floor(c2/1300*DL);for(var j=0;j<len;j++)VP(ax,ay+1+j,'#d8ecf4',.85);VP(ax,ay+len,'#ffffff',.9)}
+    else if(c2<1900){var u2=(c2-1300)/600,yy=ay+DL+1+u2*u2*(m.gy-ay-DL-1);VP(ax,yy,'#d8ecf4',.9);VP(ax,yy+1,'#ffffff',.7)}
+    else if(c2<2150){var u3=(c2-1900)/250;VP(ax-1,m.gy-1,'#d8ecf4',.6*(1-u3));VP(ax+1,m.gy-1,'#d8ecf4',.6*(1-u3))}};for(var dq=0;dq<(A.dw||1);dq++)dr(ax+dq)}
   else if(A.fx==='tongue'){var c3=t%2200,fl=function(s0){var u=(c3-s0)/260;return u<0||u>1?0:Math.sin(u*Math.PI)},n2=Math.round(Math.max(fl(0),fl(320))*3);for(var q=1;q<=n2;q++)VP(ax-q,ay,'#d8344a',1);if(n2>=2){VP(ax-n2-1,ay-1,'#d8344a',1);VP(ax-n2-1,ay+1,'#d8344a',1)}}})()}
 /* 怪物蒸發：取怪物圖上的像素變成往上飄、慢慢變淡的小方塊 */
 var PARTS=[],pfx=$('pfx'),pctx=pfx.getContext('2d');
@@ -633,7 +639,7 @@ function sumSlots(ms,mko){if(!ms.some(function(m){return m.at!=null}))return;var
 function realBattle(a,l){
   var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
   var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG);
-  var ms=M.map(function(m){return{k:m.sprite,n:m.name,boss:m.boss}}),pkl={},mko={},ev=[],STEP=1000,t=WALK+400;
+  var ms=M.map(function(m){return{k:m.sprite,n:m.name,boss:m.boss}}),pkl={},psw={},mko={},ev=[],STEP=1000,t=WALK+400;
   R.ev.forEach(function(e){
     var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null};/* thr = 被荊棘反彈／熊之力量濺射打到的單位 [陣營, 編號]，畫面上閃一下 */
     if(e.sk&&!e.idle&&!e.tick){
@@ -645,9 +651,10 @@ function realBattle(a,l){
     (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
     (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+260,d:true})});
     (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
+    (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
     ev.push(o)});
   sumSlots(ms,mko);
-  return{ev:ev,mons:ms,pkl:pkl,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
+  return{ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
     hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp})},lead:P[0]}}
 
 function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||(r[q[0]]={v:0,by:{}}),k=q[3]||'其他',b=o.by[k]||(o.by[k]={v:0,c:0});o.v+=q[2];b.v+=q[2];b.c++});if(btab!=='log')renderStats();var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);box.appendChild(d);
@@ -675,7 +682,7 @@ function makeReq(b){if(b.res!=='win')return null;var r=stageReward(b.a,b.l),bx=[
   return{area:AREAID[b.a],stage:b.l,exp:exp,stones:st,cookie:Math.random()<0.01,clear:newClear,name:me.name,share:share,bx:bx,lvi:lvi?Object.assign(lvi,{l:b.l}):null}}
 /* ---- 戰鬥暫存：切到別頁再回來時接著播（離開期間戰鬥照樣進行）；只存在這台裝置，不碰資料庫 ---- */
 var CURK='adv.cur',KEEP=30*60*1000;
-function curSave(){if(!B)return;try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,ev:B.ev,mons:B.mons,pkl:B.pkl,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
+function curSave(){if(!B)return;try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,ev:B.ev,mons:B.mons,pkl:B.pkl,psw:B.psw,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
 function curClear(){try{localStorage.removeItem(CURK)}catch(e){}}
 function curLoad(){try{var o=JSON.parse(localStorage.getItem(CURK)||'null');if(!o||!o.wall||Date.now()-o.wall>KEEP||!MEMB[0]||o.uid!==MEMB[0].uid){curClear();return null}return o}catch(e){return null}}
 function lastAdv(){try{return parseInt(localStorage.getItem('adv.last'),10)||0}catch(e){return 0}}
@@ -708,7 +715,7 @@ function saveWin(bb,req,ui){
         ui.msg('經驗、鍛造石已存檔；被擋下沒存到：'+cut.join('、')+'（請截圖給開發者）');ui.lock(false)},function(){tryCut()})},21500)})()})})})}setTimeout(put,wait)}
 $('rok').addEventListener('click',function(){curClear();showView('map')});
 /* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
-function resume(o){setLastArea(o.a);PARTS=[];B={ev:o.ev,mons:o.mons,pkl:o.pkl||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
+function resume(o){setLastArea(o.a);PARTS=[];B={ev:o.ev,mons:o.mons,pkl:o.pkl||{},psw:o.psw||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
   B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=AREA[o.a].n+'　第 '+o.l+' 關'+(isBoss(o.a,o.l)?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[o.a].bg);build();B.t0=performance.now()-(Date.now()-o.wall);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
@@ -780,7 +787,7 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
   monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=4',
   monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
-  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}

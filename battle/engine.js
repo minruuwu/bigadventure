@@ -10,7 +10,7 @@
   var ELS = ['fire', 'frost', 'lightning', 'wind', 'nature', 'light', 'dark'];
   var ELN = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' };
   var CONTROL = { stun: 1, sleep: 1, confuse: 1, seal: 1, petrify: 1, charm: 1, banish: 1 };
-  var NOBOSS = { charm: 1, banish: 1 };
+  var NOBOSS = { charm: 1, banish: 1, swallow: 1 };
   var PSLOT = [1, 30, 60, 90];
   var MAXR = 30;
 
@@ -132,7 +132,7 @@
         if (e.effect_kind !== 'passive' || !e.effect) return;
         var v = num(e.value);
         if (e.trigger || e.effect === 'apply_status') out.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type });
-        else if (['lifesteal', 'extra_dmg', 'auto_cleanse'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
+        else if (['lifesteal', 'extra_dmg', 'auto_cleanse', 'regen'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* regen = 每次輪到牠行動時恢復最大生命 v */
       });
     });
     return out;
@@ -205,6 +205,10 @@
     /* --- 狀態 --- */
     function applyStatus(src, tgt, name, turns, chance, e, skName) {
       var def = D.STS[name]; if (!def || tgt.dead) return false;
+      /* 吞噬：只吞玩家；一隻怪肚子裡同時只能有一個人；已經在肚子裡的人什麼狀態都上不了 */
+      var swl = def.rows.some(function (r) { return r.k === 'swallow' });
+      if (swallowed(tgt)) return false;
+      if (swl && (tgt.side !== 'p' || P.some(function (x) { return !x.dead && x.st.some(function (q) { return q.swal && q.src === src }) }))) return false;
       var ctl = def.rows.some(function (r) { return CONTROL[r.k] }), nob = def.rows.some(function (r) { return NOBOSS[r.k] });
       if (tgt.boss && nob) return false;
       var ch = chance == null || chance === '' ? 1 : num(chance); if (tgt.boss && ctl) ch /= 2;
@@ -221,13 +225,15 @@
       rows.forEach(function (r) { if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
       if (old) { var i = tgt.st.indexOf(old); tgt.st[i] = s } else tgt.st.push(s);
       if (rows.some(function (r) { return r.k === 'banish' })) { s.banish = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }) }
+      if (swl) { s.swal = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }); if (e) (e.swal = e.swal || []).push(tgt.i) }
       if (e) { e._st = e._st || {}; (e._st[name] = e._st[name] || []).push(tgt.name) }
       return true;
     }
     function removeStatus(u, s) { var i = u.st.indexOf(s); if (i >= 0) u.st.splice(i, 1) }
     function debuffs(u) { return u.st.filter(function (s) { return s.pol === 'debuff' && !s.paused }) }
     function hasHot(u) { return u.st.some(function (s) { return s.rows.some(function (r) { return r.k === 'hot' }) }) }
-    function banished(u) { return u.st.some(function (s) { return s.banish }) }
+    function banished(u) { return u.st.some(function (s) { return s.banish || s.swal }) }
+    function swallowed(u) { return u.st.some(function (s) { return s.swal }) }
     function ctrl(u, k) { return u.st.some(function (s) { return !s.paused && s.rows.some(function (r) { return r.k === k }) }) }
 
     /* --- 陣營與選目標 --- */
@@ -301,14 +307,19 @@
     function checkDeath(u, e) {
       if (u.dead || u.hp > 0) return false;
       u.hp = 0;
+      if (swallowed(u)) { u.flags.r17 = 1; u.flags.grace = 1 } /* 在肚子裡被消化完：不能復活 */
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
       if (u.runes.indexOf('rune17') >= 0 && !u.flags.r17) { u.flags.r17 = 1; revive(u, RV(D, 'rune17', 0, 0.5), '先祖之鄉', e); return false }
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
+      /* 吞噬者倒下：肚子裡的人回來（血量維持、狀態恢復計時） */
+      if (u.side === 'm') P.forEach(function (x) { var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return; removeStatus(x, q); x.st.forEach(function (s) { s.paused = false }); if (e) { (e._rel = e._rel || []).push(x.name + ' 從 ' + u.name + ' 的肚子裡逃出來了'); (e.rel = e.rel || []).push(x.i) } });
       if (e) { if (u.side === 'm') (e.dead = e.dead || []).push(u.i); else (e.pko = e.pko || []).push(u.i) }
       return true;
     }
+    /* 逃出肚子的文字等這一行的傷害寫完才接在後面 */
+    function flushRel(e) { if (e && e._rel) { e.txt += '；' + e._rel.join('；'); delete e._rel } }
     function revive(u, f, why, e) { u.st = []; u.hp = Math.max(1, Math.round(u.b.mhp * f)); if (e) { e.txt += '；' + u.name + ' 因「' + why + '」復活（' + u.hp + ' 生命）'; (e.rev = e.rev || []).push([u.side, u.i]) } }
 
     /* --- 反應技 --- */
@@ -353,6 +364,8 @@
       nowAct = u;
       var e = line({ side: u.side, a: u.i, txt: '' });
       /* 行動開始：聖潔驅散 → 放逐回歸 → 持續傷害／回復 */
+      var sw = u.st.filter(function (s) { return s.swal })[0];
+      if (sw) { e.txt = u.name + ' 在 ' + sw.src.name + ' 的肚子裡'; e.idle = 1; e.hp = hpSnap(); return false }
       var ban = u.st.filter(function (s) { return s.banish })[0];
       if (ban) {
         if (ban.turns <= 0) {
@@ -360,11 +373,12 @@
           var src = ban.src, r0 = ban.rows.filter(function (r) { return r.k === 'banish' })[0], c = RND() < stat(src, 'crit');
           var amt = Math.round(r0.amt * (1 + stat(src, 'mdmg')) * (1 - Math.min(stat(u, 'mred'), 0.9)) * (c ? 1 + stat(src, 'cdmg') : 1));
           var real = hurt(u, amt, src); e.txt = u.name + ' 從裂隙回來，' + (c ? '暴擊！' : '') + '受到 ' + real + ' 魔法傷害'; addStat(e, src, 'dmg', real, '秘法裂隙'); e.snap = 1;
-          if (checkDeath(u, e)) { e.hp = hpSnap(); return false }
+          if (checkDeath(u, e)) { flushRel(e); e.hp = hpSnap(); return false }
           e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' });
         } else { ban.turns--; e.txt = u.name + ' 被放逐在時空裂隙中'; e.idle = 1; e.hp = hpSnap(); return false }
       }
       var tick = [];
+      u.special.forEach(function (x) { if (x.k === 'regen') { var g = heal(u, u, u.b.mhp * x.v, null, true); if (g) tick.push('「' + (D.SK[x.id] ? D.SK[x.id].n : '再生') + '」恢復 ' + g) } });
       u.st.slice().forEach(function (s) {
         if (s.paused) return;
         s.rows.forEach(function (r) {
@@ -374,9 +388,9 @@
           if (r.k === 'hot' && r.amt) { var h = heal(s.src, u, r.amt); if (h) { tick.push('「' + s.n + '」恢復 ' + h); addStat(e, s.src, 'heal', h, s.n) } }
         });
       });
-      if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e)) { e.hp = hpSnap(); return false } e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
+      if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e)) { flushRel(e); e.hp = hpSnap(); return false } e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
       /* 無法行動 */
-      if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; endAct(u, null); e.hp = hpSnap(); return false }
+      if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return false }
       u._e = e;
       return true;
     }
@@ -396,16 +410,17 @@
         var k = D.SK[id] || D.SK.atk;
         var t0 = pickTargets(u, k, charmed, confused);
         if (k.t === 'ally_others' && !t0.length) continue;
-        if (charmed && k.ty === 'damage' && !t0.length) { e.txt = u.name + ' 被魅惑，找不到可以攻擊的同伴'; e.idle = 1; endAct(u, null); e.hp = hpSnap(); return }
+        if (charmed && k.ty === 'damage' && !t0.length) { e.txt = u.name + ' 被魅惑，找不到可以攻擊的同伴'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
         if (t0.length) { sk = k; tg = t0; break }
       }
-      if (!sk) { e.txt = u.name + ' 沒有可以行動的目標'; e.idle = 1; endAct(u, null); e.hp = hpSnap(); return }
+      if (!sk) { e.txt = u.name + ' 沒有可以行動的目標'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
       doSkill(u, sk, tg, e);
       flushSt(e);
       afterSkill(u, sk, tg, e, false);
-      endAct(u, sk);
+      flushRel(e);
       if (!e.hp) e.hp = hpSnap();
+      endAct(u, sk);
     }
     /* 技能結算後才判定的符文：墓之土、啟示之書、鷹之勇氣、命運之輪（追加的那次不再觸發後兩者） */
     function trueAll(u, amt, e, why) { var t = 0; foes(u).forEach(function (q) { if (banished(q)) return; var d = hurt(q, amt, u); t += d; addStat(e, u, 'dmg', d, why); addStat(e, q, 'taken', d, u.name + ' ' + why); checkDeath(q, e) }); return t }
@@ -421,12 +436,12 @@
       if (isExtra || u.dead || !foes(u).length) return;
       if (dealt && u.runes.indexOf('rune19') >= 0 && RND() < RV(D, 'rune19', 0, 0.3)) {
         var t2 = tg.filter(function (x) { return !x.dead }); if (!t2.length) t2 = pickTargets(u, sk, false, false);
-        if (t2.length) { var e2 = line({ side: u.side, a: u.i, sk: sk.id, ty: sk.ty, txt: u.name + ' 的「鷹之勇氣」再次使用「' + sk.n + '」' }); doSkill(u, sk, t2, e2); flushSt(e2); afterSkill(u, sk, t2, e2, true); e2.hp = hpSnap() }
+        if (t2.length) { var e2 = line({ side: u.side, a: u.i, sk: sk.id, ty: sk.ty, txt: u.name + ' 的「鷹之勇氣」再次使用「' + sk.n + '」' }); doSkill(u, sk, t2, e2); flushSt(e2); afterSkill(u, sk, t2, e2, true); flushRel(e2); e2.hp = hpSnap() }
       }
       if (sk.id !== 'atk' && u.runes.indexOf('rune20') >= 0 && u.learned && u.learned.length && RND() < RV(D, 'rune20', 0, 0.5) && !u.dead && foes(u).length) {
         var k3 = pickOne(u.learned), t3 = pickTargets(u, k3, false, false);
         var e3 = line({ side: u.side, a: u.i, sk: k3.id, ty: k3.ty, txt: u.name + ' 的「命運之輪」發動「' + k3.n + '」' });
-        if (t3.length) { doSkill(u, k3, t3, e3); flushSt(e3); afterSkill(u, k3, t3, e3, true) } else { e3.txt += '，但沒有合法目標'; e3.idle = 1 }
+        if (t3.length) { doSkill(u, k3, t3, e3); flushSt(e3); afterSkill(u, k3, t3, e3, true); flushRel(e3) } else { e3.txt += '，但沒有合法目標'; e3.idle = 1 }
         e3.hp = hpSnap();
       }
     }
@@ -438,14 +453,25 @@
     function flushSt(e) { if (!e._st) return; Object.keys(e._st).forEach(function (n) { var L = e._st[n]; e.txt += '，' + (L.length > 3 ? L.length + ' 人' : L.join('、')) + ((D.STS[n] || {}).pol === 'buff' ? ' 獲得「' : ' 陷入「') + n + '」' }); delete e._st }
     function endAct(u, sk) {
       u.st.forEach(function (s) {
-        if (s.paused || s.banish) return;
+        if (s.paused || s.banish || s.swal) return;
         if (s.turns === 'attack') { if (sk && sk.ty === 'damage') s.turns = 0; return }
         if (s.fresh) { s.fresh = false; return }
         s.turns--;
       });
       if (sk && sk.ty === 'damage') u.st.forEach(function (s) { if (s.rows.some(function (r) { return r.k === 'sure_crit_next' })) s.turns = 0 });
-      u.st = u.st.filter(function (s) { return s.banish || s.paused || s.turns === 'attack' || s.turns > 0 });
+      u.st = u.st.filter(function (s) { return s.banish || s.swal || s.paused || s.turns === 'attack' || s.turns > 0 });
       nowAct = null;
+      if (u.side === 'm' && !u.dead) digest(u);
+    }
+    /* 吞噬者每次行動結束：消化肚子裡的人（最大生命 × 被吞噬的 value，不吃減傷） */
+    function digest(u) {
+      P.forEach(function (x) {
+        var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return;
+        var r0 = q.rows.filter(function (r) { return r.k === 'swallow' })[0], amt = Math.max(1, Math.round(x.b.mhp * (r0 ? r0.v : 0.05)));
+        x.hp -= amt; var e = line({ side: x.side, a: x.i, txt: x.name + ' 被 ' + u.name + ' 消化了 ' + amt + ' 生命', tick: 1 }); addStat(e, x, 'taken', amt, u.name + ' 消化');
+        if (checkDeath(x, e)) e.txt += '，被消化殆盡';
+        e.hp = hpSnap();
+      });
     }
     function protectorFor(t, a) {
       if (t.side !== 'p') return null;
@@ -502,7 +528,7 @@
             }
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) { var th = hurt(u, Math.round(real * RV(D, 'rune11', 0, 0.5)), t); addStat(e, t, 'dmg', th, '荊棘之皇冠'); (e._x = e._x || []).push('荊棘之皇冠反彈 ' + th + ' → ' + u.name); (e.thr = e.thr || []).push([u.side, u.i]); checkDeath(u, e) }
             if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2)) { if (applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5), 1, null)) (e._x = e._x || []).push('石之正義：' + u.name + ' 被石化') }
-            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' }) }); var dn = pickOne(dbs); if (applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) (e._x = e._x || []).push('夢靨之預兆：' + t.name + ' 陷入「' + dn + '」') }
+            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' || r.k === 'swallow' }) }); var dn = pickOne(dbs); if (applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) (e._x = e._x || []).push('夢靨之預兆：' + t.name + ' 陷入「' + dn + '」') }
             /* 每一下附加的狀態 */
             effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'per_hit' && !t.dead) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, null) });
             reactPost(t, u, x.re, e);
@@ -594,7 +620,7 @@
     }
 
     /* --- 主迴圈 --- */
-    function alive(a) { return a.some(function (x) { return !x.dead }) }
+    function alive(a) { return a.some(function (x) { return !x.dead && !swallowed(x) }) } /* 被吞的人不算還能戰鬥 */
     if (lone) line({ kind: 'note', idle: true, txt: P[0].name + ' 獨自上陣，進入「獨狼」狀態：生命、物理攻擊力、魔法攻擊力 ×1.5' });
     /* 新的一回合：回傳這回合的行動順序（速度高先動，加一點隨機讓同速的隨機排） */
     function round() {
@@ -606,9 +632,11 @@
     /* 輪到 u 時先做的事（聖潔驅散），再 begin */
     function start(u) { if (u.special.some(function (x) { return x.k === 'auto_cleanse' })) autoClean(u); return begin(u) }
     /* 戰棋的「待機」：有行動但不出手，狀態照常減一次 */
-    function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1; endAct(u, null); e.hp = hpSnap() }
+    function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1; e.hp = hpSnap(); endAct(u, null) }
+    /* 戰鬥結束時還在肚子裡的人算陣亡 */
+    function endSwallow() { P.forEach(function (x) { if (x.dead || !swallowed(x)) return; x.hp = 0; x.dead = true; x.st = []; line({ kind: 'note', idle: true, txt: x.name + ' 沒能從肚子裡出來……', pko: [x.i], hp: hpSnap() }) }) }
     function over() { return !alive(P) || !alive(M) || rounds >= MAXR }
-    return { P: P, M: M, U: U, ev: ev, hooks: hooks, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, alive: alive, over: over,
+    return { P: P, M: M, U: U, ev: ev, hooks: hooks, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, swallowed: swallowed, endSwallow: endSwallow, alive: alive, over: over,
       rounds: function () { return rounds }, res: function () { return alive(M) ? (alive(P) ? 'draw' : 'lose') : 'win' }, MAXR: MAXR };
   }
   /* 自動戰鬥：整場一次跑完 */
@@ -622,6 +650,7 @@
         if (S.start(u)) S.finish(u);
       }
     }
+    S.endSwallow();
     return { ev: S.ev, res: S.alive(M) ? 'lose' : 'win', rounds: S.rounds() };
   }
 

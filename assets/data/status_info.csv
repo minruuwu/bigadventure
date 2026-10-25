@@ -108,3 +108,4 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 晶化,debuff,p_dmg_taken_rate,0.4,,,,受到的物理傷害 +40%
 蛛毒,debuff,dot,0.25,p_atk,nature,p,每回合造成施加者物理攻擊力 25% 的自然物理傷害
 束縛,debuff,stun,,,,,被蛛網纏住，跳過行動
+被吞噬,debuff,swallow,0.05,,,,被吞進肚子裡：從畫面上消失，不能行動、不會被攻擊或治療，身上其他狀態暫停；吞噬者每次行動結束消化最大生命 5%；吞噬者倒下就回來；戰鬥結束時還在肚子裡算陣亡
