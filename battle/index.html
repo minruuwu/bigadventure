@@ -564,7 +564,7 @@ function stDraw(sd,x,gy,top,w,t,lf){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math.PI
   if(f.blood)for(var q=0;q<2;q++){var u=((t+q*550)%1100)/1100,dx=x+(q?w*.2:-w*.15),dy=bc+u*u*(by-bc);if(u<.9){VP(dx,dy,'#c8202a',.95);VP(dx,dy-1,'#c8202a',.6)}else{VP(dx-1,by-1,'#c8202a',.7);VP(dx+1,by-1,'#c8202a',.7)}}
   if(sd.ic.length){var ups=sd.ic.some(function(q){return q.m==='up'}),dns=sd.ic.some(function(q){return q.m!=='up'});
     [ups?1:0,dns?-1:0].forEach(function(dir,q){if(!dir)return;var per=1500,cy=Math.floor((t+q*750)/per),u=((t+q*750)%per)/per,ax=x-1+(((cy*7+q*3)%5)-2)*w*.18,ay=dir>0?bc+3-u*9:bc-7+u*9;stPat(0,ax,ay,dir>0?ARU:ARD,'#ffe14a',.55*Math.sin(u*Math.PI))});
-    var q1=sd.ic[Math.floor(t/1300)%sd.ic.length],IW=8,ix=x+w*.5-IW*.3,iy=by-IW-1,ci=stIconC(q1);/* 一次一個圖示輪流換，直接疊在角色圖的右下角（不加底色） */
+    var q1=sd.ic[Math.floor(t/1300)%sd.ic.length],IW=8,ix=x+w*.5-IW*.3,iy=by-IW+2,ci=stIconC(q1);/* 一次一個圖示輪流換，直接疊在角色圖的右下角（不加底色） */
     if(ci){pctx.globalAlpha=1;pctx.imageSmoothingEnabled=false;pctx.drawImage(ci,Math.round(ix*U),Math.round(iy*U),Math.round(IW*U),Math.round(IW*U))}}}
 /* 怪物蒸發：取怪物圖上的像素變成往上飄、慢慢變淡的小方塊 */
 var PARTS=[],pfx=$('pfx'),pctx=pfx.getContext('2d');
