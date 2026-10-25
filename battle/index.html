@@ -343,7 +343,7 @@ function tick(now){
 /* 特效圖編號：00 無屬性、01 火焰、02 冰霜、03 雷電、04 疾風、05 自然、06 光明、07 黑暗 */
 var ELN={'':0,fire:1,frost:2,lightning:3,wind:4,nature:5,light:6,dark:7},SLASH=[],ARROW=[],MISSILE=[],THRUST=[],SMASH=[],CLAW=null;var THROT=[0,0,0,0,0,0,0,Math.PI/4],THSQ=[1,1,1,1,1,1,1,.6];
 function vimg(L,el){var i=L[ELN[el]||0];return i&&i.naturalWidth?i:(L[0]&&L[0].naturalWidth?L[0]:null)}
-var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'}},FARK=['bow','staff','book','throw'];
+var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'},beam:function(){return 'beam'}},FARK=['bow','staff','book','throw','beam'];
 var WKIND={'劍':'sword','斧':'axe','錘':'hammer','匕':'dagger','槍':'spear','弓':'bow','杖':'staff','書':'book'};
 var ELC={fire:'#ff7a3a',frost:'#9ad8ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#fff4c4',dark:'#6a1fc0'};
 function vfxColor(wk,s){if(s.el&&ELC[s.el])return ELC[s.el];if(!s.atk)return '#f3d98a';return wk==='staff'||wk==='book'?'#d6b8ff':'#ffffff'}
@@ -388,8 +388,20 @@ var shakeY=0;
 function healFx(hp,d,el){if(PCOL[el])pBurst(el,hp[0],hp[1]-10,d-150,12,.8*VS);for(var k=0;k<10;k++){var u=(d-150-k*30)/600;if(u<0||u>1)continue;VP(hp[0]-6+hsh(k,1)*12,hp[1]-6-u*22-hsh(k,2)*8,k%3?'#8ef09a':'#e8ffe8',1-u)}
       /* 腳下一圈綠光：先在地上亮起，再慢慢往上升、變淡（兩圈錯開） */
       for(var rg=0;rg<2;rg++){var ur=(d-80-rg*260)/1100;if(ur<0||ur>1)continue;var fa=ur<.15?ur/.15:1-(ur-.15)/.85,ry=hp[1]-1-ease(ur)*14,rx=9-ur*2;for(var q=0;q<40;q++){var an=q/40*Math.PI*2,fr=Math.sin(an)>0,cx=hp[0]+Math.cos(an)*rx,cy=ry+Math.sin(an)*2.6;VP(cx,cy,q%3?'#9cf5a6':'#eaffea',fa*(fr?1:.3));VP(cx,cy-1,'#6fe08a',fa*(fr?.4:.12));VP(cx*.85+hp[0]*.15,cy*.85+ry*.15,'#b8ffc4',fa*.18)}}}
+/* 射線：從起點射到目標（約 0.1 秒），維持到 0.42 秒，再從兩邊收細淡出；總寬 5 格＝中間 3 格白、上下各 1 格屬性色（無屬性藍色），寬度輕微抖動 */
+var BEAMC={fire:'#ff6a2a',frost:'#6cc0ff',lightning:'#ffe14a',wind:'#3fdcaa',nature:'#5cc83a',light:'#ffd23a',dark:'#8a3ae0'};
+function beamFx(d,el,sx,sy,hx,hy){if(d<60)return;var g=Math.min(1,(d-60)/100),f=(d-420)/160;if(f>1)return;
+  var L=Math.hypot(hx-sx,hy-sy),ang=Math.atan2(hy-sy,hx-sx),len=L*g*g*(3-2*g),W=f>0?5*(1-f):5+Math.sin(d/22)*.5,a=f>0?1-f*.6:1,col=BEAMC[el]||'#3f8cff';
+  pctx.save();pctx.translate(sx*U,sy*U);pctx.rotate(ang);
+  pctx.globalAlpha=.22*a;pctx.fillStyle=col;pctx.fillRect(0,-(W/2+1.5)*U,len*U,(W+3)*U);
+  pctx.globalAlpha=a;pctx.fillRect(0,-W/2*U,len*U,W*U);
+  pctx.fillStyle='#ffffff';var wc=W*.6;pctx.fillRect(0,-wc/2*U,len*U,wc*U);
+  pctx.globalAlpha=.9*a;pctx.beginPath();pctx.arc(0,0,(W*.75)*U,0,Math.PI*2);pctx.fill();
+  if(g>=1){pctx.fillStyle=col;pctx.globalAlpha=.6*a;pctx.beginPath();pctx.arc(len*U,0,(W*.9+Math.sin(d/30))*U,0,Math.PI*2);pctx.fill();pctx.fillStyle='#ffffff';pctx.globalAlpha=a;pctx.beginPath();pctx.arc(len*U,0,W*.5*U,0,Math.PI*2);pctx.fill()}
+  pctx.restore();pctx.globalAlpha=1}
 function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
-      if(wk==='bow'&&vimg(ARROW,e.el)){var ai=vimg(ARROW,e.el),tc=ELC[e.el]||'#ffffff',u=(d-80)/140,ex=hx-6,ang=Math.atan2(hy-sy,ex-sx);
+      if(wk==='beam')beamFx(d,e.el,sx,sy,hx,hy);
+      else if(wk==='bow'&&vimg(ARROW,e.el)){var ai=vimg(ARROW,e.el),tc=ELC[e.el]||'#ffffff',u=(d-80)/140,ex=hx-6,ang=Math.atan2(hy-sy,ex-sx);
         var head=Math.min(1,Math.max(0,u)),tailFade=u>1?1-(d-220)/320:1;
         if(u>=0&&tailFade>0){var t0=Math.max(0,head-.55);for(var q=t0;q<=head;q+=.012){var k=(q-t0)/(head-t0+1e-6),px0=sx+(ex-sx)*q-12*Math.cos(ang)*(u<=1?1:0),py0=sy+(hy-sy)*q;VP(px0,py0,tc,k*.75*tailFade);if(k>.55){VP(px0,py0-1,tc,(k-.55)*.9*tailFade);VP(px0,py0+1,tc,(k-.55)*.9*tailFade)}if(k>.85&&Math.random()<.25)VP(px0-1,py0+(Math.random()<.5?-2:2),'#ffffff',.6*tailFade)}}
         if(u>=0&&u<=1){var ax=sx+(ex-sx)*u,ay=sy+(hy-sy)*u,sz=24*VS*U;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1;pctx.translate(ax*U,ay*U);pctx.rotate(ang);pctx.drawImage(ai,-sz+1.5*U,-sz/2,sz,sz);pctx.restore()}}
@@ -422,7 +434,7 @@ function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
         else if(r2>=0&&r2<=1){var k=1+.15*r2,s2=sz*k;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1-r2;pctx.drawImage(si,cx-s2/2,cy-s2/2,s2,s2);pctx.restore()}}
       else{var u6=(d-180)/220;if(u6>=0&&u6<=1){var R6=wk==='axe'?10:14,th=wk==='axe'?3:2,a0=-2.3,span=2.6,f6=Math.min(1,u6*1.8),sw=a0+span*f6*f6*(3-2*f6),fade=1-Math.max(0,(u6-.45)/.55);
           for(var an6=a0;an6<=sw;an6+=.04){var k6=(an6-a0)/span;for(var d6=0;d6<th;d6++){var rr=R6-d6;VP(hx-2+Math.cos(an6)*rr,hy-2+Math.sin(an6)*rr,d6===0?'#ffffff':c,fade*(.35+.65*k6))}}}}
-      var pk=PCOL[e.el]?e.el:((wk==='staff'||wk==='book')?'arc':null);
+      var pk=PCOL[e.el]?e.el:((wk==='staff'||wk==='book'||wk==='beam')?'arc':null);
       if(pk){var fp=null;
         if(wk==='bow')fp=function(dd){var u=(dd-80)/140;return u<0||u>1?null:[sx+(hx-6-sx)*u,sy+(hy-sy)*u]};
         else if(wk==='staff'||wk==='book')fp=function(dd){var u=(dd-60)/230;if(u<0||u>1)return null;var ee=u*u*(3-2*u);return [sx+(hx-sx)*ee,sy+(hy-sy)*u-Math.sin(u*Math.PI)*4]};
@@ -437,7 +449,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
   function vOne(e,t,hh){var d=t-e.t;if(d<0||d>900||!e.side)return;
     if(e.side==='m'&&e.mhl){e.mhl.forEach(function(i){var mo=mons[i];if(mo&&mo.lx!=null)healFx([mo.lx,mo.gy],d,'')});return}
     if(e.side==='m'&&e.sonic){sonicFx(e,d);return}
-    if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-msz(mo.k)[0]*mo.sc*.3,msy=mp0[1];
+    if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-(e.wk==='beam'?0:msz(mo.k)[0]*mo.sc*.3),msy=mp0[1];/* 射線從怪物身體中間（眼魔＝大眼）射出 */
       /* 怪物技能特效：把畫面左右翻過來，沿用玩家那套（投擲、刺擊、飛彈……），起點是怪物、終點是被打的隊員 */
       pctx.save();pctx.translate(pfx.width,0);pctx.scale(-1,1);
       (e.tgh?[e.tgh[hh]]:e.tgts).forEach(function(tk){if(tk==null)return;var pp=posOf(tk);hitFx(e,d,e.wk,e.vc||'#ffffff',WU-msx,msy,WU-pp[0],pp[1]-14,pp[1],1)});
@@ -449,7 +461,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
         else if(c2>=0&&c2<=1){var k2=cs*(1+.12*c2);pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1-c2;pctx.drawImage(CLAW,ccx-k2/2,ccy-k2/2,k2,k2);pctx.restore()}
         return}
       var u=(d-170)/260;if(u<0||u>1)return;var a=1-u;for(var k=0;k<3;k++){for(var j=0;j<7;j++){var x=pp[0]-4+k*3+j*.6,y=pp[1]-24+j*1.4;VP(x,y,j<2?'#ffffff':'#ff9a8a',a*(j<5?1:.6))}}});return}
-    var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
+    var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'||wk==='beam'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
     if(e.ty==='heal'&&e.hl!=null){[].concat(e.hl).forEach(function(hk){healFx(posOf(hk),d,e.el)});return}
     if(e.ty==='buff'){if(PCOL[e.el])pBurst(e.el,pp[0],pp[1]-12,d-60,12,.8*VS);var u2=d/700;if(u2>1)return;var R=6+u2*6;for(var k2=0;k2<28;k2++){var an=k2/28*Math.PI*2;VP(pp[0]+Math.cos(an)*R,pp[1]-1+Math.sin(an)*R*.3,k2%2?'#ffd76a':'#fff4c4',1-u2)}return}
     (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;hitFx(e,d,wk,c,sx,sy,mp[0],mp[1],BG[cur].band+mons[ti].dy,mons[ti].sc||1)})}
@@ -839,12 +851,14 @@ function vtBuild(){MEMB=[vtChar()];var keep=B&&B.t0;B={ev:[],mons:[{k:VT.mon,n:'
 function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
   if(VT.kind==='claw')e={side:'m',a:0,tgt:0,tgts:[0],t:t};
   else if(VT.kind==='sonic')e={side:'m',a:0,tgt:0,tgts:[0],t:t,sonic:1};
+  else if(VT.kind==='mbeam')e={side:'m',a:0,tgt:0,tgts:[0],t:t,wk:'beam',el:VT.el,vc:'#ffffff',hit:180};
+  else if(VT.kind==='beam')e={side:'p',a:0,t:t,tg:[0],wk:'beam',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:180};
   else{e={side:'p',a:0,t:t,tg:[0],wk:wk,vc:vfxColor(wk,s),atk:VT.atk&&!VT.el,el:VT.el,ty:VT.kind,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
     if(VT.kind==='heal'){e.tg=[];e.hl=0}if(VT.kind==='buff')e.tg=[]}
   B.ev=B.ev.filter(function(x){return t-x.t<1500});B.ev.push(e)}
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
-  '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button></div>'+
+  '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button><button type="button" data-k="beam">射線</button><button type="button" data-k="mbeam">怪物射線</button></div>'+
   '<div class="vth">怪物</div><div class="vtr" id="vtm">'+vtMonBtns()+'</div>'+
   '<div class="vth">狀態（可多選，角色和怪物同時套用）</div><div class="vtr" id="vts">'+VTS.map(function(x){return '<button type="button" data-s="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
