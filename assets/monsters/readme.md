@@ -19,6 +19,7 @@
 | monster_13 | 巨蛛（魔晶礦洞，目前只在 `?vfx=1` 測試；顯示 0.9 倍） | `monster_13.png`（身體）、`monster_13_blink.png`（眼睛圖層）；身體起伏，腳不動 |
 | monster_14 | 洞穴蠕蟲（魔晶礦洞，目前只在 `?vfx=1` 測試） | `monster_14.png`（43×43，原圖裁掉透明邊）；整隻以腳底為支點伸縮當蠕動，嘴巴滴口水由程式畫（`ANI.worm`：口水位置 at、寬 dw、長 dl） |
 | monster_15 | 亡魂（魔晶礦洞，目前只在 `?vfx=1` 測試；顯示 1.4 倍） | `monster_15.png`（14×23，原圖裁掉透明邊）；懸空上下飄（`FLY.ghost`）、透明度 45%～90% 若隱若現，眼睛和嘴巴的紅光由程式畫 |
+| monster_16 | 猛毒史萊姆（魔晶礦洞，目前只在 `?vfx=1` 測試） | `monster_16.png`（monster_01 史萊姆改成毒綠色，40×40）；動作同史萊姆 |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
 | monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（79×66，原圖去背、左右翻轉、綠色壓暗後縮小；身體上半慢慢起伏，眼睛發紅光由程式畫） |

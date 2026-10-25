@@ -250,7 +250,7 @@ function mslots(ms){var n=Math.max(1,Math.min(5,ms.length)),bi=-1;ms.forEach(fun
 /* 龍這種大隻的王：王往後站一點，小怪站在牠前面的上下兩側，盡量不擋住龍頭 */
 var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[140,14],[94,33],[118,34],[106,24]],5:[[140,14],[92,33],[116,34],[104,24],[128,28]]};
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
-var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[],REW={step:3,cut:0.1,floor:0.1};
+var party=[],mons=[],SLIME=null,PSLIME=null/* 猛毒史萊姆 */,SKI={},SKC={},MEMB=[],REW={step:3,cut:0.1,floor:0.1};
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
 var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]},worm:{n:'洞穴蠕蟲',f:'monster_14',still:1,fx:'drool',at:[11,17],dw:2,dl:5}};
 /* still = 整張圖不切上下半身，改用 wormSq 整隻伸縮（以腳底為支點） */
@@ -273,7 +273,7 @@ function layFrame(k,now){var L=LAY[k],cl=(now%L.per)<160?1:0,dy=Math.sin(now/330
 function layInit(k,b,e){var L=LAY[k];L.base=b;L.eyes=e;if(!b)return;var W=b.naturalWidth,H=b.naturalHeight,gc=document.createElement('canvas');gc.width=W;gc.height=H;var gx=gc.getContext('2d');gx.drawImage(b,0,0);if(e)gx.drawImage(e,0,0);
   var gd=gx.getImageData(0,0,W,H).data,a0=W,b0=H,a1=-1,b1=-1;for(var y=0;y<H;y++)for(var xx=0;xx<W;xx++)if(gd[(y*W+xx)*4+3]>0){if(xx<a0)a0=xx;if(xx>a1)a1=xx;if(y<b0)b0=y;if(y>b1)b1=y}
   if(a1>=0){L.bb=[a0,b0,a1-a0+1,b1-b0+1];L.sz=[a1-a0+1,b1-b0+1]}}
-function msrc(k,now,ph){if(FLY[k]){var fi=FLY[k].im&&FLY[k].im[flyFr(k,now,ph)];return fi&&fi.naturalWidth?fi.src:''}return k==='sk'?skFrame(now):LAY[k]?layFrame(k,now):ANI[k]?aniFrame(k,now):SLIME}
+function msrc(k,now,ph){if(FLY[k]){var fi=FLY[k].im&&FLY[k].im[flyFr(k,now,ph)];return fi&&fi.naturalWidth?fi.src:''}return k==='sk'?skFrame(now):LAY[k]?layFrame(k,now):ANI[k]?aniFrame(k,now):k==='pslime'?PSLIME:SLIME}
 function sizeU(){U=frame.clientWidth/UW}
 function tileW(){return frame.clientHeight*BG[cur].bw/BG[cur].bh}
 function build(){
@@ -321,7 +321,7 @@ function tick(now){
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
     else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
-    else if(m.k==='slime'&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
+    else if((m.k==='slime'||m.k==='pslime')&&(dt==null||t<dt)){var b=Math.sin(now/260+m.ph);sy=1+b*.05;sx=1-b*.03}
     else if(m.k==='worm'&&(dt==null||t<dt)){var wq=wormSq(now,m.ph);sx=wq[0];sy=wq[1]}/* 洞穴蠕蟲：整隻伸縮當蠕動 */
     B.ev.forEach(function(e){if(e.side==='m'&&e.a===i){var u=win(t,e.t,420);if(u>=0)mx-=Math.sin(u*Math.PI)*14}if(e.side==='p'&&e.tg&&e.tg.indexOf(i)>=0){var v=win(t,e.t+(e.hit||180),160);if(v>=0){fl=1;mx+=3}}if(e.thr&&e.thr.some(function(q){return q[0]==='m'&&q[1]===i})){var v3=win(t,e.t+(e.hit||180)+140,160);if(v3>=0)fl=1}});
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
@@ -790,15 +790,17 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
   monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=4',
   monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
-  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}
 Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv','job_info.csv'].map(getCSV),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),loadImgs()].map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
   var csv=r[0];(csv[11]||[]).forEach(function(q){if(q.u_sn)JOBI[q.u_sn]=q});ENG=BattleEngine.prepare({rune_info:csv[1],weapon_info:csv[0],skill_info:csv[3],skill_effect:csv[4],status_info:csv[5],job_attribute:csv[6],job_level_up:csv[7],pet_info:csv[8],monster_info:csv[9],stage_info:csv[10]});CLD=(r[1]&&r[1].clouds)||[];(csv[3]||[]).forEach(function(q){if(q.skill_id&&q.kind==='combat')SKN[q.skill_id]={n:q.skill_name,ty:q.type,all:q.target==='enemy_all',el:q.part1_element||q.part2_element||'',vfx:q.vfx||'',hits:parseInt(q.hits,10)||1,re:q.pick==='random_each'}});
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
-  var I=IMG,m=I.monster_01;if(m){var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
-    var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);SLIME=c2.toDataURL()}
+  /* 史萊姆類：裁掉透明邊；cropSl(圖) → dataURL */
+  var I=IMG;function cropSl(m){if(!m)return null;var c=document.createElement('canvas');c.width=c.height=40;var x=c.getContext('2d');x.drawImage(m,0,0);var d=x.getImageData(0,0,40,40).data,x0=40,y0=40,x1=-1,y1=-1;for(var y=0;y<40;y++)for(var xx=0;xx<40;xx++)if(d[(y*40+xx)*4+3]>0){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;if(y>y1)y1=y}
+    var w=x1-x0+1,h=y1-y0+1,c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(c,x0,y0,w,h,0,0,w,h);return c2.toDataURL()}
+  SLIME=cropSl(I.monster_01);PSLIME=cropSl(I.monster_16)||SLIME;
   SKI[0]=I.monster_02;SKI[1]=I.monster_02_blink;layInit('gob',I.monster_03,I.monster_03_blink);layInit('orc',I.monster_boss_01,I.monster_boss_01_blink);layInit('gobw',I.monster_08,I.monster_08_blink);layInit('golem',I.monster_11,I.monster_11_blink);layInit('cgolem',I.monster_12,I.monster_12_blink);layInit('spider',I.monster_13,I.monster_13_blink);
   Object.keys(ANI).forEach(function(k){ANI[k].im=I[ANI[k].f]});Object.keys(FLY).forEach(function(k){FLY[k].im=FLY[k].f.map(function(f){return I[f]})});
   for(var vi=0;vi<8;vi++){SLASH[vi]=I['slash_0'+vi];ARROW[vi]=I['arrow_0'+vi];MISSILE[vi]=I['missile_0'+vi];THRUST[vi]=I['thrust_0'+vi];SMASH[vi]=I['smash_0'+vi]}CLAW=I.claw;
