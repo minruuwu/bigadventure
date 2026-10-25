@@ -549,7 +549,7 @@ function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=
     var v=r.v||0,ic=null;
     if(/_res_rate$/.test(k)&&k!=='hit_taken_rate'){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none'&&v)ic={k:'res_'+el,m:v>0?'up':'down'}}else ic=stIc(k,v);
     if(ic)o.ic.push(ic)});
-  if(STCOLD[nm])o.fx.cold=1;return STC[n]=o}
+  if(STCOLD[nm]){o.fx.cold=1;o.ic=[]}/* 冷凍類（霜凍、凍足、冷凝）固定是閃避下降，看冷氣就知道，不另外出腳邊圖示 */return STC[n]=o}
 function stOf(list){var fx={},ic=[],seen={};(list||[]).forEach(function(n){var c=stCls(n);Object.keys(c.fx).forEach(function(k){fx[k]=1});c.ic.forEach(function(x){var key=x.k+'|'+x.m;if(!seen[key]){seen[key]=1;ic.push(x)}})});return{fx:fx,ic:ic}}
 function stNowP(k){var q=B&&B.stNow;return stOf(q&&q.p&&q.p[k])}
 function stNowM(i){var q=B&&B.stNow;return stOf(q&&q.m&&q.m[i])}
