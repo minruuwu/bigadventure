@@ -253,7 +253,7 @@ var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
 var party=[],mons=[],SLIME=null,PSLIME=null/* 猛毒史萊姆 */,SKI={},SKC={},MEMB=[],REW={step:3,cut:0.1,floor:0.1};
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
-var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]},worm:{n:'洞穴蠕蟲',f:'monster_14',still:1,fx:'drool',at:[11,17],dw:2,dl:5},sandworm:{n:'沙蟲',f:'monster_18',still:1,fx:'sand',at:[5,15]}};
+var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,still:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]},worm:{n:'洞穴蠕蟲',f:'monster_14',still:1,fx:'drool',at:[11,17],dw:2,dl:5},sandworm:{n:'沙蟲',f:'monster_18',still:1,fx:'sand',at:[5,15]}};
 var WORMS={worm:1,sandworm:1};/* 整隻伸縮蠕動的蟲類 */
 /* still = 整張圖不切上下半身，改用 wormSq 整隻伸縮（以腳底為支點） */
 function wormSq(now,ph){var b=Math.sin(now/190+ph);return[1-b*.04,1+b*.06]}
@@ -263,6 +263,9 @@ function aniDy(k,now){var A=ANI[k];if(A.still)return 0;var ph=(now%A.per)/A.per;
 /* 會飛的怪物：兩張圖輪播當拍翅（flap 毫秒換一張），整隻懸空 hov 格、上下浮動 amp 格（bper 毫秒一輪），換到第二張（收翅）時多往上提 1 格；cy = 身體中心離圖底幾格 */
 var FLY={bat:{n:'暗影魔蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26},ghost:{n:'亡魂',f:['monster_15','monster_15'],flap:1e12,hov:4,amp:2,bper:1400,cy:12},beholder:{n:'眼魔',f:['monster_boss_04','monster_boss_04_blink'],bl:3500,hov:5,amp:2.5,bper:1600,cy:16},fwraith:{n:'火焰幽魂',f:['monster_25','monster_25'],flap:1e12,hov:5,amp:2,bper:1500,cy:30}};/* bl = 眨眼週期（第二張是閉眼圖，眨 160 毫秒，不是拍翅） *//* 亡魂只有一張圖（flap 設很大＝不換圖），另外在 tick 若隱若現、idleOne 畫眼嘴紅光 */
 function flyFr(k,now,ph){var F=FLY[k];if(F.bl)return((now+(ph||0)*4)%F.bl)<160?1:0;return Math.floor((now+(ph||0))/F.flap)%2}
+/* 漂浮的怪（不是飛行圖組）：整隻離地 hov 格，上下浮動 amp 格，per 毫秒一個來回 */
+var FLOAT={queen:{hov:6,amp:3,per:2400}};
+function floatLift(k,now,ph){var F=FLOAT[k];return F?F.hov+F.amp*(1+Math.sin((now+(ph||0)*3)/F.per*Math.PI*2))/2:0}
 function flyLift(k,now,ph){var F=FLY[k];if(!F)return 0;return F.hov+F.amp*(1+Math.sin((now+(ph||0)*3)/F.bper*Math.PI*2))/2+(!F.bl&&flyFr(k,now,ph)?1:0)}
 function msz(k){return k==='sk'?[40,40]:FLY[k]?(FLY[k].im&&FLY[k].im[0]?[FLY[k].im[0].naturalWidth,FLY[k].im[0].naturalHeight]:[42,50]):LAY[k]?LAY[k].sz:ANI[k]&&ANI[k].im?[ANI[k].im.naturalWidth,ANI[k].im.naturalHeight]:[20,16]}
 function skFrame(now){var bl=(now%3200)<180?1:0,dy=Math.sin(now/330)>0?1:0,k=bl+'_'+dy;if(SKC[k])return SKC[k];var im=SKI[bl];if(!im||!im.naturalWidth)return '';var c=document.createElement('canvas');c.width=40;c.height=40;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,34,40,6,0,34,40,6);x.drawImage(im,0,0,40,34,0,dy,40,34);return SKC[k]=c.toDataURL()}
@@ -327,7 +330,7 @@ function tick(now){
     p.auOk=!ko&&sw.a>.5;p.sfx=sf;p.sx=x;p.gy=pp[1];p.top=y-34;p.vis=!ko&&!walk&&sw.a>.5;
   });
   mons.forEach(function(m,i){var sf=stNowM(i),mst=sf.fx.shake||sf.fx.frozen||sf.fx.stone||sf.fx.sleep;if(mst){if(!m.stT)m.stT=now}else m.stT=0;var an=mst?m.stT:now;/* 定身、睡眠：動畫停在那一格 */if(sf.fx.fire&&!m.fireOn)m.fireT=now;m.fireOn=!!sf.fx.fire;
-    var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=sf.fx.sleep&&FLY[m.k]&&FLY[m.k].bl&&FLY[m.k].im&&FLY[m.k].im[1]?FLY[m.k].im[1].src:msrc(m.k,an,m.ph)/* 會眨眼的飛行怪（眼魔）睡著就閉眼 */,lift=FLY[m.k]?flyLift(m.k,an,m.ph):0;if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
+    var MZ=msz(m.k),mw=MZ[0]*U*m.sc,mh=MZ[1]*U*m.sc,gy=BG[cur].band+m.dy,ms=sf.fx.sleep&&FLY[m.k]&&FLY[m.k].bl&&FLY[m.k].im&&FLY[m.k].im[1]?FLY[m.k].im[1].src:msrc(m.k,an,m.ph)/* 會眨眼的飛行怪（眼魔）睡著就閉眼 */,lift=FLY[m.k]?flyLift(m.k,an,m.ph):FLOAT[m.k]?floatLift(m.k,an,m.ph):0;if(ms&&m.cs!==ms){m.cs=ms;m.f.src=ms}
     var sx=1,sy=1,op=1,mx=m.x,fl=0,dt=B.mko[i];
     if(t<WALK){mx=m.x+(1-spawn)*40;op=spawn}
     else if(m.at!=null&&t<m.at+450){var sp2=Math.max(0,(t-m.at)/450);op=sp2;mx=m.x+(1-sp2)*24}/* 被召喚的怪：時間到才淡入出場 */
@@ -341,6 +344,7 @@ function tick(now){
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh+bur*mh)+'px';m.f.style.clipPath=bur>0?'inset(0 0 '+(bur*100).toFixed(1)+'% 0)':'';
     m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf;m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');m.sfx=sf;
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
+    else if(FLOAT[m.k]){/* 漂浮：影子留在地上，飄越高越小、越淡 */var Fq=FLOAT[m.k],hq=Math.max(0,Math.min(1,(lift-Fq.hov)/Fq.amp)),sw=MZ[0]*.7*m.sc*(1-.25*hq);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U*(1-.2*hq))+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-5*m.sc)*U)+'px';m.sh.style.opacity=op*(.8-.35*hq)}
     else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=(((shx!=null?shx:mx)-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
@@ -366,7 +370,7 @@ function sonicFx(e,d){var mo=mons[e.a],mp=monPos(e.a);if(!mo||!mp)return;var sx=
       VP(sx-ca*R,sy+sa*R*.8,'#ffffff',a*ea);VP(sx-ca*(R+1),sy+sa*(R+1)*.8,'#c8b4ff',a*.85*ea);VP(sx-ca*(R+2),sy+sa*(R+2)*.8,'#8f78d8',a*.5*ea)}}
   (e.tgts||[]).forEach(function(tk){var pp=posOf(tk),dist=Math.hypot(sx-pp[0],sy-(pp[1]-14)),hitT=dist/far*560,v=(d-hitT)/240;if(v<0||v>1)return;var a=1-v,j=Math.round(Math.sin(d/18)*1.5);
     for(var q=0;q<3;q++){var r=5+q*3+v*4;for(var an2=-1.1;an2<=1.1;an2+=.2){VP(pp[0]+j+Math.cos(an2)*r*.6,pp[1]-14+Math.sin(an2)*r,q?'#c8b4ff':'#ffffff',a*(1-q*.25))}}})}
-function monPos(i){var m=mons[i];if(!m)return null;var MZ=msz(m.k);if(FLY[m.k])return[m.x,BG[cur].band+m.dy-(m.lift||FLY[m.k].hov)-FLY[m.k].cy*m.sc];return[m.x,BG[cur].band+m.dy-MZ[1]*m.sc*.45]}
+function monPos(i){var m=mons[i];if(!m)return null;var MZ=msz(m.k);if(FLY[m.k])return[m.x,BG[cur].band+m.dy-(m.lift||FLY[m.k].hov)-FLY[m.k].cy*m.sc];return[m.x,BG[cur].band+m.dy-(m.lift||0)-MZ[1]*m.sc*.45]}
 /* ---- 屬性粒子：命中時從目標散開；箭、魔彈、拋擲飛行途中沿路灑；治療、支援也有。無屬性魔彈用藍色（arc） ---- */
 var PCOL={sand:['#f4e2b0','#d8b46a','#a8803a'],fire:['#ffe08a','#ff8a3a','#ff4a1a'],frost:['#ffffff','#bfeaff','#6cbcff'],lightning:['#fffbd0','#ffe95a','#ffb81a'],wind:['#e0fff4','#7cf0c4','#2fbf9a'],nature:['#eaffd4','#8ed65a','#4fa83a'],light:['#ffffff','#fff4c4','#ffd76a'],dark:['#140620','#2a0f42','#7a2ad0'],arc:['#e6f2ff','#7ab8ff','#3a76ff']};
 function pLine(x0,y0,x1,y1,c,a){var n=Math.max(1,Math.round(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))));for(var i=0;i<=n;i++)VP(x0+(x1-x0)*i/n,y0+(y1-y0)*i/n,c,a)}
@@ -447,7 +451,7 @@ function drawSongs(t,now){if(!B||view!=='battle')return;
   var bp=party[bard];if(bp&&bp.sx!=null&&bp.auOk){var u=((now+bp.ph)%1400)/1400;drawNote(bp.sx+4+u*6,bp.top+2-u*12,Math.floor((now+bp.ph)/1400),SONG.skill162,Math.sin(u*Math.PI)*.85)}
   pctx.globalAlpha=1}
 /* 怪物常駐的輪廓光：歐西里斯一圈熒綠色光芒，慢慢脈動 */
-function monGlow(k,now){if(k!=='osiris')return '';var a=.55+.25*Math.sin(now/600),r1=Math.max(1,Math.round(U*1.3)),r2=Math.max(2,Math.round(U*3.5)),h=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+r1+'px #6dff8a'+h(a)+') drop-shadow(0 0 '+r2+'px #2adf6a'+h(a*.7)+')'}
+function monGlow(k,now){if(k==='queen'){/* 蘿絲：紫黑色輪廓光，慢慢脈動 */var aq=.6+.25*Math.sin(now/700),q1=Math.max(1,Math.round(U*1.2)),q2=Math.max(2,Math.round(U*3.2)),hq=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+q1+'px #8a3ad8'+hq(aq)+') drop-shadow(0 0 '+q2+'px #3a0a5a'+hq(aq*.9)+')'}if(k!=='osiris')return '';var a=.55+.25*Math.sin(now/600),r1=Math.max(1,Math.round(U*1.3)),r2=Math.max(2,Math.round(U*3.5)),h=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+r1+'px #6dff8a'+h(a)+') drop-shadow(0 0 '+r2+'px #2adf6a'+h(a*.7)+')'}
 /* 召喚類技能：以施放者為圓心往外擴散 3 圈淡淡光圈，越大越淡，顏色照技能屬性 */
 function summonRings(d,x,y,el){var col=CASTC[el]||'#e6d8ff';for(var r=0;r<3;r++){var u=(d-r*140)/700;if(u<0||u>1)continue;var rx=6+u*60,ry=rx*.32,a=(1-u)*(1-u)*.8,N=Math.round(30+rx*1.5);for(var k=0;k<N;k++){var an=k/N*Math.PI*2;VP(x+Math.cos(an)*rx,y+Math.sin(an)*ry,col,a)}}}
 /* 冥王之握：目標上方浮現半透明金色巨手，張開往下、握緊，金光炸開 */
@@ -630,6 +634,8 @@ function idleOne(m,now){(function(){
       for(var bi=-3;bi<=3;bi++)for(var bj=-3;bj<=3;bj++){var br=Math.sqrt(bi*bi+bj*bj);if(br>3.3)continue;VP(cx+bi-.5,cy+bj-.5,br<1.2?'#fff2a0':br<2.3?'#ffd23a':'#ffaa10',fa*(br<1.2?.8:br<2.3?.45:.2)*(m.act?1.3:1))}});pctx.globalCompositeOperation='source-over'}
   /* 歐西里斯：身體周圍一縷縷熒綠氣勁從腳邊緩緩往上飄、淡出 */
   if(m.k==='osiris'&&m.alive){var OZ=msz('osiris'),os2=m.sc,owd=OZ[0]*os2*.42,ot=now+m.ph*3;pctx.globalCompositeOperation='lighter';for(var oq=0;oq<12;oq++){var per5=2200+oq*190,u5=((ot+oq*377)%per5)/per5,cy5=Math.floor((ot+oq*377)/per5),ox5=m.lx+(((cy5*13+oq*29)%21)-10)/10*owd,oy5=m.gy-2-u5*OZ[1]*os2*.85,a5=Math.sin(u5*Math.PI)*.55;for(var k5=0;k5<5;k5++)VP(ox5+Math.sin(u5*6+oq+k5*.3)*1.5,oy5+k5*1.6,k5===0?'#d8ffe0':'#5aff8a',a5*(1-k5/5))}pctx.globalCompositeOperation='source-over'}
+  /* 蘿絲：身體周圍一縷縷紫黑氣勁往上飄、淡出（外層黑紫→紫→頂端亮紫） */
+  if(m.k==='queen'&&m.alive){var QZ=msz('queen'),qs2=m.sc,qwd=QZ[0]*qs2*.52,qt=now+m.ph*3,qby=m.gy-(m.lift||0);for(var qq=0;qq<20;qq++){var per6=2000+qq*150,u6=((qt+qq*331)%per6)/per6,cy6=Math.floor((qt+qq*331)/per6),ox6=m.lx+(((cy6*11+qq*23)%21)-10)/10*qwd,oy6=qby-3-u6*QZ[1]*qs2*1.05,a6=Math.min(1,Math.sin(u6*Math.PI)*1.2);for(var k6=0;k6<8;k6++){var c6=k6===0?'#f0d8ff':k6<2?'#c080ff':k6<5?'#8a3ad8':'#3a0a5a',x6=ox6+Math.sin(u6*6+qq+k6*.3)*1.5,y6=oy6+k6*1.5,al6=a6*(1-k6/9);VP(x6,y6,c6,al6);if(k6<5)VP(x6+1,y6,c6,al6*.85)}}}
   /* 沙晶龍：紅眼一明一暗；藍色晶翼上一顆顆白色晶光亮了又滅（跟著上半身起伏） */
   if(m.k==='sdragon'&&m.alive){var DZ=msz('sdragon'),ds2=m.sc,ddy=Math.sin(now/520)>0?1:0,dx0=m.lx-DZ[0]*ds2/2,dy0=m.gy-DZ[1]*ds2,dt2=now+m.ph*3,dp=.7+.3*Math.sin(dt2/300),ex2=dx0+6.5*ds2-.5,ey2=dy0+(19.5+ddy)*ds2-.5;
     VP(ex2,ey2,'#ff5a3a',dp);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ex2+o[0],ey2+o[1],'#ff2a14',.45*dp)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){VP(ex2+o[0],ey2+o[1],'#ff200c',.18*dp)});
@@ -660,7 +666,7 @@ function idleOne(m,now){(function(){
   /* 亡魂：兩眼、嘴巴透出微微紅光（跟著飄動與透明度） */
   if(m.k==='ghost'&&m.alive){var HZ=msz('ghost'),hs=m.sc,hx0=m.lx-HZ[0]*hs/2,hy0=m.gy-(m.lift||0)-HZ[1]*hs,hp=(.65+.35*Math.sin(now/420+m.ph))*Math.min(1,(m.gf||1)+.25);
     pctx.globalCompositeOperation='lighter';[[3,3],[3,4],[5,3],[5,4],[6,4],[4,6],[5,6],[5,7],[6,7],[6,8]].forEach(function(q){var cx=hx0+(q[0]+.5)*hs,cy=hy0+(q[1]+.5)*hs;VP(cx-.5,cy-.5,'#ff3a24',.4*hp);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(cx-.5+o[0],cy-.5+o[1],'#c8160a',.14*hp)})});pctx.globalCompositeOperation='source-over'}
-  var A=ANI[m.k];if(!A||!m.alive)return;var MZ=msz(m.k),sc=m.sc,ox=m.lx-MZ[0]*sc/2,oy=m.gy-MZ[1]*sc,dy=aniDy(m.k,now),ax=ox+A.at[0]*sc,ay=oy+(A.at[1]+dy)*sc,t=now+m.ph*3;
+  var A=ANI[m.k];if(!A||!m.alive)return;var MZ=msz(m.k),sc=m.sc,ox=m.lx-MZ[0]*sc/2,oy=m.gy-(m.lift||0)-MZ[1]*sc,dy=aniDy(m.k,now),ax=ox+A.at[0]*sc,ay=oy+(A.at[1]+dy)*sc,t=now+m.ph*3;
   if(A.still&&WORMS[m.k]){var wq=wormSq(now,m.ph);ax=m.lx+(A.at[0]-MZ[0]/2)*sc*wq[0];ay=m.gy-(MZ[1]-A.at[1])*sc*wq[1]}
   if(A.fx==='puff'){var c=t%1800;for(var i=0;i<3;i++){var u=(c-i*120)/700;if(u<0||u>1)continue;VP(ax-2-u*7,ay-u*3-i,'#e8e4dc',(1-u)*.85)}}
   else if(A.fx==='queen'){/* 黑暗蛛后：兩眼紅光 + 雙手藍紫光暈 */var pu=.75+.25*Math.sin(t/260);A.eyes.forEach(function(o){var ex=ax+o[0]*sc;VP(ex,ay,'#ff5a3c',pu);VP(ex,ay,'#ffd0c0',.5*pu);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(q){VP(ex+q[0]*sc,ay+q[1]*sc,'#ff2a14',.45*pu)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(q){VP(ex+q[0]*sc,ay+q[1]*sc,'#ff200c',.2*pu)})});
