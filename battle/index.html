@@ -882,8 +882,8 @@ function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
 var JOBI={}/* job_info.csv 依 u_sn（戰棋技能組名稱 skill_set） */,ENG=null,AREAID=['area01','area02','area03','area04','area05','area06','area07','area08'];/* 開放的章節：森林一直開，礦洞要打完森林第 20 關（示範模式全開） */
-function OPENED(i){return i===0||(i===1&&(demo||cleared(0)>=NST))}
-var OPEN={0:1,1:1}/* 已經做好的章節 */;
+function OPENED(i){return i===0||(!!OPEN[i]&&(demo||cleared(i-1)>=NST))}/* 第 N 章：做好了（OPEN）而且打完上一章第 20 關 */
+var OPEN={0:1,1:1,2:1}/* 已經做好的章節 */;
 function cleared(a){if(demo)return NST-1;var m=MEMB[0]&&MEMB[0].adv||{};return m[AREAID[a]]|0}
 function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?{exp:parseInt(r.exp,10)||0,stones:parseInt(r.stones,10)||0}:rewardOf(a,l)}
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
