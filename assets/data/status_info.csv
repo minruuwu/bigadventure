@@ -114,3 +114,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 恐懼,debuff,stun,,,,,被嚇得動彈不得，跳過行動
 猛毒,debuff,dot,0.3,m_atk,nature,m,每回合造成施加者魔法攻擊力 30% 的自然魔法傷害
 強效再生,buff,hot,0.8,m_atk,,,每回合恢復施加者魔法攻擊力 80% 的生命
+暴怒,buff,p_atk_rate,0.8,,,,物理攻擊力 +80%、物理減傷 −30%
+暴怒,buff,p_reduce_rate,-0.3,,,,
