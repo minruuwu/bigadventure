@@ -57,7 +57,7 @@ button{font:inherit;color:inherit}
 .bres p{margin:0 0 10px;font-size:14px;line-height:1.7}.bres b{color:#ffd76a}.bres small{color:var(--dim)}
 .go{display:block;width:100%;font-weight:900;font-size:15px;border:0;background:#3f6a2c;color:#f0e2c4;padding:10px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c,inset 0 -2px 0 #24401a}
 .go:disabled{opacity:.45;cursor:default}
-.lvgo2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.go.alt{background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a,inset 0 -2px 0 #2a170a}
+.lvgo2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lvgo2:has(>.go:only-child){grid-template-columns:1fr}.go.alt{background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a,inset 0 -2px 0 #2a170a}
 .lvov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:10vh 18px 20px}
 .lvov[hidden]{display:none}.lvbg{position:fixed;inset:0;background:rgba(0,0,0,.62)}
 .lvbox{position:relative;width:100%;max-width:340px;background:#b98a57 var(--kraft,none) 0 0/288px 288px;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
@@ -598,7 +598,7 @@ function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
     b.addEventListener('click',function(){if(OPEN[i])openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2><p class="lvh">打過一關才會開放下一關</p><div class="lvg">';
   var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
-  var md=advMode();h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button><button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button></div></div>';
+  var md=advMode();h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
@@ -607,7 +607,7 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
     $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'');[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;var M2=b.getAttribute('data-m')==='tac'?'tac':'auto';setAdvMode(M2);closeLevels();if(M2==='tac')startTactics(A2,L2);else startBattle(A2,L2)}});
 /* 上次選的模式（自動戰鬥／戰棋），記在這台瀏覽器；網址帶 ?tactics=1 時預設戰棋 */
-function advMode(){try{var v=localStorage.getItem('adv.mode');if(v==='tac'||v==='auto')return v}catch(e){}return TACT?'tac':'auto'}
+function advMode(){if(!TACT)return'auto';try{var v=localStorage.getItem('adv.mode');if(v==='tac'||v==='auto')return v}catch(e){}return TACT?'tac':'auto'}
 function setAdvMode(v){try{localStorage.setItem('adv.mode',v)}catch(e){}}
 /* 戰棋（docs/tactics.md）：勝利照自動戰鬥同一套發獎勵（makeReq + saveWin）；中途離開 = 放棄 */
 function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
