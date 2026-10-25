@@ -176,7 +176,7 @@ skill174,祕法共振,job16,8,combat,enemy_single,random,damage,,,m,,1.6,,,,我�
 skill175,引導靈光,job16,10,passive,,,passive,,,,,,,,,全體隊友（含自己）魔法增傷 +8%（靈氣：同種不疊加，祕法使倒下時消失）,,,,,,,
 skill176,秘術守衛,job16,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3
 skill177,秘奧之光,job16,15,combat,enemy_all,,damage,,0.5,m,light,1.1,,,,,smash,,,4,diamond,2,3
-skill178,秘法裂隙,job16,20,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,對 Boss 無效,,,,5,single,1,3
+skill178,秘法裂隙,job16,20,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,對 Boss 成功率減半、只放逐 1 回合,,,,5,single,1,3
 skill179,知識累積,job16,25,passive,,,passive,,,,,,,,,擔任隊長時，戰鬥勝利有 50% 機率讓整場經驗變成 1.5 倍（隊友分到的也一起變多，無條件進位）,,,,,,,
 skill180,苦痛魔箭,job17,1,combat,enemy_single,random,damage,,,m,dark,1.5,,,,,arrow,,,7,single,,2
 skill181,邪能充盈,job17,3,passive,,,passive,,,,,,,,,魔法增傷 +10%,,,,,,,

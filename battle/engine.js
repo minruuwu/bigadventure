@@ -10,7 +10,7 @@
   var ELS = ['fire', 'frost', 'lightning', 'wind', 'nature', 'light', 'dark'];
   var ELN = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' };
   var CONTROL = { stun: 1, sleep: 1, confuse: 1, seal: 1, petrify: 1, charm: 1, banish: 1 };
-  var NOBOSS = { charm: 1, banish: 1, swallow: 1 };
+  var NOBOSS = { charm: 1, swallow: 1 }; /* 放逐對王有效：機率照控制類減半，而且只放逐 1 回合（見 applyStatus） */
   var PSLOT = [1, 30, 60, 90];
   var MAXR = 30;
 
@@ -210,12 +210,14 @@
       /* 吞噬：只吞玩家；一隻怪肚子裡同時只能有一個人；已經在肚子裡的人什麼狀態都上不了 */
       var swl = def.rows.some(function (r) { return r.k === 'swallow' });
       if (swallowed(tgt)) return false;
+      if (banished(tgt) && def.rows.some(function (r) { return r.k === 'banish' })) return false; /* 已經在裂隙裡：不能再放逐一次（避免重放刷新回合、一直關住） */
       if (swl && (tgt.side !== 'p' || P.some(function (x) { return !x.dead && x.st.some(function (q) { return q.swal && q.src === src }) }))) return false;
       var ctl = def.rows.some(function (r) { return CONTROL[r.k] }), nob = def.rows.some(function (r) { return NOBOSS[r.k] });
       if (tgt.boss && nob) return false;
       var ch = chance == null || chance === '' ? 1 : num(chance); if (tgt.boss && ctl) ch /= 2;
       if (RND() >= ch) return false;
       var t = turns === 'attack' ? 'attack' : (parseInt(turns, 10) || 1);
+      if (tgt.boss && def.rows.some(function (r) { return r.k === 'banish' }) && t !== 'attack') t = Math.min(t, 1);
       var old = null; tgt.st.forEach(function (s) { if (s.n === name && s.src === src) old = s });
       var rows = def.rows.map(function (r) {
         var o = { k: r.k, v: r.v, el: r.el, dt: r.dt };

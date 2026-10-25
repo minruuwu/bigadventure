@@ -84,7 +84,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 亂步,debuff,hit_rate,-0.3,,,,命中率 −30%
 魅惑,debuff,charm,,,,,照原本排到的技能出手但敵我相反：傷害技打自己的同伴，增益技放在對方；場上只剩自己時傷害技跳過
 秘術護罩,buff,shield,2,m_atk,,,吸收施放者魔法攻擊力 200% 的物理與魔法傷害（施放當下計算；再放一次刷新，不疊加）
-放逐,debuff,banish,2.1,m_atk,,m,跳過行動、不受傷害也不造成傷害，身上其他狀態暫停；回來時受到施放者魔法攻擊力 210% 的魔法傷害（可暴擊）；對 Boss 無效
+放逐,debuff,banish,2.1,m_atk,,m,跳過行動、不受傷害也不造成傷害，身上其他狀態暫停；回來時受到施放者魔法攻擊力 210% 的魔法傷害（可暴擊）；對 Boss 成功率減半、只放逐 1 回合
 苦痛,debuff,dot,0.25,m_atk,dark,m,每回合造成施加者魔法攻擊力 25% 的黑暗魔法傷害
 血噬,debuff,dot,0.3,m_atk,dark,m,每回合造成施加者魔法攻擊力 30% 的黑暗魔法傷害，造成多少就替施加者恢復多少生命
 血噬,debuff,drain,1,,,,
