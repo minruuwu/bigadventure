@@ -738,7 +738,10 @@ var VT={w:'劍',el:'',atk:true,kind:'damage',mon:'sk',lastT:-99999};
 var VTW=[['劍','sword'],['斧','axe'],['錘','hammer'],['匕','dagger'],['槍','spear'],['弓','bow'],['杖','staff'],['書','book'],['拋擲','throw']];
 var VTE=[['','00 無屬性'],['fire','01 火焰'],['frost','02 冰霜'],['lightning','03 雷電'],['wind','04 疾風'],['nature','05 自然'],['light','06 光明'],['dark','07 黑暗']];
 function vtChar(){var w=VT.w==='拋擲'?'書':VT.w,k=WBYNAME[w],p={uid:'t',name:'測試員',job:0,jobSn:'job01',skin:0,style:0,hair:0,eyes:6,outfit:0,weapon:w,weapons:{}};if(k)p.weapons[k]={lv:1};return p}
-function vtBuild(){MEMB=[vtChar()];var keep=B&&B.t0;B={ev:[],mons:[{k:VT.mon,n:'標靶',boss:false}],pko:{},mko:{},res:'win',end:1e15,li:1e9,done:false,stat:{dmg:[],taken:[],heal:[]},sopen:{},a:0,l:1,t0:keep||performance.now()-WALK-50};build()}
+/* 特效測試的怪物按鈕：直接列 monster_info 的每種 sprite（同 sprite 只列一次），王用王的大小顯示；骷髏士兵沒有資料列，另外加 */
+function vtMonBtns(){var seen={sk:1},h='<button type="button" data-m="sk">骷髏士兵</button>';Object.keys(ENG.mon).sort().forEach(function(id){var r=ENG.mon[id];if(!r.sprite||seen[r.sprite])return;seen[r.sprite]=1;h+='<button type="button" data-m="'+esc(r.sprite)+'">'+esc(r.monster_name)+(r.boss==='1'?'（王）':'')+'</button>'});return h}
+function vtBoss(k){return Object.keys(ENG.mon).some(function(id){return ENG.mon[id].sprite===k&&ENG.mon[id].boss==='1'})}
+function vtBuild(){MEMB=[vtChar()];var keep=B&&B.t0;B={ev:[],mons:[{k:VT.mon,n:'標靶',boss:vtBoss(VT.mon)}],pko:{},mko:{},res:'win',end:1e15,li:1e9,done:false,stat:{dmg:[],taken:[],heal:[]},sopen:{},a:0,l:1,t0:keep||performance.now()-WALK-50};build()}
 function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
   if(VT.kind==='claw')e={side:'m',a:0,tgt:0,tgts:[0],t:t};
   else if(VT.kind==='sonic')e={side:'m',a:0,tgt:0,tgts:[0],t:t,sonic:1};
@@ -748,7 +751,7 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button></div>'+
-  '<div class="vth">怪物</div><div class="vtr" id="vtm"><button type="button" data-m="sk">骷髏士兵</button><button type="button" data-m="gob">哥布林</button><button type="button" data-m="slime">史萊姆</button><button type="button" data-m="wolf">灰狼</button><button type="button" data-m="gobw">哥布林巫師</button><button type="button" data-m="dwolf">魔狼</button><button type="button" data-m="bdragon">綠幼龍</button><button type="button" data-m="dragon">綠龍</button><button type="button" data-m="bat">暗影魔蝠</button><button type="button" data-m="golem">石魔像</button><button type="button" data-m="cgolem">水晶魔像</button><button type="button" data-m="spider">巨蛛</button><button type="button" data-m="queen">黑暗蛛后</button></div>'+
+  '<div class="vth">怪物</div><div class="vtr" id="vtm">'+vtMonBtns()+'</div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
