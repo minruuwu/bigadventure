@@ -253,7 +253,7 @@ var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
 var party=[],mons=[],SLIME=null,PSLIME=null/* 猛毒史萊姆 */,SKI={},SKC={},MEMB=[],REW={step:3,cut:0.1,floor:0.1};
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
-var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,still:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]},worm:{n:'洞穴蠕蟲',f:'monster_14',still:1,fx:'drool',at:[11,17],dw:2,dl:5},sandworm:{n:'沙蟲',f:'monster_18',still:1,fx:'sand',at:[5,15]}};
+var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:36,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,still:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:50,per:1500,sin:1,fx:'eye',at:[32,20]},worm:{n:'洞穴蠕蟲',f:'monster_14',still:1,fx:'drool',at:[11,17],dw:2,dl:5},sandworm:{n:'沙蟲',f:'monster_18',still:1,fx:'sand',at:[5,15]}};
 var WORMS={worm:1,sandworm:1};/* 整隻伸縮蠕動的蟲類 */
 /* still = 整張圖不切上下半身，改用 wormSq 整隻伸縮（以腳底為支點） */
 function wormSq(now,ph){var b=Math.sin(now/190+ph);return[1-b*.04,1+b*.06]}
@@ -294,7 +294,7 @@ function build(){
 var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
 /* 大型龍王：站在後面（DFORM 站位）、超出畫面右邊沒關係 */
 var BIGD={dragon:1,sdragon:1,osiris:1};
-function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:boss?(k==='sk'?1.5:1.2):1}
+function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
@@ -634,8 +634,6 @@ function idleOne(m,now){(function(){
       for(var bi=-3;bi<=3;bi++)for(var bj=-3;bj<=3;bj++){var br=Math.sqrt(bi*bi+bj*bj);if(br>3.3)continue;VP(cx+bi-.5,cy+bj-.5,br<1.2?'#fff2a0':br<2.3?'#ffd23a':'#ffaa10',fa*(br<1.2?.8:br<2.3?.45:.2)*(m.act?1.3:1))}});pctx.globalCompositeOperation='source-over'}
   /* 歐西里斯：身體周圍一縷縷熒綠氣勁從腳邊緩緩往上飄、淡出 */
   if(m.k==='osiris'&&m.alive){var OZ=msz('osiris'),os2=m.sc,owd=OZ[0]*os2*.42,ot=now+m.ph*3;pctx.globalCompositeOperation='lighter';for(var oq=0;oq<12;oq++){var per5=2200+oq*190,u5=((ot+oq*377)%per5)/per5,cy5=Math.floor((ot+oq*377)/per5),ox5=m.lx+(((cy5*13+oq*29)%21)-10)/10*owd,oy5=m.gy-2-u5*OZ[1]*os2*.85,a5=Math.sin(u5*Math.PI)*.55;for(var k5=0;k5<5;k5++)VP(ox5+Math.sin(u5*6+oq+k5*.3)*1.5,oy5+k5*1.6,k5===0?'#d8ffe0':'#5aff8a',a5*(1-k5/5))}pctx.globalCompositeOperation='source-over'}
-  /* 蘿絲：身體周圍一縷縷紫黑氣勁往上飄、淡出（外層黑紫→紫→頂端亮紫） */
-  if(m.k==='queen'&&m.alive){var QZ=msz('queen'),qs2=m.sc,qwd=QZ[0]*qs2*.52,qt=now+m.ph*3,qby=m.gy-(m.lift||0);for(var qq=0;qq<20;qq++){var per6=2000+qq*150,u6=((qt+qq*331)%per6)/per6,cy6=Math.floor((qt+qq*331)/per6),ox6=m.lx+(((cy6*11+qq*23)%21)-10)/10*qwd,oy6=qby-3-u6*QZ[1]*qs2*1.05,a6=Math.min(1,Math.sin(u6*Math.PI)*1.2);for(var k6=0;k6<8;k6++){var c6=k6===0?'#f0d8ff':k6<2?'#c080ff':k6<5?'#8a3ad8':'#3a0a5a',x6=ox6+Math.sin(u6*6+qq+k6*.3)*1.5,y6=oy6+k6*1.5,al6=a6*(1-k6/9);VP(x6,y6,c6,al6);if(k6<5)VP(x6+1,y6,c6,al6*.85)}}}
   /* 沙晶龍：紅眼一明一暗；藍色晶翼上一顆顆白色晶光亮了又滅（跟著上半身起伏） */
   if(m.k==='sdragon'&&m.alive){var DZ=msz('sdragon'),ds2=m.sc,ddy=Math.sin(now/520)>0?1:0,dx0=m.lx-DZ[0]*ds2/2,dy0=m.gy-DZ[1]*ds2,dt2=now+m.ph*3,dp=.7+.3*Math.sin(dt2/300),ex2=dx0+6.5*ds2-.5,ey2=dy0+(19.5+ddy)*ds2-.5;
     VP(ex2,ey2,'#ff5a3a',dp);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ex2+o[0],ey2+o[1],'#ff2a14',.45*dp)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){VP(ex2+o[0],ey2+o[1],'#ff200c',.18*dp)});
@@ -673,7 +671,7 @@ function idleOne(m,now){(function(){
     A.hands.forEach(function(hd,hn){var hx=ox+hd[0]*sc,hy=oy+(hd[1]+dy)*sc,hp=.8+.2*Math.sin((t+hn*700)/420),R=10;
       for(var hi=-R;hi<=R;hi++)for(var hj=-R;hj<=R;hj++){var hr=Math.sqrt(hi*hi+hj*hj);if(hr>R+.2)continue;VP(hx+hi,hy+hj,hr<2.5?'#f0e6ff':hr<4.8?'#b48cff':hr<7.4?'#8050ff':'#5a2ad0',hp*(hr<2.5?1:hr<4.8?.8:hr<7.4?.5:.28)*(1-hr/(R+2.5)))}
       var mp=Math.floor((t+hn*400)/190)%9;if(mp<3)VP(hx+Math.round(Math.sin((t+hn*300)/110)*3),hy-4-mp*2,'#e6dcff',.9)})}
-  else if(A.fx==='eye'){var pu=.75+.25*Math.sin(t/260);VP(ax,ay,'#ff6a4a',pu);VP(ax+1,ay,'#ff3a24',.9*pu);[[-1,0],[2,0],[0,-1],[1,-1],[0,1],[1,1]].forEach(function(o){VP(ax+o[0],ay+o[1],'#ff2a14',.5*pu)});[[-2,0],[3,0],[-1,-1],[2,-1],[-1,1],[2,1],[0,-2],[1,-2],[0,2],[1,2]].forEach(function(o){VP(ax+o[0],ay+o[1],'#ff200c',.22*pu)})}
+  else if(A.fx==='eye'){/* 綠龍：藍眼發光（跟新圖的藍眼睛同色） */var pu=.75+.25*Math.sin(t/260);VP(ax,ay,'#c8f4ff',pu);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ax+o[0]*sc,ay+o[1]*sc,'#3ab8ff',.5*pu)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){VP(ax+o[0]*sc,ay+o[1]*sc,'#1a7aff',.22*pu)})}
   else if(A.fx==='drool'){/* dw = 口水寬幾格、dl = 最長幾格（蠕蟲嘴大，口水比較粗長） */var c2=t%2600,DL=A.dl||3,dr=function(ax){if(c2<1300){var len=1+Math.floor(c2/1300*DL);for(var j=0;j<len;j++)VP(ax,ay+1+j,'#d8ecf4',.85);VP(ax,ay+len,'#ffffff',.9)}
     else if(c2<1900){var u2=(c2-1300)/600,yy=ay+DL+1+u2*u2*(m.gy-ay-DL-1);VP(ax,yy,'#d8ecf4',.9);VP(ax,yy+1,'#ffffff',.7)}
     else if(c2<2150){var u3=(c2-1900)/250;VP(ax-1,m.gy-1,'#d8ecf4',.6*(1-u3));VP(ax+1,m.gy-1,'#d8ecf4',.6*(1-u3))}};for(var dq=0;dq<(A.dw||1);dq++)dr(ax+dq)}
@@ -1074,8 +1072,8 @@ function start(me,mem){
 /* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
 var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
-  monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=4',
-  monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
+  monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=5',
+  monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=2',
   monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_boss_06:'monsters/monster_boss_06.png?v=1',monster_boss_05:'monsters/monster_boss_05.png?v=1',monster_25:'monsters/monster_25.png?v=1',monster_22:'monsters/monster_22.png?v=1',monster_23:'monsters/monster_23.png?v=1',monster_24:'monsters/monster_24.png?v=1',monster_21:'monsters/monster_21.png?v=1',monster_20:'monsters/monster_20.png?v=1',monster_19:'monsters/monster_19.png?v=1',monster_19_blink:'monsters/monster_19_blink.png?v=1',monster_19_tongue:'monsters/monster_19_tongue.png?v=1',monster_18:'monsters/monster_18.png?v=1',monster_boss_04:'monsters/monster_boss_04.png?v=5',monster_boss_04_blink:'monsters/monster_boss_04_blink.png?v=5',monster_boss_04_tc:'monsters/monster_boss_04_tc.png?v=2',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1',blood_slash:'vfx/blood_slash.png?v=1'};
 [['slash',5],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
