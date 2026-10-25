@@ -507,19 +507,34 @@ function idleOne(m,now){(function(){
    持續傷害：中毒類（毒泡泡）、燒灼類（火）、出血類（血滴）；冷凍類（霜凍、凍足、冷凝）身邊冷氣
    能力升降：腳邊屬性圖示＋藍上／紅下箭頭（最多 4 個，其餘 +N），身上冒黃色半透明小箭頭 */
 var STI={},STC={},STCOLD={'霜凍':1,'凍足':1,'冷凝':1};
-var STK={p_atk_rate:['patk'],m_atk_rate:['matk'],str_rate:['patk'],int_rate:['matk'],p_reduce_rate:['pdef'],m_reduce_rate:['mdef'],p_damage_rate:['pdmg'],m_damage_rate:['mdmg'],eva_rate:['eva'],hit_rate:['eva'],crit_rate:['crit'],crit_damage_rate:['critdmg'],speed:['agi']},
-  STKI={dmg_taken_rate:['pdef','mdef'],p_dmg_taken_rate:['pdef'],m_dmg_taken_rate:['mdef'],hit_taken_rate:['pdef','mdef'],crit_taken_rate:['pdef','mdef']};/* 「受到的傷害增加」類：當作防禦下降 */
-function stIcon(k){var im=STI[k];if(!im){im=STI[k]=new Image();im.src=BASE+'icons/stats/'+k+'.png?v=1'}return im}
+var STK={p_atk_rate:'patk',m_atk_rate:'matk',str_rate:'patk',int_rate:'matk',p_reduce_rate:'pdef',m_reduce_rate:'mdef',p_damage_rate:'pdmg',m_damage_rate:'mdmg',crit_rate:'crit',crit_damage_rate:'critdmg',speed:'agi'};
+/* 圖示：{k: 圖檔, m: up 藍上箭頭／down 紅下箭頭／x 疊紅 X／plain 單純圖示}；受傷增加＝裂盾、易被暴擊＝靶心、閃避下降與容易被命中＝敏捷＋X、命中下降＝眼睛＋X；
+   「受到的傷害減少」（例如石化）不顯示 */
+function stIc(k,v){if(!v)return null;
+  if(k==='eva_rate')return v>0?{k:'eva',m:'up'}:{k:'agi',m:'x'};if(k==='hit_taken_rate')return v>0?{k:'agi',m:'x'}:null;
+  if(k==='hit_rate')return v>0?{k:'hit',m:'up'}:{k:'hit',m:'x'};
+  if(k==='dmg_taken_rate'||k==='p_dmg_taken_rate'||k==='m_dmg_taken_rate')return v>0?{k:'dmg_taken',m:'plain'}:null;
+  if(k==='crit_taken_rate')return v>0?{k:'crit_taken',m:'plain'}:null;
+  if(STK[k])return{k:STK[k],m:v>0?'up':'down'};return null}
+function stIcon(k){var im=STI[k];if(!im){im=STI[k]=new Image();im.src=BASE+'icons/stats/'+k+'.png?v=2'}return im}
+/* 圖示疊上箭頭或 X（直接畫在 16×16 圖層上），做好就快取 */
+var STIC={},ICUP=['...#...','..#X#..','.#XXX#.','#XXXXX#','..#X#..','..#X#..','..###..'];
+function stIconC(q){var key=q.k+'|'+q.m;if(STIC[key])return STIC[key];var im=stIcon(q.k);if(!im.complete||!im.naturalWidth)return null;
+  var c=document.createElement('canvas');c.width=c.height=16;var x=c.getContext('2d');x.drawImage(im,0,0,16,16);
+  function px(a,b,col){x.fillStyle=col;x.fillRect(a,b,1,1)}
+  if(q.m==='up'||q.m==='down'){var rows=q.m==='up'?ICUP:ICUP.slice().reverse(),col=q.m==='up'?'#3f9bff':'#d8342a';rows.forEach(function(r,j){for(var i=0;i<7;i++){var ch=r.charAt(i);if(ch==='#')px(9+i,9+j,'#0c0a09');else if(ch==='X')px(9+i,9+j,col)}})}
+  else if(q.m==='x'){var P={};for(var i=2;i<14;i++){P[i+','+i]=1;P[(15-i)+','+i]=1}Object.keys(P).forEach(function(k2){var a=+k2.split(',')[0],b=+k2.split(',')[1];[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(o){var kk=(a+o[0])+','+(b+o[1]);if(!P[kk]&&a+o[0]>=0&&a+o[0]<16&&b+o[1]>=0&&b+o[1]<16)px(a+o[0],b+o[1],'#0c0a09')})});Object.keys(P).forEach(function(k2){px(+k2.split(',')[0],+k2.split(',')[1],'#d8342a')})}
+  return STIC[key]=c}
 function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=q[1],def=ENG&&ENG.STS[nm],o={fx:{},ic:[]};
   (def?def.rows:[]).forEach(function(r){var k=r.k;
     if(k==='seal')o.fx.seal=1;else if(k==='stun'){if(nm==='暈眩')o.fx.swirl=1;else if(nm==='凍結')o.fx.frozen=1;else o.fx.shake=1}
     else if(k==='sleep')o.fx.sleep=1;else if(k==='petrify')o.fx.stone=1;else if(k==='charm')o.fx.heart=1;else if(k==='confuse')o.fx.star=1;
     else if(k==='dot'){if(r.el==='fire')o.fx.fire=1;else if(r.el==='nature'||/毒/.test(nm))o.fx.poison=1;else if(/血|撕裂/.test(nm))o.fx.blood=1}
-    var v=r.v||0,list=null,inv=false;
-    if(STK[k])list=STK[k];else if(STKI[k]){list=STKI[k];inv=true}else if(/_res_rate$/.test(k)){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none')list=['res_'+el]}
-    if(list&&v)list.forEach(function(ic){o.ic.push({k:ic,up:(v>0)!==inv})})});
+    var v=r.v||0,ic=null;
+    if(/_res_rate$/.test(k)&&k!=='hit_taken_rate'){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none'&&v)ic={k:'res_'+el,m:v>0?'up':'down'}}else ic=stIc(k,v);
+    if(ic)o.ic.push(ic)});
   if(STCOLD[nm])o.fx.cold=1;return STC[n]=o}
-function stOf(list){var fx={},ic=[],seen={};(list||[]).forEach(function(n){var c=stCls(n);Object.keys(c.fx).forEach(function(k){fx[k]=1});c.ic.forEach(function(x){var key=x.k+(x.up?'+':'-');if(!seen[key]){seen[key]=1;ic.push(x)}})});return{fx:fx,ic:ic}}
+function stOf(list){var fx={},ic=[],seen={};(list||[]).forEach(function(n){var c=stCls(n);Object.keys(c.fx).forEach(function(k){fx[k]=1});c.ic.forEach(function(x){var key=x.k+'|'+x.m;if(!seen[key]){seen[key]=1;ic.push(x)}})});return{fx:fx,ic:ic}}
 function stNowP(k){var q=B&&B.stNow;return stOf(q&&q.p&&q.p[k])}
 function stNowM(i){var q=B&&B.stNow;return stOf(q&&q.m&&q.m[i])}
 function stFilter(fx,fl){if(fl)return 'sepia(1) saturate(5) hue-rotate(-35deg) brightness(.62)';/* 剛中燒灼：暗紅色閃一下 */if(fx.stone)return 'grayscale(1) brightness(1.08) contrast(.85)';
@@ -547,12 +562,11 @@ function stDraw(sd,x,gy,top,w,t,lf){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math.PI
   if(f.fire){pctx.globalCompositeOperation='lighter';for(var q=0;q<5;q++){var per=900+q*130,u=((t+q*277)%per)/per,cyc=Math.floor((t+q*277)/per),fx2=x+(((cyc*13+q*29)%11)-5)/5*w*.7+Math.sin(u*5+q)*1.2,fy=by-2-((q*4+cyc*3)%13)-u*14,fa=1-u*u;/* 火焰粒子：從腳底到身體周圍往上飄散（疊加發光） */
     var fc=u<.3?'#ffd060':u<.65?'#ff8a2a':'#e0401a';VP(fx2,fy,fc,fa);if(u<.6){VP(fx2+1,fy,fc,fa);VP(fx2,fy+1,'#ff6a1a',.85*fa);VP(fx2+1,fy+1,'#e8401a',.7*fa)}/* 2×2 往上變 1 格 */}pctx.globalCompositeOperation='source-over'}
   if(f.blood)for(var q=0;q<2;q++){var u=((t+q*550)%1100)/1100,dx=x+(q?w*.2:-w*.15),dy=bc+u*u*(by-bc);if(u<.9){VP(dx,dy,'#c8202a',.95);VP(dx,dy-1,'#c8202a',.6)}else{VP(dx-1,by-1,'#c8202a',.7);VP(dx+1,by-1,'#c8202a',.7)}}
-  if(sd.ic.length){var ups=sd.ic.some(function(q){return q.up}),dns=sd.ic.some(function(q){return !q.up});
+  if(sd.ic.length){var ups=sd.ic.some(function(q){return q.m==='up'}),dns=sd.ic.some(function(q){return q.m!=='up'});
     [ups?1:0,dns?-1:0].forEach(function(dir,q){if(!dir)return;var per=1500,cy=Math.floor((t+q*750)/per),u=((t+q*750)%per)/per,ax=x-1+(((cy*7+q*3)%5)-2)*w*.18,ay=dir>0?bc+3-u*9:bc-7+u*9;stPat(0,ax,ay,dir>0?ARU:ARD,'#ffe14a',.55*Math.sin(u*Math.PI))});
-    var q1=sd.ic[Math.floor(t/1300)%sd.ic.length],IW=7,ix=x-(IW+4)/2,iy=gy+3,im=stIcon(q1.k);/* 腳邊一次一個圖示，輪流換 */
-    pctx.globalAlpha=.6;pctx.fillStyle='#1a0d08';pctx.fillRect(Math.round((ix-1.5)*U),Math.round((iy-1)*U),Math.round((IW+7)*U),Math.round((IW+2)*U));
-    if(im.complete&&im.naturalWidth){pctx.globalAlpha=1;pctx.imageSmoothingEnabled=false;pctx.drawImage(im,Math.round(ix*U),Math.round(iy*U),Math.round(IW*U),Math.round(IW*U))}
-    stPat(0,ix+IW+.5,iy+1.5,q1.up?ARU:ARD,q1.up?'#4aa8ff':'#ff4a3a',1)}}
+    var q1=sd.ic[Math.floor(t/1300)%sd.ic.length],IW=8,ix=x-IW/2,iy=gy+3,ci=stIconC(q1);/* 腳邊一次一個圖示，輪流換；箭頭／X 疊在圖示上 */
+    pctx.globalAlpha=.6;pctx.fillStyle='#1a0d08';pctx.fillRect(Math.round((ix-1)*U),Math.round((iy-1)*U),Math.round((IW+2)*U),Math.round((IW+2)*U));
+    if(ci){pctx.globalAlpha=1;pctx.imageSmoothingEnabled=false;pctx.drawImage(ci,Math.round(ix*U),Math.round(iy*U),Math.round(IW*U),Math.round(IW*U))}}}
 /* 怪物蒸發：取怪物圖上的像素變成往上飄、慢慢變淡的小方塊 */
 var PARTS=[],pfx=$('pfx'),pctx=pfx.getContext('2d');
 function burst(m,mx,gy,mw,mh,t){m.boom=1;var im=m.f;if(!im.naturalWidth)return;var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.drawImage(im,0,0);var d=x.getImageData(0,0,w,h).data,st=w>30?2:1,uw=mw/U/w,uh=mh/U/h;
@@ -811,7 +825,7 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 /* ---- data / start ---- */
 /* ================= 特效測試模式：battle/?vfx=1 ================= */
 var VT={w:'劍',el:'',atk:true,kind:'damage',mon:'sk',lastT:-99999,st:{}};
-var VTS=[['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓']];
+var VTS=[['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破']];
 var VTW=[['劍','sword'],['斧','axe'],['錘','hammer'],['匕','dagger'],['槍','spear'],['弓','bow'],['杖','staff'],['書','book'],['拋擲','throw']];
 var VTE=[['','00 無屬性'],['fire','01 火焰'],['frost','02 冰霜'],['lightning','03 雷電'],['wind','04 疾風'],['nature','05 自然'],['light','06 光明'],['dark','07 黑暗']];
 function vtChar(){var w=VT.w==='拋擲'?'書':VT.w,k=WBYNAME[w],p={uid:'t',name:'測試員',job:0,jobSn:'job01',skin:0,style:0,hair:0,eyes:6,outfit:0,weapon:w,weapons:{}};if(k)p.weapons[k]={lv:1};return p}
