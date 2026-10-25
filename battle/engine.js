@@ -122,7 +122,15 @@
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k) * MUL(D, 'hp')), patk: Math.round(num(r.p_atk) * (1 + ag * k) * MUL(D, 'atk')), matk: Math.round(num(r.m_atk) * (1 + ag * k) * MUL(D, 'atk')), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
-      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: [], special: monPassive(r, D), runes: [] };
+      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: monAura(r, D), special: monPassive(r, D), runes: [] };
+  }
+  /* 怪物靈氣：passive 欄裡 target = ally_all 的被動（例如審判靈氣），活著時套用到全體怪物（含自己） */
+  function monAura(r, D) {
+    var out = [];
+    String(r.passive || '').split(';').map(function (x) { return x.trim() }).filter(Boolean).forEach(function (id) {
+      (D.EFF[id] || []).forEach(function (e) { if (e.effect_kind === 'passive' && e.target === 'ally_all' && e.effect) out.push({ id: id, k: e.effect, v: num(e.value) }) });
+    });
+    return out;
   }
   /* 怪物被動（monster_info 的 passive 欄，可用 ; 分隔多個）：吸血、追加傷害、攻擊附加狀態等，寫法跟玩家被動一樣 */
   function monPassive(r, D) {
@@ -173,7 +181,8 @@
     /* 靈氣：同一招只算一次，套到同陣營每個人（自己的已算在基礎值） */
     var auraSeen = {};
     P.forEach(function (src) { src.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (auraSeen[key]) return; auraSeen[key] = src; }) });
-    function auraVal(u, k) { if (u.side !== 'p') return 0; var t = 0; Object.keys(auraSeen).forEach(function (key) { var src = auraSeen[key]; if (src === u || src.dead) return; src.aura.forEach(function (a) { if (a.id + '|' + a.k === key && a.k === k) t += a.v }) }); return t }
+    var auraSeenM = {}; M.forEach(function (src) { (src.aura || []).forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = src }) });
+    function auraVal(u, k) { if (u.side === 'm') { var tm = 0; Object.keys(auraSeenM).forEach(function (key) { var src = auraSeenM[key]; if (src.dead) return; src.aura.forEach(function (a) { if (a.id + '|' + a.k === key && a.k === k) tm += a.v }) }); return tm } if (u.side !== 'p') return 0; var t = 0; Object.keys(auraSeen).forEach(function (key) { var src = auraSeen[key]; if (src === u || src.dead) return; src.aura.forEach(function (a) { if (a.id + '|' + a.k === key && a.k === k) t += a.v }) }); return t }
 
     /* --- 屬性（基礎 + 狀態 + 靈氣） --- */
     function sv(u, k) { var t = 0; u.st.forEach(function (s) { if (s.paused) return; s.rows.forEach(function (r) { if (r.k === k) t += r.v }) }); return t }

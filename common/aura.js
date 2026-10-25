@@ -31,11 +31,11 @@
   function pat(ctx, x, y, s, rows, c, a) { rows.forEach(function (r, j) { for (var i = 0; i < r.length; i++) if (r.charAt(i) === 'X') px(ctx, x + i, y + j, s, c, a) }) }
   var SHIELD = ['XXX', 'XXX', '.X.'], RUNE = ['.X.', 'X.X', '.X.'], STAR = ['.X.', 'XXX', '.X.'];
   /* 腳下光環：橢圓（寬 rx、高 ry），一圈淡色＋兩段亮的轉動弧；狂熱會一跳一跳 */
-  function ring(ctx, x, y, s, t, list, faint) {
-    var q = pick(list, t); if (!q) return; var d = q.d, A = q.a * (faint ? .45 : 1), rx = 10, ry = 3.2, N = 40;
+  function ring(ctx, x, y, s, t, list, faint, K) {
+    K = K || 1; var q = pick(list, t); if (!q) return; var d = q.d, A = q.a * (faint ? .45 : 1), rx = 10 * K, ry = 3.2 * K, N = Math.round(40 * K);
     /* 持有者：外面再一圈更大的同心光環（反方向轉、比較淡，用第三個顏色：審判是紅、虔誠是深藍） */
-    if (!faint) for (var o = 0; o < 56; o++) { var ao = o / 56 * Math.PI * 2, so = -t / 1300, ho = Math.pow(Math.max(0, Math.cos(ao - so), Math.cos(ao - so - Math.PI)), 6);
-      px(ctx, x + Math.cos(ao) * 14.5, y + Math.sin(ao) * 4.6, s, d.m === 'rainbow' ? d.c[Math.floor((o / 56 * 7 - t / 700 + 70) % 7)] : (ho > .5 ? d.c[1] : d.c[2]), q.a * (.25 + .45 * ho)) }
+    if (!faint) for (var o = 0; o < Math.round(56 * K); o++) { var ao = o / Math.round(56 * K) * Math.PI * 2, so = -t / 1300, ho = Math.pow(Math.max(0, Math.cos(ao - so), Math.cos(ao - so - Math.PI)), 6);
+      px(ctx, x + Math.cos(ao) * 14.5 * K, y + Math.sin(ao) * 4.6 * K, s, d.m === 'rainbow' ? d.c[Math.floor((o / 56 * 7 - t / 700 + 70) % 7)] : (ho > .5 ? d.c[1] : d.c[2]), q.a * (.25 + .45 * ho)) }
     var beat = d.m === 'ember' ? 1 + .12 * Math.max(0, Math.sin(t / 140)) : 1;
     for (var i = 0; i < N; i++) {
       var an = i / N * Math.PI * 2, xx = x + Math.cos(an) * rx * beat, yy = y + Math.sin(an) * ry * beat;
@@ -47,10 +47,10 @@
     ctx.globalAlpha = 1;
   }
   /* 往上飄的光點：4 顆，從光環上升約 16 格、淡出 */
-  function motes(ctx, x, y, s, t, list) {
-    var q = pick(list, t); if (!q) return; var d = q.d, A = q.a;
+  function motes(ctx, x, y, s, t, list, K) {
+    K = K || 1; var q = pick(list, t); if (!q) return; var d = q.d, A = q.a;
     for (var i = 0; i < 4; i++) {
-      var per = 1700 + i * 230, u = ((t + i * 520) % per) / per, cyc = Math.floor((t + i * 520) / per), ox = ((cyc * 7 + i * 5) % 15) - 7, mx = x + ox + Math.sin(u * 5 + i) * 1, my = y - 1 - u * 16, a = A * Math.sin(u * Math.PI) * .95;
+      var per = 1700 + i * 230, u = ((t + i * 520) % per) / per, cyc = Math.floor((t + i * 520) / per), ox = (((cyc * 7 + i * 5) % 15) - 7) * K, mx = x + ox + Math.sin(u * 5 + i) * 1, my = y - 1 - u * 16 * K, a = A * Math.sin(u * Math.PI) * .95;
       var c = d.m === 'rainbow' ? d.c[(cyc + i) % 7] : d.c[i % 2 ? 1 : 0];
       if (d.m === 'shield') { pat(ctx, mx - 1, my - 1, s, SHIELD, d.c[1], a); px(ctx, mx, my - 1, s, d.c[0], a) }
       else if (d.m === 'rune') { pat(ctx, mx - 1, my - 1, s, RUNE, c, a); px(ctx, mx, my, s, d.c[0], a * .6) }
