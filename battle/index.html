@@ -247,7 +247,7 @@ function posOf(i){var F=PFORM[Math.max(1,Math.min(4,party.length||1))],q=F[Math.
 var MFORM={1:[[126,20]],2:[[136,28],[118,8]],3:[[140,12],[127,33],[115,4]],4:[[140,24],[132,2],[121,34],[114,14]],5:[[141,14],[136,34],[130,0],[120,22],[113,5]]};
 var BFORM={1:[[130,20]],2:[[138,20],[115,14]],3:[[139,20],[116,33],[112,6]],4:[[140,20],[112,33],[97,21],[107,4]],5:[[140,20],[118,34],[110,26],[115,8],[111,0]]};
 function mslots(ms){var n=Math.max(1,Math.min(5,ms.length)),bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});
-  if(bi<0)return ms.map(function(m,i){return MFORM[n][Math.min(i,n-1)]});var F=ms[bi].k==='dragon'?DFORM:BFORM,q=1;return ms.map(function(m,i){return i===bi?F[n][0]:F[n][Math.min(q++,n-1)]})}
+  if(bi<0)return ms.map(function(m,i){return MFORM[n][Math.min(i,n-1)]});var F=BIGD[ms[bi].k]?DFORM:BFORM,q=1;return ms.map(function(m,i){return i===bi?F[n][0]:F[n][Math.min(q++,n-1)]})}
 /* 龍這種大隻的王：王往後站一點，小怪站在牠前面的上下兩側，盡量不擋住龍頭 */
 var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[140,14],[94,33],[118,34],[106,24]],5:[[140,14],[92,33],[116,34],[104,24],[128,28]]};
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
@@ -283,13 +283,15 @@ function build(){
   MEMB.slice(0,4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0,au:window.Aura?Aura.ids(p):[]});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
   if(!B)return;var sl=mslots(B.mons);
-  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:mscale(m.k,m.boss),f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(m.k!=='dragon'&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
+  B.mons.forEach(function(m,i){if(m.slot)sl[i]=m.slot;var o={k:m.k,at:m.at,sc:mscale(m.k,m.boss),f:img(''),sh:el('div','sh'),hb:el('div','hpb m'),x:sl[i][0],dy:sl[i][1],ph:Math.random()*900};var hw=msz(m.k)[0]*o.sc/2;if(!BIGD[m.k]&&o.x+hw>UW-1)o.x=UW-1-hw;/* 太大隻的往左收，免得超出畫面；龍故意站後面，尾巴被切掉沒關係 */o.hb.appendChild(el('i'));o.fx=document.createElement('canvas');o.fx.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';o.fxx=o.fx.getContext('2d');/* 這隻怪自己的待機特效層：跟怪物同深度，前排的怪會擋住後排的口水、鼻息 */
   frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
 }
 /* 怪物畫面倍率（戰棋也用，維持跟人物的相對大小） */
 /* 個別怪物的影子：w = 寬（圖寬的比例）、h = 高、up = 影子上緣離地面幾格、dx = 左右偏移；巨蛛的腳張很開，前腳比較高，影子要高一點才接得到 */
 var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
-function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.9:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.15:boss?(k==='sk'?1.5:1.2):1}
+/* 大型龍王：站在後面（DFORM 站位）、超出畫面右邊沒關係 */
+var BIGD={dragon:1,sdragon:1};
+function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.9:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
@@ -845,7 +847,7 @@ function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);retu
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
   var ww=WKIND[p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww;return{wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,el:s.el||'',ty:ty||s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='pillar'?330:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180}}
 /* 有召喚的戰鬥：固定用 5 格站位，被召喚的怪站到已經倒下的同伴空出來的位置（沒有空位就站下一格） */
-function sumSlots(ms,mko){if(!ms.some(function(m){return m.at!=null}))return;var bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});var F=((bi>=0&&ms[bi].k==='dragon')?DFORM:BFORM)[5],occ=[],q=1;
+function sumSlots(ms,mko){if(!ms.some(function(m){return m.at!=null}))return;var bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});var F=((bi>=0&&BIGD[ms[bi].k])?DFORM:BFORM)[5],occ=[],q=1;
   ms.forEach(function(m,i){if(m.at!=null)return;if(i===bi){m.slot=F[0];occ[0]=i;return}var j=Math.min(q++,4);m.slot=F[j];occ[j]=i});
   ms.map(function(m,i){return i}).filter(function(i){return ms[i].at!=null}).sort(function(a,b){return ms[a].at-ms[b].at}).forEach(function(i){var at=ms[i].at,pick=-1;
     for(var j=1;j<5;j++){var o=occ[j];if(o==null||(mko[o]!=null&&mko[o]+400<=at)){pick=j;break}}if(pick<0)pick=4;ms[i].slot=F[pick];occ[pick]=i})}
