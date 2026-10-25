@@ -122,3 +122,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 千年詛咒,debuff,p_dmg_taken_rate,0.2,,,,
 千年詛咒,debuff,m_dmg_taken_rate,0.2,,,,
 瘴毒,debuff,dot,0.3,m_atk,dark,m,每回合造成施加者魔法攻擊力 30% 的黑暗魔法傷害
+火焰護盾,buff,fire_res_rate,0.3,,,,火焰抗性 +30%、魔法減傷 +20%
+火焰護盾,buff,m_reduce_rate,0.2,,,,
