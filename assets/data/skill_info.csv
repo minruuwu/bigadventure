@@ -274,3 +274,7 @@ skill272,嗜血,monster,0,passive,,,passive,,,,,,,,,怪物被動（造成傷害�
 skill273,火焰護盾,monster,0,combat,ally_single,prefer_without_status,buff,,,,,,,,,怪物技能（我方單體火焰護盾：火焰抗性 +30%、魔法減傷 +20%，3 回合；優先給沒有護盾的）,,,,4,single,,3
 skill274,燃擊,monster,0,combat,enemy_single,random,damage,,,m,fire,1,,,,怪物技能（單體火焰魔法傷害 ×1.0）,beam,,,5,single,,2
 skill275,火焰附著,monster,0,passive,,,passive,,,,,,,,,怪物被動（攻擊打中時 25% 機率讓一名被打到的敵人燃燒 3 回合）,,,,,,,
+skill276,日曜射線,monster,0,combat,enemy_all,,damage,,,m,light,0.8,,,,怪物技能（全體光明魔法傷害 ×0.8，附加晶化 3 回合）,beam,,,5,diamond,2,3
+skill277,日冕之光,monster,0,combat,enemy_all,,damage,,,m,light,0.9,,,,怪物技能（全體光明魔法傷害 ×0.9，每個目標 40% 目盲 3 回合）,pillar,,,4,diamond,2,3
+skill278,沙龍之吼,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體物理傷害 ×0.7；毒沙蛇少於 4 隻時，各 50% 叫出一隻，最多兩隻）,smash,,,3,diamond,2,4
+skill279,龍晶爪,monster,0,combat,enemy_single,random,damage,,,p,,1.5,,,,怪物技能（單體物理傷害 ×1.5，40% 晶化 3 回合）,,,,1,single,,2
