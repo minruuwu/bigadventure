@@ -250,7 +250,7 @@ function mslots(ms){var n=Math.max(1,Math.min(5,ms.length)),bi=-1;ms.forEach(fun
 /* 龍這種大隻的王：王往後站一點，小怪站在牠前面的上下兩側，盡量不擋住龍頭 */
 var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[140,14],[94,33],[118,34],[106,24]],5:[[140,14],[92,33],[116,34],[104,24],[128,28]]};
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
-var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[];
+var party=[],mons=[],SLIME=null,SKI={},SKC={},MEMB=[],REW={step:3,cut:0.1,floor:0.1};
 /* 有待機特效的怪物：上半身每個週期往下壓 1 格（呼吸／喘氣），特效另外畫在特效層 */
 var ANI={boar:{n:'野豬',f:'monster_04',leg:20,per:460,fx:'puff',at:[0,14]},snake:{n:'青蛇',f:'monster_05',leg:10,per:1700,sin:1,fx:'tongue',at:[0,4]},wolf:{n:'灰狼',f:'monster_06',leg:18,per:430,fx:'drool',at:[7,13]},dwolf:{n:'魔狼',f:'monster_07',leg:22,per:400,fx:'drool',at:[8,16]},bdragon:{n:'綠幼龍',f:'monster_09',leg:34,per:1300,sin:1,fx:'',at:[0,0]},queen:{n:'黑暗蛛后',f:'monster_boss_03',leg:36,per:1400,sin:1,fx:'queen',at:[13,8],eyes:[[0,0],[3,0]],hands:[[3,14],[30,14]]},dragon:{n:'綠龍',f:'monster_boss_02',leg:44,per:1500,sin:1,fx:'eye',at:[41,12]}};
 function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return '';A.c=A.c||{};var ph=(now%A.per)/A.per,dy=A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0);if(A.c[dy])return A.c[dy];
@@ -604,7 +604,7 @@ function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
-    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'')+'　預計獎勵：經驗 '+r.exp+'、鍛造石 '+r.stones+'<small class="lvsh">'+(isBoss(pickA,pickL)?'實際獎勵有 ±10% 浮動':'以 3 隻敵人為準，每多一隻 +1/3、每少一隻 −1/4，並有 ±10% 浮動')+'<br>同行隊友可獲得戰鬥所得 10% 經驗、5% 鍛造石，每天早上 06:00 後到營地「組隊獎勵」領取</small>';[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
+    $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'');[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;var M2=b.getAttribute('data-m')==='tac'?'tac':'auto';setAdvMode(M2);closeLevels();if(M2==='tac')startTactics(A2,L2);else startBattle(A2,L2)}});
 /* 上次選的模式（自動戰鬥／戰棋），記在這台瀏覽器；網址帶 ?tactics=1 時預設戰棋 */
 function advMode(){try{var v=localStorage.getItem('adv.mode');if(v==='tac'||v==='auto')return v}catch(e){}return TACT?'tac':'auto'}
@@ -613,7 +613,7 @@ function setAdvMode(v){try{localStorage.setItem('adv.mode',v)}catch(e){}}
 function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})}),M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length);
   showView('tac');window.scrollTo(0,0);Tactics.start({root:$('tacv'),title:AREA[a].n+' 第 '+l+' 關'+(isBoss(a,l)?'（Boss）':''),
     reward:function(o){var b={res:'win',a:a,l:l,mons:o.mons,lead:o.lead},req=makeReq(b),mail=req.share||[];
-      return{req:req,html:'獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+
+      return{req:req,html:'獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+lvTxt(req.lvi)+
         (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
         (req.clear&&l<NST?'<br>解鎖第 '+(l+1)+' 關':req.clear?'<br>'+AREA[a].n+'全部通關！':'')+'<br><small id="trsave">獎勵寫入中…</small>'}},
     save:function(req,ui){saveWin({saved:false},req,ui)},P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,fx:tacFx,fxInfo:tacFxInfo,jobs:JOBI,lv:l,tune:/[?&]tune=1/.test(location.search),bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
@@ -657,15 +657,22 @@ function startBattle(a,l){setLastArea(a);PARTS=[];B=realBattle(a,l);B.wall=Date.
   showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(isBoss(a,l)?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
 /* ---- 獎勵：開戰時就決定好（加成、餅乾的機率在這裡擲），結果出來時才寫入 ---- */
+/* 獎勵等級遞減：戰力（隊長的人物等級＋所有職業等級加總）超過關卡建議等級（stage_info 的 level，沒填就 3×關數），
+   每超過 REW.step 級少 REW.cut，最低保留 REW.floor；隊友分紅照隊長打折後的數字算 */
+function powerOf(p){var t=Math.max(1,p.lv|0||1),j=p.jobLv||{};Object.keys(j).forEach(function(k){t+=j[k]|0});return t}
+function lvDecay(a,l){var me=MEMB[0];if(!me)return null;var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l),rec=(r&&parseInt(r.level,10))||3*l,pw=powerOf(me),ov=pw-rec;
+  if(ov<REW.step)return null;var m=Math.max(REW.floor,1-Math.floor(ov/REW.step)*REW.cut);m=Math.round(m*100)/100;return m<1?{pw:pw,rec:rec,ov:ov,m:m}:null}
+function lvTxt(q){return q?'<br><small>戰力 '+q.pw+'，超過第 '+q.l+' 關建議等級 '+q.ov+' 級，獎勵 ×'+Math.round(q.m*100)+'%</small>':''}
 function makeReq(b){if(b.res!=='win')return null;var r=stageReward(b.a,b.l),bx=[],sp=(b.lead&&b.lead.special)||[];
   function roll(k){var x=sp.filter(function(q){return q.k===k})[0];return x&&Math.random()<x.ch?x:null}
   /* 依敵人數量增減（3 隻為基準，每多一隻 +1/3、每少一隻 −1/4），再乘 0.9～1.1 的亂數；經驗、鍛造石各擲一次。王關不看數量，只乘亂數 */
   var hasBoss=(b.mons||[]).some(function(m){return m.boss}),nm=hasBoss?3:((b.mons&&b.mons.length)||3),cm=nm>=3?nm/3:1-(3-nm)/4,vary=function(v){return Math.max(1,Math.round(v*cm*(0.9+Math.random()*0.2)))};
-  var eb=roll('exp_bonus'),fb=roll('forge_bonus'),exp=vary(r.exp),st=vary(r.stones);
+  var eb=roll('exp_bonus'),fb=roll('forge_bonus'),exp=vary(r.exp),st=vary(r.stones),lvi=lvDecay(b.a,b.l);
+  if(lvi){exp=Math.max(1,Math.round(exp*lvi.m));st=Math.max(1,Math.round(st*lvi.m))}
   if(eb){exp=Math.ceil(exp*eb.v);bx.push('知識累積：經驗 ×'+eb.v)}if(fb){st=Math.ceil(st*fb.v);bx.push('鍛造專精：鍛造石 ×'+fb.v)}
   var me=MEMB[0],cl=cleared(b.a),newClear=b.l>cl?b.l:0;
   var share=MEMB.slice(1,4).map(function(p){return{to:p.uid,exp:Math.ceil(exp*0.1),stones:Math.ceil(st*0.05)}}).filter(function(m){return m.to&&(me.party||[]).indexOf(m.to)>=0});
-  return{area:AREAID[b.a],stage:b.l,exp:exp,stones:st,cookie:Math.random()<0.01,clear:newClear,name:me.name,share:share,bx:bx}}
+  return{area:AREAID[b.a],stage:b.l,exp:exp,stones:st,cookie:Math.random()<0.01,clear:newClear,name:me.name,share:share,bx:bx,lvi:lvi?Object.assign(lvi,{l:b.l}):null}}
 /* ---- 戰鬥暫存：切到別頁再回來時接著播（離開期間戰鬥照樣進行）；只存在這台裝置，不碰資料庫 ---- */
 var CURK='adv.cur',KEEP=30*60*1000;
 function curSave(){if(!B)return;try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,ev:B.ev,mons:B.mons,pkl:B.pkl,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
@@ -677,7 +684,7 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
   var box=$('bres');box.hidden=false;$('rok').disabled=false;
   if(!w){$('rtxt').innerHTML='這場沒有獎勵，下次再挑戰吧。';curClear();$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});return}
   var req=B.req||(B.req=makeReq(B)),me=MEMB[0],mail=req.share||[];
-  var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+
+  var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+lvTxt(req.lvi)+
     (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
     (req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
   $('rtxt').innerHTML=h;$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -789,9 +796,9 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
-    return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];/* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})
+    return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null,FB.rewardGet?FB.rewardGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];if(R[2])REW=R[2];/* 獎勵等級遞減（管理後台） *//* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=22"></script>
+<script type="module" src="../common/fb.js?v=23"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

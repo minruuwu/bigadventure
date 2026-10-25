@@ -96,6 +96,10 @@ const FB = {
   // 怪物強度倍率：meta/difficulty = {hp, atk}（0.5～2，預設 1）；所有人可讀、只有管理者能寫
   async difficultyGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'difficulty')), 6000); const d = s.exists() ? s.data() : {}; const f = v => { v = Number(v); return v >= 0.5 && v <= 2 ? v : 1; }; return { hp: f(d.hp), atk: f(d.atk) }; },
   async difficultySet(hp, atk) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'difficulty'), { hp: Number(hp), atk: Number(atk) })); },
+  // 獎勵等級遞減：meta/reward = {step, cut, floor}（戰力每超過建議等級 step 級，經驗與鍛造石少 cut，最低保留 floor）；所有人可讀、只有管理者能寫
+  async rewardGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'reward')), 6000); const d = s.exists() ? s.data() : {}; const st = parseInt(d.step, 10), c = Number(d.cut), f = Number(d.floor);
+    return { step: st >= 1 && st <= 50 ? st : 3, cut: c >= 0 && c <= 1 ? c : 0.1, floor: f >= 0 && f <= 1 ? f : 0.1 }; },
+  async rewardSet(step, cut, floor) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'reward'), { step: parseInt(step, 10), cut: Number(cut), floor: Number(floor) })); },
   // 鍛造存檔被擋時的檢查：用 REST 讀原始型別，找出哪個欄位不合規則（小數型別的鍛造石或武器等級可以自動修正）
   async forgeCheck() { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
     const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
