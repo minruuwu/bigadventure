@@ -45,6 +45,9 @@ function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
   var h='<div id="top"><input id="q" type="search" placeholder="搜尋玩家名字" value="'+esc(q)+'"><button id="rf" type="button" class="alt">重新載入</button><button id="so" type="button" class="alt">登出</button></div>';
   var nv=NDRAFT!=null?NDRAFT:NOTICE.text;h+='<div class="pl" style="padding:10px 12px"><div class="nm">營地跑馬燈</div><div class="rw"><input id="nt" maxlength="200" placeholder="公告內容（最多 200 字）" value="'+esc(nv)+'" style="flex:1"><button id="ntOn" type="button">發布</button><button id="ntOff" type="button" class="alt">取消</button></div><p class="note">'+(NOTICE.on&&NOTICE.text?'目前顯示中：［公告］'+esc(NOTICE.text):'目前沒有公告（營地上方不顯示）')+'</p></div>';
   var dv=DDRAFT||DIFF;h+='<div class="pl" style="padding:10px 12px"><div class="nm">怪物強度</div><div class="rw"><label>血量倍率</label><input id="dfh" type="number" min="0.5" max="2" step="0.05" value="'+dv.hp+'" style="width:80px"><label>攻擊倍率</label><input id="dfa" type="number" min="0.5" max="2" step="0.05" value="'+dv.atk+'" style="width:80px"><button id="dfOk" type="button">儲存</button></div><p class="note">所有怪物（含召喚出來的）的血量、物攻與魔攻乘上這個倍率；範圍 0.5～2，1 = 原本強度。目前：血量 ×'+DIFF.hp+'、攻擊 ×'+DIFF.atk+'。下一場戰鬥開始生效。</p></div>';
+  /* 組隊分紅歸零：清掉每個人資料裡累積給隊友、還沒被領的分成（owe）；領取時間紀錄不動 */
+  var owed=PL.filter(function(p){return p.owe&&Object.keys(p.owe).length}).length;
+  h+='<div class="pl" style="padding:10px 12px"><div class="nm">組隊分紅</div><div class="rw"><input id="owT" placeholder="輸入「歸零」" style="width:110px"><button id="owOk" type="button" class="danger">所有人的組隊分紅歸零</button></div><p class="note">清掉每位隊長那邊累積給隊友、還沒被領的經驗與鍛造石（領取時間紀錄不動）。目前列表中有 '+owed+' 位隊長還有未領的分成。不能復原。</p></div>';
   var list=PL.filter(function(p){return !q||String(p.name||'').toLowerCase().indexOf(q)>=0});
   h+='<p class="note">共 '+PL.length+' 位玩家（依最近上線排序，最多 200 位）。點名字展開。</p>';
   list.forEach(function(p){var j=JOBS[p.job|0],on=open[p.uid];
@@ -57,6 +60,8 @@ function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
     hv=Math.round(hv*100)/100;av=Math.round(av*100)/100;FB.difficultySet(hv,av).then(function(){DIFF={hp:hv,atk:av};DDRAFT=null;draw();toast('怪物強度已儲存')},function(e){toast('儲存失敗：'+(e.code||e.message),1)})};
   $('ntOn').onclick=function(){var t=$('nt').value.trim();if(!t)return toast('請先輸入公告內容',1);FB.noticeSet(t,true).then(function(){NOTICE={text:t,on:true};NDRAFT=null;draw();toast('公告已發布')},function(e){toast('發布失敗：'+(e.code||e.message),1)})};
   $('ntOff').onclick=function(){FB.noticeSet(NOTICE.text,false).then(function(){NOTICE.on=false;draw();toast('公告已取消')},function(e){toast('取消失敗：'+(e.code||e.message),1)})};
+  $('owOk').onclick=function(){if($('owT').value.trim()!=='歸零')return toast('要先在左邊輸入「歸零」兩個字',1);var b=$('owOk');b.disabled=true;
+    FB.adminClearOwe().then(function(n){PL.forEach(function(p){delete p.owe});draw();toast('已歸零：清掉 '+n+' 位隊長的未領分紅')},function(e){b.disabled=false;toast('歸零失敗：'+(e.code||e.message)+(e.code==='permission-denied'?'（Firestore 規則的管理者欄位要加上 owe）':''),1)})};
   $('rf').onclick=function(){reload()};$('so').onclick=function(){FB.signOut().then(function(){location.reload()})}}
 function body(p){var jsn=JSEL[p.uid]||(JOBS[0]&&JOBS[0].u_sn),jl=((p.jobLv||{})[jsn])|0;
   var h='<div class="bd"><h3>人物等級與經驗池（人物、職業共用）</h3><div class="rw"><label>人物 Lv</label><input type="number" min="1" step="1" id="cl-'+p.uid+'" value="'+Math.max(1,p.lv|0||1)+'"><button type="button" data-a="clset">設成</button></div>'+
@@ -94,5 +99,5 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-a]')
 boot();
 })();
 </script>
-<script type="module" src="../common/fb.js?v=21"></script>
+<script type="module" src="../common/fb.js?v=22"></script>
 </body></html>

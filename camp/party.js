@@ -178,9 +178,12 @@
     }
     lst.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (b) { b.disabled = true; take([b.dataset.id]) } });
     all.addEventListener('click', function () { take(ready().map(function (x) { return x.uid })) });
+    /* 進營地時已經讀過一次（信封紅點用）：打開視窗先顯示那份，背景再更新 */
     function load(n) {
-      lst.innerHTML = '<div class="none">讀取中…</div>';
-      API.shares().then(function (r) { SH = r || { list: [], claims: {} }; paint(); mailBadge() }, function (e) {
+      if (SH && n === 0) paint(); else lst.innerHTML = '<div class="none">讀取中…</div>';
+      var had = !!SH;
+      API.shares().then(function (r) { if (busy) return; SH = r || { list: [], claims: {} }; paint(); mailBadge() }, function (e) {
+        if (had && n === 0) return; /* 已經有舊資料顯示著，背景更新失敗就先不打擾 */
         if (n < 1) { setTimeout(function () { load(n + 1) }, 1500); return } /* 第一次失敗先自動再讀一次 */
         var c = e && e.code; lst.innerHTML = '<div class="none">組隊獎勵讀取失敗' + (c === 'permission-denied' ? '（權限尚未開放）' : c === 'timeout' ? '（連線逾時）' : c ? '（' + esc(String(c)) + '）' : '') + '　<button type="button" class="pbtn mre">重新讀取</button></div>';
         lst.querySelector('.mre').addEventListener('click', function () { load(1) })

@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField, documentId } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -130,16 +130,23 @@ const FB = {
     await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), pl = (c && c.player) || {}, adv = Object.assign({}, pl.adv || {}); if (r.clear) adv[r.area] = r.clear;
     mePatch({ exp: (pl.exp | 0) + r.exp, stones: (pl.stones | 0) + r.stones, cookies: (pl.cookies | 0) + (r.cookie ? 1 : 0), adv }); },
   // 隊友分成：讀把我加進隊伍的隊長們，看各自累積了多少（owe.<我的uid>）
+  // 加速：隊長名單先用本機快取（不用先等伺服器讀自己的資料）；自己的最新資料與所有隊長的資料「同時」讀，
+  //       隊長用一個查詢一次讀完（documentId in [...]，一次最多 30 位），不再一人一個請求
   async shareList() { await ready; const u = auth.currentUser; if (!u) return { list: [], claims: {} };
-    /* 讀自己的資料：連線慢時重試一次，還是不行就用本機快取（隊長名單、領取紀錄不常變） */
-    let me = null; try { me = await withTimeout(FB.getPlayer(u.uid), 8000); } catch (e) { try { me = await withTimeout(FB.getPlayer(u.uid), 12000); } catch (e2) { const c = meGet(); if (c && c.uid === u.uid) me = c.player; else throw e2; } }
-    const cur = ((me && me.leaders) || []).slice(0, 5), past = ((me && me.pastLeaders) || []);
-    /* 現在的隊長補記到 pastLeaders（被移出後還能領以前累積的分成）；最多保留最近 20 位 */
-    const miss = cur.filter(l => past.indexOf(l) < 0); if (miss.length) { const np = past.concat(miss).slice(-20); updateDoc(doc(db, 'players', u.uid), { pastLeaders: np }).catch(() => {}); } /* 背景寫入，不卡讀信 */
-    const old = past.filter(l => cur.indexOf(l) < 0).slice(-10), ls = cur.concat(old);
-    const one = l => withTimeout(getDoc(doc(db, 'players', l)), 10000).catch(() => withTimeout(getDoc(doc(db, 'players', l)), 12000));
-    const docs = await Promise.all(ls.map(l => one(l).then(s => s.exists() ? Object.assign({ uid: l }, ser(s.data())) : null).catch(() => null)));
-    return { list: docs.filter(Boolean).map(d => { const o = (d.owe || {})[u.uid] || {}; return { uid: d.uid, name: d.name, exp: o.exp | 0, stones: o.stones | 0, past: cur.indexOf(d.uid) < 0 }; }).filter(x => !x.past || x.exp || x.stones), claims: ser((me && me.claims) || {}) }; },
+    const c0 = meGet(), cached = c0 && c0.uid === u.uid ? c0.player : null;
+    const fresh = withTimeout(FB.getPlayer(u.uid), 10000).catch(() => withTimeout(FB.getPlayer(u.uid), 12000)).catch(() => null);
+    const leadersOf = me => { const cur = ((me && me.leaders) || []).slice(0, 5), past = ((me && me.pastLeaders) || []); return { cur, past, ls: cur.concat(past.filter(l => cur.indexOf(l) < 0).slice(-10)) }; };
+    const readMany = async ids => { const out = []; for (let i = 0; i < ids.length; i += 30) { const part = ids.slice(i, i + 30), q = query(collection(db, 'players'), where(documentId(), 'in', part));
+        const snap = await withTimeout(getDocs(q), 10000).catch(() => withTimeout(getDocs(q), 12000)); snap.forEach(d => out.push(Object.assign({ uid: d.id }, ser(d.data())))); } return out; };
+    let me = cached; if (!me) { me = await fresh; if (!me) { const e = new Error('timeout'); e.code = 'timeout'; throw e; } }
+    let L = leadersOf(me);
+    const [docs0, me2] = await Promise.all([L.ls.length ? readMany(L.ls) : Promise.resolve([]), fresh]);
+    let docs = docs0;
+    if (me2) { me = me2; meSet(u.uid, me2); const L2 = leadersOf(me2), extra = L2.ls.filter(l => L.ls.indexOf(l) < 0); L = L2; if (extra.length) docs = docs.concat(await readMany(extra).catch(() => [])); }
+    /* 現在的隊長補記到 pastLeaders（被移出後還能領以前累積的分成）；最多保留最近 20 位；背景寫入，不卡讀信 */
+    const miss = L.cur.filter(l => L.past.indexOf(l) < 0); if (miss.length && me2) { const np = L.past.concat(miss).slice(-20); updateDoc(doc(db, 'players', u.uid), { pastLeaders: np }).catch(() => {}); }
+    docs = docs.filter(d => L.ls.indexOf(d.uid) >= 0);
+    return { list: docs.map(d => { const o = (d.owe || {})[u.uid] || {}; return { uid: d.uid, name: d.name, exp: o.exp | 0, stones: o.stones | 0, past: L.cur.indexOf(d.uid) < 0 }; }).filter(x => !x.past || x.exp || x.stones), claims: ser((me && me.claims) || {}) }; },
   // 領取某位隊長那邊的分成：自己加經驗、鍛造石並記下領取時間；隊長那邊的 owe.<我> 刪掉（同一批寫入，規則核對金額與每天早上 6 點的領取週期）
   async shareClaim(L) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const lr = doc(db, 'players', L), mr = doc(db, 'players', u.uid);
     const got = await tmo(runTransaction(db, async tx => { const ls = await tx.get(lr); const o = ((ls.exists() && ls.data().owe) || {})[u.uid] || {}; const e = o.exp | 0, st = o.stones | 0;
@@ -147,6 +154,11 @@ const FB = {
     const c = meGet(), pl = (c && c.player) || {}, claims = Object.assign({}, pl.claims || {}); claims[L] = Date.now(); mePatch({ exp: (pl.exp | 0) + got.exp, stones: (pl.stones | 0) + got.stones, claims }); return got; },
   // 管理後台（admin/ 頁面用；寫入是否允許由 Firestore 規則依管理者 email 決定）
   async adminList(n) { await ready; const s = await withTimeout(getDocs(query(collection(db, 'players'), orderBy('lastSeen', 'desc'), limit(n || 200))), 15000); return s.docs.map(d => Object.assign({ uid: d.id }, ser(d.data()))); },
+  // 管理後台：所有人的組隊分紅（owe）歸零；回傳清掉幾位。需要 Firestore 規則的管理者欄位清單包含 'owe'
+  async adminClearOwe() { await ready; if (!auth.currentUser) throw new Error('not-signed-in');
+    const s = await withTimeout(getDocs(collection(db, 'players')), 20000), hit = s.docs.filter(d => { const o = d.data().owe; return o && typeof o === 'object' && Object.keys(o).length; });
+    for (let i = 0; i < hit.length; i += 400) { const b = writeBatch(db); hit.slice(i, i + 400).forEach(d => b.update(d.ref, { owe: deleteField() })); await withTimeout(b.commit(), 20000); }
+    return hit.length; },
   async adminUpdate(uid, fields) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await updateDoc(doc(db, 'players', uid), fields); },
   // ---- 組隊：leader doc `party`(最多 3 個隊員 uid，全隊 4 人)、member doc `leaders`(把我放進隊伍的隊長 uid，最多 5 個)，兩邊用 batch 一起寫 ----
   async getPlayers(uids) { await ready; return Promise.all((uids || []).map(u => withTimeout(getDoc(doc(db, 'players', u)), 10000).then(s => s.exists() ? Object.assign({ uid: u }, ser(s.data())) : null).catch(() => null))); },
