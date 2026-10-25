@@ -141,14 +141,16 @@
   /* 一關要出哪些怪：一般關從怪物池隨機（min_count～max_count 隻，不看隊伍人數），Boss 關固定 */
   function stageMonsters(D, area, l, nParty) {
     var r = stageRow(D, area, l); if (!r) return [];
+    /* 怪物成長看「總關數」：第 N 章第 l 關 = 第 (N−1)×20 + l 關（礦洞第 1 關 = 第 21 關）；獎勵、建議等級仍看 stage_info */
+    var g = l + ((parseInt(String(area).replace(/\D/g, ''), 10) || 1) - 1) * 20;
     var fs = nParty <= 2 && r.fixed_small ? r.fixed_small : r.fixed_monsters; /* 王關：1～2 人時改用 fixed_small（小怪比較少） */
     var fixed = String(fs || '').split(';').filter(Boolean), out = [];
-    if (fixed.length) fixed.forEach(function (id) { if (D.mon[id]) out.push(monster(D.mon[id], l, D)) });
+    if (fixed.length) fixed.forEach(function (id) { if (D.mon[id]) out.push(monster(D.mon[id], g, D)) });
     else {
       var pool = String(r.monster_pool || '').split(';').filter(function (id) { return D.mon[id] }), mx = num(r.max_count) || 1, mn = Math.min(num(r.min_count) || 1, mx), n = rnd(mn, mx);
-      for (var q = 0; q < n && pool.length; q++) out.push(monster(D.mon[pickOne(pool)], l, D));
+      for (var q = 0; q < n && pool.length; q++) out.push(monster(D.mon[pickOne(pool)], g, D));
     }
-    var hs = 1 + num(r.party_hp_scale) * Math.max(0, nParty - 1); out.forEach(function (m) { m.b.mhp = Math.round(m.b.mhp * hs); m.stg = l; m.hs = hs }); /* 人多時怪物血量加成 */
+    var hs = 1 + num(r.party_hp_scale) * Math.max(0, nParty - 1); out.forEach(function (m) { m.b.mhp = Math.round(m.b.mhp * hs); m.stg = g; m.hs = hs }); /* 人多時怪物血量加成 */
     var cnt = {}, seen = {}; out.forEach(function (m) { cnt[m.name] = (cnt[m.name] || 0) + 1 });
     out.forEach(function (m) { if (cnt[m.name] > 1) { seen[m.name] = (seen[m.name] || 0) + 1; m.name += ' ' + 'ABCDE'[seen[m.name] - 1] } });
     out.sort(function (a, b) { return (a.boss ? 1 : 0) - (b.boss ? 1 : 0) });

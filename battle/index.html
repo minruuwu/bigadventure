@@ -108,7 +108,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=12"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=16"></script>
+<script src="engine.js?v=17"></script>
 <script src="../common/skilldesc.js?v=1"></script>
 <script src="tactics.js?v=16"></script>
 <script>
@@ -259,9 +259,9 @@ function aniFrame(k,now){var A=ANI[k],im=A.im;if(!im||!im.naturalWidth)return ''
   var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,A.leg,w,h-A.leg,0,A.leg,w,h-A.leg);x.drawImage(im,0,0,w,A.leg,0,dy,w,A.leg);return A.c[dy]=c.toDataURL()}
 function aniDy(k,now){var A=ANI[k];if(A.still)return 0;var ph=(now%A.per)/A.per;return A.sin?(Math.sin(ph*Math.PI*2)>0?1:0):(ph<.5?1:0)}
 /* 會飛的怪物：兩張圖輪播當拍翅（flap 毫秒換一張），整隻懸空 hov 格、上下浮動 amp 格（bper 毫秒一輪），換到第二張（收翅）時多往上提 1 格；cy = 身體中心離圖底幾格 */
-var FLY={bat:{n:'暗影魔蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26},ghost:{n:'亡魂',f:['monster_15','monster_15'],flap:1e12,hov:4,amp:2,bper:1400,cy:12}};/* 亡魂只有一張圖（flap 設很大＝不換圖），另外在 tick 若隱若現、idleOne 畫眼嘴紅光 */
-function flyFr(k,now,ph){var F=FLY[k];return Math.floor((now+(ph||0))/F.flap)%2}
-function flyLift(k,now,ph){var F=FLY[k];if(!F)return 0;return F.hov+F.amp*(1+Math.sin((now+(ph||0)*3)/F.bper*Math.PI*2))/2+(flyFr(k,now,ph)?1:0)}
+var FLY={bat:{n:'暗影魔蝠',f:['monster_10_a','monster_10_b'],flap:150,hov:4,amp:2.5,bper:900,cy:26},ghost:{n:'亡魂',f:['monster_15','monster_15'],flap:1e12,hov:4,amp:2,bper:1400,cy:12},beholder:{n:'眼魔',f:['monster_boss_04','monster_boss_04_blink'],bl:3500,hov:5,amp:2.5,bper:1600,cy:16}};/* bl = 眨眼週期（第二張是閉眼圖，眨 160 毫秒，不是拍翅） *//* 亡魂只有一張圖（flap 設很大＝不換圖），另外在 tick 若隱若現、idleOne 畫眼嘴紅光 */
+function flyFr(k,now,ph){var F=FLY[k];if(F.bl)return((now+(ph||0)*4)%F.bl)<160?1:0;return Math.floor((now+(ph||0))/F.flap)%2}
+function flyLift(k,now,ph){var F=FLY[k];if(!F)return 0;return F.hov+F.amp*(1+Math.sin((now+(ph||0)*3)/F.bper*Math.PI*2))/2+(!F.bl&&flyFr(k,now,ph)?1:0)}
 function msz(k){return k==='sk'?[40,40]:FLY[k]?(FLY[k].im&&FLY[k].im[0]?[FLY[k].im[0].naturalWidth,FLY[k].im[0].naturalHeight]:[42,50]):LAY[k]?LAY[k].sz:ANI[k]&&ANI[k].im?[ANI[k].im.naturalWidth,ANI[k].im.naturalHeight]:[20,16]}
 function skFrame(now){var bl=(now%3200)<180?1:0,dy=Math.sin(now/330)>0?1:0,k=bl+'_'+dy;if(SKC[k])return SKC[k];var im=SKI[bl];if(!im||!im.naturalWidth)return '';var c=document.createElement('canvas');c.width=40;c.height=40;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(im,0,34,40,6,0,34,40,6);x.drawImage(im,0,0,40,34,0,dy,40,34);return SKC[k]=c.toDataURL()}
 /* 眼睛圖層型的怪物：_blink 是眼睛圖層，平常疊上去、眨眼時藏起來；膝蓋以上每 0.66 秒上下 1 格 */
@@ -285,7 +285,7 @@ function build(){
   frame.appendChild(o.sh);frame.appendChild(o.f);frame.appendChild(o.fx);frame.appendChild(o.hb);els.push(o.sh,o.f,o.fx,o.hb);mons.push(o)});
 }
 /* 怪物畫面倍率（戰棋也用，維持跟人物的相對大小） */
-function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:boss?(k==='sk'?1.5:1.2):1}
+function mscale(k,boss){return k==='dragon'?1.2:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
@@ -474,6 +474,10 @@ function idleOne(m,now){(function(){
   if(m.k==='gobw'&&m.alive){var GZ=msz('gobw'),gs=m.sc,gdy=Math.sin(now/330)>0?1:0,gx=m.lx-GZ[0]*gs/2+2*gs,gy2=m.gy-GZ[1]*gs+(1.5+gdy)*gs,gp=.7+.3*Math.sin((now+m.ph*3)/300);
     pctx.globalCompositeOperation='lighter';for(var gi=-5;gi<=5;gi++)for(var gj=-5;gj<=5;gj++){var gr=Math.sqrt(gi*gi+gj*gj);if(gr>5.3)continue;VP(gx+gi,gy2+gj,gr<2.5?'#7ec4ff':'#3d8bff',gp*(gr<2.5?.95:.75)*(1-gr/6.5))}pctx.globalCompositeOperation='source-over';
     if(Math.floor((now+m.ph*7)/170)%7===0)VP(gx+Math.round(Math.sin(now/90)*3),gy2-3-Math.floor((now%170)/60),'#e8f6ff',.85)}
+  /* 眼魔：十隻觸手末端的眼睛各自閃黃光（錯開閃爍） */
+  if(m.k==='beholder'&&m.alive){var BZ=msz('beholder'),bs=m.sc,bx0=m.lx-BZ[0]*bs/2,by0=m.gy-(m.lift||0)-BZ[1]*bs;pctx.globalCompositeOperation='lighter';
+    [[23,3],[16,4],[7,7],[30,11],[3,15],[29,19],[2,24],[31,24],[21,27],[13,29]].forEach(function(q,qi){var cx=bx0+q[0]*bs,cy=by0+q[1]*bs,fp=Math.sin((now+m.ph*3)/(230+qi*23)+qi*1.7),fa=.35+.65*Math.max(0,fp);
+      for(var bi=-3;bi<=3;bi++)for(var bj=-3;bj<=3;bj++){var br=Math.sqrt(bi*bi+bj*bj);if(br>3.3)continue;VP(cx+bi-.5,cy+bj-.5,br<1.2?'#fff2a0':br<2.3?'#ffd23a':'#ffaa10',fa*(br<1.2?.8:br<2.3?.45:.2))}});pctx.globalCompositeOperation='source-over'}
   /* 洞穴巨魔：紅眼發光＋喘氣時嘴邊冒白氣（跟著上半身起伏） */
   if(m.k==='troll'&&m.alive){var TZ=msz('troll'),ts=m.sc,tdy=Math.sin(now/200)>0?1:0,tx0=m.lx-TZ[0]*ts/2,ty0=m.gy-TZ[1]*ts,tp=.7+.3*Math.sin((now+m.ph*3)/300);
     [[18,13],[23,13]].forEach(function(q){var ex=tx0+(q[0]+.5)*ts-.5,ey=ty0+(q[1]+tdy+.5)*ts-.5;VP(ex,ey,'#ff6a4a',tp);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ex+o[0],ey+o[1],'#ff2a14',.4*tp)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){VP(ex+o[0],ey+o[1],'#ff200c',.16*tp)})});
@@ -607,8 +611,8 @@ function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*
 function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';if(v==='map'){renderMap();window.scrollTo(0,0)}}
 function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
-    var zn=el('span','zn',a.n);if(!OPEN[i]){b.classList.add('lock');zn.appendChild(el('small',null,'尚未開放'))}b.appendChild(zn);if(i===la){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
-    b.addEventListener('click',function(){if(OPEN[i])openLevels(i)});h.appendChild(b)})}
+    var zn=el('span','zn',a.n);if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}b.appendChild(zn);if(i===la){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
+    b.addEventListener('click',function(){if(OPENED(i))openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2><p class="lvh">打過一關才會開放下一關</p><div class="lvg">';
   var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
   var md=advMode();h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
@@ -633,7 +637,9 @@ function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
-var JOBI={}/* job_info.csv 依 u_sn（戰棋技能組名稱 skill_set） */,ENG=null,AREAID=['area01','area02','area03','area04','area05','area06','area07','area08'],OPEN={0:1};
+var JOBI={}/* job_info.csv 依 u_sn（戰棋技能組名稱 skill_set） */,ENG=null,AREAID=['area01','area02','area03','area04','area05','area06','area07','area08'];/* 開放的章節：森林一直開，礦洞要打完森林第 20 關（示範模式全開） */
+function OPENED(i){return i===0||(i===1&&(demo||cleared(0)>=NST))}
+var OPEN={0:1,1:1}/* 已經做好的章節 */;
 function cleared(a){if(demo)return NST-1;var m=MEMB[0]&&MEMB[0].adv||{};return m[AREAID[a]]|0}
 function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?{exp:parseInt(r.exp,10)||0,stones:parseInt(r.stones,10)||0}:rewardOf(a,l)}
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
@@ -700,7 +706,7 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
   var req=B.req||(B.req=makeReq(B)),me=MEMB[0],mail=req.share||[];
   var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+lvTxt(req.lvi)+
     (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
-    (req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>怪物森林全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
+    (req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>'+AREA[B.a].n+'全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
   $('rtxt').innerHTML=h;$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});
   saveWin(B,req,{msg:function(t){var q=$('rsave');if(q)q.textContent=t},lock:function(v){$('rok').disabled=v}})}
 
@@ -794,7 +800,7 @@ var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.p
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
   monster_04:'monsters/monster_04.png',monster_05:'monsters/monster_05.png',monster_06:'monsters/monster_06.png?v=2',monster_boss_02:'monsters/monster_boss_02.png?v=4',
   monster_07:'monsters/monster_07.png?v=1',monster_08:'monsters/monster_08.png?v=1',monster_08_blink:'monsters/monster_08_blink.png?v=1',monster_09:'monsters/monster_09.png?v=1',
-  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
+  monster_10_a:'monsters/monster_10_a.png?v=1',monster_10_b:'monsters/monster_10_b.png?v=1',monster_11:'monsters/monster_11.png?v=1',monster_11_blink:'monsters/monster_11_blink.png?v=1',monster_12:'monsters/monster_12.png?v=1',monster_12_blink:'monsters/monster_12_blink.png?v=1',monster_14:'monsters/monster_14.png?v=1',monster_boss_04:'monsters/monster_boss_04.png?v=2',monster_boss_04_blink:'monsters/monster_boss_04_blink.png?v=2',monster_17:'monsters/monster_17.png?v=1',monster_16:'monsters/monster_16.png?v=1',monster_15:'monsters/monster_15.png?v=1',monster_13:'monsters/monster_13.png?v=1',monster_13_blink:'monsters/monster_13_blink.png?v=1',monster_boss_03:'monsters/monster_boss_03.png?v=2',claw:'vfx/claw.png?v=1'};
 [['slash',4],['arrow',1],['missile',3],['thrust',1],['smash',1]].forEach(function(q){for(var k=0;k<8;k++)IMGF[q[0]+'_0'+k]='vfx/'+q[0]+'_0'+k+'.png?v='+q[1]});
 var IMG={};
 function loadImgs(){var ks=Object.keys(IMGF);return Promise.all(ks.map(function(k){return loadPx(BASE+IMGF[k])})).then(function(a){ks.forEach(function(k,i){IMG[k]=a[i]});return IMG})}

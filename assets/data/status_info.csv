@@ -116,3 +116,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 強效再生,buff,hot,0.8,m_atk,,,每回合恢復施加者魔法攻擊力 80% 的生命
 暴怒,buff,p_atk_rate,0.8,,,,物理攻擊力 +80%、物理減傷 −30%
 暴怒,buff,p_reduce_rate,-0.3,,,,
+冷凝,debuff,eva_rate,-0.3,,,,閃避率 −30%
+灼燒,debuff,dot,0.25,m_atk,fire,m,每回合造成施加者魔法攻擊力 25% 的火焰魔法傷害

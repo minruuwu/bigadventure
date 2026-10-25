@@ -23,6 +23,7 @@
 | monster_17 | 洞穴巨魔（魔晶礦洞第 11 關起） | `monster_17.png`（49×53，原圖第 1 格縮回像素大小、左右翻轉、綠皮改慘黃、眼睛改紅）；腰以上快速起伏當喘氣，紅眼光暈和嘴邊白氣由程式畫 |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
+| monster_boss_04 | 眼魔（魔晶礦洞第 10 關 Boss；顯示 1.8 倍） | `monster_boss_04.png`（33×32，本體疊上中間的大眼睛）、`monster_boss_04_blink.png`（閉眼＝原本沒有大眼睛的本體）；懸空上下飄、約 3.5 秒眨一次眼（`FLY.beholder.bl`），十隻觸手眼的黃光由程式畫 |
 | monster_boss_02 | 綠龍（怪物森林第 20 關 Boss） | `monster_boss_02.png`（79×66，原圖去背、左右翻轉、綠色壓暗後縮小；身體上半慢慢起伏，眼睛發紅光由程式畫） |
 
 規則：
