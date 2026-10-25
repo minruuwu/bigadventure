@@ -401,8 +401,9 @@ function pillarFx(d,el,L,R,gy){if(d<0||d>900)return;var cx=(L+R)/2,full=(R-L),co
   var ga=d<150?d/150:d<600?1:a,er=Math.max(6,full*.55),er2=Math.max(2,er*.28);
   VO(cx,gy-1,Math.round(er),Math.round(er2),col,.35*ga);VO(cx,gy-1,Math.round(er*.6),Math.max(1,Math.round(er2*.6)),'#ffffff',.25*ga);
   pctx.save();pctx.globalAlpha=.22*a;pctx.fillStyle=col;pctx.fillRect((cx-W/2-2)*U,0,(W+4)*U,gy*U);
-  pctx.globalAlpha=a;pctx.fillRect((cx-W/2)*U,0,W*U,gy*U);
-  pctx.fillStyle='#ffffff';var wc=W>3?W-Math.max(2,W*.32):Math.max(.5,W*.6);pctx.fillRect((cx-wc/2)*U,0,wc*U,gy*U);pctx.restore();pctx.globalAlpha=1;
+  var wc=W>3?W-Math.max(2,W*.32):Math.max(.5,W*.6);pctx.globalAlpha=a;
+  if(W>3){/* 兩邊屬性色往白色漸變（白色範圍不變） */var gx0=(cx-W/2)*U,gx1=(cx+W/2)*U,e0=(W-wc)/2/W,gr=pctx.createLinearGradient(gx0,0,gx1,0);gr.addColorStop(0,col);gr.addColorStop(Math.max(0,e0),'#ffffff');gr.addColorStop(Math.min(1,1-e0),'#ffffff');gr.addColorStop(1,col);pctx.fillStyle=gr;pctx.fillRect(gx0,0,gx1-gx0,gy*U)}
+  else{pctx.fillRect((cx-W/2)*U,0,W*U,gy*U);pctx.fillStyle='#ffffff';pctx.fillRect((cx-wc/2)*U,0,wc*U,gy*U)}pctx.restore();pctx.globalAlpha=1;
   if(d>330&&d<520)shakeY=Math.round(Math.sin(d)*1.5*U);
   var us=(d-340)/460;if(us>=0&&us<=1){var C=PCOL[pk];for(var k=0;k<28;k++){var dir=k%2?1:-1,sp=(full/2+6)*(.35+hsh(k,7)*.75),xx=cx+dir*(W/2*.6+sp*us),yy=gy-1-Math.sin(us*Math.PI)*(3+hsh(k,9)*6)-hsh(k,5)*2;VP(xx,yy,C[k%3],(1-us)*.95)}
     for(var k2=0;k2<10;k2++){var ax=cx+(hsh(k2,11)-.5)*full,ay=gy-2-us*(6+hsh(k2,13)*10);VP(ax,ay,'#ffffff',(1-us)*.8)}}}
@@ -464,11 +465,13 @@ function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
 function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
   B.ev.forEach(function(e){for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
-  function vOne(e,t,hh){var d=t-e.t;if(d<0||d>900||!e.side)return;
+  function vOne(e,t,hh){var d=t-e.t;if(d<0||d>(e.wk==="pillar"?1000:900)||!e.side)return;
     if(e.wk==='pillar'){var L=1e9,R=-1e9,gy=0,any=false;
       if(e.side==='p')(e.tg||[]).forEach(function(ti){var mo=mons[ti],mp=monPos(ti);if(!mo||!mp)return;var hw=msz(mo.k)[0]*mo.sc/2;L=Math.min(L,mp[0]-hw);R=Math.max(R,mp[0]+hw);gy=Math.max(gy,BG[cur].band+mo.dy);any=true});
       else (e.tgts||[]).forEach(function(tk){var pp=posOf(tk);L=Math.min(L,pp[0]-9);R=Math.max(R,pp[0]+9);gy=Math.max(gy,pp[1]);any=true});
-      if(any)pillarFx(d,e.el,L-4,R+4,gy);return}
+      if(any){pillarFx(d,e.el,L-4,R+4,gy);/* 被光柱打到的每個人身上也有屬性特效（雷電、火花……） */var pk2=PCOL[e.el]?e.el:'arc';
+        if(e.side==='p')(e.tg||[]).forEach(function(ti){var mp=monPos(ti),mo=mons[ti];if(mp&&mo)pBurst(pk2,mp[0],mp[1],d-440,18,VS*Math.min(1.6,mo.sc||1))});
+        else (e.tgts||[]).forEach(function(tk){var pp=posOf(tk);pBurst(pk2,pp[0],pp[1]-14,d-440,18,VS)})}return}
     if(e.side==='m'&&e.mhl){e.mhl.forEach(function(i){var mo=mons[i];if(mo&&mo.lx!=null)healFx([mo.lx,mo.gy],d,'')});return}
     if(e.side==='m'&&e.sonic){sonicFx(e,d);return}
     if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-(e.wk==='beam'?0:msz(mo.k)[0]*mo.sc*.3),msy=mp0[1];/* 射線從怪物身體中間（眼魔＝大眼）射出 */
