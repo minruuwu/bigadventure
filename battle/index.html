@@ -76,9 +76,14 @@ button{font:inherit;color:inherit}
 .bi-p canvas{position:absolute;left:-9px;top:-4px;width:48px;height:48px;image-rendering:pixelated}
 .bi-p img.mi{position:absolute;left:50%;top:0;height:36px;transform:translateX(-50%);image-rendering:pixelated}
 .bi-x{display:flex;flex-direction:column;line-height:1.15;font-size:10px;color:#c8b48a}.bi-x b{font-size:11px;color:#f0e2c4}
-.bi-sp{display:flex;gap:4px;align-items:center}.bi-sp .spd i{width:6px;height:6px}
+.bi-sp{display:flex;gap:2px;margin-top:2px}.bi-sp i{width:7px;height:7px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.bi-sp i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a,inset 1px 1px 0 #c8f0ff}
+.bi-hp{position:relative;width:78px;height:9px;background:#1a0d08;box-shadow:0 0 0 1px #080503;margin-top:2px}.bi-hp i{position:absolute;left:0;top:0;bottom:0;background:#5fd36a}.bi-hp.lo i{background:#e0b84a}.bi-hp.cr i{background:#e0503a}
+.bi-hp span{position:absolute;inset:0;text-align:center;font-size:8px;font-weight:900;line-height:9px;color:#fff;text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000}
+.bi-pop{position:absolute;z-index:1195;max-width:150px;background:#f0e2c4;color:#2b1a0d;font-size:10px;line-height:1.35;padding:4px 6px;box-shadow:0 0 0 2px #2b1a0d,2px 2px 0 2px rgba(0,0,0,.35)}
+.bi-pop b{display:block;font-size:11px}
+.bm-c button .sq{display:flex;gap:2px}.bm-c button .sq i{width:6px;height:6px;background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a}
 .bi-l{margin-top:4px;display:flex;flex-direction:column;gap:2px;max-height:130px;overflow:auto}
-.bi-s{font:inherit;font-size:11px;font-weight:900;text-align:left;color:#f0e2c4;background:#2f4a26;border:0;padding:2px 5px;display:flex;justify-content:space-between;gap:8px;cursor:pointer}.bi-s.db{background:#5a2418}.bi-s.on{box-shadow:inset 0 0 0 1px #ffe08a}
+.bi-s{font:inherit;font-size:11px;font-weight:900;text-align:left;color:#f0e2c4;background:#2f4a26;border:0;padding:1px 4px;gap:4px;justify-content:flex-start;padding-right:2px 5px;display:flex;justify-content:space-between;gap:8px;cursor:pointer}.bi-s.db{background:#5a2418}.bi-s.on{box-shadow:inset 0 0 0 1px #ffe08a}
 .bi-s em{font-style:normal;font-weight:500;font-size:10px;color:#c8b48a}
 .bi-d{margin:0 0 2px;font-size:10px;line-height:1.35;color:#eadbbd;padding:2px 4px;background:rgba(0,0,0,.35)}
 .bi-n,.bi-h{margin:0;font-size:10px;color:#9a8a6a}
@@ -1140,7 +1145,7 @@ function renderMenu(){var m=$('bmenu');if(!m||!MS)return;var u=MS.u,S=LV.S,p=MEM
   item(c1,'待機',false,'wt',function(){liveWait(u)});
   item(c1,'自動',false,'au',function(){liveAct(u,null)});
   if(MS.set){var g=sets.filter(function(x){return x.j===MS.set})[0],c2=col();
-    (g?g.sk:[]).forEach(function(k){var cd=S.cdOf(u,k.id),ok=S.canUse(u,k)&&!sealed,b=item(c2,k.n,MS.sk===k.id,cd>0?'cdn':null,function(){selSkill(k.id)},cd>0?'冷卻'+cd:k.sp+'SP');if(!ok)b.disabled=true})}
+    (g?g.sk:[]).forEach(function(k){var cd=S.cdOf(u,k.id),ok=S.canUse(u,k)&&!sealed,b=item(c2,k.n,MS.sk===k.id,cd>0?'cdn':null,function(){selSkill(k.id)},cd>0?'冷卻'+cd:null);if(!(cd>0)&&k.sp){var sq=el('span','sq');for(var q=0;q<k.sp;q++)sq.appendChild(el('i'));b.appendChild(sq)}if(!ok)b.disabled=true})}/* SP：藍色方格；冷卻中改寫冷卻 */
   if(MS.sk){var k=ENG.SK[MS.sk];if(k&&(k.t==='enemy_single'||k.t==='ally_single')){var c3=col();S.cands(u,MS.sk).forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100);item(c3,x.name,MS.tg===x,null,function(){selTarget(x)},hpP+'%')})}}
   placeMenu()}
 /* 選單位置：輪到的人的右邊；太靠右就往左推，太靠下就往上 */
@@ -1165,12 +1170,21 @@ function renderInfo(){var w=$('binfo');if(!w||!LV)return;var u=LV.view||LV.wait;
   var top=el('div','bi-t'),pic=el('div','bi-p');top.appendChild(pic);
   if(u.side==='p'&&party[u.i]){var c=document.createElement('canvas');c.width=c.height=48;try{c.getContext('2d').drawImage(party[u.i].f,0,0)}catch(e){}pic.appendChild(c)}
   else if(mons[u.i]&&mons[u.i].f.src){var im=new Image();im.src=mons[u.i].f.src;im.className='mi';pic.appendChild(im)}
-  var tx=el('div','bi-x');tx.appendChild(el('b',null,u.name));tx.appendChild(el('span',null,Math.max(0,Math.round(u.hp))+' / '+u.b.mhp));if(u.side==='p'&&u.sp!=null){var sp=el('div','bi-sp');sp.appendChild(spDots(u.sp|0));sp.appendChild(el('span',null,'SP '+(u.sp|0)));tx.appendChild(sp)}
+  /* 生命：綠條（比例）上面疊數字；SP：藍色方格 */
+  var tx=el('div','bi-x');tx.appendChild(el('b',null,u.name));var hp=Math.max(0,Math.round(u.hp)),r=Math.max(0,Math.min(1,hp/u.b.mhp)),hb=el('div','bi-hp'+(r<.25?' cr':r<.5?' lo':'')),hi=el('i');hi.style.width=(r*100)+'%';hb.appendChild(hi);hb.appendChild(el('span',null,hp+' / '+u.b.mhp));tx.appendChild(hb);
+  if(u.side==='p'&&u.sp!=null){var sp=el('div','bi-sp');for(var q=0;q<5;q++)sp.appendChild(el('i',q<(u.sp|0)?'on':null));tx.appendChild(sp)}
   top.appendChild(tx);w.appendChild(top);
-  if(LV.infoOpen){var L=el('div','bi-l'),sts=(u.st||[]).filter(function(x){return !x.hidden});if(!sts.length)L.appendChild(el('p','bi-n','沒有狀態'));
-    sts.forEach(function(x){var def=ENG.STS[x.n]||{},b=el('button','bi-s'+(def.pol==='debuff'?' db':'')+(LV.stOpen===x.n?' on':''));b.type='button';b.appendChild(el('b',null,x.n));b.appendChild(el('em',null,x.turns==='attack'?'到下次攻擊':(x.turns>0?'剩 '+x.turns+' 回合':'')));
-      b.addEventListener('click',function(ev){ev.stopPropagation();LV.stOpen=LV.stOpen===x.n?null:x.n;renderInfo()});L.appendChild(b);if(LV.stOpen===x.n)L.appendChild(el('p','bi-d',def.d||''))});
-    w.appendChild(L);w.appendChild(el('p','bi-h','點戰場上的人可以看他的狀態'))}}
+  /* 狀態：有才列；回合數縮寫（3 回／下次攻擊）；點狀態在右邊跳一個說明小窗，一次只開一個 */
+  var sts=(u.st||[]).filter(function(x){return !x.hidden});popClose();
+  if(LV.infoOpen&&sts.length){var L=el('div','bi-l');
+    sts.forEach(function(x){var def=ENG.STS[x.n]||{},b=el('button','bi-s'+(def.pol==='debuff'?' db':''));b.type='button';b.appendChild(el('b',null,x.n));b.appendChild(el('em',null,x.turns==='attack'?'攻擊前':(x.turns>0?x.turns+'回':'')));
+      b.addEventListener('click',function(ev){ev.stopPropagation();if(LV.stOpen===x.n){popClose();return}popOpen(b,x.n,def.d||'')});L.appendChild(b)});
+    w.appendChild(L)}}
+function popClose(){var q=$('bipop');if(q)q.remove();if(LV)LV.stOpen=null;[].forEach.call(document.querySelectorAll('.bi-s.on'),function(b){b.classList.remove('on')})}
+function popOpen(b,n,d){popClose();LV.stOpen=n;b.classList.add('on');var q=el('div','bi-pop');q.id='bipop';q.appendChild(el('b',null,n));q.appendChild(document.createTextNode(d||'—'));frame.appendChild(q);
+  var fr=frame.getBoundingClientRect(),br=b.getBoundingClientRect(),w2=$('binfo').getBoundingClientRect();q.style.left=Math.round(w2.right-fr.left+4)+'px';q.style.top=Math.round(br.top-fr.top)+'px';
+  var qr=q.getBoundingClientRect();if(qr.bottom>fr.bottom-4)q.style.top=Math.max(4,Math.round(fr.bottom-fr.top-qr.height-4))+'px'}
+document.addEventListener('click',function(e){if($('bipop')&&!e.target.closest('.bi-s'))popClose()},true);
 document.addEventListener('click',function(e){var w=e.target.closest('#binfo');if(!w||!LV||e.target.closest('.bi-s'))return;LV.infoOpen=!LV.infoOpen;LV.stOpen=null;if(!LV.infoOpen&&LV.wait)LV.view=LV.wait;renderInfo()});
 function liveBind(){party.forEach(function(p,k){p.f.style.pointerEvents='auto';p.f.style.cursor='pointer';p.f.onclick=function(ev){ev.stopPropagation();LV.view=LV.P[k];LV.infoOpen=true;LV.stOpen=null;renderInfo()}});
   mons.forEach(function(m,i){m.f.style.pointerEvents='auto';m.f.style.cursor='pointer';m.f.onclick=function(ev){ev.stopPropagation();if(!LV.M[i]||LV.M[i].dead)return;LV.view=LV.M[i];LV.infoOpen=true;LV.stOpen=null;renderInfo()}})}
