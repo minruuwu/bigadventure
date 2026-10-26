@@ -197,7 +197,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=6"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=30"></script>
+<script src="engine.js?v=31"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=17"></script>
 <script>
@@ -1195,9 +1195,14 @@ function riftDays(i){return [i,(i+6)%7,(i+5)%7].sort().map(function(d){return RW
 function riftUsed(){var me=MEMB[0]||{};return me.riftDay===tpeDay()?(me.riftN|0):0}
 function riftBest(R){var me=MEMB[0]||{};return ((me.rift||{})[R.room])|0}
 /* 秘境等級 → 怪物強度：換算成主線的總關數（建議等級 ≈ 關數 × 3） */
-function riftMons(rf){var R=RIFTS[rf.i],g=Math.max(1,Math.round(rf.lv/3)),out=[];
-  if(R.young&&ENG.mon[R.young])for(var q=0;q<2;q++){var y=BattleEngine.monster(ENG.mon[R.young],g,ENG);y.name+=' '+'AB'[q];y.stg=g;y.hs=1;out.push(y)}
-  var b=BattleEngine.monster(ENG.mon[R.boss],g,ENG);b.stg=g;b.hs=1;out.push(b);return out}
+/* 秘境怪物：關卡等級 = 秘境 Lv/3，再乘「越高越陡」的秘境曲線：血量 ×(1+Lv/50)、攻擊 ×(1+Lv/100)，
+   再乘管理後台的秘境專用倍率（RMUL）；全域怪物強度倍率已在 BattleEngine.monster 裡乘過。召喚物、變身後沿用同樣倍率（hs、as） */
+var RMUL={hp:1,atk:1};
+function riftScale(lv){return{hs:(1+lv/50)*RMUL.hp,as:(1+lv/100)*RMUL.atk}}
+function riftMons(rf){var R=RIFTS[rf.i],g=Math.max(1,Math.round(rf.lv/3)),out=[],sc=riftScale(rf.lv);
+  var mk=function(r){var m=BattleEngine.monster(r,g,ENG);m.b.mhp=Math.round(m.b.mhp*sc.hs);m.b.patk=Math.round(m.b.patk*sc.as);m.b.matk=Math.round(m.b.matk*sc.as);m.stg=g;m.hs=sc.hs;m.as=sc.as;return m};
+  if(R.young&&ENG.mon[R.young])for(var q=0;q<2;q++){var y=mk(ENG.mon[R.young]);y.name+=' '+'AB'[q];out.push(y)}
+  out.push(mk(ENG.mon[R.boss]));return out}
 function battleTitle(b){if(b&&b.rift){var R=RIFTS[b.rift.i]||{};return '秘境・'+(R.n||'')+'　Lv'+b.rift.lv}return AREA[b.a].n+'　第 '+b.l+' 關'+(isBoss(b.a,b.l)?'（Boss）':'')}
 /* 背景比畫面寬：置中、不捲動 */
 function riftCenter(){if(!B||!B.rift)return;var fw=frame.clientWidth,tw=tileW();off=Math.max(0,(tw-fw)/2)}
@@ -1627,9 +1632,9 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
-    return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null,FB.rewardGet?FB.rewardGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];if(R[2])REW=R[2];/* 獎勵等級遞減（管理後台） *//* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})
+    return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null,FB.rewardGet?FB.rewardGet().catch(function(){return null}):null,FB.riftMulGet?FB.riftMulGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];if(R[3])RMUL=R[3];/* 秘境專用倍率（管理後台） */if(R[2])REW=R[2];/* 獎勵等級遞減（管理後台） *//* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=36"></script>
+<script type="module" src="../common/fb.js?v=37"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

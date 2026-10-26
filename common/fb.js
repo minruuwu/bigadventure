@@ -96,6 +96,9 @@ const FB = {
   // 怪物強度倍率：meta/difficulty = {hp, atk}（0.5～2，預設 1）；所有人可讀、只有管理者能寫
   async difficultyGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'difficulty')), 6000); const d = s.exists() ? s.data() : {}; const f = v => { v = Number(v); return v >= 0.5 && v <= 2 ? v : 1; }; return { hp: f(d.hp), atk: f(d.atk) }; },
   async difficultySet(hp, atk) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'difficulty'), { hp: Number(hp), atk: Number(atk) })); },
+  /* 秘境專用倍率（meta/rift）：疊在全域怪物強度倍率上面，只影響秘境；範圍 0.5～3 */
+  async riftMulGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'rift')), 6000); const d = s.exists() ? s.data() : {}; const f = v => { v = Number(v); return v >= 0.5 && v <= 3 ? v : 1; }; return { hp: f(d.hp), atk: f(d.atk) }; },
+  async riftMulSet(hp, atk) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'rift'), { hp: Number(hp), atk: Number(atk) })); },
   // 獎勵等級遞減：meta/reward = {step, cut, floor}（戰力每超過建議等級 step 級，經驗與鍛造石少 cut，最低保留 floor）；所有人可讀、只有管理者能寫
   async rewardGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'reward')), 6000); const d = s.exists() ? s.data() : {}; const st = parseInt(d.step, 10), c = Number(d.cut), f = Number(d.floor);
     return { step: st >= 1 && st <= 50 ? st : 3, cut: c >= 0 && c <= 1 ? c : 0.1, floor: f >= 0 && f <= 1 ? f : 0.1 }; },

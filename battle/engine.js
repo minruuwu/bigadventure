@@ -346,7 +346,7 @@
       var tfx = u.side === 'm' && !u.flags.tf ? (u.special || []).filter(function (x) { return x.k === 'transform' && x.tr === 'death' && D.mon[x.cond] })[0] : null;
       if (tfx) {
         u.flags.tf = 1; var nu = monster(D.mon[tfx.cond], u.stg || 1, D), old = u.name;
-        u.name = nu.name; u.mid = nu.mid; u.sprite = nu.sprite; u.b = nu.b; u.b.mhp = Math.round(u.b.mhp * (u.hs || 1)); u.hp = u.b.mhp; u.st = [];
+        u.name = nu.name; u.mid = nu.mid; u.sprite = nu.sprite; u.b = nu.b; u.b.mhp = Math.round(u.b.mhp * (u.hs || 1)); if (u.as) { u.b.patk = Math.round(u.b.patk * u.as); u.b.matk = Math.round(u.b.matk * u.as) } /* as = 秘境攻擊倍率，變身後保留 */ u.hp = u.b.mhp; u.st = [];
         u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
         u.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = u });
         if (e) e.txt += '；' + old + ' 倒下了';
@@ -736,7 +736,7 @@
         if (aliveN >= (num(r.value) || 1)) { if (allM) e.txt += '，但場上已經滿了'; return }
         var ch = String(r.apply_chance || '').trim() === '' ? 1 : num(r.apply_chance);
         if (RND() >= ch) { e.txt += '，但沒有同伴回應'; return }
-        var nu = monster(D.mon[r.effect], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs;
+        var nu = monster(D.mon[r.effect], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs; if (u.as) { nu.b.patk = Math.round(nu.b.patk * u.as); nu.b.matk = Math.round(nu.b.matk * u.as); nu.as = u.as } /* 召喚物跟召喚者同樣的秘境倍率 */
         var same = M.filter(function (m) { return m.mid === r.effect }).length; nu.name += ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.min(25, same)];
         nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0; nu.summoned = true;
         M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
