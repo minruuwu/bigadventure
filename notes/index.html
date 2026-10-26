@@ -273,7 +273,10 @@ function build(c){
   D.areas.forEach(function(a){Object.keys(a.first).sort(function(x,y){return a.first[x]-a.first[y]||(x<y?-1:1)}).forEach(function(id){var k=keyOf(id);if(have[k]){var o=have[k];if(o.a===a&&a.first[id]<a.first[o.id])a.first[o.id]=a.first[id];delete a.first[id]}else have[k]={a:a,id:id}})});
   /* 圖鑑順序：主線照章節、關卡先後；秘境的龍（monster_info 的 rift 欄）排在最後，照月火水木金土日 */
   D.entries=[];var inDex={};D.areas.forEach(function(a,i){Object.keys(a.first).sort(function(x,y){return a.first[x]-a.first[y]||(x<y?-1:1)}).forEach(function(id){D.entries.push({id:id,a:a,i:i});inDex[keyOf(id)]=1})});
-  D.monList.filter(function(m){return m.rift&&RIFT.indexOf(m.rift)>=0&&!inDex[keyOf(m.monster_id)]}).sort(function(x,y){return RIFT.indexOf(x.rift)-RIFT.indexOf(y.rift)||(x.boss==='1'?0:1)-(y.boss==='1'?0:1)}).forEach(function(m){inDex[keyOf(m.monster_id)]=1;D.entries.push({id:m.monster_id})});
+  /* 變身後的形態（例如冥屍龍 → 亡骸‧冥屍龍）：記下來源，圖鑑排在本體後面 */
+  D.tfFrom={};D.monList.forEach(function(m){String(m.passive||'').split(';').forEach(function(pid){(D.eff[pid.trim()]||[]).forEach(function(r){if(r.effect==='transform'&&D.mon[r.condition])D.tfFrom[r.condition]=m.monster_id})})});
+  D.monList.filter(function(m){return m.rift&&RIFT.indexOf(m.rift)>=0&&!inDex[keyOf(m.monster_id)]}).sort(function(x,y){return RIFT.indexOf(x.rift)-RIFT.indexOf(y.rift)||(x.boss==='1'?0:1)-(y.boss==='1'?0:1)}).forEach(function(m){inDex[keyOf(m.monster_id)]=1;D.entries.push({id:m.monster_id});
+    Object.keys(D.tfFrom).forEach(function(t){if(D.tfFrom[t]===m.monster_id&&!inDex[keyOf(t)]){inDex[keyOf(t)]=1;D.entries.push({id:t,from:m.monster_id})}})});
   /* 排名 */
   STATS.forEach(function(s){var vals=D.monList.map(function(m){return num(m[s[0]])}).sort(function(a,b){return a-b});D['q_'+s[0]]=vals});
 }
@@ -289,7 +292,7 @@ function areaOpen(i){if(!D.areas[i].open)return false;return i===0||cleared(D.ar
 /* 看得到：已開放章節裡、目前能打到的關（打完的下一關）以前出現的怪 */
 function seen(a,i,id){if(!areaOpen(i))return false;var reach=Math.min(NST,cleared(a.id)+1);return a.first[id]<=reach}
 /* 圖鑑看得到：秘境的龍一開始就看得到；其他照主線進度 */
-function seenE(E){var m=D.mon[E.id];if(m&&m.rift)return true;return E.a?seen(E.a,E.i,E.id):false}
+function seenE(E){var m=D.mon[E.id];if(m&&m.rift)return true;if(E.from){var f=D.mon[E.from];return !!(f&&f.rift)}return E.a?seen(E.a,E.i,E.id):false}
 
 /* ================= 畫面 ================= */
 var SPR=[];/* 會動的怪物圖：{img, k, ph, sc, base} */
@@ -341,7 +344,7 @@ function icon(src){var i=el('img','px');i.alt='';i.src=src;i.onerror=function(){
 
 function openMon(id){var m=D.mon[id];openSheet(function(s){
   var h=el('h2',null,m.monster_name);if(m.boss==='1')h.appendChild(el('span','tag','首領'));s.appendChild(h);
-  var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});if(m.rift&&RIFT.indexOf(m.rift)>=0)where.push('秘境・'+m.rift+'曜之間（週'+riftDays(m.rift).join('、')+'）');s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
+  var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});if(m.rift&&RIFT.indexOf(m.rift)>=0)where.push('秘境・'+m.rift+'曜之間（週'+riftDays(m.rift).join('、')+'）');var tf=D.tfFrom&&D.mon[D.tfFrom[id]];if(tf)where.push(tf.monster_name+' 倒下後復活'+(tf.rift?'（秘境・'+tf.rift+'曜之間）':''));s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
   var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.style.height=STG_H+'px';stg.appendChild(sh);o=bigSprite(m.sprite,stg);
   sh.style.width=Math.round(sz[0]*o.sc*.7)+'px';sh.style.marginLeft=-Math.round(sz[0]*o.sc*.35)+'px';sh.style.bottom=(STG_G-3)+'px';s.appendChild(stg);
   if(m.monster_desc)s.appendChild(el('p','desc',m.monster_desc));

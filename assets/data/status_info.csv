@@ -148,3 +148,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 雷激化,buff,p_damage_rate,0.3,,,,物理傷害 +30%、暴擊傷害 +50%、閃避率 +20%
 雷激化,buff,crit_damage_rate,0.5,,,,
 雷激化,buff,eva_rate,0.2,,,,
+瘴氣,debuff,dark_res_rate,-0.2,,,,黑暗抗性 −20%，物理、魔法減傷 −15%
+瘴氣,debuff,p_reduce_rate,-0.15,,,,
+瘴氣,debuff,m_reduce_rate,-0.15,,,,
+暗蝕,debuff,dark_res_rate,-0.4,,,,黑暗抗性 −40%

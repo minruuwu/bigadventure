@@ -145,6 +145,7 @@
         if (e.effect_kind !== 'passive' || !e.effect) return;
         var v = num(e.value);
         if (e.trigger || e.effect === 'apply_status') out.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type });
+        else if (e.target === 'ally_all' && e.effect === 'lifesteal') return; /* 全隊吸血走靈氣（monAura），自己不重複算 */
         else if (['lifesteal', 'extra_dmg', 'auto_cleanse', 'regen'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* regen = 每次輪到牠行動時恢復最大生命 v */
       });
     });
@@ -331,6 +332,17 @@
       if (u.dead || u.hp > 0) return false;
       u.hp = 0;
       if (swallowed(u)) { u.flags.r17 = 1; u.flags.grace = 1 } /* 在肚子裡被消化完：不能復活 */
+      /* 變身（冥屍龍的亡骸化）：倒下時化為另一隻怪復活一次，生命全滿、狀態清空，召喚出來的同伴留著 */
+      var tfx = u.side === 'm' && !u.flags.tf ? (u.special || []).filter(function (x) { return x.k === 'transform' && x.tr === 'death' && D.mon[x.cond] })[0] : null;
+      if (tfx) {
+        u.flags.tf = 1; var nu = monster(D.mon[tfx.cond], u.stg || 1, D), old = u.name;
+        u.name = nu.name; u.mid = nu.mid; u.sprite = nu.sprite; u.b = nu.b; u.b.mhp = Math.round(u.b.mhp * (u.hs || 1)); u.hp = u.b.mhp; u.st = [];
+        u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
+        u.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = u });
+        if (e) e.txt += '；' + old + ' 倒下了';
+        var tr = line({ side: 'm', a: u.i, txt: old + ' 化為「' + u.name + '」復活了！', tf: [u.i, u.sprite, u.name] }); tr.hp = hpSnap();
+        return false;
+      }
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
       if (u.runes.indexOf('rune17') >= 0 && !u.flags.r17) { u.flags.r17 = 1; revive(u, RV(D, 'rune17', 0, 0.5), '先祖之鄉', e); return false }
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
@@ -649,6 +661,8 @@
             if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' || r.k === 'swallow' }) }); var dn = pickOne(dbs); (function (t) { rq(e, 'rune13', function (r) { if (t.dead || !applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) return false; r.txt = u.name + ' 的「夢靨之預兆」：' + t.name + ' 陷入「' + dn + '」' + RV(D, 'rune13', 1, 3) + ' 回合'; fxOn(r, 'nm', u, [t]) }) })(t) }
             /* 每一下附加的狀態 */
             effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'per_hit' && !t.dead) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, null) });
+            /* 即死（死之敕命）：每次命中判定，對首領無效；倒下時照常可以被先祖之鄉、神恩救回 */
+            if (!t.dead && t.hp > 0 && !t.boss && real > 0) effs.forEach(function (r) { if (r.effect_kind === 'instakill' && !t.dead && t.hp > 0 && RND() < (num(r.apply_chance) || 0)) { t.hp = 0; (e._x = e._x || []).push(t.name + ' 被「' + sk.n + '」即死') } });
             reactPost(t, u, x.re, e);
             checkDeath(t, e);
           });
@@ -660,7 +674,7 @@
         e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs; return H > 1 ? t.name + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? t.name + ' 閃開了' : hs[0] === '擋下' ? t.name + ' 擋下了' : hs[0] === '無效' ? t.name + ' 不受影響' : t.name + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
-        var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
+        var ls = sv(u, 'lifesteal') + auraVal(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
         if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
         /* 熊之力量：濺射 */
         if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bAmt = Math.round(totalDmg * RV(D, 'rune22', 0, 0.3));
