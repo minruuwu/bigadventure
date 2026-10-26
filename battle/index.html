@@ -160,7 +160,7 @@ html,body,*{touch-action:manipulation}
  <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
 </div>
 <script src="../common/doll.js?v=12"></script>
-<script src="../common/aura.js?v=5"></script>
+<script src="../common/aura.js?v=6"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="engine.js?v=29"></script>
@@ -347,7 +347,7 @@ function build(){
 /* 個別怪物的影子：w = 寬（圖寬的比例）、h = 高、up = 影子上緣離地面幾格、dx = 左右偏移；巨蛛的腳張很開，前腳比較高，影子要高一點才接得到 */
 var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
 /* 大型龍王：站在後面（DFORM 站位）、超出畫面右邊沒關係 */
-var BIGD={dragon:1,sdragon:1,osiris:1,fdragon:1,wdragon:1,idragon:1,ldragon:1,udragon:1,u2dragon:1};var FXFRONT={fdragon:1,wdragon:1,idragon:1,ldragon:1,lydragon:1,udragon:1,u2dragon:1,bonedragon:1,wydragon:1,fydragon:1,iydragon:1,dragon:1,bdragon:1};/* 待機特效畫在怪物前面（身上的火、繞身的風） */
+var BIGD={dragon:1,sdragon:1,osiris:1,fdragon:1,wdragon:1,idragon:1,ldragon:1,udragon:1,u2dragon:1};var AUOFF={u2dragon:[-9,-3]};/* 怪物靈氣光環圓心偏移（格），同 common/monsters.js */var FXFRONT={fdragon:1,wdragon:1,idragon:1,ldragon:1,lydragon:1,udragon:1,u2dragon:1,bonedragon:1,wydragon:1,fydragon:1,iydragon:1,dragon:1,bdragon:1};/* 待機特效畫在怪物前面（身上的火、繞身的風） */
 function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:k==='fdragon'?.95:k==='wdragon'?.8:k==='wydragon'?.85:k==='idragon'?.85:k==='ldragon'?.9:k==='udragon'?1.2:k==='u2dragon'?1.2:k==='bonedragon'?.75:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* SP 點數：血條下面一排 5 格（手動戰鬥測試） */
@@ -502,10 +502,10 @@ function drawAura(t,now){var W=frame.clientWidth,H=frame.clientHeight;if(auc.wid
   var un=[];party.forEach(function(p,k){var ids=VFXT?(k===0&&!VT.auAlly?VTAU():[]):p.au||[];if(!ids.length||!p.auOk)return;B._auH.push([k,ids]);ids.forEach(function(id){if(un.indexOf(id)<0)un.push(id)})});
   if(VFXT&&VT.auAlly)un=VTAU();
   party.forEach(function(p,k){if(p.sx==null||!p.auOk)return;var h=B._auH.filter(function(q){return q[0]===k})[0],ids=h?h[1]:un;if(!ids.length)return;Aura.ring(aux,p.sx,p.gy-.5,U,now+p.ph,ids,!h)});
-  /* 怪物靈氣（歐西里斯的審判靈氣）：持有者腳下大一號的光環，其他活著的怪物淡光環 */var mh=mons.filter(function(m){return m.au&&m.au.length&&m.alive});if(mh.length){var mu=mh[0].au;mons.forEach(function(m){if(!m.alive||m.lx==null)return;var own=m.au&&m.au.length;Aura.ring(aux,m.lx,m.gy-.5,U,now+m.ph,own?m.au:mu,!own,own?1.8:1)})}aux.globalAlpha=1}
+  /* 怪物靈氣（歐西里斯的審判靈氣）：持有者腳下大一號的光環，其他活著的怪物淡光環 */var mh=mons.filter(function(m){return m.au&&m.au.length&&m.alive});if(mh.length){var mu=mh[0].au;mons.forEach(function(m){if(!m.alive||m.lx==null)return;var own=m.au&&m.au.length,ao=AUOFF[m.k]||[0,0];Aura.ring(aux,m.lx+ao[0]*m.sc,m.gy-.5+ao[1]*m.sc,U,now+m.ph,own?m.au:mu,!own,own?1.8:1)})}aux.globalAlpha=1}
 /* 前景：靈氣光點、歌曲施放時飄出的音符、英雄之歌期間詩人偶爾飄音符 */
 function drawSongs(t,now){if(!B||view!=='battle')return;
-  (B._auH||[]).forEach(function(q){var p=party[q[0]];if(p&&p.sx!=null)Aura.motes(pctx,p.sx,p.gy-.5,U,now+p.ph,q[1])});mons.forEach(function(m){if(m.au&&m.au.length&&m.alive)Aura.motes(pctx,m.lx,m.gy-.5,U,now+m.ph,m.au,1.8)});
+  (B._auH||[]).forEach(function(q){var p=party[q[0]];if(p&&p.sx!=null)Aura.motes(pctx,p.sx,p.gy-.5,U,now+p.ph,q[1])});mons.forEach(function(m){if(m.au&&m.au.length&&m.alive){var ao=AUOFF[m.k]||[0,0];Aura.motes(pctx,m.lx+ao[0]*m.sc,m.gy-.5+ao[1]*m.sc,U,now+m.ph,m.au,1.8)}});
   var bard=VFXT?(VT.st&&VT.st['英雄之歌']?0:-1):-1;
   B.ev.forEach(function(e){if(!e.song||e.side!=='p')return;if(e.sid==='skill162'&&e.t<=t)bard=e.a;var d=t-e.t;if(d<0||d>1100)return;var p=party[e.a];if(!p||p.sx==null)return;
     for(var k=0;k<5;k++){var u=(d-k*90)/800;if(u<0||u>1)continue;var dir=k%2?1:-1;drawNote(p.sx+dir*(4+u*10)+Math.sin(u*6+k)*1.5,p.top+6-u*16,k,e.song,Math.sin(u*Math.PI))}});

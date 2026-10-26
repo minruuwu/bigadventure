@@ -212,5 +212,7 @@ function cropSl(m){if(!m)return null;var c=document.createElement('canvas');c.wi
   return true});return ready}
 function lift(k,now,ph){return FLY[k]?flyLift(k,now,ph):FLOAT[k]?floatLift(k,now,ph):0}
 function squash(k,now,ph){if(k==='slime'||k==='pslime'){var b=Math.sin(now/260+ph);return[1-b*.03,1+b*.05]}if(WORMS[k])return wormSq(now,ph);return null}
-g.Monsters={idle:idle,load:load,src:msrc,size:msz,lift:lift,squash:squash,scale:function(k){return mscale(k,false)},glow:monGlow,fly:function(k){return !!FLY[k]}};
+/* 靈氣光環的圓心偏移（格）：亡骸‧冥屍龍身體偏左，圓心往左上移 */
+var AUOFF={u2dragon:[-9,-3]};function auOff(k){return AUOFF[k]||[0,0]}
+g.Monsters={auOff:auOff,idle:idle,load:load,src:msrc,size:msz,lift:lift,squash:squash,scale:function(k){return mscale(k,false)},glow:monGlow,fly:function(k){return !!FLY[k]}};
 })(this);

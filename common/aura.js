@@ -44,14 +44,14 @@
       var col = d.m === 'rainbow' ? d.c[Math.floor((i / N * 7 + t / 600) % 7)] : (hl > .5 ? d.c[0] : d.c[1]);
       px(ctx, xx, yy, s, col, A * (.38 + .55 * hl));
     }
-    if (!faint) { var g2 = .12 * A; for (var j = -rx + 2; j <= rx - 2; j++) { var w = Math.sqrt(1 - (j / rx) * (j / rx)) * ry; for (var k = -Math.floor(w) + 1; k < w; k++) px(ctx, x + j, y + k, s, d.c[d.m === 'rainbow' ? 5 : 1], g2) } }
+    if (!faint) { var g2 = (d.m === 'blood' ? .22 : .12) * A; for (var j = -rx + 2; j <= rx - 2; j++) { var w = Math.sqrt(1 - (j / rx) * (j / rx)) * ry; for (var k = -Math.floor(w) + 1; k < w; k++) px(ctx, x + j, y + k, s, d.c[d.m === 'rainbow' ? 5 : 1], g2) } }
     ctx.globalAlpha = 1;
   }
   /* 往上飄的光點：4 顆，從光環上升約 16 格、淡出 */
   function motes(ctx, x, y, s, t, list, K) {
-    K = K || 1; var q = pick(list, t); if (!q) return; var d = q.d, A = q.a;
-    for (var i = 0; i < 4; i++) {
-      var per = 1700 + i * 230, u = ((t + i * 520) % per) / per, cyc = Math.floor((t + i * 520) / per), ox = (((cyc * 7 + i * 5) % 15) - 7) * K, mx = x + ox + Math.sin(u * 5 + i) * 1, my = y - 1 - u * 16 * K, a = A * Math.sin(u * Math.PI) * .95;
+    K = K || 1; var q = pick(list, t); if (!q) return; var d = q.d, A = q.a, NM = d.m === 'blood' ? 11 : 4;/* 噬血光環的血滴比較多、看起來比較兇 */
+    for (var i = 0; i < NM; i++) {
+      var per = 1700 + i * 230, u = ((t + i * 520) % per) / per, cyc = Math.floor((t + i * 520) / per), ox = (((cyc * 7 + i * 5) % 15) - 7) * K * (NM > 4 ? 1.25 : 1), mx = x + ox + Math.sin(u * 5 + i) * 1, my = y - 1 - u * 16 * K, a = A * Math.sin(u * Math.PI) * .95;
       var c = d.m === 'rainbow' ? d.c[(cyc + i) % 7] : d.c[i % 2 ? 1 : 0];
       if (d.m === 'shield') { pat(ctx, mx - 1, my - 1, s, SHIELD, d.c[1], a); px(ctx, mx, my - 1, s, d.c[0], a) }
       else if (d.m === 'rune') { pat(ctx, mx - 1, my - 1, s, RUNE, c, a); px(ctx, mx, my, s, d.c[0], a * .6) }
