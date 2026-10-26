@@ -147,6 +147,13 @@ function idleOne(m,now){(function(){
   if(m.k==='iydragon'&&m.alive){var IY=msz('iydragon'),iys=m.sc,iyt=now+m.ph*3;
     for(var m8=0;m8<4;m8++){var pm8=7000+m8*1500,um8=((iyt+m8*1999)%pm8)/pm8,am8=um8*Math.PI*2*(m8%2?1:-1)+m8,cxm8=m.lx+Math.cos(am8)*IY[0]*iys*.5,cym8=m.gy-(m.lift||0)-IY[1]*iys*.22+Math.sin(am8)*IY[1]*iys*.12,rm8=(5+hsh(m8,4)*4)*iys,dm8=.55+.45*Math.sin(iyt/(1200+m8*190)+m8);
       for(var a6=-Math.ceil(rm8);a6<=Math.ceil(rm8);a6++)for(var b6=-Math.ceil(rm8*.55);b6<=Math.ceil(rm8*.55);b6++){var r6=Math.sqrt(a6*a6+(b6/.55)*(b6/.55))/rm8;if(r6>1)continue;if(r6>.55&&((Math.round(cxm8+a6)+Math.round(cym8+b6))&1))continue;VP(cxm8+a6,cym8+b6,r6<.4?'#f2fbff':'#cfeaff',(r6<.4?.24:.14)*dm8)}}}
+  /* 翠綠龍／綠幼龍：葉子在身邊繞著飛舞，邊飛邊翻面（幼龍少一點）；繞到後面的比較淡 */
+  if((m.k==='dragon'||m.k==='bdragon')&&m.alive){var GZ3=msz(m.k),gs3=m.sc,gcx=m.lx,gcy=m.gy-(m.lift||0)-GZ3[1]*gs3*.5,gt=now+m.ph*3,NL=m.k==='dragon'?9:4,
+    LF=[['..OO.','.OXHO','OXXHO','OHXO.','.OO..'],['.OOOO.','OXXHHO','.OOOO.'],['.OO..','OHXO.','OXXHO','.OXHO','..OO.'],['.O.','OHO','OXO','OXO','.O.']];/* 葉子四格翻轉：斜、扁、反斜、側面；O = 深綠描邊、H = 亮面 */
+    for(var l9=0;l9<NL;l9++){var pl=(m.k==='dragon'?4200:3200)+l9*380,ul=((gt+l9*733)%pl)/pl,al9=ul*Math.PI*2*(l9%3?1:-1)+l9*1.3,rx9=GZ3[0]*gs3*(.42+.14*hsh(l9,1)),ry9=GZ3[1]*gs3*(.3+.12*hsh(l9,2)),
+      lx9=gcx+Math.cos(al9)*rx9+Math.sin(gt/500+l9)*2,ly9=gcy+Math.sin(al9)*ry9*.55+Math.sin(gt/330+l9*2)*2.5-(.5-hsh(l9,5))*GZ3[1]*gs3*.3,back=Math.sin(al9)<0,fr=Math.floor(gt/(160+l9*13)+l9)%4,pat=LF[fr],
+      c1=l9%3===0?'#e0ff8a':l9%3===1?'#a8f060':'#c8f070',c2=l9%3===0?'#8ad040':l9%3===1?'#5cb83a':'#78c840',la=(back?.45:.95)*(.75+.25*Math.sin(gt/400+l9));
+      for(var r9=0;r9<pat.length;r9++)for(var q9=0;q9<pat[r9].length;q9++){var ch9=pat[r9].charAt(q9);if(ch9==='.')continue;VP(lx9+q9-2,ly9+r9-2,ch9==='O'?'#1a4410':ch9==='H'?c1:c2,ch9==='O'?la*.85:la)}}}
   if(m.k==='fwraith'&&m.alive){var WZ=msz('fwraith'),ws=m.sc,wx0=m.lx-WZ[0]*ws/2,wy0=m.gy-(m.lift||0)-WZ[1]*ws,wt=now+m.ph*3,fbx=wx0+5*ws,fby=wy0+17*ws;pctx.globalCompositeOperation='lighter';
     [-2,-1,0,1,2,3].forEach(function(q){var hh=(q===0||q===1?13:Math.abs(q-.5)<2?10:6)*ws*(.7+.3*Math.sin(wt/(60+Math.abs(q)*13)+q*2.1)),sw3=Math.sin(wt/120+q)*1.3;for(var k6=0;k6<hh;k6++){var f6=k6/hh;VP(fbx+q*ws*.8+sw3*f6*2,fby-k6,f6<.3?'#fff2a0':f6<.65?'#ff9a2a':'#e0401a',(f6>.8?.35:.6)*(1-f6*.3))}});
     for(var e6=0;e6<3;e6++){var eu=((wt+e6*430)%1300)/1300,ex6=fbx+Math.sin(eu*7+e6)*3,ey6=fby-12*ws-eu*14;VP(ex6,ey6,eu<.5?'#ffd060':'#ff6a1a',1-eu)}
