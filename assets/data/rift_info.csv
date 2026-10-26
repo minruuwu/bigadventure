@@ -1,0 +1,8 @@
+room,rift,room_name,runes,color_1,color_2
+r1,月,月曜之間,rune12;rune04;rune20;rune09,#2f9e88,#0b302a
+r2,火,火曜之間,rune01;rune18;rune10;rune05,#d0502c,#4a140a
+r3,水,水曜之間,rune02;rune07;rune16;rune15,#3a8cd0,#0e2a4a
+r4,木,木曜之間,rune06;rune22;rune17;rune24,#4f9a34,#14300c
+r5,金,金曜之間,rune03;rune19;rune08;rune11,#c9a224,#3e300a
+r6,土,土曜之間,rune13;rune25;rune26,#6a4f8a,#1c1230
+r7,日,日曜之間,rune14;rune21;rune23,#d89a3e,#4a2c0c

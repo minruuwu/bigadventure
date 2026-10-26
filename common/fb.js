@@ -114,6 +114,16 @@ const FB = {
     return { why, fix, fixable: fix.stones != null || Object.keys(fix.lv).length > 0, types: 'stones=' + ty(F.stones) }; },
   // 鍛造存檔：鍛造石用「減少花掉的量」寫入（不寫絕對值），手機上的舊快取不會蓋掉伺服器上的數字
   async saveForge(spent, lvs, fix) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = {}; if (fix && fix.stones != null) f.stones = Math.max(0, fix.stones - spent); else if (spent > 0) f.stones = increment(-spent); if (fix && fix.lv) Object.keys(fix.lv).forEach(k => { if (!lvs[k]) f['weapons.' + k + '.lv'] = fix.lv[k]; }); Object.keys(lvs).forEach(k => { const v = lvs[k]; f['weapons.' + k + '.lv'] = v.lv; f['weapons.' + k + '.pts'] = v.pts; f['weapons.' + k + '.ench'] = v.ench; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], lvs[k]); }); mePatch({ stones: Math.max(0, ((c && c.player.stones) | 0) - spent), weapons }); },
+  // 符文碎片兌換：x 的碎片 −10、id 的碎片 +1（increment，不怕快取舊）
+  async runeConvert(x, id) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), { ['rs.' + x]: increment(-10), ['rs.' + id]: increment(1) })); const c = meGet(), rs = Object.assign({}, (c && c.player.rs) || {}); rs[x] = (rs[x] | 0) - 10; rs[id] = (rs[id] | 0) + 1; mePatch({ rs }); },
+  // 符文改版遷移：所有武器的附魔清空，標記 runeV = 2（只做一次）
+  async runeMigrate(ks) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { runeV: 2 }; (ks || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), weapons = Object.assign({}, (c && c.player.weapons) || {}); (ks || []).forEach(k => { weapons[k] = Object.assign({}, weapons[k], { ench: [] }); }); mePatch({ runeV: 2, weapons }); },
+  // 秘境勝利：碎片用 increment 加上去、這間的最高等級往前、今天的次數（日期換了就從 1 算），同一次寫入；第一次打秘境也順便做符文遷移
+  async riftWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { riftAt: serverTimestamp(), riftDay: r.day, riftN: r.n };
+    Object.keys(r.shards || {}).forEach(k => { f['rs.' + k] = increment(r.shards[k]); }); if (r.best) f['rift.' + r.room] = r.best;
+    if (r.migrate) { f.runeV = 2; (r.migrate || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); }
+    await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), pl = (c && c.player) || {}, rs = Object.assign({}, pl.rs || {}), rift = Object.assign({}, pl.rift || {});
+    Object.keys(r.shards || {}).forEach(k => { rs[k] = (rs[k] | 0) + r.shards[k]; }); if (r.best) rift[r.room] = r.best; const p2 = { rs, rift, riftDay: r.day, riftN: r.n }; if (r.migrate) p2.runeV = 2; mePatch(p2); },
   // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成累積在自己（隊長）資料的 owe.<隊友uid> 裡，同一次寫入
   // 存檔前讀一次自己的最新資料：用最新的隊伍名單過濾隊友分成、檢查跟上一場的間隔；失敗時附上判斷到的原因（e.why）
   async advCheck(r) { await ready; const u = auth.currentUser; if (!u) return {}; const s = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); const d = s.exists() ? s.data() : {};

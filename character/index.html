@@ -258,7 +258,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/skilldesc.js?v=2"></script>
-<script src="../common/runevals.js?v=1"></script>
+<script src="../common/runevals.js?v=3"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -375,7 +375,8 @@ var MAXREN=3;
 var PETINFO={};
 var RUNEC={},RUNEROWS=[];
 /* 符文數值讀 rune_info.csv（common/runevals.js），跟戰鬥引擎同一份 */
-function RVc(id,k,d){return window.RuneVals?RuneVals.v(RUNEROWS,id,k,d):d}
+function rLv(id){return window.RuneVals?RuneVals.levelOf(((S&&S.rs)||{})[id]):0}
+function RVc(id,k,d){return window.RuneVals?RuneVals.v(RUNEROWS,id,k,d,rLv(id)):d}
 function RVp(id,k,d){return window.RuneVals?RuneVals.pc(RVc(id,k,d)):Math.round(d*100)+'%'}
 function slotsOf(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
 function haloOf(sn){var w=wInfo(sn);return w.en.slice(0,slotsOf(w.lv)).map(function(id){return RUNEC[id]||null})}
@@ -499,7 +500,7 @@ function unspent(){return Math.max(0,totalPts()-spent())}
 function pendingSum(){var t=0;KEYS.forEach(function(k){t+=S.pend[k]});return t}
 function jobName(sn){return JOB[sn]?JOB[sn].job_name:'—'}
 function growthOf(sn,k){var g=GROWTH[sn];return g?(parseFloat(g['per_level_'+k])||0):0}
-function rOn(id){var sn=WNAME2K[S.weapon];return !!sn&&wInfo(sn).en.indexOf(id)>=0}
+function rOn(id){var sn=WNAME2K[S.weapon];if(!sn)return false;var w=wInfo(sn),n=w.lv>=90?3:w.lv>=60?2:w.lv>=30?1:0;return w.en.slice(0,n).indexOf(id)>=0&&(!(window.RuneVals&&RuneVals.hasLevels())||rLv(id)>=1)}/* 符文要 Lv1 以上才生效 */
 function A(){var r={};KEYS.forEach(function(k){var j=0,parts=[];JOBORDER.forEach(function(sn){var lv=S.jobLvs[sn]|0;if(lv>0){var g=growthOf(sn,k);if(g){j+=g*lv;parts.push(jobName(sn)+' Lv'+lv+' × '+g+' = +'+g*lv)}}});
   var a=S.alloc[k]+S.pend[k];var bs=10+j+a,rb=rOn('rune08')?Math.round(bs*RVc('rune08',0,0.1)):0;r[k]={job:j,jobParts:parts,alloc:a,rune:rb,total:bs+rb}});return r}
 function wEq(){var sn=WNAME2K[S.weapon],w=sn&&WEAPON[sn];return w?{w:w,lv:wInfo(sn).lv}:null}
@@ -850,14 +851,14 @@ function initTentPets(pets){
           if(Math.abs(dx)>.5)p.face=dx<0?-1:1}}
       tPlace(p,moving)});
     requestAnimationFrame(loop)})(last)}
-function start(p){S=fromPlayer(p);initTentPets(p.pets);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
+function start(p){S=fromPlayer(p);S.rs=p.rs||{};initTentPets(p.pets);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
 var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',pets:{gm_pet_02:{lv:5,tent:true},gm_pet_01:{lv:2,tent:true},gm_pet_03:{lv:10,tent:true}},weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
-Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv','rune_info.csv','skill_info.csv','skill_effect.csv'].map(getCSV).concat([getCSV('status_info.csv').catch(function(){return []})])).then(function(R){R[8].forEach(function(r){if(r.status_name&&r.status_desc&&!STI[r.status_name])STI[r.status_name]={d:r.status_desc,pol:r.polarity}});buildSkills(R[6],R[7]);return buildData(R.slice(0,6))}).then(function(){return Doll.load(BASE,V)}).then(function(){
+Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv','rune_info.csv','skill_info.csv','skill_effect.csv'].map(getCSV).concat([getCSV('status_info.csv').catch(function(){return []}),getCSV('rune_level.csv').catch(function(){return []})])).then(function(R){if(window.RuneVals&&R[9]&&R[9].length)RuneVals.setLevels(R[9]);R[8].forEach(function(r){if(r.status_name&&r.status_desc&&!STI[r.status_name])STI[r.status_name]={d:r.status_desc,pol:r.polarity}});buildSkills(R[6],R[7]);return buildData(R.slice(0,6))}).then(function(){return Doll.load(BASE,V)}).then(function(){
   if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){start(Object.assign({uid:who.user.uid},who.player));res()})})})
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e.code||e.message);m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=24"></script>
+<script type="module" src="../common/fb.js?v=25"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

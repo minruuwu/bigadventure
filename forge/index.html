@@ -232,6 +232,10 @@ body{font-weight:500}
 .rcell{position:relative;appearance:none;border:0;margin:0;font:inherit;color:#3b2713;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px 10px;min-width:0;
   background:rgba(120,80,30,.08);box-shadow:inset 0 0 0 6px rgba(90,55,20,.13)}
 .rcell .rstone{margin-bottom:4px}
+.rcell .rbar{display:block;width:70%;height:4px;background:rgba(59,39,19,.25);margin-top:2px}.rcell .rbar i{display:block;height:100%}
+.dvals{display:grid;gap:3px;margin:4px 0 8px}.dv{display:flex;justify-content:space-between;gap:10px;font-size:13px;border-bottom:1px dashed rgba(59,39,19,.25);padding:1px 0}.dv .l{color:#6a4a28;font-weight:700}.dv .v{font-weight:900}
+.dconv{margin:6px 0 8px}.cgrid{display:flex;flex-wrap:wrap;gap:6px}.cbtn{display:flex;align-items:center;gap:4px;border:0;background:rgba(74,42,18,.12);box-shadow:0 0 0 1px rgba(59,39,19,.4);padding:3px 7px 3px 4px;font:inherit;font-size:12px;font-weight:700;color:#3b2713;cursor:pointer}.cbtn:active{transform:translateY(1px)}
+
 .rcell .t{font-size:13px;font-weight:900;line-height:1.3;text-align:center}
 .rcell .sub{font-size:10.5px;font-weight:700;color:#7a5a30;line-height:1.3;text-align:center;letter-spacing:.02em}
 .rcell:active:not(.locked){transform:translateY(2px)}
@@ -365,7 +369,12 @@ var TIER=[
 function cv(src,scale){var c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.style.width=src.width*scale+'px';c.style.height=src.height*scale+'px';return c}
 /* ---------- data: read from assets (CSV + PNG) ---------- */
 var BASE='../assets/',V='4';
-var W={},ORDER=[],RUNE={};
+var W={},ORDER=[],RUNE={},ROOMS=[];
+/* 符文等級：碎片數 S.rs[符文] → 等級（common/runevals.js）；Lv1 以上才能裝 */
+function rLv(id){return window.RuneVals?RuneVals.levelOf((S.rs||{})[id]):0}
+function owned(){return Object.keys(RUNE).filter(function(id){return rLv(id)>=1})}
+var WDAYS='一二三四五六日',RCH='月火水木金土日';function roomDays(ch){var i=RCH.indexOf(ch);return [i,(i+6)%7,(i+5)%7].sort().map(function(d){return WDAYS.charAt(d)})}
+function rVal(id,lv,k){return window.RuneVals?RuneVals.raw(id,lv,k):''}
 var USABLE={weapon01:1,weapon02:1,weapon05:1,weapon06:1}; /* 範例:目前職業「戰士・攻」可用 */
 var EQUIPPED='weapon01';
 var demo=/[?&]demo=1/.test(location.search);
@@ -395,7 +404,9 @@ function buildData(R){
     W[k]={n:r.weapon_name,phys:ph,mag:mg,auto:au,temper:tm,
       sname:[r.stage_1_name,r.stage_2_name,r.stage_3_name,r.stage_4_name],img:[],off:r.offhand||'',offImg:null,ench:[[],[],[]]}});
   R[1].forEach(function(r){if(!r.u_sn)return;RUNE[r.u_sn]={id:r.u_sn,name:r.rune_name,en:r.rune_e_name,glyph:r.rune_glyph,cat:r.category,color:r.color||'#d0a0ff',
-    desc:fixT(r.rune_desc),detail:fixT(r.rule_detail),restr:r.restriction,img:null}});
+    desc:fixT(r.rune_desc),detail:fixT(r.rule_detail),restr:r.restriction,img:null,lab:[r.label_1,r.label_2,r.label_3,r.label_4]}});
+  (R[3]||[]).forEach(function(r){if(!r.room)return;var o={room:r.room,ch:r.rift,n:r.room_name,runes:String(r.runes||'').split(';').filter(function(id){return RUNE[id]})};ROOMS.push(o);o.runes.forEach(function(id){RUNE[id].room=o})});
+  if(R[4]&&R[4].length&&window.RuneVals)RuneVals.setLevels(R[4]);
   R[2].forEach(function(r){var w=W[r.weapon_u_sn],t=parseInt(r.tier,10)-1;if(!w||!(t>=0&&t<3))return;
     w.ench[t]=[r.rune_1,r.rune_2,r.rune_3].filter(function(id){return RUNE[id]})});
   var jobs=[];
@@ -562,17 +573,19 @@ function syncSheet(){var s=ST[SHEET.k],M=slots(s.lv),P=SHEET.pick;
   var cnt=document.getElementById('sheetCnt');cnt.textContent='';cnt.appendChild(document.createTextNode('已選 '));cnt.appendChild(el('b',null,P.length+' / '+M));
   for(var i=0;i<3;i++){var d=el('i','pip'+(i<M?(i<P.length?' on':''):' lock'));if(i<P.length)d.style.background=RUNE[P[i]].color;cnt.appendChild(d)}
   document.getElementById('sheetX').disabled=sameSet(P,s.ench)}
-function openSheet(k,ti){var s=ST[k],w=W[k],sh=document.getElementById('sheet'),box=document.getElementById('sheetOpts');SHEET.ti=ti;SHEET.k=k;SHEET.pick=s.ench.slice();
+function openSheet(k,ti){var s=ST[k],w=W[k],sh=document.getElementById('sheet'),box=document.getElementById('sheetOpts');SHEET.ti=ti;SHEET.k=k;SHEET.pick=s.ench.filter(function(id){return rLv(id)>=1});
   document.getElementById('sheetT').textContent='符文之書';
-  document.getElementById('sheetHint').textContent='點符文查看說明並選擇。Lv30／60／90 各解放一格與一排新符文。';
+  document.getElementById('sheetHint').textContent='Lv1 以上的符文才能選。碎片在秘境取得；點符文看等級、碎片進度與兌換。';
   box.textContent='';
-  [0,1,2].forEach(function(t){var lockT=s.lv<REQ[t];
-    box.appendChild(el('div','rowh'+(lockT?' lock':''),TN[t]+'階'+(lockT?'・Lv'+REQ[t]+' 解鎖':'')));
+  ROOMS.forEach(function(rm){box.appendChild(el('div','rowh','秘境・'+rm.n+'（週'+roomDays(rm.ch).join('、')+'）'));
     var grid=el('div','rgrid');
-    (w.ench[t]||[]).forEach(function(id){var r=RUNE[id];var o=el('button','rcell'+(lockT?' locked':''));o.type='button';o.dataset.id=id;
+    rm.runes.forEach(function(id){var r=RUNE[id],lv=rLv(id),n=(S.rs||{})[id]|0,lockT=lv<1;var o=el('button','rcell'+(lockT?' locked':''));o.type='button';o.dataset.id=id;
       o.style.setProperty('--rc',r.color);o.style.setProperty('--rcA',hexA(r.color,.55));o.style.setProperty('--rcB',hexA(r.color,.22));o.style.setProperty('--rcS',hexA(r.color,.8));
-      o.appendChild(runeStone(id,54,true,lockT));o.appendChild(el('span','t',r.name));o.appendChild(el('span','sub',r.en+'・'+r.cat));o.appendChild(el('span','ord'));var ux=el('span','unx','✕');ux.setAttribute('role','button');ux.setAttribute('tabindex','0');ux.setAttribute('aria-label','取消選擇'+r.name);var unpick=function(e){e.stopPropagation();e.preventDefault();var P=SHEET.pick,i=P.indexOf(id);if(i>=0){P.splice(i,1);syncSheet()}};ux.addEventListener('click',unpick);ux.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')unpick(e)});o.appendChild(ux);
-      o.addEventListener('click',function(){if(lockT){toast('Lv'+REQ[t]+' 解鎖，還差 '+(REQ[t]-s.lv)+' 級');return}openDetail(id)});grid.appendChild(o)});
+      o.appendChild(runeStone(id,54,true,lockT));o.appendChild(el('span','t',r.name));
+      var nx=lv>=10?0:RuneVals.need(lv+1);o.appendChild(el('span','sub',lv?'Lv'+lv+(lv>=10?'・滿級':'・'+n+'／'+nx):'未取得'+(n?'・'+n+'／1':'')));
+      var bar=el('span','rbar');var fi=el('i');var pv=lv>=10?1:(n-RuneVals.need(lv))/(nx-RuneVals.need(lv));fi.style.width=Math.max(0,Math.min(1,pv))*100+'%';fi.style.background=r.color;bar.appendChild(fi);o.appendChild(bar);
+      o.appendChild(el('span','ord'));var ux=el('span','unx','✕');ux.setAttribute('role','button');ux.setAttribute('tabindex','0');ux.setAttribute('aria-label','取消選擇'+r.name);var unpick=function(e){e.stopPropagation();e.preventDefault();var P=SHEET.pick,i=P.indexOf(id);if(i>=0){P.splice(i,1);syncSheet()}};ux.addEventListener('click',unpick);ux.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')unpick(e)});o.appendChild(ux);
+      o.addEventListener('click',function(){openDetail(id)});grid.appendChild(o)});
     box.appendChild(grid)});
   syncSheet();
   sh.hidden=false;document.body.classList.add('sheeton');document.addEventListener('keydown',sheetKey);var pb=box.parentNode;if(pb)pb.scrollTop=0;
@@ -582,17 +595,38 @@ var DET={id:null};
 function openDetail(id){var r=RUNE[id],s=ST[SHEET.k],M=slots(s.lv),P=SHEET.pick,on=P.indexOf(id)>=0,d=document.getElementById('det'),b=document.getElementById('detBody');DET.id=id;
   b.textContent='';var hd=el('div','dhd');hd.appendChild(runeStone(id,84,true,false));var tt=el('div','dtt');tt.appendChild(el('div','t',r.name));tt.appendChild(el('div','sub',r.en+'・'+r.cat));hd.appendChild(tt);b.appendChild(hd);
   b.appendChild(el('p','dd',r.desc));
+  var lv=rLv(id),n=(S.rs||{})[id]|0,nx=lv>=10?0:RuneVals.need(lv+1);
+  b.appendChild(el('div','dlab',lv?'目前 Lv'+lv+'　碎片 '+n+(lv>=10?'（滿級）':'，下一級還要 '+(nx-n)+' 片'):'尚未取得（碎片 '+n+'，1 片就能升到 Lv1）'));
+  if(r.room)b.appendChild(el('p','drule','取得：秘境・'+r.room.n+'（週'+roomDays(r.room.ch).join('、')+'）'));
+  var vt=el('div','dvals');[0,1,2,3].forEach(function(q){if(!r.lab[q])return;var cur=lv?rVal(id,lv,q):'',nxt=lv<10?rVal(id,lv+1,q):'';if(!cur&&!nxt)return;var d2=el('div','dv');d2.appendChild(el('span','l',r.lab[q]));d2.appendChild(el('span','v',(cur||'—')+(lv<10&&nxt?' → '+nxt:'')));vt.appendChild(d2)});
+  if(vt.children.length){b.appendChild(el('div','dlab',lv<10?'本級 → 下一級':'滿級數值'));b.appendChild(vt)}
+  /* 兌換：任何符文的碎片 10 片換 1 片這個符文 */
+  if(lv<10){var src=Object.keys(RUNE).filter(function(x){return x!==id&&((S.rs||{})[x]|0)>=10});var cw=el('div','dconv');cw.appendChild(el('div','dlab','碎片兌換（10 片換 1 片「'+r.name+'」）'));
+    if(!src.length)cw.appendChild(el('p','drule','還沒有哪一種符文的碎片滿 10 片。'));
+    else{var cg=el('div','cgrid');src.forEach(function(x){var q=RUNE[x],bt=el('button','cbtn');bt.type='button';bt.appendChild(runeStone(x,22,false,false));bt.appendChild(el('span',null,q.name+' ×'+((S.rs||{})[x]|0)));
+      bt.addEventListener('click',function(){var eq=ORDER.some(function(k2){return ST[k2].ench.indexOf(x)>=0}),after=RuneVals.levelOf(((S.rs||{})[x]|0)-10),drop=after<rLv(x);
+        var msg='用 10 片「'+q.name+'」換 1 片「'+r.name+'」？'+(drop?'「'+q.name+'」會從 Lv'+rLv(x)+' 降到 Lv'+after+(after<1&&eq?'，並從武器上卸下':'')+'。':'');
+        if(!confirm(msg))return;convert(x,id)});cg.appendChild(bt)});cw.appendChild(cg)}
+    b.appendChild(cw)}
   if(r.detail){b.appendChild(el('div','dlab','規則細節'));b.appendChild(el('p','drule',r.detail))}
   var btn=document.getElementById('detGo');btn.disabled=false;
-  btn.textContent=on?'取消選擇':'選擇這個符文';btn.disabled=!on&&P.length>=M;
+  btn.textContent=lv<1?'尚未取得':on?'取消選擇':'選擇這個符文';btn.disabled=lv<1||(!on&&P.length>=M);
   d.hidden=false;(btn.disabled?document.getElementById('detX'):btn).focus({preventScroll:true})}
 function closeDetail(){document.getElementById('det').hidden=true;var c=document.querySelector('.rcell[data-id="'+DET.id+'"]');if(c)c.focus({preventScroll:true})}
-function toggleDetail(){var P=SHEET.pick,M=slots(ST[SHEET.k].lv),i=P.indexOf(DET.id);if(i>=0)P.splice(i,1);else if(P.length<M)P.push(DET.id);else{toast('先取消一個符文');return}syncSheet();closeDetail()}
+function toggleDetail(){if(rLv(DET.id)<1){toast('還沒有這個符文的碎片');return}var P=SHEET.pick,M=slots(ST[SHEET.k].lv),i=P.indexOf(DET.id);if(i>=0)P.splice(i,1);else if(P.length<M)P.push(DET.id);else{toast('先取消一個符文');return}syncSheet();closeDetail()}
 function applySheet(){var k=SHEET.k,s=ST[k],P=SHEET.pick.slice();if(sameSet(P,s.ench))return;
   var added=P.filter(function(id){return s.ench.indexOf(id)<0});s.ench=P;
   if(added.length){FX={t0:performance.now(),col:RUNE[added[added.length-1]].color};toast('已注入「'+added.map(function(id){return RUNE[id].name}).join('、')+'」')}else toast('已更新符文');
   markDirty(k);closeSheet();renderPanel();refreshDots()}
 document.getElementById('sheetBg').addEventListener('click',closeSheet);document.getElementById('detBg').addEventListener('click',closeDetail);document.getElementById('detX').addEventListener('click',closeDetail);document.getElementById('detGo').addEventListener('click',toggleDetail);document.getElementById('sheetX').addEventListener('click',applySheet);document.getElementById('sheetClose').addEventListener('click',closeSheet);
+/* 碎片兌換：x 的 10 片換 id 的 1 片；x 掉到 Lv0 時從所有武器卸下 */
+function convert(x,id){if(((S.rs||{})[x]|0)<10)return;S.rs[x]=(S.rs[x]|0)-10;S.rs[id]=(S.rs[id]|0)+1;
+  if(rLv(x)<1)ORDER.forEach(function(k){var i=ST[k].ench.indexOf(x);if(i>=0){ST[k].ench.splice(i,1);markDirty(k)}});
+  var P=SHEET.pick,pi=P.indexOf(x);if(pi>=0&&rLv(x)<1)P.splice(pi,1);
+  toast('兌換完成：「'+RUNE[id].name+'」碎片 +1');if(!demo)withFB(function(FB){FB.runeConvert(x,id).catch(function(e){toast('兌換存檔失敗（'+(e&&(e.code||e.message))+'），已重新讀取');FB.myFresh().then(function(p){if(p){S.rs=Object.assign({},p.rs||{});render(true)}},function(){})})});
+  openDetail(id);if(!document.getElementById('sheet').hidden){var k=SHEET.k,ti=SHEET.ti,pk=SHEET.pick.slice();openSheet(k,ti);SHEET.pick=pk;syncSheet();openDetail(id)}renderPanel();refreshDots()}
+/* 符文改版遷移：舊帳號第一次進鍛造頁時，把所有武器的附魔清空、標記 runeV = 2 */
+function runeMigrate(me){if(demo||S.runeV>=2)return;S.runeV=2;withFB(function(FB){FB.runeMigrate(Object.keys(me.weapons||{})).then(function(){toast('符文改版：舊的附魔已清空，符文碎片請到秘境取得')},function(){})})}
 /* ---------- upgrade logic ---------- */
 var DIRTY={},saveT=null,saving=false;
 function markDirty(k){DIRTY[k]=1;clearTimeout(saveT);saveT=setTimeout(flush,800)}
@@ -612,9 +646,9 @@ var SPENT=0;/* 還沒存檔、已經花掉的鍛造石 */
 function upOne(k){var s=ST[k];if(s.lv>=100)return false;var c=cost(s.lv);if(S.stones<c)return false;S.stones-=c;SPENT+=c;s.lv++;markDirty(k);return true}
 function costTo(k,target){var s=ST[k],t=0;for(var l=s.lv;l<target;l++)t+=cost(l);return t}
 function nextTemperLv(k){var l=ST[k].lv;return Math.min(100,(Math.floor(l/5)+1)*5)}
-function loadST(me){ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};var lv0=Math.min(100,Math.max(1,d.lv|0||1)),pp=Array.isArray(d.pts)?d.pts.slice(0,3).map(function(n){return Math.max(0,n|0)}):[0,0,0];while(pp.length<3)pp.push(0);if(pp[0]+pp[1]+pp[2]>totalPts(lv0))pp=[0,0,0];ST[k]={lv:lv0,pts:pp,ench:(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return RUNE[id]}).slice(0,slots(lv0))}})}
+function loadST(me){ORDER.forEach(function(k){var d=(me.weapons&&me.weapons[k])||{};var lv0=Math.min(100,Math.max(1,d.lv|0||1)),pp=Array.isArray(d.pts)?d.pts.slice(0,3).map(function(n){return Math.max(0,n|0)}):[0,0,0];while(pp.length<3)pp.push(0);if(pp[0]+pp[1]+pp[2]>totalPts(lv0))pp=[0,0,0];ST[k]={lv:lv0,pts:pp,ench:(S.runeV>=2?(Array.isArray(d.ench)?d.ench:[]):[]).filter(function(id){return RUNE[id]&&rLv(id)>=1}).slice(0,slots(lv0))}})}/* 符文改版：還沒遷移過（runeV < 2）的帳號，舊附魔一律清空 */
 /* 換成伺服器上最新的資料（快取比較舊、或存檔被擋時） */
-function applyFresh(p){clearTimeout(saveT);DIRTY={};SPENT=0;S.stones=Math.max(0,p.stones|0);loadST(p);render(true)}
+function applyFresh(p){clearTimeout(saveT);DIRTY={};SPENT=0;S.stones=Math.max(0,p.stones|0);S.rs=Object.assign({},p.rs||{});if((p.runeV|0)>=2)S.runeV=2;loadST(p);render(true)}
 var FRESHP=null;window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo)return;if(!ORDER.length||!ST[ORDER[0]]){FRESHP=p;return}if(!Object.keys(DIRTY).length&&!SPENT&&!saving)applyFresh(p);else S.stones=Math.max(0,(p.stones|0)-SPENT)});
 function upToNext(k){var t=nextTemperLv(k),n=0;if(ST[k].lv>=100)return 0;while(ST[k].lv<t&&upOne(k))n++;return n}
 /* ---------- render ---------- */
@@ -687,10 +721,10 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
     h.appendChild(row);
     if(s.ench.length){var lst=el('div','enlist');lst.appendChild(el('div','enhd','生效中的符文'));
       s.ench.forEach(function(id){var r=RUNE[id],it=el('div','enit');it.appendChild(runeStone(id,36,false,false));var tx=el('div','tx');
-        tx.appendChild(el('b',null,r.name));tx.appendChild(el('span','dd',r.desc));it.appendChild(tx);lst.appendChild(it)});h.appendChild(lst)}
-    pn.appendChild(el('p','note','點任一格打開符文之書。武器 Lv30／60／90 各解放一格與一組新符文，解放後的符文可以放進任何一格；同一個符文不能重複裝。'));
+        tx.appendChild(el('b',null,r.name+'　Lv'+rLv(id)));tx.appendChild(el('span','dd',r.desc));it.appendChild(tx);lst.appendChild(it)});h.appendChild(lst)}
+    pn.appendChild(el('p','note','點任一格打開符文之書。武器 Lv30／60／90 各開一格；符文 Lv1 以上才能裝，任何武器都能裝，同一把武器不能重複。符文碎片在冒險地圖右下角的秘境取得。'));
   }}
-function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=s.ench.length<slots(s.lv);return {tm:tm,en:en,any:tm||en}}
+function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=s.ench.length<Math.min(slots(s.lv),owned().length);return {tm:tm,en:en,any:tm||en}}
 function refreshDots(){renderChips();renderSeg();renderTabs()}
 function renderTabs(){var h=document.getElementById('tabs');h.textContent='';
   var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','記事','scroll']];
@@ -705,13 +739,13 @@ var _r=render;render=function(sc){_r(sc)};
 getCSVs();
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weapons:{}}}):new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(res)})});
-  Promise.all([Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','job_info.csv'].map(getCSV)),who]).then(function(X){var R=X[0],me=X[1].player;S.stones=demo?92000:Math.max(0,me.stones|0);
-    NavIcons.setPlayer(me);return buildData(R.slice(0,3)).then(function(){
+  Promise.all([Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','job_info.csv'].map(getCSV).concat([getCSV('rift_info.csv').catch(function(){return []}),getCSV('rune_level.csv').catch(function(){return []})])),who]).then(function(X){var R=X[0],me=X[1].player;S.stones=demo?92000:Math.max(0,me.stones|0);S.rs=demo?{rune01:20,rune05:3,rune10:1,rune12:160,rune22:7}:Object.assign({},me.rs||{});S.runeV=demo?2:(me.runeV|0);
+    NavIcons.setPlayer(me);return buildData([R[0],R[1],R[2],R[4],R[5]]).then(function(){
     if(!ORDER.length)throw new Error('weapon_info.csv 沒有資料');
     var en={};R[0].forEach(function(r){en[r.u_sn]=String(r.weapon_e_name||'').toLowerCase()});
     var job=R[3][me.job|0]||R[3][0];USABLE={};ORDER.forEach(function(k){if(job&&job['usable_'+en[k]])USABLE[k]=1});
     ORDER.forEach(function(k){if(W[k].n===me.weapon)EQUIPPED=k});
-    loadST(me);if(FRESHP&&!demo){S.stones=Math.max(0,FRESHP.stones|0);loadST(FRESHP)}
+    loadST(me);if(FRESHP&&!demo){S.stones=Math.max(0,FRESHP.stones|0);S.rs=Object.assign({},FRESHP.rs||{});loadST(FRESHP)}runeMigrate(me);
     if(!W[EQUIPPED])EQUIPPED=ORDER[0];S.cur=EQUIPPED;
     if(demo)document.getElementById('demoNote').textContent='示範模式：鍛造石為測試用，資料只存在目前畫面，重新整理會重置。';document.getElementById('loading').remove();render(true)})})
   .catch(function(e){var m=document.getElementById('loading');m.textContent='資料載入失敗：'+(e.code||e.message)+'（請用網址開啟，不能直接用檔案開啟）';m.classList.add('err')})}
@@ -723,8 +757,9 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
   if(now-last<350&&t===lastT&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)){e.preventDefault();var b=t.closest&&t.closest('button,[role=button],a,.rcell,.rc');if(b&&!b.disabled)b.click()}
   last=now;lastT=t},{passive:false})})();
 </script>
+<script src="../common/runevals.js?v=3"></script>
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/nav.js?v=30"></script>
-<script type="module" src="../common/fb.js?v=24"></script>
+<script type="module" src="../common/fb.js?v=25"></script>
 </body></html>
