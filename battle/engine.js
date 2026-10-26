@@ -658,7 +658,7 @@
         /* 太陽之照耀 */
         if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) rq(e, 'rune14', function (r) { if (u.dead || !applyStatus(u, u, '輝煌', RV(D, 'rune14', 1, 5), 1, null)) return false; r.txt = u.name + ' 的「太陽之照耀」：獲得「輝煌」' + RV(D, 'rune14', 1, 5) + ' 回合（力量、智力 +30%）'; fxOn(r, 'sun', u, [u]) });
       }
-      /* 召喚：effect = 怪物 id，value = 上限；condition 填 all_monsters 時上限算「全場活著的怪」，空白則只算同種怪（龍之叫喚）；
+      /* 召喚：effect = 怪物 id，value = 上限；condition 填 all_monsters 時上限算「全場活著的怪」，空白則只算同種怪（深林叫喚）；
          apply_chance = 成功機率（空白 = 必定）。未滿且成功就叫一隻出來，下一回合開始行動 */
       if (u.side === 'm') effs.forEach(function (r) {
         if (r.effect_kind !== 'summon' || !D.mon[r.effect]) return;

@@ -996,7 +996,7 @@ function realBattle(a,l){
     (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+(o.kod||260),d:true})});
     (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
     (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
-    if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、龍之叫喚、沙龍之吼…）：打中的隊員身上竄起氣勁，顏色照屬性 */
+    if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
     ev.push(o)});
   sumSlots(ms,mko);
   return{ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
