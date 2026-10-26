@@ -421,7 +421,8 @@ function sandFx(d,tg){if(d<40||d>1300)return;var WU=pfx.width/U,u=(d-80)/900,fro
 function unitPos(side,i){if(side==='p'){var pp=posOf(i);return[pp[0],pp[1]-14]}return monPos(i)}
 function bloodFlow(d,from,to,seed){if(!from||!to)return;for(var w=0;w<3;w++){var bend=(w-1)*10+(hsh(seed,w)-.5)*6,mx=(from[0]+to[0])/2,my=(from[1]+to[1])/2-8+bend;
   for(var k=0;k<16;k++){var u=(d-w*70-k*14)/520;if(u<0||u>1)continue;var a=Math.min(1,(1-u)*3),x=(1-u)*(1-u)*from[0]+2*(1-u)*u*mx+u*u*to[0],y=(1-u)*(1-u)*from[1]+2*(1-u)*u*my+u*u*to[1],c=k<3?'#ff5a6a':k<9?'#e0142e':'#8a0a1c',al=(1-k/16)*a;VP(x,y,c,al);VP(x,y-1,c,al*.85);if(k<6){VP(x+1,y,c,al*.7);VP(x,y+1,c,al*.5)}if(k<2)VP(x,y-1,'#ffb0b8',.7)}}}
-function drawBlood(t){if(!B)return;B.ev.forEach(function(e){if(e.sumR&&e.side==='m'){var sd=t-e.t;if(sd>=0&&sd<1200){var mp=monPos(e.a);if(mp)summonRings(sd,mp[0],mons[e.a]?mons[e.a].gy-2:mp[1],e.sumR)}}if(e.drain&&e.dside!=null){var dd=t-e.t-120;if(dd>=0&&dd<=800){var fr=unitPos(e.dside,e.da);e.drain.forEach(function(q,n){bloodFlow(dd,fr,unitPos(q[0],q[1]),n+3)})}}var d=t-e.t-(e.hit||180)-60;if(d<0||d>800)return;
+function drawBlood(t){if(!B)return;B.ev.forEach(function(e){if(e.sumR!=null&&e.side==='m'){var sd=t-e.t;if(sd>=0&&sd<1400){var mp=monPos(e.a);if(mp)summonRings(sd,mp[0],mons[e.a]?mons[e.a].gy-2:mp[1],e.sumR);
+    /* 被喊到的隊員：腳下漩渦＋氣勁往上竄（顏色照屬性） */(e.tgts||[]).forEach(function(k,n){var pp=posOf(k);soulsFx(sd-(e.hit||420)+60+n*40,pp[0],pp[1],e.sumR)})}}if(e.drain&&e.dside!=null){var dd=t-e.t-120;if(dd>=0&&dd<=800){var fr=unitPos(e.dside,e.da);e.drain.forEach(function(q,n){bloodFlow(dd,fr,unitPos(q[0],q[1]),n+3)})}}var d=t-e.t-(e.hit||180)-60;if(d<0||d>800)return;
   if(e.ls&&e.side){var to=unitPos(e.side,e.a),vs=e.side==='p'?(e.tg||[]).map(function(i){return['m',i]}):(e.tgts||[]).map(function(i){return['p',i]});vs.forEach(function(v,n){bloodFlow(d,unitPos(v[0],v[1]),to,n+e.a*7)})}});pctx.globalAlpha=1}
 /* ---- 血系技能（vfx = blood）：暗紅刀氣（兩道交叉的月牙斬）＋噴血點；全體技能另外有三道紅色氣流橫掃敵陣 ---- */
 var BSLASH=null;/* 血系斬擊：血紅色新月刀光圖，由上往下劃出約 0.15 秒，再放大 15% 淡出約 0.2 秒；之後噴血珠 */
@@ -453,7 +454,13 @@ function drawSongs(t,now){if(!B||view!=='battle')return;
 /* 怪物常駐的輪廓光：歐西里斯一圈熒綠色光芒，慢慢脈動 */
 function monGlow(k,now){if(k==='queen'){/* 蘿絲：紫黑色輪廓光，慢慢脈動 */var aq=.6+.25*Math.sin(now/700),q1=Math.max(1,Math.round(U*1.2)),q2=Math.max(2,Math.round(U*3.2)),hq=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+q1+'px #8a3ad8'+hq(aq)+') drop-shadow(0 0 '+q2+'px #3a0a5a'+hq(aq*.9)+')'}if(k!=='osiris')return '';var a=.55+.25*Math.sin(now/600),r1=Math.max(1,Math.round(U*1.3)),r2=Math.max(2,Math.round(U*3.5)),h=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+r1+'px #6dff8a'+h(a)+') drop-shadow(0 0 '+r2+'px #2adf6a'+h(a*.7)+')'}
 /* 召喚類技能：以施放者為圓心往外擴散 3 圈淡淡光圈，越大越淡，顏色照技能屬性 */
-function summonRings(d,x,y,el){var col=CASTC[el]||'#e6d8ff';for(var r=0;r<3;r++){var u=(d-r*140)/700;if(u<0||u>1)continue;var rx=6+u*60,ry=rx*.32,a=(1-u)*(1-u)*.8,N=Math.round(30+rx*1.5);for(var k=0;k<N;k++){var an=k/N*Math.PI*2;VP(x+Math.cos(an)*rx,y+Math.sin(an)*ry,col,a)}}}
+/* 召喚／呼喊的顏色：照技能屬性，沒有屬性用淡紫 */
+function SUMC(el){return CASTC[el]||'#a07aff'}
+/* 呼喊：以怪物為中心往外擴散 4 圈粗光圈（越外越淡），起手時身上一圈白光閃一下 */
+function summonRings(d,x,y,el){var C=shades(SUMC(el));
+  if(d<220){var f=1-d/220;for(var k=0;k<40;k++){var an=k/40*Math.PI*2;VB(x+Math.cos(an)*(8+d/14),y-10+Math.sin(an)*(8+d/14)*.9,'#ffffff',f*.85)}}
+  for(var r=0;r<4;r++){var u=(d-r*150)/820;if(u<0||u>1)continue;var rx=8+ease(u)*130,ry=rx*.34,a=Math.min(1,(1-u)*1.6)*(u<.08?u/.08:1),N=Math.round(40+rx*2.2);
+    for(var k=0;k<N;k++){var an=k/N*Math.PI*2,fr=Math.sin(an)>0;VB(x+Math.cos(an)*rx,y+Math.sin(an)*ry,k%3?C.c:C.l,a*(fr?1:.6));VP(x+Math.cos(an)*(rx-2),y+Math.sin(an)*(ry-1),C.d,a*.5)}}}
 /* 冥王之握：目標上方浮現半透明金色巨手，張開往下、握緊，金光炸開 */
 /* 像素格子畫法：先把形狀收進整數格（同一格只畫一次、不會疊出格線），再自動描一圈深色外框 */
 function RGrid(){var C={};return{put:function(x,y,v){x=Math.round(x);y=Math.round(y);var k=x+','+y;if(!C[k]||C[k]<v)C[k]=v},
@@ -471,11 +478,11 @@ function graspFx(d,hx,hy){var u=d/600;if(u<0||u>1.45)return;var drop=Math.min(1,
   pctx.save();pctx.shadowColor='#4dff7a';pctx.shadowBlur=7*U;G.draw({1:'#2adf6a',2:'#6dff8a',3:'#e0ffe6'},a*.85,'#0a5a24',function(y){return y<cy-13?Math.max(0,1-(cy-13-y)/14):1});pctx.restore();
   if(u>.66&&u<1.3){var v=(u-.66)/.64;pBurst('osi',hx,hy,v*560,34,VS*1.8);if(v<.35)shakeY=Math.round(Math.sin(d)*2.4*U)}}
 /* 冥河呼喚：每個隊員腳下一圈暗紫漩渦，竄出好幾縷亡魂氣流往上衝過頭頂、淡出 */
-function soulsFx(d,px,py){var u0=d/900;if(u0<0||u0>1)return;var G=RGrid(),cx=Math.round(px),gy=Math.round(py);
+function soulsFx(d,px,py,el){var C=shades(SUMC(el==null?'dark':el));var u0=d/900;if(u0<0||u0>1)return;var G=RGrid(),cx=Math.round(px),gy=Math.round(py);
   var ra=Math.min(1,u0*5)*(1-Math.max(0,(u0-.7)/.3));for(var k=0;k<26;k++){var an=k/26*Math.PI*2+d/250;G.put(cx+Math.cos(an)*9,gy+Math.sin(an)*2.6,1)}
   for(var w=0;w<5;w++){var u=(d-60-w*90)/560;if(u<0||u>1)continue;var x0=cx-8+w*4;for(var k=0;k<14;k++){var uk=u-k*.028;if(uk<0)continue;var y=gy-2-uk*40,x=x0+Math.sin(uk*8+w*1.7)*3;G.put(x,y,k<2?3:k<6?2:1);if(k<6)G.put(x+1,y,k<2?3:2)}
     var hdx=x0+Math.sin(u*8+w*1.7)*3,hdy=gy-2-u*40;G.put(hdx-1,hdy-1,3);G.put(hdx+1,hdy-1,3)}
-  pctx.save();pctx.globalCompositeOperation='lighter';pctx.shadowColor='#9a4aff';pctx.shadowBlur=5*U;G.draw({1:'#5a1a9a',2:'#9a50e8',3:'#e8c8ff'},ra*.95,null);pctx.restore()}
+  pctx.save();pctx.globalCompositeOperation='lighter';pctx.shadowColor=C.c;pctx.shadowBlur=5*U;G.draw({1:C.d,2:C.c,3:C.l},ra*.95,null);pctx.restore()}
 /* 冥獄枷鎖：鐵鍊從地面螺旋往上纏住目標（一節一節的鏈環），纏好時紫光一閃、鎖緊 */
 function chainsFx(d,px,py){if(d<60||d>1050)return;var u=Math.min(1,(d-60)/420),fade=d>850?1-(d-850)/200:1,cx=Math.round(px),gy=Math.round(py),back=RGrid(),front=RGrid(),tight=d>480?Math.min(1,(d-480)/120):0,R=9-tight*2.5;
   var N=Math.floor(u*30);for(var k=0;k<N;k++){var f=k/30,an=f*Math.PI*4.6,x=cx+Math.cos(an)*R,y=gy-1-f*24+Math.sin(an)*2.2,G=Math.sin(an)>0?front:back;
@@ -510,7 +517,7 @@ function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
       if(wk==='beam')beamFx(d,e.el,sx,sy,hx,hy);
       else if(wk==='blood'){bloodSlash(d,hx,hy,(hx*7|0)%3)}
       else if(wk==='grasp'){graspFx(d,hx,hy)}
-      else if(wk==='souls'){soulsFx(d,hx,GY)}
+      else if(wk==='souls'){if(e.sumR==null)soulsFx(d,hx,GY,e.el)}/* 召喚類的氣勁改在 drawBlood 畫（不翻面） */
       else if(wk==='chains'){chainsFx(d,hx,GY)}
       else if(wk==='miasma'){/* 瘴氣：一串紫色毒霧團從嘴邊噴向目標，到了之後散開成一團 */var u0=(d-40)/300;for(var k=0;k<9;k++){var uk=u0-k*.06;if(uk<0)continue;
           if(uk<=1){var x=sx+(hx-sx)*uk+Math.sin(uk*8+k)*1.5,y=sy+(hy-sy)*uk+Math.sin(uk*6+k*2)*2,r=1.2+uk*2.2;pctx.globalAlpha=.55*(1-uk*.3);pctx.fillStyle=k%2?'#9a5ad0':'#6a3a9a';pctx.beginPath();pctx.arc(x*U,y*U,r*U,0,Math.PI*2);pctx.fill()}
@@ -960,7 +967,7 @@ function realBattle(a,l){
   var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG);
   var RSTEP=760,ms=M.map(function(m){var au=[];(m.aura||[]).forEach(function(a){if(au.indexOf(a.id)<0)au.push(a.id)});return{k:m.sprite,n:m.name,boss:m.boss,au:au}}),pkl={},psw={},mko={},ev=[],STEP=1000,t=WALK+400;
   R.ev.forEach(function(e){
-    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null,sumR:e.sk&&!e.idle&&(ENG.EFF[e.sk]||[]).some(function(r){return r.effect_kind==='summon'})?((SKN[e.sk]||{}).el||'dark'):null,ls:e.ls||0,drain:e.drain||null,dside:e.side,da:e.a};/* ls = 這招有吸血；drain = 持續扣血被吸回去 [陣營, 編號] */
+    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null,sumR:e.sk&&!e.idle&&(ENG.EFF[e.sk]||[]).some(function(r){return r.effect_kind==='summon'})?((SKN[e.sk]||{}).el||''):null,ls:e.ls||0,drain:e.drain||null,dside:e.side,da:e.a};/* ls = 這招有吸血；drain = 持續扣血被吸回去 [陣營, 編號] */
     if(e.sk&&e.sk!=='atk'&&!e.idle&&!e.tick){var ck=SKN[e.sk]||{};o.cast=castCol(ck.el,e.ty||ck.ty)}/* 放技能：施放者身上發光（屬性色） *//* thr = 被荊棘反彈／熊之力量濺射打到的單位 [陣營, 編號]，畫面上閃一下 */
     if(e.sk&&!e.idle&&!e.tick){
       if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
@@ -989,6 +996,7 @@ function realBattle(a,l){
     (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+(o.kod||260),d:true})});
     (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
     (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
+    if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、龍之叫喚、沙龍之吼…）：打中的隊員身上竄起氣勁，顏色照屬性 */
     ev.push(o)});
   sumSlots(ms,mko);
   return{ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
