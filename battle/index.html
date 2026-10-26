@@ -653,6 +653,7 @@ function orbDraw(x,y,r,C,a,now){var pl=1+.12*Math.sin(now/180),R=r*pl,Ri=Math.ce
 /* 羊之新生：裝了這個符文的人，身邊一直有一層同色光罩（淡淡的半透明罩子＋閃動的邊緣） */
 function drawSheep(t,now){if(!B)return;var L=VFXT?(VT.sheep?[0]:[]):(B.sheep||[]);if(!L.length)return;var C=shades((RUNE.rune24||{}).color||'#f0b27a');
   L.forEach(function(k){if(!party[k]||koAt(k,t).ko||t<WALK)return;var pp=posOf(k),cx=Math.round(pp[0]),cy=Math.round(pp[1]-16),rx=14,ry=20,ph=now/700+k,br=.8+.2*Math.sin(now/500+k);
+    /* 微微發光：罩子外面一圈柔和的同色光暈（疊加發光），跟著慢慢脈動 */var gp=.75+.25*Math.sin(now/650+k),GR=1.32;pctx.globalCompositeOperation='lighter';for(var gy2=-Math.ceil(ry*GR);gy2<=Math.ceil(ry*GR);gy2++)for(var gx2=-Math.ceil(rx*GR);gx2<=Math.ceil(rx*GR);gx2++){var ge=Math.sqrt((gx2*gx2)/(rx*rx)+(gy2*gy2)/(ry*ry));if(ge<=.97||ge>GR)continue;var gf=1-(ge-.97)/(GR-.97);VP(cx+gx2,cy+gy2,C.l,.38*gf*gf*gp)}pctx.globalCompositeOperation='source-over';
     for(var yy=-ry;yy<=ry;yy++){var w=Math.round(rx*Math.sqrt(Math.max(0,1-(yy*yy)/(ry*ry))));for(var xx=-w;xx<=w;xx++){var e2=(xx*xx)/(rx*rx)+(yy*yy)/(ry*ry),sh=.5+.5*Math.sin(ph*3+Math.atan2(yy,xx)*3);
       if(e2>.86)VP(cx+xx,cy+yy,e2>.94?C.l:C.c,(e2>.94?.95:.75)*(.75+.25*sh)*br);else if(e2>.6)VP(cx+xx,cy+yy,C.c,.22*(e2-.6)/.26*br);else VP(cx+xx,cy+yy,C.c,.1*br)}}
     /* 罩子左上的反光 */for(var q=0;q<4;q++){VP(cx-8+q,cy-13+q,'#ffffff',.75-q*.12)}
