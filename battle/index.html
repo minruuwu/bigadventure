@@ -1217,7 +1217,7 @@ function riftSave(bb,req){if(bb.saved)return;var msg=function(t){var q=$('rsave'
   $('rok').disabled=true;var me=MEMB[0];
   withFB(function(FB){FB.riftWin({day:req.day,n:req.n,lv:req.lv,shards:req.shards,room:req.room,best:req.best,migrate:req.migrate,pool:(RIFTS[req.i]||{}).runes}).then(function(r2){if(r2){req.n=r2.n;req.best=r2.best;req.migrate=r2.migrate}bb.saved=true;if(B===bb)curSave();
     me.rs=Object.assign({},me.rs||{});Object.keys(req.shards).forEach(function(k){me.rs[k]=(me.rs[k]|0)+req.shards[k]});if(req.best){me.rift=Object.assign({},me.rift||{});me.rift[req.room]=req.best}me.riftDay=req.day;me.riftN=req.n;if(req.migrate)me.runeV=2;
-    msg('已存檔');$('rok').disabled=false},function(e){msg('存檔失敗：'+(e&&(e.code||e.message))+(e&&e.why&&e.why.length?'；原因：'+e.why.join('、'):'')+'（碎片沒有寫入，請截圖給開發者）');$('rok').disabled=false})})}
+    msg('已存檔'+(r2&&r2.dbg?'（除錯：第 '+r2.dbg+' 組'+(r2.dbg===6?'以上多組':'')+'規則擋住，請截圖給開發者）':''));$('rok').disabled=false},function(e){msg('存檔失敗：'+(e&&(e.code||e.message))+(e&&e.why&&e.why.length?'；原因：'+e.why.join('、'):'')+'（碎片沒有寫入，請截圖給開發者）');$('rok').disabled=false})})}
 /* ---- 秘境門（程式畫）：不規則石塊圍成圓，中間發光漩渦 ---- */
 (function(){var c=$('ptc');if(!c)return;var x=c.getContext('2d'),N=20,C=9.5;
   function hs(a){var q=Math.sin(a*127.1)*43758.5453;return q-Math.floor(q)}
@@ -1629,5 +1629,5 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=27"></script>
+<script type="module" src="../common/fb.js?v=28"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>

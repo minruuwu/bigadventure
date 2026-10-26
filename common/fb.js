@@ -123,10 +123,14 @@ const FB = {
     /* 存檔前先讀一次自己的最新資料：今日次數、這間房的進度、是否已轉新版都以資料庫為準（避免畫面上的資料過期，例如管理後台剛改過） */
     let d = {}; try { const s0 = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); d = s0.exists() ? s0.data() : {}; } catch (e) { d = null; }
     if (d) { r = Object.assign({}, r); const used = d.riftDay === r.day ? (d.riftN | 0) : 0; r.n = used + 1; const ob = ((d.rift || {})[r.room]) | 0; r.best = r.lv && r.lv > ob ? r.lv : 0; r.migrate = (d.runeV | 0) >= 2 ? null : Object.keys(d.weapons || {}); }
-    const f = { riftAt: serverTimestamp(), riftDay: r.day, riftN: r.n };
+    const f = { riftAt: serverTimestamp(), riftDay: r.day, riftN: r.n, riftDbg: deleteField() };
     Object.keys(r.shards || {}).forEach(k => { f['rs.' + k] = increment(r.shards[k]); }); if (r.best) f['rift.' + r.room] = r.best;
     if (r.migrate) { f.runeV = 2; (r.migrate || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); }
-    try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); } catch (e) { try { e.why = await this.riftWhy(r, d || {}); } catch (e2) { e.why = ['檢查失敗']; } throw e; }
+    try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); } catch (e) {
+      /* 【暫時除錯】管理者帳號被擋時，依序跳過第 1～5 組規則檢查重試（6 = 全部跳過），第一個成功的就是出問題的那一組 */
+      let ok = 0; if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') { for (let k = 1; k <= 6 && !ok; k++) { try { await tmo(updateDoc(doc(db, 'players', u.uid), Object.assign({}, f, { riftDbg: k, riftAt: serverTimestamp() }))); ok = k; } catch (e3) { } } }
+      if (!ok) { try { e.why = await this.riftWhy(r, d || {}); } catch (e2) { e.why = ['檢查失敗']; } if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') e.why.push('除錯：跳過任何一組都過不了（欄位白名單或除錯規則還沒發布）'); throw e; }
+      r = Object.assign({}, r, { dbg: ok }); }
     const c = meGet(), pl = (c && c.player) || {}, rs = Object.assign({}, (d && d.rs) || pl.rs || {}), rift = Object.assign({}, (d && d.rift) || pl.rift || {});
     Object.keys(r.shards || {}).forEach(k => { rs[k] = (rs[k] | 0) + r.shards[k]; }); if (r.best) rift[r.room] = r.best; const p2 = { rs, rift, riftDay: r.day, riftN: r.n }; if (r.migrate) p2.runeV = 2; mePatch(p2); return r; },
   /* 秘境存檔被擋時，照資料庫規則逐項檢查，找出是哪一條不符合 */
