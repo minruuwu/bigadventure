@@ -43,6 +43,14 @@ img.px{image-rendering:pixelated}
 .b:active{transform:translateY(2px)}.b:disabled{opacity:.45;cursor:default;transform:none}
 .b.alt{background:var(--paper2);color:var(--pink)}
 
+/* 目錄與分頁 */
+.menu{display:flex;flex-direction:column;gap:12px;margin:14px 0 4px}
+.menu button{font:inherit;color:var(--pink);background:rgba(255,240,205,.32);border:2px solid var(--pink2);box-shadow:inset 0 -3px 0 rgba(58,38,22,.18);padding:16px 16px 14px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:2px;position:relative}
+.menu button::after{content:"›";position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:26px;font-weight:900;color:var(--pink2)}
+.menu button b{font-size:20px;letter-spacing:.2em}.menu button small{font-size:12px;color:var(--pink2)}
+.menu button:active{transform:translateY(2px)}
+.bk{font:inherit;font-size:13px;font-weight:900;color:var(--pink);background:none;border:0;padding:0;cursor:pointer;position:absolute;left:28px;top:30px;z-index:5}
+section[hidden]{display:none}
 /* 帳號 */
 .acct{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;padding:10px 12px;background:rgba(255,240,205,.32);border:2px solid var(--pink2)}
 .acct .av{grid-row:1/3;width:44px;height:44px;background:var(--paper2);box-shadow:0 0 0 2px var(--pink2);display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -84,7 +92,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 .sheet h2{margin:0 40px 2px 0;font-size:18px;letter-spacing:.06em}
 .sub{font-size:12px;color:var(--pink2);margin:0 0 10px}
 .tag{display:inline-block;font-size:11px;font-weight:900;color:#f0e2c4;background:#9a3a2a;padding:0 5px;margin-left:6px;vertical-align:middle;letter-spacing:0}
-.stage{position:relative;height:150px;margin:6px 0 10px;background:rgba(58,38,22,.12);border:2px solid rgba(58,38,22,.3);overflow:hidden}
+.stage{position:relative;height:210px;margin:6px 0 10px;background:rgba(58,38,22,.12);border:2px solid rgba(58,38,22,.3);overflow:hidden}
 .stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:rgba(58,38,22,.16)}
 .stage img{position:absolute;left:50%;transform-origin:50% 100%;z-index:1}
 .stage .shd{position:absolute;left:50%;height:6px;background:rgba(30,18,8,.35);border-radius:50%;z-index:0}
@@ -123,14 +131,16 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
   <main class="main">
     <div class="swo"><div class="sw"><i class="edge l"></i>
       <div class="sheet" id="page"><i class="pin l"></i><i class="pin r"></i>
-        <h1>記事</h1>
-        <div class="sec">帳號</div>
-        <div class="acct" id="acct"></div>
-        <div class="sec">怪物圖鑑 <small id="found"></small></div>
-        <p class="hint">冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子。點怪物看詳細資料。</p>
-        <div id="dex"></div>
-        <div class="sec">事典</div>
-        <div class="toc" id="toc"></div>
+        <section id="v-menu"><h1>記事</h1>
+          <div class="menu">
+            <button type="button" data-go="acct"><b>帳號</b><small>登入資訊、登出</small></button>
+            <button type="button" data-go="dex"><b>魔物圖鑑</b><small id="foundM"></small></button>
+            <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文</small></button>
+          </div></section>
+        <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 記事</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
+        <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 記事</button><h1>魔物圖鑑</h1>
+          <p class="hint"><span id="found"></span>　冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子。點怪物看詳細資料。</p><div id="dex"></div></section>
+        <section id="v-doc" hidden><button type="button" class="bk" data-go="">‹ 記事</button><h1>事典</h1><div class="toc" id="toc"></div></section>
         <p class="demo" id="demoNote" hidden>示範模式：用範例進度顯示。</p>
       </div>
     <i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div>
@@ -272,7 +282,7 @@ function seen(a,i,id){if(!areaOpen(i))return false;var reach=Math.min(NST,cleare
 
 /* ================= 畫面 ================= */
 var SPR=[];/* 會動的怪物圖：{img, k, ph, sc, base} */
-function sprite(k,box,maxH,maxW){var sz=Monsters.size(k),w=sz[0],h=sz[1],sc=Math.min(maxW/w,maxH/h);sc=sc>=1?Math.max(1,Math.floor(sc*2)/2):sc;
+function sprite(k,box,maxH,maxW){var sz=Monsters.size(k),w=sz[0],h=sz[1],sc=Math.min(maxW/w,maxH/h);sc=sc>=1?Math.max(1,Math.floor(sc*4)/4):sc;
   var im=el('img','px');im.alt='';im.draggable=false;im.style.width=(w*sc)+'px';im.style.height=(h*sc)+'px';box.appendChild(im);var o={img:im,k:k,ph:Math.random()*2000,sc:sc,src:''};SPR.push(o);return o}
 function tick(now){SPR.forEach(function(o){if(!o.img.isConnected)return;var s=Monsters.src(o.k,now,o.ph);if(s&&s!==o.src){o.src=s;o.img.src=s}
   var lf=Monsters.lift(o.k,now,o.ph)*o.sc,sq=Monsters.squash(o.k,now,o.ph);o.img.style.transform='translate(-50%,'+(-lf)+'px)'+(sq?' scale('+sq[0]+','+sq[1]+')':'');
@@ -297,7 +307,7 @@ function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;
       var st=el('div','st');t.appendChild(st);sprite(m.sprite,st,50,64);t.appendChild(el('div','nm',ok?m.monster_name:'？？？'));
       if(ok)t.addEventListener('click',function(){openMon(id)});g.appendChild(t)});
     w.appendChild(g);box.appendChild(w)});
-  $('found').textContent='已記錄 '+got+' / '+tot}
+  $('found').textContent='已記錄 '+got+' / '+tot;$('foundM').textContent='已記錄 '+got+' / '+tot+' 種魔物'}
 
 /* ---- 彈出頁 ---- */
 function openSheet(build){var s=$('sheet');s.textContent='';var x=el('button','x','✕');x.type='button';x.setAttribute('aria-label','關閉');x.addEventListener('click',closeSheet);s.appendChild(x);build(s);$('back').hidden=false;s.scrollTop=0}
@@ -311,7 +321,7 @@ function icon(src){var i=el('img','px');i.alt='';i.src=src;i.onerror=function(){
 function openMon(id){var m=D.mon[id];openSheet(function(s){
   var h=el('h2',null,m.monster_name);if(m.boss==='1')h.appendChild(el('span','tag','首領'));s.appendChild(h);
   var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
-  var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.appendChild(sh);o=sprite(m.sprite,stg,118,200);o.img.style.bottom='14px';o.glow=true;
+  var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.appendChild(sh);o=sprite(m.sprite,stg,176,280);o.img.style.bottom='14px';o.glow=true;
   sh.style.width=Math.round(sz[0]*o.sc*.7)+'px';sh.style.marginLeft=-Math.round(sz[0]*o.sc*.35)+'px';sh.style.bottom='11px';s.appendChild(stg);
   if(m.monster_desc)s.appendChild(el('p','desc',m.monster_desc));
   s.appendChild(el('div','k2','強度'));
@@ -357,6 +367,11 @@ function openDoc(k){openSheet(function(s){
     D.runes.forEach(function(r){var nm=el('span',null,'');var t=el('b','rn');t.textContent=r.rune_name;t.style.color=r.color;var d=el('div','ent');d.appendChild(icon(BASE+'icons/runes/'+r.u_sn+'.png?v='+V));d.appendChild(t);d.appendChild(el('p',null,r.rune_desc||''));s.appendChild(d)})}
 })}
 
+/* ---- 記事內的分頁：目錄 → 帳號／魔物圖鑑／事典（用網址 # 記錄，手機返回鍵回目錄） ---- */
+function show(v){['menu','acct','dex','doc'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
+function route(){var h=location.hash.replace('#','');show(['acct','dex','doc'].indexOf(h)>=0?h:'menu')}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.getAttribute('data-go');if(g){NAVD=true;location.hash=g}else if(NAVD){NAVD=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);route()}});var NAVD=false;
+window.addEventListener('hashchange',route);
 /* ---- 分頁列 ---- */
 function renderTabs(){var h=$('tabs');h.textContent='';
   var items=[['adv','冒險','map'],['camp','營地','camp'],['char','角色','banner'],['forge','鍛造','forge'],['set','記事','scroll']];
@@ -366,7 +381,7 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 
 /* ================= 開始 ================= */
 var DEMO={uid:'demo',name:'示範冒險者',lv:24,job:0,jobSn:'job01',weapon:'劍',skin:0,style:0,hair:0,eyes:6,outfit:0,adv:{area01:20,area02:9}};
-function start(me){ME=me;if(window.NavIcons)NavIcons.setPlayer(me);renderTabs();renderAcct();renderDex();renderToc();var l=$('loading');if(l)l.remove();requestAnimationFrame(tick)}
+function start(me){ME=me;if(window.NavIcons)NavIcons.setPlayer(me);renderTabs();renderAcct();renderDex();renderToc();route();var l=$('loading');if(l)l.remove();requestAnimationFrame(tick)}
 Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.csv','status_info.csv','rune_info.csv'].map(getCSV).concat([Monsters.load(BASE)])).then(function(r){
   build({monster_info:r[0],stage_info:r[1],skill_info:r[2],skill_effect:r[3],status_info:r[4],rune_info:r[5]});
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
