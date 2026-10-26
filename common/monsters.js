@@ -59,11 +59,23 @@ function idleOne(m,now){(function(){
     VP(ex2,ey2,'#ff5a3a',dp);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ex2+o[0],ey2+o[1],'#ff2a14',.45*dp)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){VP(ex2+o[0],ey2+o[1],'#ff200c',.18*dp)});
     pctx.globalCompositeOperation='lighter';[[36,14],[37,11],[38,15],[40,7],[41,3],[42,16],[45,4],[47,15],[50,15],[53,15]].forEach(function(q,qi){var per=1700+qi*230,u=((dt2+qi*590)%per)/per;if(u>.28)return;var a=Math.sin(u/.28*Math.PI),cx=dx0+(q[0]+.5)*ds2,cy=dy0+(q[1]+.5+ddy)*ds2;VP(cx,cy,'#ffffff',a);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(cx+o[0]*ds2*.8,cy+o[1]*ds2*.8,'#bfe4ff',a*.6)});if(a>.6)[[-2,0],[2,0],[0,-2],[0,2]].forEach(function(o){VP(cx+o[0]*ds2*.8,cy+o[1]*ds2*.8,'#9ad0ff',a*.35)})});pctx.globalCompositeOperation='source-over'}
   /* 火焰幽魂：火把火焰搖曳（6 道火舌忽高忽低、左右擺）＋往上飄的火星 */
-  /* 炎王龍：身上（頭、背、翅膀、尾巴）一簇簇火苗搖曳，火星往上飄；跟著漂浮一起動 */
-  if(m.k==='fdragon'&&m.alive){var FZ=msz('fdragon'),fs=m.sc,fx0=m.lx-FZ[0]*fs/2,fy0=m.gy-(m.lift||0)-FZ[1]*fs,ft=now+m.ph*3;pctx.globalCompositeOperation='lighter';
-    [[8,6,5],[18,3,4],[4,24,4],[40,7,6],[48,3,5],[62,10,4],[78,12,5],[86,8,4],[36,46,4],[50,56,5],[28,62,3],[58,36,4]].forEach(function(q,qi){var bx=fx0+q[0]*fs,by=fy0+q[1]*fs,hh=q[2]*fs*(.65+.35*Math.sin(ft/(70+qi*9)+qi*1.7));
-      for(var k7=0;k7<hh;k7++){var f7=k7/hh,sw7=Math.sin(ft/110+qi+f7*2)*1.2*f7;VP(bx+sw7,by-k7,f7<.3?'#fff0a0':f7<.65?'#ffa030':'#e8401a',(f7>.75?.35:.6)*(1-f7*.3));if(f7<.5&&hh>4)VP(bx+sw7+1,by-k7,'#ff8a20',.35)}});
-    for(var e7=0;e7<6;e7++){var u7=((ft+e7*520)%1700)/1700,cy7=Math.floor((ft+e7*520)/1700),sx7=fx0+(((cy7*17+e7*31)%80)+6)*fs,sy7=fy0+(10+((cy7*7+e7*13)%40))*fs-u7*22*fs;VP(sx7+Math.sin(u7*6+e7)*2,sy7,u7<.4?'#ffe080':'#ff6a1a',(1-u7)*.9)}
+  /* 炎王龍：火苗只從身上原本畫著火的位置往上燒（圖上偏橘黃、上方透明的像素），大小不一、不規則跳動，不會脫離身體 */
+  if(m.k==='fdragon'&&m.alive){var FZ=msz('fdragon'),fs=m.sc,fx0=m.lx-FZ[0]*fs/2,fy0=m.gy-(m.lift||0)-FZ[1]*fs,ft=now+m.ph*3,FP=IMG.__fdp;
+    if(!FP){FP=[];var fim=IMG.monster_boss_07;if(fim&&fim.naturalWidth){var fw=fim.naturalWidth,fh=fim.naturalHeight,fc=document.createElement('canvas');fc.width=fw;fc.height=fh;var fcx=fc.getContext('2d');fcx.drawImage(fim,0,0);var fd=fcx.getImageData(0,0,fw,fh).data,cell={};
+      for(var fy=0;fy<fh;fy++)for(var fxx=0;fxx<fw;fxx++){var q8=(fy*fw+fxx)*4;if(fd[q8+3]<200)continue;if(fy>0&&fd[q8-fw*4+3]>0)continue;var rr=fd[q8],gg=fd[q8+1],bb=fd[q8+2];if(!(rr>190&&gg>50&&bb<130))continue;var ck=Math.floor(fxx/7)+'_'+Math.floor(fy/7);if(cell[ck])continue;cell[ck]=1;FP.push([fxx,fy,hsh(fxx,fy)])}}
+      if(FP.length)IMG.__fdp=FP}
+    pctx.globalCompositeOperation='lighter';
+    FP.forEach(function(q,qi){var r9=q[2],bx=fx0+(q[0]+.5)*fs,by=fy0+(q[1]+.5)*fs,base=(4+r9*7)*fs,
+      n9=(Math.sin(ft/(85+r9*60)+qi*2.3)+Math.sin(ft/(47+r9*31)+qi*.7)*.6+Math.sin(ft/(150+qi%5*20))*.4)/2,hh=base*(.6+.4*n9);
+      for(var col=-1;col<=1;col++){var hc=hh*(col===0?1:.55+.25*Math.sin(ft/(60+qi*7)+col*2)),xo=col*fs*.9;
+        for(var k7=0;k7<hc;k7++){var f7=k7/hc,sw7=Math.sin(ft/(90+r9*40)+qi+f7*2.4)*(1+r9*1.5)*f7*f7*fs;VP(bx+xo+sw7,by-k7,f7<.25?'#fff4b0':f7<.55?'#ffb030':f7<.8?'#ff6a1a':'#d8301a',(col===0?.75:.5)*(1-f7*.55))}}});
+    pctx.globalCompositeOperation='source-over'}
+  /* 翔風龍：三道風在身邊繞圈（斜的橢圓軌道），風頭亮、尾巴漸淡；繞到身後那半圈比較淡 */
+  if(m.k==='wdragon'&&m.alive){var WZ2=msz('wdragon'),w2=m.sc,wcx=m.lx,wcy=m.gy-(m.lift||0)-WZ2[1]*w2*.5,wt2=now+m.ph*3;pctx.globalCompositeOperation='lighter';
+    [[.62,.18,.35,2300,0],[.5,.26,-.25,1900,2.1],[.7,.12,.15,2700,4.2]].forEach(function(o,oi){var rx=WZ2[0]*w2*o[0],ry=WZ2[1]*w2*o[1],tl=WZ2[1]*w2*o[2],a0=wt2/o[3]*Math.PI*2+o[4],da=.8/rx,L=Math.round(Math.PI*1.1/da);
+      for(var k8=0;k8<L;k8++){var a8=a0-k8*da,c8=Math.cos(a8),s8=Math.sin(a8),x8=wcx+c8*rx,y8=wcy+s8*ry+c8*tl*.5,f8=k8/L,back=s8<0?.3:1,al=(1-f8)*(1-f8*.6)*back,th=f8<.35?2:1;
+        for(var t8=0;t8<th;t8++)VP(x8,y8+t8,f8<.12?'#ffffff':f8<.45?'#d6fff4':'#8ae8cc',al*(t8?.55:.95))}});
+    for(var p8=0;p8<5;p8++){var u8=((wt2+p8*610)%2200)/2200,a9=u8*Math.PI*2+p8*1.3,x9=wcx+Math.cos(a9)*WZ2[0]*w2*.55,y9=wcy+Math.sin(a9)*WZ2[1]*w2*.2-u8*6;VP(x9,y9,'#d8fff4',Math.sin(u8*Math.PI)*.7)}
     pctx.globalCompositeOperation='source-over'}
   if(m.k==='fwraith'&&m.alive){var WZ=msz('fwraith'),ws=m.sc,wx0=m.lx-WZ[0]*ws/2,wy0=m.gy-(m.lift||0)-WZ[1]*ws,wt=now+m.ph*3,fbx=wx0+5*ws,fby=wy0+17*ws;pctx.globalCompositeOperation='lighter';
     [-2,-1,0,1,2,3].forEach(function(q){var hh=(q===0||q===1?13:Math.abs(q-.5)<2?10:6)*ws*(.7+.3*Math.sin(wt/(60+Math.abs(q)*13)+q*2.1)),sw3=Math.sin(wt/120+q)*1.3;for(var k6=0;k6<hh;k6++){var f6=k6/hh;VP(fbx+q*ws*.8+sw3*f6*2,fby-k6,f6<.3?'#fff2a0':f6<.65?'#ff9a2a':'#e0401a',(f6>.8?.35:.6)*(1-f6*.3))}});
