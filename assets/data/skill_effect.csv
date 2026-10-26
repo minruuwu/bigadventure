@@ -92,7 +92,7 @@ skill094,怒意,status,怒意,self,4,1,,,,,,,,
 skill095,榮耀打擊,status,戰意,ally_all,3,1,,,,,,,,
 skill096,斧專精,passive,,,,,p_atk_rate,0.08,,,,,,weapon02
 skill097,健壯,passive,,,,,hp_rate,0.1,,,,,,
-skill098,血氣昇華,passive,,,,,vit_to_p_atk,0.1,,,,,,
+skill098,血氣昇華,passive,,,,,vit_to_p_atk,0.5,,,,,,
 skill101,龍捲塵沙嵐,status,目盲,enemy_all,2,0.2,,,,,,,,
 skill102,元素屏障,status,元素屏障,self,3,1,,,,,,,,
 skill103,魔力紊亂,status,封禁,enemy_single,3,1,,,,,,,,
@@ -119,7 +119,7 @@ skill128,劍履冰霜,status,凍足,enemy_single,2,1,,,,,,,,
 skill130,劍精通,passive,,,,,crit_rate,0.1,,,,,,weapon01
 skill130,劍精通,passive,,,,,crit_damage_rate,0.5,,,,,,weapon01
 skill131,劍氣蕩漾,status,劍氣,self,3,1,,,,,,,,
-skill134,人劍合一,passive,,,,,p_atk_to_hp,0.05,,,,,,weapon01
+skill134,人劍合一,passive,,,,,p_atk_to_hp,0.25,,,,,,weapon01
 skill136,書專精,passive,,,,,m_atk_rate,0.08,,,,,,weapon08
 skill137,生命脈衝,heal,,ally_all,,,,0.8,m_atk,,,,,
 skill138,水銀奔流,status,汞中毒,enemy_all,3,1,,,,,,,,

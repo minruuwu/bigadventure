@@ -96,7 +96,7 @@ skill094,怒意,job06,15,combat,self,,buff,,,,,,,,,物理增傷+40%,,,,0,single,
 skill095,榮耀打擊,job06,20,combat,enemy_single,random,damage,,,p,,2.3,,,,我方全體物理攻擊力+10%，持續3回合,,,,1,single,,2
 skill096,斧專精,job06,3,passive,,,passive,,,,,,,,,裝備斧時物理攻擊力+8%,,,,,,,
 skill097,健壯,job06,10,passive,,,passive,,,,,,,,,生命力 +10%,,,,,,,
-skill098,血氣昇華,job06,25,passive,,,passive,,,,,,,,,體質的10%加到物理攻擊力,,,,,,,
+skill098,血氣昇華,job06,25,passive,,,passive,,,,,,,,,體質的50%加到物理攻擊力,,,,,,,
 skill099,冰雪暴,job07,1,combat,enemy_all,,damage,,,m,frost,0.95,,,,,missile,,,4,diamond,2,3
 skill100,閃電雷雲,job07,5,combat,enemy_all,,damage,,,m,lightning,0.95,,,,,missile,,,4,diamond,2,3
 skill101,龍捲塵沙嵐,job07,8,combat,enemy_all,,damage,,,m,wind,0.85,,,,20%機率目盲2回合,missile,,,4,diamond,2,3
@@ -132,7 +132,7 @@ skill130,劍精通,job12,10,passive,,,passive,,,,,,,,,裝備劍時暴擊率 +10%
 skill131,萬象生劍氣,job12,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3
 skill132,星天翠光破,job12,15,combat,enemy_all,,damage,,,p,nature,1,,,,,slash,,,3,diamond,2,3
 skill133,雷神斷影衝,job12,20,combat,enemy_single,random_each,damage,,,p,lightning,0.8,,,,,slash,3,,4,line,,2
-skill134,人劍合一,job12,25,passive,,,passive,,,,,,,,,裝備劍時，最終物理攻擊力的 5% 加到生命力上,,,,,,,
+skill134,人劍合一,job12,25,passive,,,passive,,,,,,,,,裝備劍時，最終物理攻擊力的 25% 加到生命力上,,,,,,,
 skill135,雷汞風暴,job10,1,combat,enemy_all,,damage,0.1,,m,lightning,0.85,,,,,smash,,,4,diamond,2,3
 skill136,書專精,job10,3,passive,,,passive,,,,,,,,,裝備書時魔法攻擊力 +8%,,,,,,,
 skill137,生命脈衝,job10,5,combat,enemy_all,,damage,,,m,nature,0.7,,,,我方全體恢復魔法攻擊力 80% 的生命,smash,,,4,diamond,2,3
