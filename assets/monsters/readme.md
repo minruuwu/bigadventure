@@ -35,6 +35,7 @@
 | monster_29 | 雪白龍（秘境・水曜之間，冰咒龍的幼龍；尚未接進遊戲） | `monster_29.png`（40×33，從 4 倍圖縮回，原圖在 `src/monster_29_full.png`） |
 | monster_30 | 電擊龍（秘境・金曜之間，雷暴龍的幼龍；尚未接進遊戲） | `monster_30.png`（40×37，從 4 倍圖縮回，原圖在 `src/monster_30_full.png`） |
 | monster_31 | 骨龍（秘境・土曜之間，冥屍龍召喚的小怪；尚未接進遊戲） | `monster_31.png`（從 4 倍圖縮回，原圖在 `src/monster_31_full.png`） |
+| monster_32 | 光龍（秘境・日曜之間，輝煌龍召喚的小怪；尚未接進遊戲） | `monster_32.png`（從 4 倍圖縮回，原圖在 `src/monster_32_full.png`） |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
 | monster_boss_04 | 眼魔（魔晶礦洞第 10 關 Boss；顯示 1.8 倍） | `monster_boss_04.png`（33×32，觸手眼全開＋大眼睜開）、`monster_boss_04_blink.png`（觸手眼全開＋大眼閉，眨大眼用）、`monster_boss_04_tc.png`（觸手眼全閉，程式依 `BHE` 的位置一顆一顆截來蓋，讓十顆各自眨眼）；懸空上下飄，觸手眼黃光由程式畫 |
@@ -47,6 +48,7 @@
 | monster_boss_10 | 雷暴龍（秘境・金曜之間首領；尚未接進遊戲） | `monster_boss_10.png`（100×87，從 4 倍圖縮回，閃電的半透明光暈保留；原圖在 `src/monster_boss_10_full.png`） |
 | monster_boss_11 | 冥屍龍（秘境・土曜之間首領，第一階段；尚未接進遊戲） | `monster_boss_11.png`（從 4 倍圖縮回，原圖在 `src/monster_boss_11_full.png`） |
 | monster_boss_12 | 亡骸‧冥屍龍（冥屍龍死後復活的第二階段；尚未接進遊戲） | `monster_boss_12.png`（從 4 倍圖縮回，原圖在 `src/monster_boss_12_full.png`） |
+| monster_boss_13 | 輝煌龍（秘境・日曜之間首領；尚未接進遊戲） | `monster_boss_13.png`（從 4 倍圖縮回，原圖在 `src/monster_boss_13_full.png`） |
 
 規則：
 - 透明背景 PNG，面向左邊（朝向隊伍）。
