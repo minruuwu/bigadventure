@@ -383,7 +383,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="party.js?v=26"></script>
+<script src="party.js?v=27"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -613,7 +613,7 @@ function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],
     weapon:wd&&(wd.img[s]||wd.img[0])?{img:wd.img[s]||wd.img[0],key:w+'_'+s,cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
     shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:w?haloOf(p,w):[]}}
-function haloOf(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1),n=lv>=90?3:lv>=60?2:lv>=30?1:0;return(Array.isArray(d.ench)?d.ench:[]).slice(0,n).map(function(id){return RUNE[id]?RUNE[id].color:null})}
+function haloOf(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1),n=lv>=90?3:lv>=60?2:lv>=30?1:0;return(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return (p.runeV|0)>=2&&((p.rs||{})[id]|0)>=1}).slice(0,n).map(function(id){return RUNE[id]?RUNE[id].color:null})}/* 符文改版：新版帳號、而且有這個符文的碎片（Lv1 以上）才發光 */
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:95,y:157}; /* fire centre x, base line y */

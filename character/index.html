@@ -379,7 +379,7 @@ function rLv(id){return window.RuneVals?RuneVals.levelOf(((S&&S.rs)||{})[id]):0}
 function RVc(id,k,d){return window.RuneVals?RuneVals.v(RUNEROWS,id,k,d,rLv(id)):d}
 function RVp(id,k,d){return window.RuneVals?RuneVals.pc(RVc(id,k,d)):Math.round(d*100)+'%'}
 function slotsOf(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
-function haloOf(sn){var w=wInfo(sn);return w.en.slice(0,slotsOf(w.lv)).map(function(id){return RUNEC[id]||null})}
+function haloOf(sn){var w=wInfo(sn);return w.en.filter(function(id){return (S.runeV|0)>=2&&rLv(id)>=1}).slice(0,slotsOf(w.lv)).map(function(id){return RUNEC[id]||null})}/* 符文改版：新版帳號、Lv1 以上才發光 */
 function buildData(R){
   RUNEROWS=R[5]||[];(R[5]||[]).forEach(function(r){if(r.u_sn)RUNEC[r.u_sn]=r.color||'#d0a0ff'});
   (R[4]||[]).forEach(function(r){if(r.pet_id)PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,per:(parseFloat(r.bonus_per_level)||0)/100,perTxt:String(r.bonus_per_level||'').trim()}});
@@ -500,7 +500,7 @@ function unspent(){return Math.max(0,totalPts()-spent())}
 function pendingSum(){var t=0;KEYS.forEach(function(k){t+=S.pend[k]});return t}
 function jobName(sn){return JOB[sn]?JOB[sn].job_name:'—'}
 function growthOf(sn,k){var g=GROWTH[sn];return g?(parseFloat(g['per_level_'+k])||0):0}
-function rOn(id){var sn=WNAME2K[S.weapon];if(!sn)return false;var w=wInfo(sn),n=w.lv>=90?3:w.lv>=60?2:w.lv>=30?1:0;return w.en.slice(0,n).indexOf(id)>=0&&(!(window.RuneVals&&RuneVals.hasLevels())||rLv(id)>=1)}/* 符文要 Lv1 以上才生效 */
+function rOn(id){var sn=WNAME2K[S.weapon];if(!sn)return false;var w=wInfo(sn),n=w.lv>=90?3:w.lv>=60?2:w.lv>=30?1:0;return (S.runeV|0)>=2&&w.en.filter(function(x){return rLv(x)>=1}).slice(0,n).indexOf(id)>=0&&(!(window.RuneVals&&RuneVals.hasLevels())||rLv(id)>=1)}/* 符文要 Lv1 以上才生效 */
 function A(){var r={};KEYS.forEach(function(k){var j=0,parts=[];JOBORDER.forEach(function(sn){var lv=S.jobLvs[sn]|0;if(lv>0){var g=growthOf(sn,k);if(g){j+=g*lv;parts.push(jobName(sn)+' Lv'+lv+' × '+g+' = +'+g*lv)}}});
   var a=S.alloc[k]+S.pend[k];var bs=10+j+a,rb=rOn('rune08')?Math.round(bs*RVc('rune08',0,0.1)):0;r[k]={job:j,jobParts:parts,alloc:a,rune:rb,total:bs+rb}});return r}
 function wEq(){var sn=WNAME2K[S.weapon],w=sn&&WEAPON[sn];return w?{w:w,lv:wInfo(sn).lv}:null}
@@ -851,7 +851,7 @@ function initTentPets(pets){
           if(Math.abs(dx)>.5)p.face=dx<0?-1:1}}
       tPlace(p,moving)});
     requestAnimationFrame(loop)})(last)}
-function start(p){S=fromPlayer(p);S.rs=p.rs||{};initTentPets(p.pets);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
+function start(p){S=fromPlayer(p);S.rs=p.rs||{};S.runeV=p.runeV|0;initTentPets(p.pets);updateWeaponSprites();refresh();renderTabs();pushNavPlayer();$('loading').remove();requestAnimationFrame(tick)}
 var DEMO={uid:'demo',name:'示範冒險者',lv:12,exp:1240,job:0,jobSn:'job01',jobLv:{job01:8},jobExp:310,alloc:{str:25,int:0,agi:10,vit:15,luk:0},renames:0,weapon:'劍',pets:{gm_pet_02:{lv:5,tent:true},gm_pet_01:{lv:2,tent:true},gm_pet_03:{lv:10,tent:true}},weapons:{weapon01:{lv:54,stage:2,ench:['rune01','rune10','rune05']},weapon02:{lv:31,stage:3,ench:['rune19']},weapon05:{lv:77,stage:4,ench:['rune18','rune08']}},skin:0,style:0,hair:0,eyes:5,outfit:0};
 Promise.all(['job_info.csv','job_attribute.csv','job_level_up.csv','weapon_info.csv','pet_info.csv','rune_info.csv','skill_info.csv','skill_effect.csv'].map(getCSV).concat([getCSV('status_info.csv').catch(function(){return []}),getCSV('rune_level.csv').catch(function(){return []})])).then(function(R){if(window.RuneVals&&R[9]&&R[9].length)RuneVals.setLevels(R[9]);R[8].forEach(function(r){if(r.status_name&&r.status_desc&&!STI[r.status_name])STI[r.status_name]={d:r.status_desc,pol:r.polarity}});buildSkills(R[6],R[7]);return buildData(R.slice(0,6))}).then(function(){return Doll.load(BASE,V)}).then(function(){
   if(!(Doll.assets.skins[0]&&Doll.assets.eyes[5]&&Doll.assets.hairT[0]))throw new Error('assets');

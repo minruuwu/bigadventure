@@ -72,7 +72,8 @@
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
   function statData() {
     if (STAT) return Promise.resolve(STAT);
-    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] })]).then(function (R) {
+    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] })]).then(function (R) {
+      if (R[5] && R[5].length && window.RuneVals) RuneVals.setLevels(R[5]);
       var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element } });
       var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
       STAT = { attr: A, grow: G, sk: K, eff: E, rune: R[4] || [] }; return STAT
@@ -89,10 +90,10 @@
   function combat(p, allies) {
     if (allies == null) allies = p._allies != null ? p._allies : Math.min(3, (p.party || []).length); var apa = skPas(p, 'atk_per_ally') * allies; /* 觀眾熱情：每位隊友 +x% 物攻、魔攻 */
     var D = STAT || { attr: {}, grow: {} }, sn = jobSn(p), K = ['str', 'int', 'agi', 'vit', 'luk'], T = {}, jl = p.jobLv || {}, al = p.alloc || {};
-    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, en = Array.isArray(wd.ench) ? wd.ench : [], pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
+    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 }, en = (p.runeV | 0) >= 2 && Array.isArray(wd.ench) ? wd.ench.filter(function (id) { return rlv(id) >= 1 }).slice(0, lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0) : [], /* 符文改版：新版帳號、而且符文 Lv1 以上才算 */ pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
     /* 符文數值讀 rune_info.csv（common/runevals.js），跟戰鬥引擎同一份 */
-    function RV(id, k, d) { return window.RuneVals ? RuneVals.v(D.rune || [], id, k, d) : d }
+    function RV(id, k, d) { return window.RuneVals ? RuneVals.v(D.rune || [], id, k, d, rlv(id)) : d }
     K.forEach(function (k) { var j = 0; Object.keys(jl).forEach(function (s) { var l = jl[s] | 0, g = D.grow[s]; if (l > 0 && g) j += (parseFloat(g['per_level_' + k]) || 0) * l }); var bs = 10 + j + (al[k] | 0); T[k] = bs + (rOn('rune08') ? Math.round(bs * RV('rune08', 0, 0.1)) : 0) });
     var at = D.attr[sn] || {}, hpb = pn(at.hp_bonus), pb = pn(at.p_atk_bonus), mb = pn(at.m_atk_bonus), eb = pn(at.eva_rate_bonus), cb = pn(at.crit_rate_bonus), db = pn(at.crit_damage_rate_bonus), pd = pn(at.p_def_bonus), md = pn(at.m_def_bonus);
     var row = null; (C.rawWeapons() || []).forEach(function (r) { if (r.u_sn === ws) row = r });
@@ -105,9 +106,9 @@
     var r5 = rOn('rune05') ? RV('rune05', 0, 0.2) : 0, r5d = rOn('rune05') ? RV('rune05', 1, 1) : 0;
     var pdT = pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? RV('rune06', 0, 0.2) : 0) + skPas(p, 'p_reduce_rate'), mdT = md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? RV('rune07', 0, 0.2) : 0) + skPas(p, 'm_reduce_rate');
     /* 羊之新生：減傷同時加成為增傷（上限看 rune_info） */
-    var r24 = rOn('rune24'), k24 = RV('rune24', 0, 1), c24 = RV('rune24', 1, 9), pd24 = r24 ? Math.min(pdT * k24, c24) : 0, md24 = r24 ? Math.min(mdT * k24, c24) : 0;
+    var r24 = rOn('rune24'), k24 = RV('rune24', 0, 1), c24 = RV('rune24', 1, 9), pd24 = r24 ? Math.min(Math.min(pdT, 0.8) * k24, c24) : 0, md24 = r24 ? Math.min(Math.min(mdT, 0.8) * k24, c24) : 0;
     return [
-      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1) + Math.round(a * skPas(p, 'agi_to_hp') * 5) + Math.round(i * skPas(p, 'int_to_hp') * 5) + Math.round((P0 + balP) * skPas(p, 'p_atk_to_hp'))) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate')))],
+      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1) + Math.round(a * skPas(p, 'agi_to_hp') * 5) + Math.round(i * skPas(p, 'int_to_hp') * 5) + Math.round((P0 + balP) * skPas(p, 'p_atk_to_hp'))) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate') + (rOn('rune06') ? RV('rune06', 1, 0) : 0) + (rOn('rune07') ? RV('rune07', 1, 0) : 0)))],
       ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate') + skPas(p, 'eva_rate'))],
       ['patk', '物理攻擊力', P0 + balP],
       ['matk', '魔法攻擊力', M0 + balM],
