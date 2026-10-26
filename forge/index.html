@@ -137,6 +137,8 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .pghint{margin:0;font-size:12.5px;line-height:1.55;color:#5a3d1e}
 .sheetx{align-self:stretch;background:#4a2a12;color:#f0dfb8;border:0;padding:10px 0;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608,3px 3px 0 2px rgba(60,30,10,.35)}
 .sheetx:active{transform:translateY(2px)}
+/* 符文清單的「注入符文之力」固定在卷軸最下方，清單很長也不用捲到底才按得到 */
+#sheetX{position:sticky;bottom:0;z-index:3;flex:none}
 .sheetopts{display:flex;flex-direction:column;gap:12px}
 .sopt{position:relative;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:12px 14px 13px;cursor:pointer;border:0;background:rgba(120,80,30,.08);color:#3b2713;box-shadow:inset 0 0 0 6px rgba(90,55,20,.13)}
 .sopt .hd{display:flex;align-items:center;gap:8px}
