@@ -23,6 +23,9 @@ input[type=number]{width:84px}
 #msg{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 14px);max-width:528px;margin-inline:auto;background:#2b241a;border:2px solid var(--line);padding:10px 12px;display:none;z-index:9}
 #msg.on{display:block}#msg.err{border-color:var(--acc)}
 .note{color:var(--dim);font-size:12px}
+.rg{margin:6px 0 2px;font-size:12px;font-weight:700}
+.rn{display:flex;gap:6px;align-items:center;margin:3px 0}.rn .n{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rn select{width:76px}.rn input[type=number]{width:64px}.rn .s{font-size:11px;color:var(--dim)}
+.rn.ch .n{text-decoration:underline}
 </style></head>
 <body>
 <h1>管理後台</h1><p class="sub">只有管理者帳號能寫入；其他人看得到頁面也改不了。</p>
@@ -36,11 +39,12 @@ function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function toast(t,err){var m=$('msg');m.textContent=t;m.className='on'+(err?' err':'');clearTimeout(toast.t);toast.t=setTimeout(function(){m.className=''},2600)}
 function csv(n){return fetch(BASE+n+'?v='+Math.floor(Date.now()/300000)).then(function(r){return r.ok?r.arrayBuffer():new ArrayBuffer(0)}).then(function(b){var t=new TextDecoder('utf-8').decode(b).replace(/^\ufeff/,''),L=t.split(/\r?\n/).filter(Boolean);if(!L.length)return[];var h=L[0].split(',');return L.slice(1).map(function(l){var c=l.split(','),o={};h.forEach(function(k,i){o[k.trim()]=(c[i]||'').trim()});return o})})}
-var DIFF={hp:1,atk:1},DDRAFT=null,REW={step:3,cut:0.1,floor:0.1},RDRAFT=null,NOTICE={text:'',on:false},NDRAFT=null,FB,ME=null,PL=[],JOBS=[],WPN=[],PETS=[],open={},WSEL={},JSEL={};
+var DIFF={hp:1,atk:1},DDRAFT=null,REW={step:3,cut:0.1,floor:0.1},RDRAFT=null,NOTICE={text:'',on:false},NDRAFT=null,FB,ME=null,PL=[],JOBS=[],WPN=[],PETS=[],open={},WSEL={},JSEL={},RUNES=[],ROOMS=[],RDR={},FDR={};
+function RLV(n){return window.RuneVals?RuneVals.levelOf(n):0}function RNEED(L){return window.RuneVals?RuneVals.need(L):0}
 function boot(){withFB(function(f){FB=f;FB.ready.then(function(u){if(!u)return login();gate(u)})})}
 function login(){$('box').innerHTML='<p>請先用管理者的 Google 帳號登入。</p><button id="go" type="button">用 Google 登入</button>';$('go').onclick=function(){FB.signIn().then(function(u){gate(u)},function(){toast('登入失敗',1)})}}
 function gate(u){if(String(u.email||'').toLowerCase()!==ADMIN){$('box').innerHTML='<p>這個帳號（'+esc(u.email||'')+'）沒有管理權限。</p><button id="so" type="button" class="alt">登出</button>';$('so').onclick=function(){FB.signOut().then(function(){location.reload()})};return}
-  ME=u;Promise.all([csv('job_info.csv'),csv('weapon_info.csv'),csv('pet_info.csv'),FB.adminList(200),FB.noticeGet().catch(function(){return null}),FB.difficultyGet().catch(function(){return null}),FB.rewardGet?FB.rewardGet().catch(function(){return null}):null]).then(function(R){if(R[6])REW=R[6];JOBS=R[0];WPN=R[1];PETS=R[2];PL=R[3];if(R[4])NOTICE={text:R[4].text||'',on:!!R[4].on};if(R[5])DIFF=R[5];draw()},function(e){$('box').innerHTML='<p>載入失敗：'+esc(e&&(e.code||e.message)||'')+'</p>'})}
+  ME=u;Promise.all([csv('job_info.csv'),csv('weapon_info.csv'),csv('pet_info.csv'),FB.adminList(200),FB.noticeGet().catch(function(){return null}),FB.difficultyGet().catch(function(){return null}),FB.rewardGet?FB.rewardGet().catch(function(){return null}):null,csv('rune_info.csv'),csv('rift_info.csv')]).then(function(R){RUNES=(R[7]||[]).filter(function(r){return r.u_sn});ROOMS=(R[8]||[]).filter(function(r){return r.room}).map(function(r){return{room:r.room,n:r.room_name||r.rift,c:r.color_1||'#fff',runes:String(r.runes||'').split(';').map(function(x){return x.trim()}).filter(Boolean)}});if(R[6])REW=R[6];JOBS=R[0];WPN=R[1];PETS=R[2];PL=R[3];if(R[4])NOTICE={text:R[4].text||'',on:!!R[4].on};if(R[5])DIFF=R[5];draw()},function(e){$('box').innerHTML='<p>載入失敗：'+esc(e&&(e.code||e.message)||'')+'</p>'})}
 function draw(){var q=($('q')&&$('q').value||'').trim().toLowerCase();
   var h='<div id="top"><input id="q" type="search" placeholder="搜尋玩家名字" value="'+esc(q)+'"><button id="rf" type="button" class="alt">重新載入</button><button id="so" type="button" class="alt">登出</button></div>';
   var nv=NDRAFT!=null?NDRAFT:NOTICE.text;h+='<div class="pl" style="padding:10px 12px"><div class="nm">營地跑馬燈</div><div class="rw"><input id="nt" maxlength="200" placeholder="公告內容（最多 200 字）" value="'+esc(nv)+'" style="flex:1"><button id="ntOn" type="button">發布</button><button id="ntOff" type="button" class="alt">取消</button></div><p class="note">'+(NOTICE.on&&NOTICE.text?'目前顯示中：［公告］'+esc(NOTICE.text):'目前沒有公告（營地上方不顯示）')+'</p></div>';
@@ -77,15 +81,47 @@ function body(p){var jsn=JSEL[p.uid]||(JOBS[0]&&JOBS[0].u_sn),jl=((p.jobLv||{})[
   PETS.forEach(function(pt){var lv=((p.pets||{})[pt.pet_id]||{}).lv|0;h+='<div class="rw"><label>'+esc(pt.pet_name)+'</label><input type="number" min="0" max="10" step="1" id="pt-'+p.uid+'-'+pt.pet_id+'" value="'+lv+'"><button type="button" data-a="pet" data-id="'+pt.pet_id+'">儲存</button></div>'});
   var wsn=WSEL[p.uid]||(WPN[0]&&WPN[0].u_sn),wd=((p.weapons||{})[wsn])||{};
   h+='<h3>武器等級與外觀階</h3><div class="rw"><select id="ws-'+p.uid+'" data-a="wsel">'+WPN.map(function(w){return '<option value="'+w.u_sn+'"'+(w.u_sn===wsn?' selected':'')+'>'+esc(w.weapon_name)+'</option>'}).join('')+'</select></div><div class="rw"><label>Lv</label><input type="number" min="1" step="1" id="wl-'+p.uid+'" value="'+Math.max(1,wd.lv|0||1)+'"><label>外觀階</label><input type="number" min="1" max="4" step="1" id="wt-'+p.uid+'" value="'+Math.min(4,Math.max(1,wd.stage|0||1))+'"><button type="button" data-a="wpn">儲存</button></div>';
+  h+=runeBox(p);
   h+='<h3>一鍵重置</h3><div class="rw"><button type="button" data-a="reset" class="danger">重置角色進度</button><span class="note">人物 Lv1、經驗 0、所有武器 Lv1（含淬火、附魔、外觀階）、鍛造石 0、職業回戰士且等級歸 0、配點歸 0、技能配置清空、冒險關卡進度歸零</span></div>';
   return h+'<p class="note" id="wn-'+p.uid+'"></p></div>'}
+/* 符文等級：rs.<符文id> 存碎片累積數，等級由碎片數換算（1,2,3,5,8,12,18,25,35,50 片升一級）
+   存檔時：舊帳號順便轉新版（runeV = 2、清空所有武器的舊附魔）；新版帳號若把某個符文降到 Lv0，武器上裝著的這個符文會一起卸下，
+   這樣玩家之後在鍛造頁存附魔不會被資料庫規則擋下來 */
+function rsOf(p,id){var d=RDR[p.uid];if(d&&d[id]!=null)return d[id];return ((p.rs||{})[id])|0}
+function runeBox(p){var u=p.uid,nv=(p.runeV|0)>=2,known={},h='<h3>符文等級（Lv0～10）</h3><p class="note">'+(nv?'新版帳號。':'舊版帳號（還沒進過鍛造頁或秘境）：存檔時會一併轉成新版，舊附魔清空。')+'選等級會把碎片設成剛好到那一級，也可以直接改碎片數。改完按最下面的「儲存符文」。</p>';
+  ROOMS.forEach(function(R){h+='<div class="rg" style="color:'+R.c+'">'+esc(R.n)+'</div>';R.runes.forEach(function(id){known[id]=1;h+=runeRow(p,id)})});
+  var rest=RUNES.filter(function(r){return !known[r.u_sn]});if(rest.length){h+='<div class="rg">其他</div>';rest.forEach(function(r){h+=runeRow(p,r.u_sn)})}
+  h+='<div class="rw"><button type="button" data-a="rsave">儲存符文</button><button type="button" class="alt" data-a="rundo">復原</button></div>';
+  var fd=FDR[u]||{};h+='<h3>秘境進度（每間房最高通關等級，下一級 = 這個 +10）</h3>';
+  ROOMS.forEach(function(R){var cur=fd[R.room]!=null?fd[R.room]:(((p.rift||{})[R.room])|0),o='';for(var L=0;L<=200;L+=10)o+='<option value="'+L+'"'+(L===cur?' selected':'')+'>'+(L?'通關 Lv'+L:'未通關')+'</option>';
+    h+='<div class="rn"><span class="n" style="color:'+R.c+'">'+esc(R.n)+'</span><select data-a="rfsel" data-r="'+R.room+'" style="width:120px">'+o+'</select></div>'});
+  var used=p.riftDay&&p.riftN?p.riftN|0:0;
+  h+='<div class="rw"><button type="button" data-a="rfsave">儲存秘境進度</button><button type="button" class="alt" data-a="rfn">今日次數歸零</button><span class="note">'+(p.riftDay?'最後一次：'+esc(p.riftDay)+'，當天已用 '+used+' 次':'還沒打過秘境')+'</span></div>';
+  return h}
+function runeRow(p,id){var r=RUNES.filter(function(x){return x.u_sn===id})[0]||{},n=rsOf(p,id),L=RLV(n),o='',ch=RDR[p.uid]&&RDR[p.uid][id]!=null&&RDR[p.uid][id]!==(((p.rs||{})[id])|0);
+  for(var i=0;i<=10;i++)o+='<option value="'+i+'"'+(i===L?' selected':'')+'>Lv'+i+'</option>';
+  return '<div class="rn'+(ch?' ch':'')+'"><span class="n" style="color:'+(r.color||'#fff')+'">'+esc(r.rune_name||id)+'</span><select data-a="rlv" data-id="'+id+'">'+o+'</select><input type="number" min="0" step="1" data-a="rsn" data-id="'+id+'" value="'+n+'"><span class="s">片</span></div>'}
+function runeSave(p){var u=p.uid,d=RDR[u]||{},f={},rs=Object.assign({},p.rs||{}),nch=0;
+  Object.keys(d).forEach(function(id){var v=d[id]|0;if(v<0)v=0;if(v!==(((p.rs||{})[id])|0)){f['rs.'+id]=v;nch++}rs[id]=v});
+  var nv=(p.runeV|0)>=2,ws=p.weapons||{},drop=0;
+  if(!nv){if(!nch&&!confirm('沒有改任何符文。要直接把這個帳號轉成新版（舊附魔清空）嗎？'))return;f.runeV=2;Object.keys(ws).forEach(function(k){f['weapons.'+k+'.ench']=[]})}
+  else{if(!nch)return toast('沒有改任何符文',1);Object.keys(ws).forEach(function(k){var en=Array.isArray(ws[k].ench)?ws[k].ench:[],keep=en.filter(function(id){return (rs[id]|0)>=1});if(keep.length!==en.length){f['weapons.'+k+'.ench']=keep;drop+=en.length-keep.length}})}
+  RDR[u]={};save(u,f,'符文已儲存'+(nv?'':'（已轉新版、舊附魔已清空）')+(drop?'；卸下 '+drop+' 個降到 Lv0 的符文':''))}
 function reload(){FB.adminList(200).then(function(l){PL=l;draw();toast('已重新載入')},function(){toast('載入失敗',1)})}
 function find(u){return PL.filter(function(p){return p.uid===u})[0]}
 function save(u,fields,ok){var b=document.activeElement;FB.adminUpdate(u,fields).then(function(){var p=find(u);if(p){Object.keys(fields).forEach(function(k){var path=k.split('.'),o=p;for(var i=0;i<path.length-1;i++){o[path[i]]=o[path[i]]||{};o=o[path[i]]}o[path[path.length-1]]=fields[k]})}draw();toast(ok||'已儲存')},function(e){toast('寫入失敗：'+(e&&(e.code||e.message)||''),1)})}
 function num(id,min,max){var v=parseInt($(id).value,10);if(isNaN(v)||v<min||(max!=null&&v>max))return null;return v}
-document.addEventListener('change',function(e){var s=e.target;if(s&&s.getAttribute('data-a')==='jsel'){var c0=s.closest('.pl'),u0=c0&&c0.getAttribute('data-u');if(u0){JSEL[u0]=s.value;draw()}return}if(!s||s.getAttribute('data-a')!=='wsel')return;var card=s.closest('.pl'),u=card&&card.getAttribute('data-u'),p=u&&find(u);if(!p)return;WSEL[u]=s.value;var d=((p.weapons||{})[s.value])||{};$('wl-'+u).value=Math.max(1,d.lv|0||1);$('wt-'+u).value=Math.min(4,Math.max(1,d.stage|0||1))});
+document.addEventListener('change',function(e){var s=e.target,sa=s&&s.getAttribute('data-a');
+  if(sa==='rlv'||sa==='rsn'||sa==='rfsel'){var cR=s.closest('.pl'),uR=cR&&cR.getAttribute('data-u');if(!uR)return;
+    if(sa==='rfsel'){(FDR[uR]=FDR[uR]||{})[s.getAttribute('data-r')]=parseInt(s.value,10)|0;return}
+    var idR=s.getAttribute('data-id'),vR=sa==='rlv'?RNEED(parseInt(s.value,10)|0):Math.max(0,parseInt(s.value,10)|0);(RDR[uR]=RDR[uR]||{})[idR]=vR;draw();return}
+if(s&&s.getAttribute('data-a')==='jsel'){var c0=s.closest('.pl'),u0=c0&&c0.getAttribute('data-u');if(u0){JSEL[u0]=s.value;draw()}return}if(!s||s.getAttribute('data-a')!=='wsel')return;var card=s.closest('.pl'),u=card&&card.getAttribute('data-u'),p=u&&find(u);if(!p)return;WSEL[u]=s.value;var d=((p.weapons||{})[s.value])||{};$('wl-'+u).value=Math.max(1,d.lv|0||1);$('wt-'+u).value=Math.min(4,Math.max(1,d.stage|0||1))});
 document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var card=b.closest('.pl');if(!card)return;var u=card.getAttribute('data-u'),a=b.getAttribute('data-a'),p=find(u);
   if(a==='tg'){open[u]=!open[u];draw();return}
+  if(a==='rsave'){runeSave(p);return}
+  if(a==='rundo'){RDR[u]={};draw();return}
+  if(a==='rfsave'){var fd=FDR[u]||{},ff={};Object.keys(fd).forEach(function(k){if(fd[k]!==(((p.rift||{})[k])|0))ff['rift.'+k]=fd[k]});if(!Object.keys(ff).length)return toast('秘境進度沒有變動',1);FDR[u]={};save(u,ff,'秘境進度已儲存');return}
+  if(a==='rfn'){if(!p.riftN)return toast('今天的次數本來就是 0',1);save(u,{riftN:0},'今日秘境次數已歸零');return}
   if(a==='reset'){if(!confirm('確定要重置「'+(p.name||'(無名)')+'」？\n人物等級回到 1、經驗歸 0、所有武器鍛造等級回到 1（淬火點數與附魔一併清空）、鍛造石歸 0；\n職業轉回戰士、所有職業等級歸 0、job06 以後的外觀重新上鎖、衣服改為「當前職業」、配點歸 0、技能配置清空、冒險關卡進度歸零（從第 1 關重新開始）。\n此動作無法復原。'))return;var fr={lv:1,exp:0,stones:0,job:0,jobSn:'job01',jobLv:{},jobSeen:[],alloc:{str:0,int:0,agi:0,vit:0,luk:0},skills:{combat:['atk','atk','atk','atk'],reaction:'',passive:['','','','']},adv:{}};
     var j1=JOBS.filter(function(x){return x.u_sn==='job01'})[0],ok1=function(n){var w=WPN.filter(function(x){return x.weapon_name===n})[0];return !!(j1&&w&&String(j1['usable_'+String(w.weapon_e_name||'').toLowerCase()]||'').trim()==='1')};
     if(!ok1(p.weapon)){var dw=j1&&WPN.filter(function(x){return x.u_sn===j1.default_weapon})[0];fr.weapon=dw?dw.weapon_name:'劍'}
@@ -104,5 +140,6 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-a]')
 boot();
 })();
 </script>
+<script src="../common/runevals.js?v=3"></script>
 <script type="module" src="../common/fb.js?v=26"></script>
 </body></html>
