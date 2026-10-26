@@ -317,7 +317,7 @@ function tick(now){
     var pp=posOf(p.i),bob=0,lx=0,ks=koAt(k,t),kt=ks.t,ko=ks.ko,fl=0;
     if(!ko&&p.look.closed){p.look=look(MEMB[k]);p.dr=0}
     if(walk&&!ko)bob=Math.abs(Math.sin(now/110+p.ph*3))*2.4;
-    B.ev.forEach(function(e){if(e.side==='p'&&e.a===k&&!e.rbuff){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*(e.far?6:18)}if(e.side==='m'&&e.tgts&&e.tgts.indexOf(k)>=0){var v=win(t,e.t+(e.wk==='sandstorm'||e.wk==='burrow'||e.wk==='grasp'||e.wk==='souls'||e.wk==='chains'?e.hit:180),160);if(v>=0)fl=1}if(e.side==='m'&&e.spl&&e.spl.indexOf(k)>=0){var v2=win(t,e.t+(e.hit||180)+90,160);if(v2>=0)fl=1}if(e.thr&&e.thr.some(function(q){return q[0]==='p'&&q[1]===k})){var v4=win(t,e.t+(e.hit||180)+140,160);if(v4>=0)fl=1}});
+    B.ev.forEach(function(e){if(e.side==='p'&&e.a===k&&!e.rbuff&&e.rfx!=='el'){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*(e.far?6:18)}if(e.side==='m'&&e.tgts&&e.tgts.indexOf(k)>=0){var v=win(t,e.t+(e.wk==='sandstorm'||e.wk==='burrow'||e.wk==='grasp'||e.wk==='souls'||e.wk==='chains'?e.hit:180),160);if(v>=0)fl=1}if(e.side==='m'&&e.spl&&e.spl.indexOf(k)>=0){var v2=win(t,e.t+(e.hit||180)+90,160);if(v2>=0)fl=1}if(e.thr&&e.thr.some(function(q){return q[0]==='p'&&q[1]===k})){var v4=win(t,e.t+(e.hit||180)+140,160);if(v4>=0)fl=1}});
     if(ko&&!p.look.closed){p.look=Object.assign({},p.look,{closed:true,breath:false,halo:[]});p.dr=0}
     var sf=ko?stOf([]):stNowP(k);if(sf.fx.fire&&!p.fireOn)p.fireT=now;p.fireOn=!!sf.fx.fire;var still=sf.fx.shake||sf.fx.frozen||sf.fx.stone;
     if(!p.dr||now-p.dr>=90){var tn=now+p.ph;if((sf.fx.sleep||still)&&tn%4000<130)tn+=130;/* 睡眠、定身：不眨眼 */Doll.draw(p.f,still||sf.fx.sleep?Object.assign({},p.look,still?{breath:false}:{},sf.fx.sleep?{closed:true}:{}):p.look,tn);/* 睡眠：不畫眼睛圖層＝閉眼 */p.dr=now}
@@ -575,7 +575,7 @@ var THC={c:'#9fd13f'};
 /* 一個顏色的深、中、亮三階 */
 var SHD_={};function shades(hex){if(SHD_[hex])return SHD_[hex];var h=hex.replace('#',''),r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),mix=function(k,to){return 'rgb('+Math.round(r+(to-r)*k)+','+Math.round(g+(to-g)*k)+','+Math.round(b+(to-b)*k)+')'};return SHD_[hex]={c:hex,d:mix(.5,10),l:mix(.6,255)}}
 /* 符文特效：RIMP = 命中那一刻（毫秒，閃白／倒下對齊這裡），RDUR = 這一行佔多久 */
-var RIMP={el:200,drown:640,tome:460,grave:700,moon:470,bear:60,sun:0,nm:300,stone:300},RDUR={el:700,drown:1000,tome:1000,grave:1150,moon:950,bear:850,sun:800,nm:800,stone:800};
+var ELPULL=420,RIMP={el:200,drown:640,tome:460,grave:700,moon:470,bear:60,sun:0,nm:300,stone:300},RDUR={el:700-ELPULL,drown:1000,tome:1000,grave:1150,moon:950,bear:850,sun:800,nm:800,stone:800};
 function VB(x,y,c,a){VR(Math.round(x)-1,Math.round(y)-1,2,2,c,a)}
 function cen(q){var f=footOf(q[0],q[1]);return f?[f.x,f.y-f.h*.5,f]:null}
 function runeFx(e,d){if(d<0||d>1300)return;var src=cen(e.rs);
@@ -651,7 +651,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
         else if(c2>=0&&c2<=1){var k2=cs*(1+.12*c2);pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1-c2;pctx.drawImage(CLAW,ccx-k2/2,ccy-k2/2,k2,k2);pctx.restore()}
         return}
       var u=(d-170)/260;if(u<0||u>1)return;var a=1-u;for(var k=0;k<3;k++){for(var j=0;j<7;j++){var x=pp[0]-4+k*3+j*.6,y=pp[1]-24+j*1.4;VP(x,y,j<2?'#ffffff':'#ff9a8a',a*(j<5?1:.6))}}});return}
-    var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'||wk==='beam'||wk==='notes'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
+    var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=(e.rfx==='el'?0:1)*Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'||wk==='beam'||wk==='notes'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
     if(e.ty==='heal'&&e.hl!=null){[].concat(e.hl).forEach(function(hk){healFx(posOf(hk),d,e.el)});return}
     if(e.ty==='buff'){if(PCOL[e.el])pBurst(e.el,pp[0],pp[1]-12,d-60,12,.8*VS);var u2=d/700;if(u2>1)return;var R=6+u2*6;for(var k2=0;k2<28;k2++){var an=k2/28*Math.PI*2;VP(pp[0]+Math.cos(an)*R,pp[1]-1+Math.sin(an)*R*.3,k2%2?'#ffd76a':'#fff4c4',1-u2)}return}
     (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;hitFx(e,d,wk,c,sx,sy,mp[0],mp[1],BG[cur].band+mons[ti].dy,mons[ti].sc||1)})}
@@ -977,7 +977,7 @@ function realBattle(a,l){
         else{o.ty=e.rk==='counter'?'damage':'debuff';o.tgts=ctr&&e.rt[0]==='p'?[e.rt[1]]:[]}}}
     if(e.rfx){/* 符文獨立一行：rfx 決定特效；rc = 符文表顏色；hit/kod 對準命中那一刻（閃白、倒下） */
       var rc=(RUNE[e.rn]||{}).color||'#ffffff',RI=RIMP[e.rfx]||300;o.rn=e.rn;o.rfx=e.rfx;o.rc=rc;o.rs=[e.side,e.a];o.rtg=e.rtg||[];o.kod=RI+80;
-      if(e.rfx==='el'&&e.side==='p'){Object.assign(o,fxOf(MEMB[e.a],'atk','damage'));o.side='p';o.a=e.a;o.el=e.el;o.atk=false;o.vc=ELC[e.el]||rc;o.tg=o.rtg.filter(function(q){return q[0]==='m'}).map(function(q){return q[1]});o.hits=1;o.kod=(o.hit||180)+80}
+      if(e.rfx==='el'&&e.side==='p'){Object.assign(o,fxOf(MEMB[e.a],'atk','damage'));o.side='p';o.a=e.a;o.el=e.el;o.atk=false;o.vc=ELC[e.el]||rc;o.tg=o.rtg.filter(function(q){return q[0]==='m'}).map(function(q){return q[1]});o.hits=1;o.kod=(o.hit||180)+80;o.t=t-ELPULL/* 不重新出手：特效直接接在主攻擊後面 */}
       else if(e.rfx==='sun'){o.gs=e.side;o.ga=e.a;o.cast=rc;o.castLen=820}
       else if(e.rfx==='nm'||e.rfx==='stone'){o.dring=o.rtg[0];o.dcol=rc}
       else{o.thr=o.rtg;o.hit=Math.max(1,RI-140);if(e.rfx==='grave'){o.gs=e.side;o.ga=e.a;o.cast='#5a4632';o.castLen=420}}}
