@@ -127,10 +127,12 @@ const FB = {
     Object.keys(r.shards || {}).forEach(k => { f['rs.' + k] = increment(r.shards[k]); }); if (r.best) f['rift.' + r.room] = r.best;
     if (r.migrate) { f.runeV = 2; (r.migrate || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); }
     try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); } catch (e) {
-      /* 【暫時除錯】管理者帳號被擋時，從少到多試著跳過第 1～5 組規則檢查重試，第一個成功的組合就是擋住的那幾組 */
-      let ok = 0; if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') { const sets = []; for (let m = 1; m < 32; m++) { const l = []; for (let k = 1; k <= 5; k++) if (m & (1 << (k - 1))) l.push(k); sets.push(l); } sets.sort((x, y) => x.length - y.length); for (const l of sets) { if (ok) break; try { await tmo(updateDoc(doc(db, 'players', u.uid), Object.assign({}, f, { riftDbg: l, riftAt: serverTimestamp() }))); ok = l.join('、'); } catch (e3) { } } }
+      /* 【暫時除錯】管理者帳號被擋時，從少到多試著跳過第 1～8 組規則檢查重試，第一個成功的組合就是擋住的那幾組 */
+      let ok = 0; if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') { const sets = []; for (let a = 1; a <= 8; a++) sets.push([a]); for (let a = 1; a <= 8; a++) for (let b = a + 1; b <= 8; b++) sets.push([a, b]); sets.push([1, 2, 3, 4, 5, 6, 7, 8]); for (const l of sets) { if (ok) break; try { await tmo(updateDoc(doc(db, 'players', u.uid), Object.assign({}, f, { riftDbg: l, riftAt: serverTimestamp() }))); ok = l.join('、'); } catch (e3) { } } }
       if (!ok) { try { e.why = await this.riftWhy(r, d || {}); } catch (e2) { e.why = ['檢查失敗']; } if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') e.why.push('除錯：跳過任何一組都過不了（欄位白名單或除錯規則還沒發布）'); throw e; }
-      r = Object.assign({}, r, { dbg: ok }); }
+      let ty = ''; try { const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {}, rsF = F.rs && F.rs.mapValue && F.rs.mapValue.fields || {};
+        ty = '；房間 ' + r.room + '；碎片 ' + Object.keys(rsF).sort().map(k => k.replace('rune', '') + '=' + Object.keys(rsF[k])[0].replace('Value', '') + ':' + Object.values(rsF[k])[0]).join(' '); } catch (e4) { }
+      r = Object.assign({}, r, { dbg: ok + ty }); }
     const c = meGet(), pl = (c && c.player) || {}, rs = Object.assign({}, (d && d.rs) || pl.rs || {}), rift = Object.assign({}, (d && d.rift) || pl.rift || {});
     Object.keys(r.shards || {}).forEach(k => { rs[k] = (rs[k] | 0) + r.shards[k]; }); if (r.best) rift[r.room] = r.best; const p2 = { rs, rift, riftDay: r.day, riftN: r.n }; if (r.migrate) p2.runeV = 2; mePatch(p2); return r; },
   /* 秘境存檔被擋時，照資料庫規則逐項檢查，找出是哪一條不符合 */
