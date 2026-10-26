@@ -109,7 +109,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=4"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=29"></script>
-<script src="engine.js?v=24"></script>
+<script src="engine.js?v=25"></script>
 <script src="../common/skilldesc.js?v=1"></script>
 <script src="tactics.js?v=16"></script>
 <script>
@@ -348,7 +348,7 @@ function tick(now){
     else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=(((shx!=null?shx:mx)-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
-  drawAura(t,now);drawParts(t);drawVfx(t);drawOrbs(t,now);drawBlood(t);drawIdle(now);drawStatus(now);drawSongs(t,now);
+  drawAura(t,now);drawParts(t);drawVfx(t);drawSheep(t,now);drawOrbs(t,now);drawBlood(t);drawIdle(now);drawStatus(now);drawSongs(t,now);
   raf=requestAnimationFrame(tick);
 }
 /* ---- 攻擊特效（依武器種類；顏色：普攻白／魔法淡紫、無屬性技能淡金、有屬性用屬性色） ---- */
@@ -359,7 +359,7 @@ var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){ret
 var WKIND={'劍':'sword','斧':'axe','錘':'hammer','匕':'dagger','槍':'spear','弓':'bow','杖':'staff','書':'book'};
 var ELC={fire:'#ff7a3a',frost:'#9ad8ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#fff4c4',dark:'#6a1fc0'};
 function vfxColor(wk,s){if(s.el&&ELC[s.el])return ELC[s.el];if(!s.atk)return '#f3d98a';return wk==='staff'||wk==='book'?'#d6b8ff':'#ffffff'}
-function VP(x,y,c,a){if(a<=0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=c;var z=Math.max(1,Math.round(U));pctx.fillRect(Math.round(x*U),Math.round(y*U),z,z)}
+function VP(x,y,c,a){if(a<=0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=c;var x0=Math.round(x*U),y0=Math.round(y*U);/* 寬高照下一格的位置算，相鄰的格子剛好接上、不會出現格線 */pctx.fillRect(x0,y0,Math.max(1,Math.round((x+1)*U)-x0),Math.max(1,Math.round((y+1)*U)-y0))}
 function VR(x,y,w,h,c,a){if(a<=0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=c;pctx.fillRect(Math.round(x*U),Math.round(y*U),Math.max(1,Math.round(w*U)),Math.max(1,Math.round(h*U)))}
 function VO(cx,cy,rx,ry,c,a){for(var y=-ry;y<=ry;y++){var w=Math.round(rx*Math.sqrt(Math.max(0,1-(y*y)/(ry*ry+.01))));VR(cx-w,cy+y,w*2+1,1,c,a)}}
 /* 音波（蝙蝠的音嘯）：從怪物嘴邊往左一圈一圈擴散的像素弧線，共 3 道，掃過隊員時隊員身上震一下 */
@@ -597,8 +597,10 @@ function runeFx(e,d){if(d<0||d>1300)return;var src=cen(e.rs);
       var f=c[2];/* 腳下一圈土灰漩渦 */var ra=Math.max(0,Math.min(1,(d-600)/120))*Math.max(0,1-(d-1000)/180);if(ra>0)ringBurst(f.x,f.y-1,f.w+2,C,ra*.9,.3);
       for(var s2=0;s2<5;s2++){var v=(d-620-s2*60)/520;if(v<0||v>1)continue;var x0=f.x-f.w*.8+s2*f.w*.4;for(var k3=0;k3<14;k3++){var vk=v-k3*.028;if(vk<0)continue;var yy=f.y-2-vk*(f.h+16),xx=x0+Math.sin(vk*8+s2*1.7)*2.5;(k3<6?VB:VP)(xx,yy,k3<2?C.l:k3<6?C.c:C.d,(1-v)*(1-k3/15))}}})}
   else if(e.rfx==='moon'){/* 月之淨化：敵人頭上一彎月，降下細光柱 */var C=shades(e.rc);e.rtg.forEach(function(q){var f=footOf(q[0],q[1]);if(!f)return;var cx=f.x,cy=f.y-f.h-11,fa=d<220?d/220:d<760?1:Math.max(0,1-(d-760)/180);
-      for(var yy=-6;yy<=6;yy++)for(var xx=-6;xx<=6;xx++){var in1=xx*xx+yy*yy<=30,in2=(xx-2.6)*(xx-2.6)+(yy+1.4)*(yy+1.4)<=24;if(in1&&!in2)VP(cx+xx,cy+yy,xx<-3?C.l:C.c,fa)}
-      var b=(d-300)/420;if(b>=0&&b<=1){var ba=Math.sin(b*Math.PI),top=cy+4,bot=f.y;for(var y2=top;y2<=bot;y2++){VP(cx,y2,'#ffffff',ba);VP(cx-1,y2,C.l,ba*.8);VP(cx+1,y2,C.l,ba*.8);VP(cx-2,y2,C.c,ba*.35);VP(cx+2,y2,C.c,ba*.35)}
+      cy-=4;var MR=9,bob=Math.round(Math.sin(d/160)*1),pul=.85+.15*Math.sin(d/90);cx=Math.round(cx);cy=Math.round(cy)+bob;/* 對齊整數格，避免出現格線 */
+      /* 月光暈 */for(var yy=-MR-4;yy<=MR+4;yy++)for(var xx=-MR-4;xx<=MR+4;xx++){var dd=Math.sqrt(xx*xx+yy*yy);if(dd>MR&&dd<=MR+4)VP(cx+xx,cy+yy,C.c,fa*.22*(MR+4-dd)/4*pul)}
+      /* 彎月：大圓減掉往右上偏的圓，左緣最亮 */for(var yy=-MR;yy<=MR;yy++)for(var xx=-MR;xx<=MR;xx++){var in1=xx*xx+yy*yy<=MR*MR,in2=(xx-4.2)*(xx-4.2)+(yy+2.4)*(yy+2.4)<=(MR-1.2)*(MR-1.2);if(in1&&!in2){var edge=xx*xx+yy*yy>(MR-1.5)*(MR-1.5);VP(cx+xx,cy+yy,xx<-MR*.45?'#ffffff':edge?C.l:C.c,fa)}}
+      var b=(d-300)/420;if(b>=0&&b<=1){var ba=Math.sin(b*Math.PI),top=cy+MR-2,bot=Math.round(f.y);for(var y2=top;y2<=bot;y2++){VP(cx,y2,'#ffffff',ba);VP(cx-1,y2,'#ffffff',ba*.9);VP(cx+1,y2,C.l,ba*.9);VP(cx-2,y2,C.l,ba*.6);VP(cx+2,y2,C.c,ba*.5);VP(cx-3,y2,C.c,ba*.25);VP(cx+3,y2,C.c,ba*.25)}
         if(b>.35)ringBurst(cx,f.y-1,3+(b-.35)*14,C,(1-b)*1.4,.35)}})}
   else if(e.rfx==='bear'){/* 熊之力量：每個敵人身上爆出濺射碎片 */var C=shades(e.rc);e.rtg.forEach(function(q,n){var c=cen(q);if(!c)return;var u=(d-20-n*25)/700;if(u<0||u>1)return;
       for(var k=0;k<18;k++){var an=hsh(k,51+n)*Math.PI*2,sp=(12+hsh(k,53)*16)*Math.max(1,c[2].w/9),x=c[0]+Math.cos(an)*sp*u,y=c[1]+Math.sin(an)*sp*u*.8+u*u*16,col=k%3===0?C.l:k%3===1?C.c:C.d;VB(x+1,y+1,C.d,(1-u)*.9);VB(x,y,col,1-u)}
@@ -618,7 +620,14 @@ function bubbleFx(f,d){var C=BUB,R=Math.max(6,f.w*1.1),u=d/640;
 /* 啟示之書的光球：角色左上方 */
 function orbPos(q){if(!q||q[0]!=='p')return null;var pp=posOf(q[1]);return[pp[0]-13,pp[1]-40]}
 function orbDraw(x,y,r,C,a,now){var pl=1+.12*Math.sin(now/180),R=r*pl,Ri=Math.ceil(R+2);x=Math.round(x);y=Math.round(y);for(var yy=-Ri;yy<=Ri;yy++)for(var xx=-Ri;xx<=Ri;xx++){var dd=Math.sqrt(xx*xx+yy*yy);if(dd<=R)VP(x+xx,y+yy,dd<R*.45?'#ffffff':dd<R*.8?C.l:C.c,a);else if(dd<=R+2)VP(x+xx,y+yy,C.c,a*.28*(R+2-dd))}}
-function drawOrbs(t,now){if(!B)return;var C=null;party.forEach(function(p,k){var cur=null;B.ev.forEach(function(e){if(e.tome&&e.tome[0]==='p'&&e.tome[1]===k&&e.t<=t)cur=e.tome});if(!cur||!cur[2])return;if(koAt(k,t).ko)return;C=C||shades((RUNE.rune21||{}).color||'#3fe6ff');var o=orbPos(['p',k]);orbDraw(o[0],o[1]+Math.sin(now/400+k)*1.2,1.2+cur[2]/cur[3]*4.4,C,.95,now)});pctx.globalAlpha=1}
+/* 羊之新生：裝了這個符文的人，身邊一直有一層同色光罩（淡淡的半透明罩子＋閃動的邊緣） */
+function drawSheep(t,now){if(!B)return;var L=VFXT?(VT.sheep?[0]:[]):(B.sheep||[]);if(!L.length)return;var C=shades((RUNE.rune24||{}).color||'#f0b27a');
+  L.forEach(function(k){if(!party[k]||koAt(k,t).ko||t<WALK)return;var pp=posOf(k),cx=Math.round(pp[0]),cy=Math.round(pp[1]-16),rx=14,ry=20,ph=now/700+k,br=.8+.2*Math.sin(now/500+k);
+    for(var yy=-ry;yy<=ry;yy++){var w=Math.round(rx*Math.sqrt(Math.max(0,1-(yy*yy)/(ry*ry))));for(var xx=-w;xx<=w;xx++){var e2=(xx*xx)/(rx*rx)+(yy*yy)/(ry*ry),sh=.5+.5*Math.sin(ph*3+Math.atan2(yy,xx)*3);
+      if(e2>.86)VP(cx+xx,cy+yy,e2>.94?C.l:C.c,(e2>.94?.95:.75)*(.75+.25*sh)*br);else if(e2>.6)VP(cx+xx,cy+yy,C.c,.22*(e2-.6)/.26*br);else VP(cx+xx,cy+yy,C.c,.1*br)}}
+    /* 罩子左上的反光 */for(var q=0;q<4;q++){VP(cx-8+q,cy-13+q,'#ffffff',.75-q*.12)}
+    /* 地上一圈 */ringBurst(cx,Math.round(pp[1]),rx-1,C,.55*br,.3)});pctx.globalAlpha=1}
+function drawOrbs(t,now){if(!B)return;var C=null;party.forEach(function(p,k){var cur=null;var ct=-1e9;B.ev.forEach(function(e){if(e.tome&&e.tome[0]==='p'&&e.tome[1]===k&&e.t<=t&&e.t>=ct){cur=e.tome;ct=e.t}});if(!cur||!cur[2])return;if(koAt(k,t).ko)return;C=C||shades((RUNE.rune21||{}).color||'#3fe6ff');var o=orbPos(['p',k]);orbDraw(o[0],o[1]+Math.sin(now/400+k)*1.2,1.2+cur[2]/cur[3]*4.4,C,.95,now)});pctx.globalAlpha=1}
 function thornCols(){if(THC.d)return THC;var h=THC.c.replace('#',''),r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16),mix=function(k,to){return 'rgb('+Math.round(r+(to-r)*k)+','+Math.round(g+(to-g)*k)+','+Math.round(b+(to-b)*k)+')'};
   THC.d=mix(.45,20);THC.l=mix(.55,255);return THC}
 function thornRing(f,d){if(d<0||d>720)return;var C=thornCols(),u=d/720,gr=u<.3?ease(u/.3):u<.6?1:1-ease((u-.6)/.4)*.35,fa=u<.06?u/.06:u<.6?1:1-(u-.6)/.4,sc=f.w/9,N=14;
@@ -999,7 +1008,7 @@ function realBattle(a,l){
     if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
     ev.push(o)});
   sumSlots(ms,mko);
-  return{ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
+  return{sheep:P.map(function(u,i){return u.runes.indexOf('rune24')>=0?i:-1}).filter(function(i){return i>=0}),ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
     hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp})},lead:P[0]}}
 
 /* 戰報裡的符文名稱改成符文表的顏色 */
@@ -1118,6 +1127,10 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
   else if(VT.kind==='mbeam')e={side:'m',a:0,tgt:0,tgts:[0],t:t,wk:'beam',el:VT.el,vc:'#ffffff',hit:180};
   else if(VT.kind==='beam')e={side:'p',a:0,t:t,tg:[0],wk:'beam',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:180};
   else if(VT.kind.indexOf('song:')===0)e=vtSong(t,VT.kind.slice(5));
+  else if(VT.kind.indexOf('rune:')===0){var rf=VT.kind.slice(5),rid={moon:'rune15',tome:'rune21',drown:'rune25',grave:'rune26',bear:'rune22',sun:'rune14',nm:'rune13',stone:'rune23'}[rf],rc=(RUNE[rid]||{}).color||'#ffffff',RI=RIMP[rf]||300;
+    if(rf==='tome'){/* 啟示之書：每次魔法攻擊累積一層，第 3 次飛出去 */VT.tc=(VT.tc||0)%3+1;e={side:'p',a:0,t:t,tg:[0],wk:'staff',vc:'#d6b8ff',atk:false,el:'',ty:'damage',far:true,hit:290,tome:['p',0,VT.tc,3]};
+      if(VT.tc===3)B.ev.push({t:t+700,rn:rid,rfx:'tome',rc:rc,rs:['p',0],rtg:[['m',0]],thr:[['m',0]],hit:RI-140,tome:['p',0,0,3]})}
+    else{e={t:t,rn:rid,rfx:rf,rc:rc,rs:['p',0],rtg:[rf==='sun'?['p',0]:['m',0]]};if(rf==='sun'){e.gs='p';e.ga=0;e.cast=rc;e.castLen=820}else if(rf==='nm'||rf==='stone'){e.dring=['m',0];e.dcol=rc}else{e.thr=[['m',0]];e.hit=Math.max(1,RI-140);if(rf==='grave'){e.gs='p';e.ga=0;e.cast='#5a4632';e.castLen=420}}}}
   else if(VT.kind==='pillar')e={side:'p',a:0,t:t,tg:[0],wk:'pillar',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:330};
   else{e={side:'p',a:0,t:t,tg:[0],wk:wk,vc:vfxColor(wk,s),atk:VT.atk&&!VT.el,el:VT.el,ty:VT.kind,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
     if(VT.kind==='heal'){e.tg=[];e.hl=0}if(VT.kind==='buff')e.tg=[]}
@@ -1126,16 +1139,17 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button><button type="button" data-k="beam">射線</button><button type="button" data-k="mbeam">怪物射線</button><button type="button" data-k="pillar">光柱</button><button type="button" data-k="msand">怪物沙暴</button><button type="button" data-k="mmia">怪物瘴氣</button><button type="button" data-k="mbur">怪物潛地</button><button type="button" data-k="blood">血系斬擊</button><button type="button" data-k="ls">吸血</button><button type="button" data-k="mls">怪物吸血</button><button type="button" data-k="mgrasp">冥王之握</button><button type="button" data-k="msouls">冥河呼喚</button><button type="button" data-k="mchain">冥獄枷鎖</button><button type="button" data-k="song:skill162">讚美詩</button><button type="button" data-k="song:skill167">奉獻詩歌</button><button type="button" data-k="song:skill164">安眠曲</button><button type="button" data-k="song:skill168">小步舞曲</button><button type="button" data-k="song:skill165">獸之和弦</button><button type="button" data-k="song:skill169">命運交響曲</button></div>'+
+  '<div class="vth">符文</div><div class="vtr" id="vtk2">'+[['moon','月之淨化'],['tome','啟示之書'],['drown','水之幽暗'],['grave','墓之土'],['bear','熊之力量'],['sun','太陽之照耀'],['nm','夢靨之預兆'],['stone','石之正義']].map(function(x){return '<button type="button" data-k="rune:'+x[0]+'">'+x[1]+'</button>'}).join('')+'<button type="button" data-sheep="1">羊之新生（光罩）</button></div>'+
   '<div class="vth">怪物</div><div class="vtr" id="vtm">'+vtMonBtns()+'</div>'+
   '<div class="vth">靈氣（可多選，套在角色身上）</div><div class="vtr" id="vta">'+Object.keys(Aura.DEF).map(function(id){return '<button type="button" data-au="'+id+'">'+Aura.DEF[id].n+'</button>'}).join('')+'<button type="button" data-aa="1">當成受加成隊友</button></div>'+
   '<div class="vth">狀態（可多選，角色和怪物同時套用）</div><div class="vtr" id="vts">'+VTS.map(function(x){return '<button type="button" data-s="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<p class="vtn">每 1.3 秒自動攻擊一次。「普通攻擊」只在無屬性時有差別（白色，杖書淡紫）；選了屬性就會用屬性色。</p></div>';
   var pn=$('log').parentNode;pn.innerHTML=h;vtSync();
   pn.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
-    if(b.dataset.w!=null){VT.w=b.dataset.w;vtBuild()}else if(b.dataset.e!=null){VT.el=b.dataset.e}else if(b.dataset.k){var k=b.dataset.k;VT.atk=k==='atk';VT.kind=k==='atk'?'damage':k}else if(b.dataset.m){VT.mon=b.dataset.m;vtBuild()}else if(b.dataset.s!=null){VT.st[b.dataset.s]=!VT.st[b.dataset.s]}else if(b.dataset.au){VT.au[b.dataset.au]=!VT.au[b.dataset.au]}else if(b.dataset.aa){VT.auAlly=!VT.auAlly}
+    if(b.dataset.w!=null){VT.w=b.dataset.w;vtBuild()}else if(b.dataset.e!=null){VT.el=b.dataset.e}else if(b.dataset.k){var k=b.dataset.k;VT.atk=k==='atk';VT.kind=k==='atk'?'damage':k}else if(b.dataset.m){VT.mon=b.dataset.m;vtBuild()}else if(b.dataset.s!=null){VT.st[b.dataset.s]=!VT.st[b.dataset.s]}else if(b.dataset.au){VT.au[b.dataset.au]=!VT.au[b.dataset.au]}else if(b.dataset.aa){VT.auAlly=!VT.auAlly}else if(b.dataset.sheep){VT.sheep=!VT.sheep}
     VT.lastT=-99999;vtSync()})}
 function vtSync(){function on(id,f){[].forEach.call(document.querySelectorAll('#'+id+' button'),function(b){b.classList.toggle('on',f(b))})}
-  on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon});on('vts',function(b){return !!VT.st[b.dataset.s]});on('vta',function(b){return b.dataset.aa?VT.auAlly:!!VT.au[b.dataset.au]})}
+  on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon});on('vts',function(b){return !!VT.st[b.dataset.s]});on('vta',function(b){return b.dataset.aa?VT.auAlly:!!VT.au[b.dataset.au]});on('vtk2',function(b){return b.dataset.sheep?!!VT.sheep:b.dataset.k===VT.kind})}
 function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hidden=true;$('batv').hidden=false;$('bhead').textContent='特效測試';setBG('A');vtBuild();vtUI();lastNow=performance.now();
   (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>1300){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */
