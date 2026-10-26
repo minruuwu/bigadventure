@@ -6,7 +6,7 @@
 (function(g){
 'use strict';
 var BASE='../assets/',FILES={camp:'camp',forge:'forge',adv:'adventure',set:'settings'};
-var LINKS={camp:'../camp/index.html',forge:'../forge/index.html',char:'../character/index.html',adv:'../battle/index.html'};
+var LINKS={camp:'../camp/index.html',forge:'../forge/index.html',char:'../character/index.html',adv:'../battle/index.html',set:'../notes/index.html'};
 var cache={},player=null,lastTabs=null,dollLoading=false,headKey='',headCv=null;
 var DPR=3,BOX_W=58,BOX_H=45,OUT=2; /* css px */
 /* pixel-art icons: a whole number of screen pixels per art pixel, about 2.4 css px (7 device px on a 3x phone) */
