@@ -327,9 +327,12 @@ function renderAcct(){var a=$('acct');a.textContent='';var av=el('div','av');
 
 var OPENA={};
 function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;
-  /* 不分地區，分一般、首領兩區；區內照圖鑑順序（主線先後，秘境最後） */
+  /* 不分地區，分一般、首領兩區；秘境七龍排最前面，其餘照圖鑑順序（主線先後） */
   [['n','一般',function(m){return m.boss!=='1'}],['b','首領',function(m){return m.boss==='1'}]].forEach(function(G){
     var L=D.entries.filter(function(E){return G[2](D.mon[E.id])}),n=0;if(!L.length)return;
+    /* 秘境七龍排最前面：風 火 水 自然 雷 暗（暗 2）光，其餘照原本順序 */
+    var TOP=G[0]==='n'?['mon36','mon34','mon38','mon10','mon40','mon43','mon45']:['mon35','mon33','mon37','mon07','mon39','mon41','mon42','mon44'],rk=function(E,i){var k=TOP.indexOf(E.id);return k<0?TOP.length+i:k};
+    L=L.map(function(E,i){return{E:E,r:rk(E,i)}}).sort(function(x,y){return x.r-y.r}).map(function(x){return x.E});
     L.forEach(function(E){tot++;if(seenE(E)){got++;n++}});
     var w=el('div','area'),h=el('button');h.type='button';h.appendChild(el('span',null,G[1]));h.appendChild(el('i',null,n+' / '+L.length));w.appendChild(h);
     var g=el('div','grid');if(OPENA[G[0]]===undefined)OPENA[G[0]]=true;g.hidden=!OPENA[G[0]];
