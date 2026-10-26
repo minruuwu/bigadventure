@@ -134,13 +134,7 @@ const FB = {
     /* 碎片寫入「加完之後的數字」而不是 increment：規則對巢狀欄位的 increment 做加減比對會失敗（秘境除錯查出來的） */
     Object.keys(r.shards || {}).forEach(k => { f['rs.' + k] = d ? (((d.rs || {})[k]) | 0) + r.shards[k] : increment(r.shards[k]); }); if (r.best) f['rift.' + r.room] = r.best;
     if (r.migrate) { f.runeV = 2; (r.migrate || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); }
-    try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); } catch (e) {
-      /* 【暫時除錯】管理者帳號被擋時，從少到多試著跳過第 1～8 組規則檢查重試，第一個成功的組合就是擋住的那幾組 */
-      let ok = 0; const codes = []; if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') { const sets = []; for (let a = 1; a <= 5; a++) sets.push([a]); for (let a = 1; a <= 5; a++) for (let b = a + 1; b <= 5; b++) sets.push([a, b]); sets.push([1, 2, 3, 4, 5]); for (const l of sets) { if (ok) break; try { await tmo(updateDoc(doc(db, 'players', u.uid), Object.assign({}, f, { riftDbg: l, riftAt: serverTimestamp() }))); ok = l.join('、'); } catch (e3) { codes.push(l.join('') + ':' + (e3 && e3.code)); } } }
-      if (!ok) { try { e.why = await this.riftWhy(r, d || {}); } catch (e2) { e.why = ['檢查失敗']; } if (e && e.code === 'permission-denied' && String(u.email || '').toLowerCase() === 'minruu0215@gmail.com') e.why.push('除錯：跳過任何一組都過不了（欄位白名單或除錯規則還沒發布）'); throw e; }
-      let ty = ''; try { const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {}, rsF = F.rs && F.rs.mapValue && F.rs.mapValue.fields || {};
-        ty = '；房間 ' + r.room + '；存檔前：日=' + (d && d.riftDay) + ' 次=' + (d && d.riftN) + ' 隔=' + (d && d.riftAt && d.riftAt.toMillis ? Math.round((Date.now() - d.riftAt.toMillis()) / 1000) + '秒' : '無') + ' 進度=' + (d && d.rift ? JSON.stringify(d.rift) : '無') + ' 碎片=' + (d && d.rs ? JSON.stringify(d.rs) : '無') + '；寫入：日=' + r.day + ' 次=' + r.n + ' 進度=' + r.best + ' 碎片+' + JSON.stringify(r.shards) + '；失敗碼：' + (codes.filter(c => !/permission-denied/.test(c)).join(' ') || '全是 permission-denied') + '；存檔後碎片 ' + Object.keys(rsF).sort().map(k => k.replace('rune', '') + '=' + Object.keys(rsF[k])[0].replace('Value', '') + ':' + Object.values(rsF[k])[0]).join(' '); } catch (e4) { }
-      r = Object.assign({}, r, { dbg: ok + ty }); }
+    try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); } catch (e) { try { e.why = await this.riftWhy(r, d || {}); } catch (e2) { e.why = ['檢查失敗']; } throw e; }
     const c = meGet(), pl = (c && c.player) || {}, rs = Object.assign({}, (d && d.rs) || pl.rs || {}), rift = Object.assign({}, (d && d.rift) || pl.rift || {});
     Object.keys(r.shards || {}).forEach(k => { rs[k] = (rs[k] | 0) + r.shards[k]; }); if (r.best) rift[r.room] = r.best; const p2 = { rs, rift, riftDay: r.day, riftN: r.n }; if (r.migrate) p2.runeV = 2; mePatch(p2); return r; },
   /* 秘境存檔被擋時，照資料庫規則逐項檢查，找出是哪一條不符合 */
@@ -157,7 +151,7 @@ const FB = {
       const rsF = F.rs && F.rs.mapValue && F.rs.mapValue.fields || {}; Object.keys(rsF).forEach(k => { if (!('integerValue' in rsF[k])) why.push(k + ' 碎片存成了小數或其他型別'); });
       const rfF = F.rift && F.rift.mapValue && F.rift.mapValue.fields || {}; Object.keys(rfF).forEach(k => { if (!('integerValue' in rfF[k])) why.push('秘境進度 ' + k + ' 不是整數'); });
       if (F.riftN && !('integerValue' in F.riftN)) why.push('riftN 不是整數'); } catch (e) { }
-    if (!why.length) why.push('資料檢查都正常（規則還在除錯中）');
+    if (!why.length) why.push('資料檢查都正常');
     why.push('存檔前：日=' + d.riftDay + ' 次=' + d.riftN + ' 隔=' + (at ? Math.round((Date.now() - at) / 1000) + '秒' : '無') + ' 版=' + (d.runeV | 0) + ' 武器=' + Object.keys(d.weapons || {}).join('/') + ' 進度=' + JSON.stringify(d.rift || {}) + ' 碎片=' + JSON.stringify(d.rs || {}) + '；寫入：房=' + r.room + ' 日=' + r.day + ' 次=' + r.n + ' 進度=' + r.best + ' 遷移=' + (r.migrate ? r.migrate.join('/') : '否') + ' 碎片+' + JSON.stringify(r.shards || {}));
     return why; },
   // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成累積在自己（隊長）資料的 owe.<隊友uid> 裡，同一次寫入
