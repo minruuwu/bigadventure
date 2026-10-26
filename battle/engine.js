@@ -657,6 +657,8 @@
             }
             /* 荊棘之皇冠：排進反應佇列，敵人整招結束後才反彈（腳下荊棘光環） */
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * RV(D, 'rune11', 0, 0.5)) });
+            /* 被打中時觸發的被動（輝煌龍的神恩寵兒：機率讓攻擊者陷入魅惑） */
+            if (t.special && real > 0 && !u.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'apply_status' && sp.tr === 'hit_taken' && !u.dead && RND() < sp.ch && applyStatus(t, u, sp.st, sp.turns, 1, null)) { (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '被動') + '」讓 ' + u.name + ' 陷入「' + sp.st + '」'); (e.dringA = e.dringA || []).push([u.side, u.i]) } });
             if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2)) (function (t, u) { rq(e, 'rune23', function (r) { if (t.dead || u.dead || !applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5), 1, null)) return false; r.txt = t.name + ' 的「石之正義」：' + u.name + ' 被石化 ' + RV(D, 'rune23', 1, 5) + ' 回合'; fxOn(r, 'stone', t, [u]) }) })(t, u);
             if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' || r.k === 'swallow' }) }); var dn = pickOne(dbs); (function (t) { rq(e, 'rune13', function (r) { if (t.dead || !applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) return false; r.txt = u.name + ' 的「夢靨之預兆」：' + t.name + ' 陷入「' + dn + '」' + RV(D, 'rune13', 1, 3) + ' 回合'; fxOn(r, 'nm', u, [t]) }) })(t) }
             /* 每一下附加的狀態 */
@@ -685,6 +687,7 @@
         effs.forEach(function (r) {
           if (r.effect_kind !== 'status' || r.condition === 'per_hit') return;
           if (r.target === 'self') applyStatus(u, u, r.status_name, r.turns, r.apply_chance, e);
+          else if (r.target === 'ally_all') friends(u).forEach(function (f) { applyStatus(u, f, r.status_name, r.turns, r.apply_chance, e) }); /* 傷害技順便替自己全隊上增益（神聖輝煌） */
           else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
         });
       } else if (sk.ty === 'heal') {

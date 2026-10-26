@@ -152,3 +152,14 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 瘴氣,debuff,p_reduce_rate,-0.15,,,,
 瘴氣,debuff,m_reduce_rate,-0.15,,,,
 暗蝕,debuff,dark_res_rate,-0.4,,,,黑暗抗性 −40%
+神降,buff,p_atk_rate,0.3,,,,物攻、魔攻 +30%，黑暗以外的元素抗性 +30%
+神降,buff,m_atk_rate,0.3,,,,
+神降,buff,fire_res_rate,0.3,,,,
+神降,buff,frost_res_rate,0.3,,,,
+神降,buff,lightning_res_rate,0.3,,,,
+神降,buff,wind_res_rate,0.3,,,,
+神降,buff,nature_res_rate,0.3,,,,
+神降,buff,light_res_rate,0.3,,,,
+光縛,debuff,crit_rate,-0.3,,,,暴擊率 −30%
+聖輝,buff,p_reduce_rate,0.2,,,,物理、魔法減傷 +20%
+聖輝,buff,m_reduce_rate,0.2,,,,
