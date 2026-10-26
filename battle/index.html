@@ -692,7 +692,8 @@ function bubbleFx(f,d){var C=BUB,R=Math.max(6,f.w*1.1),u=d/640;
 function orbPos(q){if(!q||q[0]!=='p')return null;var pp=posOf(q[1]);return[pp[0]-13,pp[1]-40]}
 function orbDraw(x,y,r,C,a,now){var pl=1+.12*Math.sin(now/180),R=r*pl,Ri=Math.ceil(R+2);x=Math.round(x);y=Math.round(y);for(var yy=-Ri;yy<=Ri;yy++)for(var xx=-Ri;xx<=Ri;xx++){var dd=Math.sqrt(xx*xx+yy*yy);if(dd<=R)VP(x+xx,y+yy,dd<R*.45?'#ffffff':dd<R*.8?C.l:C.c,a);else if(dd<=R+2)VP(x+xx,y+yy,C.c,a*.28*(R+2-dd))}}
 /* 羊之新生：裝了這個符文的人，身邊一直有一層同色光罩（淡淡的半透明罩子＋閃動的邊緣） */
-function drawSheep(t,now){if(!B)return;var L=VFXT?(VT.sheep?[0]:[]):(B.sheep||[]);if(!L.length)return;var C=shades((RUNE.rune24||{}).color||'#f0b27a');
+/* 鹿之守護：身上有「生命守護」護盾的時候，罩一層符文色光罩（護盾被打掉、到期就消失）；羊之新生只是加傷害，不畫 */
+function drawSheep(t,now){if(!B)return;var L=VFXT?(VT.sheep?[0]:[]):party.map(function(p,k){var sp=B.stNow&&B.stNow.p&&B.stNow.p[k];return sp&&sp.some(function(n){return String(n).split('|')[0]==='生命守護'})?k:-1}).filter(function(k){return k>=0});if(!L.length)return;var C=shades((RUNE.rune16||{}).color||'#7dffa8');
   L.forEach(function(k){if(!party[k]||koAt(k,t).ko||t<WALK)return;var pp=posOf(k),cx=Math.round(pp[0]),cy=Math.round(pp[1]-16),rx=14,ry=20,ph=now/700+k,br=.8+.2*Math.sin(now/500+k);
     /* 微微發光：罩子外面一圈柔和的同色光暈（疊加發光），跟著慢慢脈動 */var gp=.75+.25*Math.sin(now/650+k),GR=1.32;pctx.globalCompositeOperation='lighter';for(var gy2=-Math.ceil(ry*GR);gy2<=Math.ceil(ry*GR);gy2++)for(var gx2=-Math.ceil(rx*GR);gx2<=Math.ceil(rx*GR);gx2++){var ge=Math.sqrt((gx2*gx2)/(rx*rx)+(gy2*gy2)/(ry*ry));if(ge<=.97||ge>GR)continue;var gf=1-(ge-.97)/(GR-.97);VP(cx+gx2,cy+gy2,C.l,.38*gf*gf*gp)}pctx.globalCompositeOperation='source-over';
     for(var yy=-ry;yy<=ry;yy++){var w=Math.round(rx*Math.sqrt(Math.max(0,1-(yy*yy)/(ry*ry))));for(var xx=-w;xx<=w;xx++){var e2=(xx*xx)/(rx*rx)+(yy*yy)/(ry*ry),sh=.5+.5*Math.sin(ph*3+Math.atan2(yy,xx)*3);
@@ -1197,7 +1198,7 @@ function realBattle(a,l){
   var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG,{sp:MANUAL});
   var ms=M.map(monEntry),mp=mkMapper(ms,null);R.ev.forEach(mp.add);var ev=mp.ev,pkl=mp.pkl,psw=mp.psw,mko=mp.mko,t=mp.t;
   sumSlots(ms,mko);
-  return{sheep:P.map(function(u,i){return u.runes.indexOf('rune24')>=0?i:-1}).filter(function(i){return i>=0}),ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
+  return{ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
     hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp})},lead:P[0]}}
 
 /* 戰報裡的符文名稱改成符文表的顏色 */
@@ -1215,7 +1216,7 @@ var LV=null;/* 手動戰鬥的狀態：S = 引擎、mp = 動畫轉換、order/qi
 function startLive(a,l,auto){setLastArea(a);PARTS=[];curClear();
   var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
   var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
-  B={live:true,sheep:P.map(function(u,i){return u.runes.indexOf('rune24')>=0?i:-1}).filter(function(i){return i>=0}),ev:mp.ev,mons:ms,pkl:mp.pkl,psw:mp.psw,pko:{},mko:mp.mko,res:null,end:1e15,a:a,l:l,
+  B={live:true,ev:mp.ev,mons:ms,pkl:mp.pkl,psw:mp.psw,pko:{},mko:mp.mko,res:null,end:1e15,a:a,l:l,
     mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true};
   B.wall=Date.now();B.hp0=B.hpNow;B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   LV={S:S,P:P,M:M,mp:mp,n:0,order:[],qi:0,wait:null,auto:!!auto,b:B};
@@ -1427,7 +1428,7 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
 function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="vtr" id="vtw">'+VTW.map(function(x){return '<button type="button" data-w="'+x[0]+'">'+x[0]+'</button>'}).join('')+'</div>'+
   '<div class="vth">屬性</div><div class="vtr" id="vte">'+VTE.map(function(x){return '<button type="button" data-e="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
   '<div class="vth">種類</div><div class="vtr" id="vtk"><button type="button" data-k="atk">普通攻擊</button><button type="button" data-k="damage">攻擊技能</button><button type="button" data-k="heal">治療</button><button type="button" data-k="buff">支援</button><button type="button" data-k="claw">怪物攻擊</button><button type="button" data-k="sonic">怪物音波</button><button type="button" data-k="beam">射線</button><button type="button" data-k="mbeam">怪物射線</button><button type="button" data-k="pillar">光柱</button><button type="button" data-k="msand">怪物沙暴</button><button type="button" data-k="mmia">怪物瘴氣</button><button type="button" data-k="mbur">怪物潛地</button><button type="button" data-k="blood">血系斬擊</button><button type="button" data-k="ls">吸血</button><button type="button" data-k="mls">怪物吸血</button><button type="button" data-k="mgrasp">冥王之握</button><button type="button" data-k="msouls">冥河呼喚</button><button type="button" data-k="mchain">冥獄枷鎖</button><button type="button" data-k="song:skill162">讚美詩</button><button type="button" data-k="song:skill167">奉獻詩歌</button><button type="button" data-k="song:skill164">安眠曲</button><button type="button" data-k="song:skill168">小步舞曲</button><button type="button" data-k="song:skill165">獸之和弦</button><button type="button" data-k="song:skill169">命運交響曲</button></div>'+
-  '<div class="vth">符文</div><div class="vtr" id="vtk2">'+[['moon','月之淨化'],['tome','啟示之書'],['drown','水之幽暗'],['grave','墓之土'],['bear','熊之力量'],['sun','太陽之照耀'],['nm','夢靨之預兆'],['stone','石之正義'],['zap','雷電力場（雷暴龍）']].map(function(x){return '<button type="button" data-k="rune:'+x[0]+'">'+x[1]+'</button>'}).join('')+'<button type="button" data-sheep="1">羊之新生（光罩）</button></div>'+
+  '<div class="vth">符文</div><div class="vtr" id="vtk2">'+[['moon','月之淨化'],['tome','啟示之書'],['drown','水之幽暗'],['grave','墓之土'],['bear','熊之力量'],['sun','太陽之照耀'],['nm','夢靨之預兆'],['stone','石之正義'],['zap','雷電力場（雷暴龍）']].map(function(x){return '<button type="button" data-k="rune:'+x[0]+'">'+x[1]+'</button>'}).join('')+'<button type="button" data-sheep="1">鹿之守護（護盾光罩）</button></div>'+
   '<div class="vth">怪物</div><div class="vtr" id="vtm">'+vtMonBtns()+'</div>'+
   '<div class="vth">靈氣（可多選，套在角色身上）</div><div class="vtr" id="vta">'+Object.keys(Aura.DEF).map(function(id){return '<button type="button" data-au="'+id+'">'+Aura.DEF[id].n+'</button>'}).join('')+'<button type="button" data-aa="1">當成受加成隊友</button></div>'+
   '<div class="vth">狀態（可多選，角色和怪物同時套用）</div><div class="vtr" id="vts">'+VTS.map(function(x){return '<button type="button" data-s="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+
