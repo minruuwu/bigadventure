@@ -89,11 +89,9 @@ canvas{image-rendering:pixelated;display:block}
 .step button:disabled,.b:disabled{opacity:.4;cursor:default}
 .b.alt{background:var(--paper2);color:var(--pink)}
 .b.go{background:var(--seal)}
-.sheet .sth{position:sticky;top:-40px;z-index:2;margin:-40px -28px 6px;padding:30px 70px 6px 28px;min-height:66px;box-sizing:border-box;background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px;border-bottom:1px dashed rgba(107,74,42,.35)}
-.sheet .sth::after{content:'';position:absolute;left:0;right:0;bottom:-14px;height:30px;background-image:var(--edgeB2);background-size:192px 30px;background-repeat:repeat-x;image-rendering:pixelated;pointer-events:none}/* 標題列下緣：破紙邊（左右被紙頁的破邊切掉，跟下方按鈕列一樣） */
+.sheet .sth{position:sticky;top:-40px;z-index:2;border-bottom:1px dashed rgba(107,74,42,.35);margin:-40px -28px 6px;padding:30px 70px 6px 28px;min-height:66px;box-sizing:border-box;background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px;border-bottom:1px dashed rgba(107,74,42,.35)}
 .sheet .sth .bk{margin-bottom:2px;display:block}.sheet .sth h2{margin:0}.sheet .sth .x{top:30px}
-.bar{position:sticky;bottom:-36px;margin:26px -28px -36px;padding:10px 28px calc(80px + env(safe-area-inset-bottom,0px));background:#cdb27a;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
-.bar::before{content:'';position:absolute;left:0;right:0;top:-16px;height:30px;background-image:var(--edgeT2);background-size:192px 30px;background-repeat:repeat-x;image-rendering:pixelated;pointer-events:none}/* 按鈕列上緣：破紙邊 */
+.bar{position:sticky;bottom:-36px;margin:14px -28px -36px;padding:10px 28px calc(80px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .bar .t{margin-right:auto;font-size:12px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
