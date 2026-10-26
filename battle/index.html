@@ -163,7 +163,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=4"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=27"></script>
+<script src="engine.js?v=28"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=17"></script>
 <script>
@@ -1108,7 +1108,7 @@ function startLive(a,l,auto){setLastArea(a);PARTS=[];curClear();
   LV={S:S,P:P,M:M,mp:mp,n:0,order:[],qi:0,wait:null,auto:!!auto,b:B};
   showView('battle');var bh=$('bhead');bh.textContent=AREA[a].n+'　第 '+l+' 關'+(isBoss(a,l)?'（Boss）':'');var tg=el('button','atg');tg.type='button';tg.id='atg';tg.addEventListener('click',function(){setLiveAuto(!LV.auto)});bh.appendChild(tg);setLiveAuto(LV.auto,true);
   $('log').textContent='';$('bres').hidden=true;closeMenu();$('binfo').hidden=true;LV.infoOpen=false;setBG(AREA[a].bg);build();liveBind();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick);liveStep()}
-function setLiveAuto(v,quiet){if(!LV)return;LV.auto=v;var b=$('atg');if(b){b.textContent=v?'自動中':'自動';b.classList.toggle('on',v)}if(v&&LV.wait){var u=LV.wait;closeMenu();liveAct(u,null)}}
+function setLiveAuto(v,quiet){if(!LV)return;LV.auto=v;renderInfo();var b=$('atg');if(b){b.textContent=v?'自動中':'自動';b.classList.toggle('on',v)}if(v&&LV.wait){var u=LV.wait;closeMenu();liveAct(u,null)}}
 function liveNow(){return B?performance.now()-B.t0:0}
 /* 把引擎新加的戰報轉成動畫事件；先把時間拉到「現在」以後，免得選招花的時間讓動畫倒著播 */
 function liveFlush(){var S=LV.S,mp=LV.mp;if(mp.ev.length===0&&LV.n===0)mp.t=Math.max(mp.t,WALK+400);mp.t=Math.max(mp.t,liveNow()+120);var before=B.mons.length;
@@ -1169,7 +1169,8 @@ function skText(id){try{var r=ENG.SK[id]&&ENG.SK[id].raw;if(!r)return '';var o=S
 function pickTarget(u,id){openMenu(u);selSkill(id)}
 /* ---- 左上角的人物小窗：小上半身＋血量＋SP；點一下看狀態，點狀態看說明；展開時點戰場上的人改看那個人 ---- */
 function liveUnit(side,i){return side==='p'?LV.P[i]:LV.M[i]}
-function renderInfo(){var w=$('binfo');if(!w||!LV)return;var u=LV.view||LV.wait;if(!u){w.hidden=true;return}w.hidden=false;w.textContent='';w.classList.toggle('open',!!LV.infoOpen);
+function renderInfo(){var w=$('binfo');if(!w||!LV)return;var u=LV.view||LV.wait;
+  /* 整隊自動時不顯示：引擎已經算到後面，血量、狀態會比畫面先跑 */if(!u||LV.auto){w.hidden=true;popClose();return}w.hidden=false;w.textContent='';w.classList.toggle('open',!!LV.infoOpen);
   var top=el('div','bi-t'),pic=el('div','bi-p');top.appendChild(pic);
   if(u.side==='p'&&party[u.i]){var c=document.createElement('canvas');c.width=c.height=48;try{c.getContext('2d').drawImage(party[u.i].f,0,0)}catch(e){}pic.appendChild(c)}
   else if(mons[u.i]&&mons[u.i].f.src){var im=new Image();im.src=mons[u.i].f.src;im.className='mi';pic.appendChild(im)}
