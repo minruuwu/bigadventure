@@ -138,3 +138,9 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 風化,debuff,m_reduce_rate,-0.15,,,,
 結晶,buff,stun,,,,,暫停下一次行動，期間物理減傷 +50%
 結晶,buff,p_reduce_rate,0.5,,,,
+凍傷,debuff,dot,0.2,m_atk,frost,m,每回合造成施加者魔法攻擊力 20% 的冰霜魔法傷害，冰霜抗性 −20%
+凍傷,debuff,frost_res_rate,-0.2,,,,
+冰甲,buff,p_reduce_rate,0.2,,,,物理、魔法減傷 +20%，冰霜、火焰抗性 +30%
+冰甲,buff,m_reduce_rate,0.2,,,,
+冰甲,buff,frost_res_rate,0.3,,,,
+冰甲,buff,fire_res_rate,0.3,,,,
