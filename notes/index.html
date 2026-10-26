@@ -142,7 +142,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
           </div></section>
         <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
         <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>魔物圖鑑</h1>
-          <p class="hint"><span id="found"></span>　冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子。點怪物看詳細資料。</p><div id="dex"></div></section>
+          <p class="hint"><span id="found"></span>　冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子，秘境的龍一開始就記錄好了。點怪物看詳細資料。</p><div id="dex"></div></section>
         <section id="v-doc" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>事典</h1><div class="toc" id="toc"></div></section>
         <p class="demo" id="demoNote" hidden>示範模式：用範例進度顯示。</p>
       </div>
@@ -271,9 +271,15 @@ function build(c){
   /* 同名同圖的怪（關卡用的複本，例如兩種綠幼龍）只留一隻 */
   var keyOf=function(id){var m=D.mon[id];return m.monster_name+'|'+m.sprite},have={};
   D.areas.forEach(function(a){Object.keys(a.first).sort(function(x,y){return a.first[x]-a.first[y]||(x<y?-1:1)}).forEach(function(id){var k=keyOf(id);if(have[k]){var o=have[k];if(o.a===a&&a.first[id]<a.first[o.id])a.first[o.id]=a.first[id];delete a.first[id]}else have[k]={a:a,id:id}})});
+  /* 圖鑑順序：主線照章節、關卡先後；秘境的龍（monster_info 的 rift 欄）排在最後，照月火水木金土日 */
+  D.entries=[];var inDex={};D.areas.forEach(function(a,i){Object.keys(a.first).sort(function(x,y){return a.first[x]-a.first[y]||(x<y?-1:1)}).forEach(function(id){D.entries.push({id:id,a:a,i:i});inDex[keyOf(id)]=1})});
+  D.monList.filter(function(m){return m.rift&&RIFT.indexOf(m.rift)>=0&&!inDex[keyOf(m.monster_id)]}).sort(function(x,y){return RIFT.indexOf(x.rift)-RIFT.indexOf(y.rift)||(x.boss==='1'?0:1)-(y.boss==='1'?0:1)}).forEach(function(m){inDex[keyOf(m.monster_id)]=1;D.entries.push({id:m.monster_id})});
   /* 排名 */
   STATS.forEach(function(s){var vals=D.monList.map(function(m){return num(m[s[0]])}).sort(function(a,b){return a-b});D['q_'+s[0]]=vals});
 }
+/* 秘境：月火水木金土日七間，每天開三間（週一＝月火水、週二＝火水木……） */
+var RIFT='月火水木金土日',WDAY='一二三四五六日';
+function riftDays(r){var i=RIFT.indexOf(r);return [i,(i+6)%7,(i+5)%7].sort().map(function(d){return WDAY.charAt(d)})}
 function summonsOf(id){var m=D.mon[id],out=[];if(!m)return out;['skill_1','skill_2','skill_3','skill_4'].forEach(function(k){(D.eff[m[k]]||[]).forEach(function(r){if(r.effect_kind==='summon'&&D.mon[r.effect]&&out.indexOf(r.effect)<0)out.push(r.effect)})});return out}
 function pipsOf(key,v){var L=D['q_'+key],n=L.length,below=0;for(var i=0;i<n;i++)if(L[i]<v)below++;if(v<=0&&(key==='p_reduce_rate'||key==='m_reduce_rate'))return 0;return Math.max(1,Math.min(5,1+Math.floor(below/n*5)))}
 
@@ -282,6 +288,8 @@ function cleared(id){var m=ME&&ME.adv||{};return m[id]|0}
 function areaOpen(i){if(!D.areas[i].open)return false;return i===0||cleared(D.areas[i-1].id)>=NST}
 /* 看得到：已開放章節裡、目前能打到的關（打完的下一關）以前出現的怪 */
 function seen(a,i,id){if(!areaOpen(i))return false;var reach=Math.min(NST,cleared(a.id)+1);return a.first[id]<=reach}
+/* 圖鑑看得到：秘境的龍一開始就看得到；其他照主線進度 */
+function seenE(E){var m=D.mon[E.id];if(m&&m.rift)return true;return E.a?seen(E.a,E.i,E.id):false}
 
 /* ================= 畫面 ================= */
 var SPR=[];/* 會動的怪物圖：{img, k, ph, sc, base} */
@@ -309,12 +317,14 @@ function renderAcct(){var a=$('acct');a.textContent='';var av=el('div','av');
 
 var OPENA={};
 function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;
-  D.areas.forEach(function(a,i){var ids=Object.keys(a.first).sort(function(x,y){return a.first[x]-a.first[y]||(x<y?-1:1)}),open=areaOpen(i),n=0;
-    ids.forEach(function(id){tot++;if(seen(a,i,id)){got++;n++}});
-    var w=el('div','area'+(open?'':' lock')),h=el('button');h.type='button';h.appendChild(el('span',null,(open?'':'🔒 ')+a.n));h.appendChild(el('i',null,open?n+' / '+ids.length:'尚未開放'));w.appendChild(h);
-    var g=el('div','grid');if(OPENA[a.id]===undefined)OPENA[a.id]=open;g.hidden=!OPENA[a.id];
-    h.addEventListener('click',function(){OPENA[a.id]=!OPENA[a.id];g.hidden=!OPENA[a.id]});
-    ids.forEach(function(id){var m=D.mon[id],ok=seen(a,i,id),t=el('button','mt'+(ok?'':' unk')+(m.boss==='1'?' boss':''));t.type='button';
+  /* 不分地區，分一般、首領兩區；區內照圖鑑順序（主線先後，秘境最後） */
+  [['n','一般',function(m){return m.boss!=='1'}],['b','首領',function(m){return m.boss==='1'}]].forEach(function(G){
+    var L=D.entries.filter(function(E){return G[2](D.mon[E.id])}),n=0;if(!L.length)return;
+    L.forEach(function(E){tot++;if(seenE(E)){got++;n++}});
+    var w=el('div','area'),h=el('button');h.type='button';h.appendChild(el('span',null,G[1]));h.appendChild(el('i',null,n+' / '+L.length));w.appendChild(h);
+    var g=el('div','grid');if(OPENA[G[0]]===undefined)OPENA[G[0]]=true;g.hidden=!OPENA[G[0]];
+    h.addEventListener('click',function(){OPENA[G[0]]=!OPENA[G[0]];g.hidden=!OPENA[G[0]]});
+    L.forEach(function(E){var id=E.id,m=D.mon[id],ok=seenE(E),t=el('button','mt'+(ok?'':' unk')+(m.boss==='1'?' boss':''));t.type='button';
       var st=el('div','st');t.appendChild(st);sprite(m.sprite,st,50,64);t.appendChild(el('div','nm',ok?m.monster_name:'？？？'));
       if(ok)t.addEventListener('click',function(){openMon(id)});g.appendChild(t)});
     w.appendChild(g);box.appendChild(w)});
@@ -331,7 +341,7 @@ function icon(src){var i=el('img','px');i.alt='';i.src=src;i.onerror=function(){
 
 function openMon(id){var m=D.mon[id];openSheet(function(s){
   var h=el('h2',null,m.monster_name);if(m.boss==='1')h.appendChild(el('span','tag','首領'));s.appendChild(h);
-  var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
+  var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});if(m.rift&&RIFT.indexOf(m.rift)>=0)where.push('秘境・'+m.rift+'曜之間（週'+riftDays(m.rift).join('、')+'）');s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
   var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.style.height=STG_H+'px';stg.appendChild(sh);o=bigSprite(m.sprite,stg);
   sh.style.width=Math.round(sz[0]*o.sc*.7)+'px';sh.style.marginLeft=-Math.round(sz[0]*o.sc*.35)+'px';sh.style.bottom=(STG_G-3)+'px';s.appendChild(stg);
   if(m.monster_desc)s.appendChild(el('p','desc',m.monster_desc));
