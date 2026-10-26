@@ -50,7 +50,8 @@ img.px{image-rendering:pixelated}
 .menu button b{font-size:20px;letter-spacing:.2em}.menu button small{font-size:12px;color:var(--pink2)}
 .menu button:active{transform:translateY(2px)}
 .bk{font:inherit;font-size:13px;font-weight:900;color:var(--pink);background:#d3b480;border:0;padding:4px 10px;cursor:pointer;position:sticky;top:10px;z-index:5;margin:-14px 0 0 -10px;box-shadow:0 0 0 2px var(--pink2),2px 2px 0 2px rgba(0,0,0,.25)}/* 返回鍵捲動時固定在畫面上方 */
-.back .sheet .sth{position:sticky;top:-40px;z-index:6;margin:-40px -26px 4px;padding:30px 70px 6px 26px;min-height:64px;box-sizing:border-box;border-bottom:1px dashed rgba(107,74,42,.35);background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px}
+.back .sheet .sth{position:sticky;top:-40px;z-index:2;margin:-40px -26px 4px;padding:30px 70px 6px 26px;min-height:64px;box-sizing:border-box;background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px}
+.back .sheet .sth::after{content:'';position:absolute;left:0;right:0;bottom:-14px;height:30px;background-image:var(--edgeB2);background-size:192px 30px;background-repeat:repeat-x;image-rendering:pixelated;pointer-events:none}/* 標題列下緣：破紙邊（左右被紙頁的破邊切掉，跟下方按鈕列一樣） */
 section[hidden]{display:none}
 /* 帳號 */
 .acct{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:center;padding:10px 12px;background:rgba(255,240,205,.32);border:2px solid var(--pink2)}
