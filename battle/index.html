@@ -402,7 +402,7 @@ function tick(now){
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh+bur*mh)+'px';m.f.style.clipPath=bur>0?'inset(0 0 '+(bur*100).toFixed(1)+'% 0)':'';
-    m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf*(sf.fx.ban?.5:1);if(B.live&&LV&&LV.hl&&LV.hl.some(function(q){return q[0]==='m'&&q[1]===i})){var fs2=Math.round(3+2*Math.sin(now/180));m.f.style.filter=(m.f.style.filter==='none'?'':m.f.style.filter)+' brightness(1.3) drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 '+fs2+'px #ffe08a)'}m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');m.sfx=sf;
+    m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf*(sf.fx.ban?.5:1);m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');/* 手動戰鬥：選中的目標發光（跟我方一樣） */if(B.live&&LV&&LV.hl&&LV.hl.some(function(q){return q[0]==='m'&&q[1]===i})){var fs2=Math.round(3+2*Math.sin(now/180));m.f.style.filter=(m.f.style.filter==='none'?'':m.f.style.filter)+' brightness(1.3) drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 '+fs2+'px #ffe08a)'}m.sfx=sf;
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
     else if(FLOAT[m.k]){/* 漂浮：影子留在地上，飄越高越小、越淡 */var Fq=FLOAT[m.k],hq=Math.max(0,Math.min(1,(lift-Fq.hov)/Fq.amp)),sw=MZ[0]*.7*m.sc*(1-.25*hq);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U*(1-.2*hq))+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-5*m.sc)*U)+'px';m.sh.style.opacity=op*(.8-.35*hq)}
     else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=(((shx!=null?shx:mx)-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
@@ -1146,7 +1146,7 @@ function renderMenu(){var m=$('bmenu');if(!m||!MS)return;var u=MS.u,S=LV.S,p=MEM
   item(c1,'自動',false,'au',function(){liveAct(u,null)});
   if(MS.set){var g=sets.filter(function(x){return x.j===MS.set})[0],c2=col();
     (g?g.sk:[]).forEach(function(k){var cd=S.cdOf(u,k.id),ok=S.canUse(u,k)&&!sealed,b=item(c2,k.n,MS.sk===k.id,cd>0?'cdn':null,function(){selSkill(k.id)},cd>0?'冷卻'+cd:null);if(!(cd>0)&&k.sp){var sq=el('span','sq');for(var q=0;q<k.sp;q++)sq.appendChild(el('i'));b.appendChild(sq)}if(!ok)b.disabled=true})}/* SP：藍色方格；冷卻中改寫冷卻 */
-  if(MS.sk){var k=ENG.SK[MS.sk];if(k&&(k.t==='enemy_single'||k.t==='ally_single')){var c3=col();S.cands(u,MS.sk).forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100);item(c3,x.name,MS.tg===x,null,function(){selTarget(x)},hpP+'%')})}}
+  if(MS.sk){var k=ENG.SK[MS.sk];if(k&&needTg(k)){var c3=col();S.cands(u,MS.sk).forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100);item(c3,x.name,MS.tg===x,null,function(){selTarget(x)},hpP+'%')})}}
   placeMenu()}
 /* 選單位置：輪到的人的右邊；太靠右就往左推，太靠下就往上 */
 /* 選單位置：固定在左上角人物小窗的右邊（不擋到戰場上的人）；三欄放不下時整個往左推，最多貼齊畫面右緣 */
@@ -1154,9 +1154,11 @@ function placeMenu(){var m=$('bmenu');if(!m||m.hidden||!MS)return;var fw=frame.c
   if(inf&&!inf.hidden)x=inf.offsetLeft+inf.offsetWidth+4;
   /* 放不下（三欄都開）：先藏第一欄（主選單），點外面退回時會再出現 */var cs=m.querySelectorAll('.bm-c');if(cs.length>2){cs[0].style.display='';w=m.offsetWidth;if(x+w>fw-4){cs[0].style.display='none';w=m.offsetWidth}}
   x=Math.max(4,Math.min(x,fw-w-4));m.style.left=x+'px';m.style.top=y+'px'}
+/* 要指定一個人的招：單體、而且不是「每一下各自隨機」的多段技（那種算群體：全部可能被打到的人一起亮） */
+function needTg(k){return (k.t==='enemy_single'||k.t==='ally_single')&&k.p!=='random_each'}
 function selSkill(id){var S=LV.S,u=MS.u,k=ENG.SK[id]||ENG.SK.atk;
-  if(MS.sk===id&&!(k.t==='enemy_single'||k.t==='ally_single')){liveAct(u,{sk:id,tg:S.cands(u,id)});return}/* 群體／自身：同一招點第二次才施放 */
-  MS.sk=id;MS.tg=null;var C=S.cands(u,id);LV.hl=(k.t==='enemy_single'||k.t==='ally_single')?null:C.map(function(x){return[x.side,x.i]});
+  if(MS.sk===id&&!needTg(k)){liveAct(u,{sk:id,tg:S.cands(u,id)});return}/* 群體／自身：同一招點第二次才施放 */
+  MS.sk=id;MS.tg=null;var C=S.cands(u,id);LV.hl=needTg(k)?null:C.map(function(x){return[x.side,x.i]});
   if(id==='atk')MS.set=null;renderMenu();desc(k)}
 function selTarget(x){var u=MS.u;if(MS.tg===x){liveAct(u,{sk:MS.sk,tg:[x]});return}MS.tg=x;LV.hl=[[x.side,x.i]];renderMenu()}
 /* 點選單外面：退一步（目標 → 技能 → 技能組）；在最上層就不動 */
