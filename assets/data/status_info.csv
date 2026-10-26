@@ -144,3 +144,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 冰甲,buff,m_reduce_rate,0.2,,,,
 冰甲,buff,frost_res_rate,0.3,,,,
 冰甲,buff,fire_res_rate,0.3,,,,
+雷滯,debuff,crit_rate,-0.3,,,,暴擊率 −30%
+雷激化,buff,p_damage_rate,0.3,,,,物理傷害 +30%、暴擊傷害 +50%、閃避率 +20%
+雷激化,buff,crit_damage_rate,0.5,,,,
+雷激化,buff,eva_rate,0.2,,,,

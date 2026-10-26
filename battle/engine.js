@@ -499,6 +499,19 @@
       flushRel(e);
       if (!e.hp) e.hp = hpSnap();
       endAct(u, sk);
+      fieldPulse(u);
+    }
+    /* 行動結束觸發的力場（雷暴龍的雷電力場）：機率對全體敵人造成「各自最大生命 × value」的屬性傷害，吃減傷與抗性；獨立一行，畫面用 rfx = zap 電一下 */
+    function fieldPulse(u) {
+      if (u.dead || !u.special) return;
+      u.special.forEach(function (x) {
+        if (x.k !== 'field_dmg' || x.tr !== 'act_end' || u.dead || RND() >= x.ch) return;
+        var tgs = foes(u).filter(function (q) { return !banished(q) }); if (!tgs.length) return;
+        var nm = D.SK[x.id] ? D.SK[x.id].n : '力場', r = line({ side: u.side, a: u.i, txt: '' }), out = [];
+        tgs.forEach(function (q) { var red = x.dt === 'm' ? stat(q, 'mred') : stat(q, 'pred'), amt = Math.max(1, Math.round(q.b.mhp * x.v * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(q, x.el), 0.9))));
+          var d = hurt(q, amt, u); addStat(r, u, 'dmg', d, nm); addStat(r, q, 'taken', d, u.name + ' ' + nm); out.push(q.name + ' ' + d); checkDeath(q, r) });
+        r.txt = u.name + ' 的「' + nm + '」：' + out.join('、') + ' ' + (ELN[x.el] || '') + '傷害'; fxOn(r, 'zap', u, tgs); flushRel(r); r.hp = hpSnap();
+      });
     }
     /* 技能結算後才判定的符文：墓之土、啟示之書、鷹之勇氣、命運之輪（追加的那次不再觸發後兩者） */
     function trueAll(u, amt, e, why) { var t = 0; foes(u).forEach(function (q) { if (banished(q)) return; var d = hurt(q, amt, u); t += d; addStat(e, u, 'dmg', d, why); addStat(e, q, 'taken', d, u.name + ' ' + why); checkDeath(q, e) }); return t }
