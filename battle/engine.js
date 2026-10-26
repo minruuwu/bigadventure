@@ -359,6 +359,25 @@
     /* 反應技：擋下／減傷／吸收在受擊當下就生效（影響那一下的傷害），
        但「發動」本身排進佇列，等敵人整招（含招式後的符文）結算完，才依速度順序一個一個演出、結算反擊／回血／上狀態 */
     function reactPost(d, a, re, e) { if (re) (e._rq = e._rq || []).push({ d: d, a: a, re: re }) }
+    /* 符文佇列：攻擊方的符文在招式結束後一個一個獨立成行（rn = 符文編號，畫面用 rfx 決定特效） */
+    function rq(e, rid, run) { (e._rn = e._rn || []).push({ rid: rid, run: run }) }
+    function fxOn(r, fx, src, tgs) { r.rfx = fx; r.side = src.side; r.a = src.i; r.rtg = tgs.map(function (t) { return [t.side, t.i] }) }
+    var RUNEN = { rune01: '火炬之光', rune02: '霜之停滯', rune03: '雷神之鎚', rune04: '風之氣息' };
+    function flushRunes(e) {
+      var q = e._rn || []; delete e._rn; if (!q.length) return;
+      /* 元素符文：同一個符文的所有目標合成一行，排在最前面（緊接著主攻擊） */
+      var els = {}, order = [];
+      q.forEach(function (x) { if (!x.elx) return; if (!els[x.rid]) { els[x.rid] = []; order.push(x.rid) } els[x.rid].push(x) });
+      order.forEach(function (rid) {
+        var L = els[rid], u = L[0].u, out = [], tgs = []; if (u.dead) return;
+        var r = line({ rn: rid, txt: '' });
+        L.forEach(function (x) { if (x.t.dead || banished(x.t)) return; var d = hurt(x.t, x.amt, u); addStat(r, u, 'dmg', d, RUNEN[rid]); addStat(r, x.t, 'taken', d, u.name + ' ' + RUNEN[rid]); out.push(x.t.name + ' ' + d); if (tgs.indexOf(x.t) < 0) tgs.push(x.t); checkDeath(x.t, r) });
+        if (!out.length) { ev.pop(); return }
+        r.txt = u.name + ' 的「' + RUNEN[rid] + '」：' + out.join('、') + ' ' + ELN[L[0].el] + '傷害'; r.el = L[0].el; fxOn(r, 'el', u, tgs);
+        flushRel(r); r.hp = hpSnap();
+      });
+      q.forEach(function (x) { if (x.elx) return; var r = line({ rn: x.rid, txt: '' }); if (x.run(r) === false) { ev.splice(ev.indexOf(r), 1); return } flushSt(r); flushRel(r); r.hp = hpSnap() });
+    }
     function flushReact(e) {
       var q = e._rq || [], th = e._th || [], items = [], tm = {}; delete e._rq; delete e._th;
       q.forEach(function (x) { items.push({ k: 'r', d: x.d, a: x.a, re: x.re }) });
@@ -371,7 +390,7 @@
     }
     function thornLine(x) {
       var d = x.d, a = x.a; if (a.dead || x.amt <= 0) return;
-      var r = line({ side: d.side, a: d.i, rk: 'thorn', rt: [a.side, a.i], txt: '' });
+      var r = line({ side: d.side, a: d.i, rk: 'thorn', rn: 'rune11', rt: [a.side, a.i], txt: '' });
       var th = hurt(a, x.amt, d); r.txt = d.name + ' 的「荊棘之皇冠」反彈 ' + th + ' 真實傷害給 ' + a.name;
       addStat(r, d, 'dmg', th, '荊棘之皇冠'); addStat(r, a, 'taken', th, d.name + ' 荊棘之皇冠'); checkDeath(a, r); flushRel(r); r.hp = hpSnap();
     }
@@ -466,16 +485,21 @@
       afterRunes(u, sk, tg, e, isExtra);
       /* 這一招（含招式後的符文）完全結束 → 先記下血量，再輪到被打的人依速度發動反應技 */
       if (!e.hp) e.hp = hpSnap();
+      flushRunes(e);
       flushReact(e);
       if (!isExtra && !u.dead) afterExtra(u, sk, tg, e);
     }
     function afterRunes(u, sk, tg, e, isExtra) {
       if (u.dead || !u.runes.length) return;
       var dealt = (e._dealt || 0) > 0;
-      if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * RV(D, 'rune26', 0, 0.05))), lt = Math.round(loss * RV(D, 'rune26', 1, 2)); u.hp -= loss; e.txt += '；墓之土：失去 ' + loss + ' 生命，全體敵人受到 ' + lt + ' 真實傷害'; trueAll(u, lt, e, '墓之土'); checkDeath(u, e) }
+      if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * RV(D, 'rune26', 0, 0.05))), lt = Math.round(loss * RV(D, 'rune26', 1, 2));
+        rq(e, 'rune26', function (r) { if (u.dead) return false; var hitT = foes(u).filter(function (q) { return !banished(q) }); u.hp -= loss; r.txt = u.name + ' 的「墓之土」：失去 ' + loss + ' 生命，全體敵人受到 ' + lt + ' 真實傷害'; addStat(r, u, 'taken', loss, '墓之土'); trueAll(u, lt, r, '墓之土'); fxOn(r, 'grave', u, hitT); checkDeath(u, r) }) }
       if (!isExtra && dealt && u.runes.indexOf('rune21') >= 0 && sk.parts.some(function (x) { return x.d === 'm' })) {
-        u.r21 = (u.r21 || 0) + 1;
-        if (u.r21 >= RV(D, 'rune21', 1, 3)) { u.r21 = 0; var wv = Math.round(stat(u, 'matk') * RV(D, 'rune21', 0, 2)); e.txt += '；啟示之書：魔力幽界波對全體敵人造成 ' + wv + ' 真實傷害'; trueAll(u, wv, e, '啟示之書') }
+        u.r21 = (u.r21 || 0) + 1; var need = RV(D, 'rune21', 1, 3);
+        /* 光球累積：tome = [陣營, 編號, 目前層數, 滿層數]；畫面照這個畫角色左上方的光球 */
+        e.tome = [u.side, u.i, Math.min(u.r21, need), need];
+        if (u.r21 >= need) { u.r21 = 0; var wv = Math.round(stat(u, 'matk') * RV(D, 'rune21', 0, 2));
+          rq(e, 'rune21', function (r) { if (u.dead) return false; var hitT = foes(u).filter(function (q) { return !banished(q) }); r.txt = u.name + ' 的「啟示之書」：魔力幽界波對全體敵人造成 ' + wv + ' 真實傷害'; trueAll(u, wv, r, '啟示之書'); fxOn(r, 'tome', u, hitT); r.tome = [u.side, u.i, 0, need] }) }
       }
       e.hp = hpSnap();
     }
@@ -558,11 +582,14 @@
             /* 武器淬毒：該次傷害的一定比例，額外的屬性傷害 */
             u.special.forEach(function (s) { if (s.k === 'extra_dmg' && real > 0 && !t.dead) { var ex = Math.round(real * s.v * (1 - Math.min(resOf(t, s.el), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
             /* 元素符文：額外 50% 屬性魔法傷害 */
-            [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * RV(D, q[0], 0, 0.5) * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
-            if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round(real * RV(D, 'rune12', 0, 0.5)); real += hurt(t, cr, u); totalDmg += cr }
+            /* 元素符文：額外 50% 屬性魔法傷害——數字現在就算好，但等這一招結束後才獨立一行結算、演出（同武器的屬性攻擊特效） */
+            var elx = 0;
+            [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * RV(D, q[0], 0, 0.5) * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { elx += ex; totalDmg += ex; (e._rn = e._rn || []).push({ rid: q[0], elx: 1, el: q[1], u: u, t: t, amt: ex }) } } });
+            if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round((real + elx) * RV(D, 'rune12', 0, 0.5)); real += hurt(t, cr, u); totalDmg += cr }
             rec.hs.push((x.crit ? '暴擊 ' : '') + real + (x.absorbed ? '（吸收 ' + x.absorbed + '）' : ''));
             /* 水之幽暗：每次暴擊，對隨機一名敵人造成物攻、魔攻較高者 200% 的黑暗魔法傷害（不再暴擊、不連鎖） */
-            if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * RV(D, 'rune25', 0, 2) * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); var wr = hurt(wt, Math.max(1, wa), u); totalDmg += wr; addStat(e, u, 'dmg', wr, '水之幽暗'); addStat(e, wt, 'taken', wr, u.name + ' 水之幽暗'); (e._x = e._x || []).push('水之幽暗 → ' + wt.name + ' ' + wr); checkDeath(wt, e) } }
+            if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * RV(D, 'rune25', 0, 2) * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); wa = Math.max(1, wa); totalDmg += wa;
+              rq(e, 'rune25', function (r) { if (wt.dead || u.dead) return false; var wr = hurt(wt, wa, u); addStat(r, u, 'dmg', wr, '水之幽暗'); addStat(r, wt, 'taken', wr, u.name + ' 水之幽暗'); r.txt = u.name + ' 的「水之幽暗」：' + wt.name + ' 受到 ' + wr + ' 黑暗傷害'; fxOn(r, 'drown', u, [wt]); checkDeath(wt, r) }) } }
             addStat(e, u, 'dmg', real, sk.n); addStat(e, t, 'taken', real, u.name + ' ' + sk.n);
             /* 擴散（skill_effect 的 bonus / splash）：其他敵方各受到主目標「減傷前」傷害的 value 倍，再吃各自的減傷；
                跟著主目標的暴擊，主目標閃開就不擴散；擴散本身不能閃避、不觸發反應與符文 */
@@ -576,8 +603,8 @@
             }
             /* 荊棘之皇冠：排進反應佇列，敵人整招結束後才反彈（腳下荊棘光環） */
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * RV(D, 'rune11', 0, 0.5)) });
-            if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2)) { if (applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5), 1, null)) (e._x = e._x || []).push('石之正義：' + u.name + ' 被石化') }
-            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' || r.k === 'swallow' }) }); var dn = pickOne(dbs); if (applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) (e._x = e._x || []).push('夢靨之預兆：' + t.name + ' 陷入「' + dn + '」') }
+            if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2)) (function (t, u) { rq(e, 'rune23', function (r) { if (t.dead || u.dead || !applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5), 1, null)) return false; r.txt = t.name + ' 的「石之正義」：' + u.name + ' 被石化 ' + RV(D, 'rune23', 1, 5) + ' 回合'; fxOn(r, 'stone', t, [u]) }) })(t, u);
+            if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' || r.k === 'swallow' }) }); var dn = pickOne(dbs); (function (t) { rq(e, 'rune13', function (r) { if (t.dead || !applyStatus(u, t, dn, RV(D, 'rune13', 1, 3), 1, null)) return false; r.txt = u.name + ' 的「夢靨之預兆」：' + t.name + ' 陷入「' + dn + '」' + RV(D, 'rune13', 1, 3) + ' 回合'; fxOn(r, 'nm', u, [t]) }) })(t) }
             /* 每一下附加的狀態 */
             effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'per_hit' && !t.dead) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, null) });
             reactPost(t, u, x.re, e);
@@ -594,7 +621,8 @@
         var ls = sv(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
         if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
         /* 熊之力量：濺射 */
-        if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bn = 0; foes(u).forEach(function (t) { var sp = hurt(t, Math.round(totalDmg * RV(D, 'rune22', 0, 0.3)), u); addStat(e, u, 'dmg', sp, '熊之力量'); if (sp > 0) bn++; (e.thr = e.thr || []).push([t.side, t.i]); checkDeath(t, e) }); if (bn) e.txt += '；熊之力量：' + bn + ' 個敵人各受到 ' + Math.round(totalDmg * RV(D, 'rune22', 0, 0.3)) + ' 真實傷害' }
+        if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bAmt = Math.round(totalDmg * RV(D, 'rune22', 0, 0.3));
+          rq(e, 'rune22', function (r) { var hitT = []; foes(u).forEach(function (t) { if (banished(t)) return; var sp = hurt(t, bAmt, u); addStat(r, u, 'dmg', sp, '熊之力量'); addStat(r, t, 'taken', sp, u.name + ' 熊之力量'); if (sp > 0) hitT.push(t); checkDeath(t, r) }); if (!hitT.length) return false; r.txt = u.name + ' 的「熊之力量」：' + hitT.length + ' 個敵人各受到 ' + bAmt + ' 真實傷害'; fxOn(r, 'bear', u, hitT) }) }
         /* 舞台魅力等「攻擊時」觸發 */
         u.special.forEach(function (s) { if (s.k === 'apply_status' && s.tr === 'attack' && order.length && RND() < s.ch) { var cand = order.filter(function (t) { return !t.dead && !(s.cond === 'not_boss' && t.boss) && t.side !== u.side }); if (cand.length) applyStatus(u, pickOne(cand), s.st, s.turns, 1, e) } });
         /* 一般狀態（每個目標擲一次） */
@@ -628,7 +656,7 @@
         });
         if (sk.ty === 'debuff') { e.tg = tg.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }); e.tgP = tg.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) }
         /* 太陽之照耀 */
-        if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) applyStatus(u, u, '輝煌', RV(D, 'rune14', 1, 5), 1, null);
+        if (sk.ty === 'buff' && u.runes.indexOf('rune14') >= 0 && D.STS['輝煌']) rq(e, 'rune14', function (r) { if (u.dead || !applyStatus(u, u, '輝煌', RV(D, 'rune14', 1, 5), 1, null)) return false; r.txt = u.name + ' 的「太陽之照耀」：獲得「輝煌」' + RV(D, 'rune14', 1, 5) + ' 回合（力量、智力 +30%）'; fxOn(r, 'sun', u, [u]) });
       }
       /* 召喚：effect = 怪物 id，value = 上限；condition 填 all_monsters 時上限算「全場活著的怪」，空白則只算同種怪（龍之叫喚）；
          apply_chance = 成功機率（空白 = 必定）。未滿且成功就叫一隻出來，下一回合開始行動 */
@@ -666,7 +694,8 @@
     function echo(u, tot, e) {
       u.special.forEach(function (s) { if (s.k === 'heal_echo') { var g = heal(u, u, tot * s.v, null, true); if (g) { e.txt += '，' + u.name + ' 同調恢復 ' + g; addStat(e, u, 'heal', g, '生命同調') } } });
       if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); var shv = 0; u.st.forEach(function (s) { if (s.n === '生命守護') { s.shield = Math.min(tot * RV(D, 'rune16', 0, 0.5), u.b.mhp * RV(D, 'rune16', 1, 0.3)); shv = s.shield } }); if (shv > 0) e.txt += '，鹿之守護：' + u.name + ' 獲得 ' + Math.round(shv) + ' 護盾' }
-      if (u.runes.indexOf('rune15') >= 0) { var f = foes(u); if (f.length) { var t = pickOne(f), d = hurt(t, Math.round(tot * RV(D, 'rune15', 0, 0.5)), u); e.txt += '，月之淨化對 ' + t.name + ' 造成 ' + d + ' 傷害'; addStat(e, u, 'dmg', d, '月之淨化'); checkDeath(t, e) } }
+      if (u.runes.indexOf('rune15') >= 0) { var f = foes(u).filter(function (q) { return !banished(q) }); if (f.length) { var t = pickOne(f), mAmt = Math.round(tot * RV(D, 'rune15', 0, 0.5));
+        rq(e, 'rune15', function (r) { if (t.dead || u.dead) return false; var d = hurt(t, mAmt, u); r.txt = u.name + ' 的「月之淨化」：' + t.name + ' 受到 ' + d + ' 真實傷害'; addStat(r, u, 'dmg', d, '月之淨化'); addStat(r, t, 'taken', d, u.name + ' 月之淨化'); fxOn(r, 'moon', u, [t]); checkDeath(t, r) }) } }
     }
 
     /* --- 主迴圈 --- */
