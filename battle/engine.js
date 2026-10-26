@@ -31,7 +31,10 @@
       D.SK[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, kind: r.kind, t: r.target, p: r.pick, ty: r.type,
         cr: num(r.extra_crit_rate), cd: num(r.extra_crit_damage), parts: parts, vfx: r.vfx || '', hits: parseInt(r.hits, 10) || 1, sure: r.sure_hit === '1', ds: r.skill_desc || '', raw: r /* 原始欄位（戰棋讀 range / area / area_size / cost） */ };
     });
-    D.SK.atk = { id: 'atk', n: '普通攻擊', kind: 'combat', t: 'enemy_single', p: 'random', ty: 'damage', cr: 0, cd: 0, parts: [{ d: 'p', e: '', r: 1 }], vfx: '', hits: 1, atk: true };
+    D.SK.atk = { id: 'atk', n: '普通攻擊', kind: 'combat', t: 'enemy_single', p: 'random', ty: 'damage', cr: 0, cd: 0, parts: [{ d: 'p', e: '', r: 1 }], vfx: '', hits: 1, atk: true, sp: 0, cdN: 0 };
+    /* SP 消耗：skill_info 的 sp 欄有填就用；空白 = 單體 1、群體（enemy_all／ally_all／ally_others）2。冷卻 = cost 欄（自己的行動次數） */
+    Object.keys(D.SK).forEach(function (id) { var k = D.SK[id]; if (id === 'atk') return; var raw = k.raw || {}, v = String(raw.sp == null ? '' : raw.sp).trim();
+      k.sp = v !== '' ? Math.max(0, parseInt(v, 10) || 0) : (/_all$/.test(k.t || '') || k.t === 'ally_others' ? 2 : 1); k.cdN = Math.max(0, parseInt(raw.cost, 10) || 0) });
     (c.skill_effect || []).forEach(function (r) { if (r.skill_id) (D.EFF[r.skill_id] = D.EFF[r.skill_id] || []).push(r) });
     var last = null;
     (c.status_info || []).forEach(function (r) {
@@ -168,13 +171,16 @@
   /* ---------- 戰鬥 ----------
      session(P, M, D) 建立一場戰鬥但不跑：自動戰鬥（run）跟戰棋都用它，規則只有這一份。
      戰棋一個單位的回合 = begin(u)（持續傷害、控制判定）→ 移動 → finish(u, 技能, 目標) 或 wait(u)。 */
-  function session(P, M, D) {
+  function session(P, M, D, opt) {
+    opt = opt || {};
+    var SPM = !!opt.sp, SPMAX = 5; /* SP 制度（測試中）：我方每人各自 SP；怪物不受影響 */
     var U = P.concat(M), ev = [], rounds = 0, nowAct = null;
     /* 戰棋用的掛勾：counter(d, a) 回傳 false = 反擊打不到；pool = 多段隨機技能挑目標的範圍（陣列）；
        area = 這次是範圍／直線出手（不算單體，不觸發保護）；protector(t, a) = 回傳替 t 擋下單體攻擊的人（雙方都適用），沒有回傳 null */
     var hooks = {};
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
+    if (SPM) P.forEach(function (u) { u.sp = 2; u.cd = {} });
     var lone = P.length === 1 && !P[0].lone;
     if (lone) { var L0 = P[0]; L0.lone = true; L0.b.mhp = Math.round(L0.b.mhp * 1.5); L0.b.patk = Math.round(L0.b.patk * 1.5); L0.b.matk = Math.round(L0.b.matk * 1.5) }
     U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = RV(D, 'rune18', 0, 0.5) });
@@ -212,7 +218,7 @@
     function line(o) { ev.push(o); return o }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n }) }
-    function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), sp: P.map(stNames), sm: M.map(stNames) } }
+    function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null } }
     function addStat(e, u, kind, v, sk) { if (u.side !== 'p' || !v) return; (e.st = e.st || []).push([u.i, kind, Math.round(v), sk]) }
 
     /* --- 狀態 --- */
@@ -306,7 +312,7 @@
     }
     function hurt(d, amt, src, dot) {
       /* 扣血（先扣護盾）；回傳實際扣掉的生命與是否倒下 */
-      var left = amt;
+      var left = amt; if (src && amt > 0 && src !== d) d._lh = src; /* 記下最後打到牠的人（擊殺 +1 SP） */
       d.st.forEach(function (s) { if (left > 0 && s.shield > 0) { var x = Math.min(s.shield, left); s.shield -= x; left -= x } });
       d.st = d.st.filter(function (s) { return !(s.rows.some(function (r) { return r.k === 'shield' }) && s.shield <= 0) });
       d.hp -= left;
@@ -328,6 +334,7 @@
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
+      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { u._lh.sp = Math.min(SPMAX, (u._lh.sp | 0) + 1); if (e) (e.spk = e.spk || []).push(u._lh.i) }
       /* 吞噬者倒下：肚子裡的人回來（血量維持、狀態恢復計時） */
       if (u.side === 'm') P.forEach(function (x) { var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return; removeStatus(x, q); x.st.forEach(function (s) { s.paused = false }); if (e) { (e._rel = e._rel || []).push(x.name + ' 從 ' + u.name + ' 的肚子裡逃出來了'); (e.rel = e.rel || []).push(x.i) } });
       if (e) { if (u.side === 'm') (e.dead = e.dead || []).push(u.i); else (e.pko = e.pko || []).push(u.i) }
@@ -457,12 +464,18 @@
       var charmed = ctrl(u, 'charm'), confused = ctrl(u, 'confuse'), sk = null, tg = [];
       if (forced) {
         sk = D.SK[ctrl(u, 'seal') ? 'atk' : forced.sk] || D.SK.atk;
+        if (SPM && u.side === 'p' && sk.id !== 'atk' && !canUse(u, sk)) { sk = D.SK.atk; forced = { sk: 'atk', tg: pickTargets(u, sk, charmed, confused) } }
         tg = (forced.tg || []).filter(function (x) { return x && !x.dead });
         if (!tg.length && sk.t !== 'self') sk = null; else if (sk.t === 'self') tg = [u];
       }
-      /* 選技能：封禁只能普攻；沒有可用目標就換下一招 */
+      /* 選技能：封禁只能普攻；沒有可用目標就換下一招。
+         SP 制度：輪到的招冷卻中 → 跳下一招；SP 不夠 → 這次普攻、這招保留到下次 */
       for (var tries = 0; !forced && tries < 4; tries++) {
-        var id = u.cycle[u.cy % u.cycle.length]; u.cy++;
+        var id = u.cycle[u.cy % u.cycle.length];
+        if (SPM && u.side === 'p' && id !== 'atk' && D.SK[id] && !ctrl(u, 'seal')) {
+          if (cdOf(u, id) > 0) { u.cy++; continue }
+          if ((u.sp | 0) < D.SK[id].sp) { id = 'atk' } else u.cy++;
+        } else u.cy++;
         if (ctrl(u, 'seal')) id = 'atk';
         var k = D.SK[id] || D.SK.atk;
         var t0 = pickTargets(u, k, charmed, confused);
@@ -470,8 +483,10 @@
         if (charmed && k.ty === 'damage' && !t0.length) { e.txt = u.name + ' 被魅惑，找不到可以攻擊的同伴'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
         if (t0.length) { sk = k; tg = t0; break }
       }
+      if (!sk && SPM && u.side === 'p' && !forced) { var ta = pickTargets(u, D.SK.atk, charmed, confused); if (ta.length) { sk = D.SK.atk; tg = ta } } /* 四招都在冷卻：普攻 */
       if (!sk) { e.txt = u.name + ' 沒有可以行動的目標'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
+      if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）' }
       doSkill(u, sk, tg, e);
       flushSt(e);
       afterSkill(u, sk, tg, e, false);
@@ -523,7 +538,15 @@
       return true;
     }
     function flushSt(e) { if (!e._st) return; Object.keys(e._st).forEach(function (n) { var L = e._st[n]; e.txt += '，' + (L.length > 3 ? L.length + ' 人' : L.join('、')) + ((D.STS[n] || {}).pol === 'buff' ? ' 獲得「' : ' 陷入「') + n + '」' }); delete e._st }
+    function cdOf(u, id) { return (u.cd && u.cd[id]) || 0 }
+    function canUse(u, sk) { return sk && (sk.id === 'atk' || (cdOf(u, sk.id) <= 0 && (u.sp | 0) >= (sk.sp | 0))) }
+    /* 手動選目標：單體技能可以點的對象（嘲諷中只能打嘲諷者）；群體回傳整組 */
+    function cands(u, id) { var sk = D.SK[id] || D.SK.atk, t = sk.t;
+      if (t === 'enemy_single') { var c = targetable(foes(u)), tn = c.filter(function (x) { return has(x, 'taunt') }); return tn.length ? tn : c }
+      if (t === 'ally_single') return friends(u);
+      return pickTargets(u, sk, false, false) }
     function endAct(u, sk) {
+      if (SPM && u.cd) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });
       u.st.forEach(function (s) {
         if (s.paused || s.banish || s.swal) return;
         if (s.turns === 'attack') { if (sk && sk.ty === 'damage') s.turns = 0; return }
@@ -705,6 +728,7 @@
     function round() {
       rounds++;
       line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
+      if (SPM && rounds > 1) P.forEach(function (u) { if (!u.dead) u.sp = Math.min(SPMAX, (u.sp | 0) + 1) });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2), u.dragon - RV(D, 'rune18', 1, 0.05)) });
       return U.filter(function (u) { return !u.dead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } }).sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }
@@ -715,12 +739,12 @@
     /* 戰鬥結束時還在肚子裡的人算陣亡 */
     function endSwallow() { P.forEach(function (x) { if (x.dead || !swallowed(x)) return; x.hp = 0; x.dead = true; x.st = []; line({ kind: 'note', idle: true, txt: x.name + ' 沒能從肚子裡出來……', pko: [x.i], hp: hpSnap() }) }) }
     function over() { return !alive(P) || !alive(M) || rounds >= MAXR }
-    return { P: P, M: M, U: U, ev: ev, hooks: hooks, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, swallowed: swallowed, endSwallow: endSwallow, alive: alive, over: over,
+    return { P: P, M: M, U: U, ev: ev, hooks: hooks, SPM: SPM, cands: cands, canUse: canUse, cdOf: cdOf, round: round, start: start, begin: begin, finish: finish, wait: wait, act: act, stat: stat, ctrl: ctrl, has: has, banished: banished, swallowed: swallowed, endSwallow: endSwallow, alive: alive, over: over,
       rounds: function () { return rounds }, res: function () { return alive(M) ? (alive(P) ? 'draw' : 'lose') : 'win' }, MAXR: MAXR };
   }
   /* 自動戰鬥：整場一次跑完 */
-  function run(P, M, D) {
-    var S = session(P, M, D);
+  function run(P, M, D, opt) {
+    var S = session(P, M, D, opt);
     while (S.alive(P) && S.alive(M) && S.rounds() < MAXR) {
       var order = S.round();
       for (var q = 0; q < order.length; q++) {

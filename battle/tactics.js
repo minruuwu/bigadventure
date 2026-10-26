@@ -174,14 +174,14 @@
     var s = int(w.area_size, a === 'diamond' ? 2 : 0);
     return (u._acts[id] = { id: id, sk: sk, r: Math.max(0, r), a: a, s: s, side: side, others: t === 'ally_others', cost: Math.max(0, int(w.cost, 0)) });
   }
-  /* 玩家的技能組：現職 + 額外一組（skills.extra，另一個職業）；只列已學會的戰鬥技能，依學會等級排 */
+  /* 玩家的技能組：現職 + 最多兩組額外（skills.extra，陣列；舊資料是單一字串）；只列已學會的戰鬥技能，依學會等級排 */
   function setsOf(u) {
     if (u.side !== 'p') return [];
-    var p = u.p || {}, js = jobSn(p), ex = p.skills && typeof p.skills.extra === 'string' ? p.skills.extra : '', out = [];
-    [js, ex].forEach(function (sn) {
+    var p = u.p || {}, js = jobSn(p), xs = p.skills && p.skills.extra, ex = Array.isArray(xs) ? xs.slice(0, 2) : (typeof xs === 'string' && xs ? [xs] : []), out = [];
+    [js].concat(ex).forEach(function (sn) {
       if (!sn || out.some(function (o) { return o.sn === sn })) return;
       var L = (u.learned || []).filter(function (k) { return k.j === sn }).slice().sort(function (a, b) { return a.lv - b.lv });
-      if (sn === ex && !L.length) return;
+      if (sn !== js && !L.length) return;
       var row = (ctx.jobs || {})[sn] || {};
       out.push({ sn: sn, name: row.skill_set || row.job_name || '技能', ids: L.map(function (k) { return k.id }) });
     });

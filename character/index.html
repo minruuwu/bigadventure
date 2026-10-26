@@ -254,7 +254,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/aura.js?v=4"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="../common/skilldesc.js?v=1"></script>
+<script src="../common/skilldesc.js?v=2"></script>
 <script src="../common/runevals.js?v=1"></script>
 <script>
 (function(){
@@ -398,7 +398,9 @@ var SKILL={},SKORDER=[],SKST={},SKEFF={},STI={},SKNA={id:'atk',n:'普通攻擊',
 function buildSkills(info,eff){(info||[]).forEach(function(r){if(!r.skill_id||!/^job\d+$/.test(r.job))return; /* 只收職業技能（怪物技能 job=monster 不進技能書） */SKILL[r.skill_id]={id:r.skill_id,n:r.skill_name,j:r.job,lv:parseInt(r.job_level,10)||0,k:r.kind,t:r.target,p:r.pick,ty:r.type,cr:r.extra_crit_rate,cd:r.extra_crit_damage,d:r.part1_dmg,e:r.part1_element,r:r.part1_ratio,d2:r.part2_dmg,e2:r.part2_element,r2:r.part2_ratio,h:parseInt(r.hits,10)||1,sh:r.sure_hit==='1',ds:r.skill_desc||''};SKORDER.push(r.skill_id)});
   (eff||[]).forEach(function(r){if(r.effect_kind==='status'&&r.status_name&&!SKST[r.skill_id])SKST[r.skill_id]={n:r.status_name,turns:r.turns,ch:parseFloat(r.apply_chance)||1,tg:r.target};if(r.effect_kind==='heal'&&parseFloat(r.value))(SKHL[r.skill_id]=SKHL[r.skill_id]||[]).push({tg:r.target,v:parseFloat(r.value),b:r.base||'m_atk',c:r.condition||''});if(r.effect_kind==='passive'&&r.effect)(SKEFF[r.skill_id]=SKEFF[r.skill_id]||[]).push({k:r.effect,v:parseFloat(r.value)||0,c:r.condition||''})});
   SKORDER.sort(function(a,b){var x=SKILL[a],y=SKILL[b];return x.j<y.j?-1:x.j>y.j?1:x.lv-y.lv})}
-function normSkills(v){v=v&&typeof v==='object'?v:{};var c=Array.isArray(v.combat)?v.combat.slice(0,4):[],pa=Array.isArray(v.passive)?v.passive.slice(0,4):[];while(c.length<4)c.push('atk');while(pa.length<4)pa.push('');return{combat:c.map(function(x){return x||'atk'}),reaction:typeof v.reaction==='string'?v.reaction:'',passive:pa.map(function(x){return x||''}),extra:typeof v.extra==='string'?v.extra:''}}
+function normSkills(v){v=v&&typeof v==='object'?v:{};var c=Array.isArray(v.combat)?v.combat.slice(0,4):[],pa=Array.isArray(v.passive)?v.passive.slice(0,4):[];while(c.length<4)c.push('atk');while(pa.length<4)pa.push('');return{combat:c.map(function(x){return x||'atk'}),reaction:typeof v.reaction==='string'?v.reaction:'',passive:pa.map(function(x){return x||''}),extra:exArr(v.extra)}}
+/* 額外技能組：最多兩組（舊資料是單一字串，自動轉成陣列） */
+function exArr(x){var a=Array.isArray(x)?x:(typeof x==='string'&&x?[x]:[]);return a.filter(function(v,i){return typeof v==='string'&&v&&a.indexOf(v)===i}).slice(0,2)}
 /* 升級完成時的摘要：比對升級前後，列出增加的點數、屬性、學到的技能、可以轉職的新職業 */
 function upSnap(){var r={};Object.keys(JOB).forEach(function(sn){if(reqMet(sn))r[sn]=1});return{lv:S.lv,jl:Object.assign({},S.jobLvs),req:r}}
 function upSummary(b){var o={lines:[],skills:[],jobs:[]},dn=S.lv-b.lv,KL={combat:'主動',reaction:'反應',passive:'被動'};
@@ -419,7 +421,7 @@ function skPas(key){var r={v:0,L:[]};if(!S||!S.skills)return r;var wsn=WNAME2K[S
   skValid(S.skills).passive.forEach(function(id){if(!id)return;(SKEFF[id]||[]).forEach(function(e){if(e.k!==key)return;var t='技能 '+SKILL[id].n+' +'+pct(e.v);
     if(e.c&&e.c!==wsn){var wn=WEAPON[e.c]?WEAPON[e.c].n:e.c;r.L.push(t+'（未裝備'+wn+'，未生效）')}else{r.v+=e.v;r.L.push(t)}})});return r}
 /* 已失效（還沒學會或資料不存在）的技能，畫面上當成空格／普通攻擊 */
-function skValid(set){return{combat:set.combat.map(function(x){return x==='atk'||skLearned(SKILL[x])?x:'atk'}),reaction:skLearned(SKILL[set.reaction])?set.reaction:'',passive:set.passive.map(function(x,i){return S.lv>=PSLOT[i]&&skLearned(SKILL[x])?x:''}),extra:set.extra&&set.extra!==S.jobSn&&skSetOk(set.extra)?set.extra:''}}
+function skValid(set){return{combat:set.combat.map(function(x){return x==='atk'||skLearned(SKILL[x])?x:'atk'}),reaction:skLearned(SKILL[set.reaction])?set.reaction:'',passive:set.passive.map(function(x,i){return S.lv>=PSLOT[i]&&skLearned(SKILL[x])?x:''}),extra:exArr(set.extra).filter(function(x){return x!==S.jobSn&&skSetOk(x)})}}
 /* 戰棋額外技能組：另一個職業、而且至少學會一招該職業的戰鬥技能才能帶 */
 function skSetOk(sn){return SKORDER.some(function(id){var sk=SKILL[id];return sk&&sk.j===sn&&sk.k==='combat'&&skLearned(sk)})}
 function skSetName(sn){return JOB[sn]&&JOB[sn].skill_set?JOB[sn].skill_set:jobName(sn)}
@@ -457,10 +459,10 @@ function bookHTML(){if(!skDraft)skDraft=skValid(S.skills);if(!skJob)skJob=S.jobS
   h+='<div class="sec">反應技能</div>'+skSlot('R',D.reaction,'data-a="skpick" data-g="r" data-i="0"');
   h+='<div class="sec" style="display:flex;justify-content:space-between"><span>被動技能</span><span>人物 Lv'+S.lv+'</span></div>';
   D.passive.forEach(function(id,i){if(S.lv>=PSLOT[i])h+=skSlot(i+1,id,'data-a="skpick" data-g="p" data-i="'+i+'"');else h+='<div class="sks lk"><span class="no">'+(i+1)+'</span><span class="ski bl"></span><span class="nm3">未開放<small>人物 Lv'+PSLOT[i]+' 開放</small></span></div>'});
-  h+='<div class="sec">戰棋技能組</div><p class="hint" style="margin:0 2px 6px">戰棋中帶「現職技能組」＋一組額外技能組（只影響戰棋，自動戰鬥照上面的循環）。</p>';
+  h+='<div class="sec">技能組</div><p class="hint" style="margin:0 2px 6px">手動戰鬥（測試中）和戰棋可以帶「現職技能組」＋最多兩組額外技能組；自動戰鬥照上面的循環。</p>';
   h+='<div class="skl"><span class="lv">現職</span><div style="flex:1;min-width:0"><div class="t">'+esc(skSetName(S.jobSn))+'<span class="jtag">'+esc(jobName(S.jobSn))+'</span></div></div></div>';
   var EX=JOBORDER.filter(function(sn){return sn!==S.jobSn&&skSetOk(sn)});
-  h+='<select class="sksel" id="skextra" aria-label="額外技能組"><option value="">額外技能組：（不帶）</option>'+EX.map(function(sn){return '<option value="'+sn+'"'+(sn===D.extra?' selected':'')+'>額外技能組：'+esc(skSetName(sn))+'（'+esc(jobName(sn))+' Lv'+(S.jobLvs[sn]|0)+'）</option>'}).join('')+'</select>';
+  [0,1].forEach(function(q){var other=D.extra[1-q]||'',cur2=D.extra[q]||'';h+='<select class="sksel" id="skextra'+q+'" aria-label="額外技能組 '+(q+1)+'" style="margin-top:'+(q?6:0)+'px"><option value="">額外技能組 '+(q+1)+'：（不帶）</option>'+EX.filter(function(sn){return sn!==other}).map(function(sn){return '<option value="'+sn+'"'+(sn===cur2?' selected':'')+'>額外技能組 '+(q+1)+'：'+esc(skSetName(sn))+'（'+esc(jobName(sn))+' Lv'+(S.jobLvs[sn]|0)+'）</option>'}).join('')+'</select>'});
   if(!EX.length)h+='<p class="hint" style="margin:4px 2px">還沒有其他職業學會戰鬥技能，練其他職業後就能帶。</p>';
   var dirty=skDirty();h+='<div class="bar"><span class="t">'+esc(skMsg||(dirty?'尚未儲存的變更':'沒有變更'))+'</span><button class="b alt" data-a="skcancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="sksave" type="button" '+(dirty?'':'disabled')+'>儲存</button></div>';
   if(skPick)h+=skPicker();return h}
@@ -683,7 +685,7 @@ function jag(){var w=$('sw');if(!w||back.hidden)return;if(cur==='mirror'){w.styl
 window.addEventListener('resize',jag);
 function paintSheetPaper(){if(!window.PaperLit)return;if(cur==='mirror'){sheet.style.backgroundImage='none';sheet.__pw=0;return}var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
 window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
-function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);var sj=$('skjob');if(sj)sj.onchange=function(){skJob=sj.value;render()};var sx=$('skextra');if(sx)sx.onchange=function(){skDraft.extra=sx.value;skMsg='';render()};sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
+function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);var sj=$('skjob');if(sj)sj.onchange=function(){skJob=sj.value;render()};[0,1].forEach(function(q){var sx=$('skextra'+q);if(sx)sx.onchange=function(){var a=[skDraft.extra[0]||'',skDraft.extra[1]||''];a[q]=sx.value;skDraft.extra=a.filter(function(x,i){return x&&a.indexOf(x)===i});skMsg='';render()}});sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
 function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';upDone=null;confirmRst=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}if(k==='book'){skDraft=null;skPick=null;skFlt='all';skJob=S.jobSn;skMsg=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;updateWeaponSprites()}

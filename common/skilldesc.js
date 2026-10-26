@@ -27,9 +27,10 @@
   }
   /* stDesc(狀態名) → 狀態說明（沒有就用技能自己的說明） */
   function text(sk, st, hl, stDesc) {
-    if (sk.id === 'atk') return '對敵方單體（隨機）造成 100% 物理傷害。';
+    if (sk.id === 'atk') return '對敵方單體造成 100% 物理傷害。';
     if (sk.k !== 'combat') return sk.ds;
-    var a = (SKT[sk.t] || '') + (sk.p ? '（' + (SKP[sk.p] || sk.p) + '）' : ''), o = '', r = parseFloat(sk.r) || 0;
+    /* 單體技能的目標可以自己點，不寫「隨機／生命力最低」；只有每一下各自挑目標的多段技保留說明 */
+    var a = (SKT[sk.t] || '') + (sk.p === 'random_each' ? '（' + SKP[sk.p] + '）' : ''), o = '', r = parseFloat(sk.r) || 0;
     if (sk.ty === 'damage') { o = '對' + a + '造成 ' + pc(r) + ' ' + (SKEL[sk.e] || '') + (sk.d === 'm' ? '魔法' : '物理') + '傷害' + (sk.h > 1 ? ' × ' + sk.h + ' 次' : ''); if (parseFloat(sk.r2)) o += ' + ' + pc(sk.r2) + ' ' + (SKEL[sk.e2] || '') + (sk.d2 === 'm' ? '魔法' : '物理') + '傷害' }
     else if (sk.ty === 'heal' && r > 0) o = '恢復' + a + '魔法攻擊力 ' + pc(r) + ' 的生命'; else o = '對' + a + '施放';
     if (sk.sh) o += '，必定命中'; if (parseFloat(sk.cr)) o += '，暴擊率 +' + pc(sk.cr); if (parseFloat(sk.cd)) o += '，暴擊傷害 +' + pc(sk.cd);

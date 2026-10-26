@@ -55,6 +55,30 @@ button{font:inherit;color:inherit}
 .lg{padding:1px 0;color:var(--fg)}.lg .rnn{font-weight:900}.lg.rd{color:var(--accent);font-weight:900;margin-top:4px}.lg.ko{color:#ff9a8a;font-weight:900}
 .bres{margin-top:12px;background:rgba(20,12,8,.82);box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #6b4a2a;padding:12px;text-align:center}
 .bres p{margin:0 0 10px;font-size:14px;line-height:1.7}.bres b{color:#ffd76a}.bres small{color:var(--dim)}
+/* ===== 手動戰鬥（測試：?manual=1） ===== */
+.abchk{display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:700;color:var(--fg);cursor:pointer}.abchk input{width:16px;height:16px;accent-color:#e0b84a}
+.lvgo3{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.bhead{position:relative}.bhead .atg{position:absolute;right:6px;top:50%;transform:translateY(-50%);font:inherit;font-size:12px;font-weight:900;letter-spacing:0;color:#f0e2c4;background:#4a2a12;border:0;padding:3px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a}
+.bhead .atg.on{background:#3f6a2c;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c}
+.mmenu{margin:10px 0 0;background:#2a1b0f;box-shadow:0 0 0 2px #080503,inset 0 2px 0 #6b4a2a;padding:10px 10px 12px}
+.mmenu[hidden]{display:none}
+.mm-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:900;font-size:14px;color:#f0e2c4}
+.mm-h .spd{display:flex;gap:3px;margin-right:auto}.spd i{width:9px;height:9px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.spd i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a,inset 1px 1px 0 #c8f0ff}
+.mm-h .nm{white-space:nowrap}
+.mm-b{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mm-b button,.mm-x{font:inherit;font-size:13px;font-weight:900;color:#f0e2c4;background:#4a2a12;border:0;padding:9px 6px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;text-align:center;min-width:0}
+.mm-b button:active,.mm-x:active{transform:translateY(2px)}
+.mm-b button.atk{background:#5a3214}.mm-b button.au{background:#2c4a5a;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #4a7a8a}
+.mm-b button[disabled]{opacity:.38;cursor:default;transform:none}
+.mm-l{display:flex;flex-direction:column;gap:6px}
+.mm-l button{font:inherit;text-align:left;color:#f0e2c4;background:#3a2616;border:0;padding:7px 9px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;display:grid;grid-template-columns:1fr auto;gap:1px 8px;align-items:center}
+.mm-l button b{font-size:13px}.mm-l button small{grid-column:1/-1;font-size:11px;color:#c8b48a;font-weight:500;line-height:1.35}
+.mm-l button .co{font-size:11px;font-weight:900;color:#5ec8ff;white-space:nowrap}.mm-l button .co.cd{color:#ff9a8a}
+.mm-l button[disabled]{opacity:.4;cursor:default}
+.mm-t{font-size:12px;color:var(--dim);margin:0 0 6px}
+.mm-x{display:block;width:100%;margin-top:8px;background:#2a1b0f}
+.spb{position:absolute;display:flex;gap:1px;pointer-events:none;z-index:998}.spb i{flex:1;background:#1a0d08;box-shadow:0 0 0 1px #080503}.spb i.on{background:#5ec8ff}
+.tgt{outline:2px solid #ffe08a;outline-offset:-2px;animation:tgp .8s ease-in-out infinite alternate}@keyframes tgp{from{filter:brightness(1)}to{filter:brightness(1.6)}}
 .go{display:block;width:100%;font-weight:900;font-size:15px;border:0;background:#3f6a2c;color:#f0e2c4;padding:10px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c,inset 0 -2px 0 #24401a}
 .go:disabled{opacity:.45;cursor:default}
 .lvgo2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.lvgo2:has(>.go:only-child){grid-template-columns:1fr}.go.alt{background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a,inset 0 -2px 0 #2a170a}
@@ -99,6 +123,7 @@ html,body,*{touch-action:manipulation}
   <div class="frame" id="frame"><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
    <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><canvas id="auc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas><canvas id="pfx" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250"></canvas>
   </div>
+  <div class="mmenu" id="mmenu" hidden></div>
   <div class="panel"><div class="btabs" id="btabs" role="tablist"><button type="button" role="tab" data-v="log" class="on">戰報</button><button type="button" role="tab" data-v="dmg">傷害</button><button type="button" role="tab" data-v="taken">承受</button><button type="button" role="tab" data-v="heal">恢復</button></div><div class="log" id="log" aria-live="polite"></div><div class="stats" id="stats" hidden></div></div>
   </div>
  </div>
@@ -109,9 +134,9 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=4"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=25"></script>
-<script src="../common/skilldesc.js?v=1"></script>
-<script src="tactics.js?v=16"></script>
+<script src="engine.js?v=26"></script>
+<script src="../common/skilldesc.js?v=2"></script>
+<script src="tactics.js?v=17"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -296,6 +321,9 @@ var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
 var BIGD={dragon:1,sdragon:1,osiris:1};
 function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
+/* SP 點數：血條下面一排 5 格（手動戰鬥測試） */
+function spBar(p,k,pp,hide){if(!p.spb||!p.spb.isConnected){p.spb=el('div','spb');for(var i=0;i<5;i++)p.spb.appendChild(el('i'));frame.appendChild(p.spb);els.push(p.spb)}var d=p.spb;if(hide){d.style.display='none';return}d.style.display='';
+  var n=(B.hpNow&&B.hpNow.pp&&B.hpNow.pp[k])|0;d.style.left=((pp[0]-7)*U)+'px';d.style.top=((pp[1]+3)*U)+'px';d.style.width=(14*U)+'px';d.style.height=Math.max(2,Math.round(1.6*U))+'px';[].forEach.call(d.children,function(c,i){c.className=i<n?'on':''})}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
 /* 倒下／復活：B.pkl[k] = [{t, d:true 倒下 / false 復活}] */
@@ -325,8 +353,10 @@ function tick(now){
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
     var sw=swAt(k,t);p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=(fall?'rotate('+(-90*fall)+'deg)':'')+(sw.s<1?' scale('+sw.s+')':'')||'none';
     p.f.style.opacity=sw.a*(sf.fx.ban?.5:1);p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':((stFilter(sf.fx,p.fireT&&now-p.fireT<260)+' '+castGlow('p',k,t)).trim()||'none');
+    if(B.live&&LV&&LV.wait&&LV.wait.i===k&&!ko){var fq=Math.round(3+2*Math.sin(now/220));p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' drop-shadow(0 0 1px #fff2a0) drop-shadow(0 0 '+fq+'px #ffb020)'}/* 手動戰鬥：輪到的人發金光 */
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
     hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
+    if(B.spm)spBar(p,k,pp,ko||walk||sw.a<.5);
     p.auOk=!ko&&sw.a>.5;p.sfx=sf;p.sx=x;p.gy=pp[1];p.top=y-34;p.vis=!ko&&!walk&&sw.a>.5;
   });
   mons.forEach(function(m,i){var sf=stNowM(i),mst=sf.fx.shake||sf.fx.frozen||sf.fx.stone||sf.fx.sleep;if(mst){if(!m.stT)m.stT=now}else m.stT=0;var an=mst?m.stT:now;/* 定身、睡眠：動畫停在那一格 */if(sf.fx.fire&&!m.fireOn)m.fireT=now;m.fireOn=!!sf.fx.fire;
@@ -937,13 +967,15 @@ function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
     b.addEventListener('click',function(){if(OPENED(i))openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2><p class="lvh">打過一關才會開放下一關</p><div class="lvg">';
   var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
-  var md=advMode();h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
+  var md=advMode();if(MANUAL){h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo3"><button type="button" class="go" data-a="lvgo" data-m="live" disabled>戰鬥</button><label class="abchk"><input type="checkbox" id="autoChk"'+(autoPref()?' checked':'')+'>自動戰鬥</label></div></div>';var o0=$('lvov');o0.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o0.hidden=false;return}
+  h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
     $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'');[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
+  else if(a==='lvgo'&&pickL&&b.getAttribute('data-m')==='live'){var au0=!!($('autoChk')&&$('autoChk').checked);setAutoPref(au0);var A3=pickA,L3=pickL;closeLevels();startLive(A3,L3,au0)}
   else if(a==='lvgo'&&pickL){var A2=pickA,L2=pickL;var M2=b.getAttribute('data-m')==='tac'?'tac':'auto';setAdvMode(M2);closeLevels();if(M2==='tac')startTactics(A2,L2);else startBattle(A2,L2)}});
 /* 上次選的模式（自動戰鬥／戰棋），記在這台瀏覽器；網址帶 ?tactics=1 時預設戰棋 */
 function advMode(){if(!TACT)return'auto';try{var v=localStorage.getItem('adv.mode');if(v==='tac'||v==='auto')return v}catch(e){}return TACT?'tac':'auto'}
@@ -971,42 +1003,47 @@ function sumSlots(ms,mko){if(!ms.some(function(m){return m.at!=null}))return;var
   ms.forEach(function(m,i){if(m.at!=null)return;if(i===bi){m.slot=F[0];occ[0]=i;return}var j=Math.min(q++,4);m.slot=F[j];occ[j]=i});
   ms.map(function(m,i){return i}).filter(function(i){return ms[i].at!=null}).sort(function(a,b){return ms[a].at-ms[b].at}).forEach(function(i){var at=ms[i].at,pick=-1;
     for(var j=1;j<5;j++){var o=occ[j];if(o==null||(mko[o]!=null&&mko[o]+400<=at)){pick=j;break}}if(pick<0)pick=4;ms[i].slot=F[pick];occ[pick]=i})}
+/* 戰報一行 → 動畫事件（排上時間）。自動戰鬥一次全部轉完；手動戰鬥（?manual=1）邊打邊轉 */
+function monEntry(m){var au=[];(m.aura||[]).forEach(function(a){if(au.indexOf(a.id)<0)au.push(a.id)});return{k:m.sprite,n:m.name,boss:m.boss,au:au}}
+function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={ev:ev,pkl:pkl,psw:psw,mko:mko,t:WALK+400,sum:false};
+  mp.add=function(e){var t=mp.t;
+    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null,sumR:e.sk&&!e.idle&&(ENG.EFF[e.sk]||[]).some(function(r){return r.effect_kind==='summon'})?((SKN[e.sk]||{}).el||''):null,ls:e.ls||0,drain:e.drain||null,dside:e.side,da:e.a};/* ls = 這招有吸血；drain = 持續扣血被吸回去 [陣營, 編號] */
+      if(e.sk&&e.sk!=='atk'&&!e.idle&&!e.tick){var ck=SKN[e.sk]||{};o.cast=castCol(ck.el,e.ty||ck.ty)}/* 放技能：施放者身上發光（屬性色） *//* thr = 被荊棘反彈／熊之力量濺射打到的單位 [陣營, 編號]，畫面上閃一下 */
+      if(e.sk&&!e.idle&&!e.tick){
+        if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
+          o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
+        else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;if(e.ty==='heal'&&e.hlM&&e.hlM.length&&!o.mhl)o.mhl=e.hlM;o.skid=e.sk;var mk=SKN[e.sk];if(mk&&mk.vfx==='grasp')o.cast='#6dff8a';if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='grasp'?440:mw==='souls'?420:mw==='chains'?540:mw==='burrow'?480:mw==='miasma'?360:mw==='sandstorm'?650:mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
+      if(e.side==='p'&&e.sk&&SONG[e.sk]&&!e.idle&&!e.tick){o.song=SONG[e.sk];o.cast=o.song;o.castLen=1000;o.sid=e.sk;/* 吟遊詩人的歌：施法光暈＋音符；打敵人的歌用音符特效 */
+        if(o.wk==='notes'){o.vc=o.song;o.nsp=SONGSP[e.sk]||300;o.nn=(e.tg&&e.tg.length===1)?6:3;o.hit=o.nsp+60}}
+      if(e.rk){/* 反應技：敵人整招結束後依速度逐一演出。counter 攻擊動作打回去；debuff 攻擊動作＋對方腳下向下的光圈；buff 自己發光；thorn 腳下荊棘光環 */
+        o.rk=e.rk;o.dring=e.dring&&e.rt?e.rt:null;
+        if(e.rk==='thorn'){o.tring=[e.side,e.a];o.thr=e.rt?[e.rt]:null;o.hit=60}
+        else if(e.rk==='buff'){o.gs=e.side;o.ga=e.a;o.cast='#fff0a0';o.castLen=700;if(e.side==='p'){o.side='p';o.a=e.a;o.ty='buff';o.rbuff=1}}
+        else{o.side=e.side;o.a=e.a;var ctr=e.rk==='counter'&&e.rt;
+          if(e.side==='p'){Object.assign(o,fxOf(MEMB[e.a],'atk','damage'));o.ty=e.rk==='counter'?'damage':'debuff';o.tg=ctr&&e.rt[0]==='m'?[e.rt[1]]:[];o.hits=1}
+          else{o.ty=e.rk==='counter'?'damage':'debuff';o.tgts=ctr&&e.rt[0]==='p'?[e.rt[1]]:[]}}}
+      if(e.rfx){/* 符文獨立一行：rfx 決定特效；rc = 符文表顏色；hit/kod 對準命中那一刻（閃白、倒下） */
+        var rc=(RUNE[e.rn]||{}).color||'#ffffff',RI=RIMP[e.rfx]||300;o.rn=e.rn;o.rfx=e.rfx;o.rc=rc;o.rs=[e.side,e.a];o.rtg=e.rtg||[];o.kod=RI+80;
+        if(e.rfx==='el'&&e.side==='p'){Object.assign(o,fxOf(MEMB[e.a],'atk','damage'));o.side='p';o.a=e.a;o.el=e.el;o.atk=false;o.vc=ELC[e.el]||rc;o.tg=o.rtg.filter(function(q){return q[0]==='m'}).map(function(q){return q[1]});o.hits=1;o.kod=(o.hit||180)+80;o.t=t-ELPULL/* 不重新出手：特效直接接在主攻擊後面 */}
+        else if(e.rfx==='sun'){o.gs=e.side;o.ga=e.a;o.cast=rc;o.castLen=820}
+        else if(e.rfx==='nm'||e.rfx==='stone'){o.dring=o.rtg[0];o.dcol=rc}
+        else{o.thr=o.rtg;o.hit=Math.max(1,RI-140);if(e.rfx==='grave'){o.gs=e.side;o.ga=e.a;o.cast='#5a4632';o.castLen=420}}}
+      else if(e.rn)o.rn=e.rn;
+      if(e.tome)o.tome=e.tome;
+      if(e.kind!=='round')t+=e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
+      (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
+      (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
+      (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+(o.kod||260),d:true})});
+      (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
+      (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
+      if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
+      if(M&&e.summon)e.summon.forEach(function(i){if(!ms[i]&&M[i]){ms[i]=monEntry(M[i]);ms[i].at=o.t+500;mp.sum=true}});
+    mp.t=t;ev.push(o);return o};
+  return mp}
 function realBattle(a,l){
   var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
-  var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG);
-  var RSTEP=760,ms=M.map(function(m){var au=[];(m.aura||[]).forEach(function(a){if(au.indexOf(a.id)<0)au.push(a.id)});return{k:m.sprite,n:m.name,boss:m.boss,au:au}}),pkl={},psw={},mko={},ev=[],STEP=1000,t=WALK+400;
-  R.ev.forEach(function(e){
-    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null,sumR:e.sk&&!e.idle&&(ENG.EFF[e.sk]||[]).some(function(r){return r.effect_kind==='summon'})?((SKN[e.sk]||{}).el||''):null,ls:e.ls||0,drain:e.drain||null,dside:e.side,da:e.a};/* ls = 這招有吸血；drain = 持續扣血被吸回去 [陣營, 編號] */
-    if(e.sk&&e.sk!=='atk'&&!e.idle&&!e.tick){var ck=SKN[e.sk]||{};o.cast=castCol(ck.el,e.ty||ck.ty)}/* 放技能：施放者身上發光（屬性色） *//* thr = 被荊棘反彈／熊之力量濺射打到的單位 [陣營, 編號]，畫面上閃一下 */
-    if(e.sk&&!e.idle&&!e.tick){
-      if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
-        o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
-      else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;if(e.ty==='heal'&&e.hlM&&e.hlM.length&&!o.mhl)o.mhl=e.hlM;o.skid=e.sk;var mk=SKN[e.sk];if(mk&&mk.vfx==='grasp')o.cast='#6dff8a';if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='grasp'?440:mw==='souls'?420:mw==='chains'?540:mw==='burrow'?480:mw==='miasma'?360:mw==='sandstorm'?650:mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
-    if(e.side==='p'&&e.sk&&SONG[e.sk]&&!e.idle&&!e.tick){o.song=SONG[e.sk];o.cast=o.song;o.castLen=1000;o.sid=e.sk;/* 吟遊詩人的歌：施法光暈＋音符；打敵人的歌用音符特效 */
-      if(o.wk==='notes'){o.vc=o.song;o.nsp=SONGSP[e.sk]||300;o.nn=(e.tg&&e.tg.length===1)?6:3;o.hit=o.nsp+60}}
-    if(e.rk){/* 反應技：敵人整招結束後依速度逐一演出。counter 攻擊動作打回去；debuff 攻擊動作＋對方腳下向下的光圈；buff 自己發光；thorn 腳下荊棘光環 */
-      o.rk=e.rk;o.dring=e.dring&&e.rt?e.rt:null;
-      if(e.rk==='thorn'){o.tring=[e.side,e.a];o.thr=e.rt?[e.rt]:null;o.hit=60}
-      else if(e.rk==='buff'){o.gs=e.side;o.ga=e.a;o.cast='#fff0a0';o.castLen=700;if(e.side==='p'){o.side='p';o.a=e.a;o.ty='buff';o.rbuff=1}}
-      else{o.side=e.side;o.a=e.a;var ctr=e.rk==='counter'&&e.rt;
-        if(e.side==='p'){Object.assign(o,fxOf(MEMB[e.a],'atk','damage'));o.ty=e.rk==='counter'?'damage':'debuff';o.tg=ctr&&e.rt[0]==='m'?[e.rt[1]]:[];o.hits=1}
-        else{o.ty=e.rk==='counter'?'damage':'debuff';o.tgts=ctr&&e.rt[0]==='p'?[e.rt[1]]:[]}}}
-    if(e.rfx){/* 符文獨立一行：rfx 決定特效；rc = 符文表顏色；hit/kod 對準命中那一刻（閃白、倒下） */
-      var rc=(RUNE[e.rn]||{}).color||'#ffffff',RI=RIMP[e.rfx]||300;o.rn=e.rn;o.rfx=e.rfx;o.rc=rc;o.rs=[e.side,e.a];o.rtg=e.rtg||[];o.kod=RI+80;
-      if(e.rfx==='el'&&e.side==='p'){Object.assign(o,fxOf(MEMB[e.a],'atk','damage'));o.side='p';o.a=e.a;o.el=e.el;o.atk=false;o.vc=ELC[e.el]||rc;o.tg=o.rtg.filter(function(q){return q[0]==='m'}).map(function(q){return q[1]});o.hits=1;o.kod=(o.hit||180)+80;o.t=t-ELPULL/* 不重新出手：特效直接接在主攻擊後面 */}
-      else if(e.rfx==='sun'){o.gs=e.side;o.ga=e.a;o.cast=rc;o.castLen=820}
-      else if(e.rfx==='nm'||e.rfx==='stone'){o.dring=o.rtg[0];o.dcol=rc}
-      else{o.thr=o.rtg;o.hit=Math.max(1,RI-140);if(e.rfx==='grave'){o.gs=e.side;o.ga=e.a;o.cast='#5a4632';o.castLen=420}}}
-    else if(e.rn)o.rn=e.rn;
-    if(e.tome)o.tome=e.tome;
-    if(e.kind!=='round')t+=e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
-    (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
-    (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
-    (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+(o.kod||260),d:true})});
-    (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
-    (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
-    if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
-    ev.push(o)});
+  var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),R=BattleEngine.run(P,M,ENG,{sp:MANUAL});
+  var ms=M.map(monEntry),mp=mkMapper(ms,null);R.ev.forEach(mp.add);var ev=mp.ev,pkl=mp.pkl,psw=mp.psw,mko=mp.mko,t=mp.t;
   sumSlots(ms,mko);
   return{sheep:P.map(function(u,i){return u.runes.indexOf('rune24')>=0?i:-1}).filter(function(i){return i>=0}),ev:ev,mons:ms,pkl:pkl,psw:psw,pko:{},mko:mko,res:R.res,end:t+400,a:a,l:l,mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),
     hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp})},lead:P[0]}}
@@ -1019,6 +1056,64 @@ function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||
 function startBattle(a,l){setLastArea(a);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=AREA[a].n+'　第 '+l+' 關'+(isBoss(a,l)?'（Boss）':'');$('log').textContent='';$('bres').hidden=true;
   setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick)}
+/* ======== 手動戰鬥（測試入口 ?manual=1）：輪到我方角色時停下來選招、選目標；可以整隊切自動，也可以這次行動交給自動 ======== */
+function autoPref(){try{return localStorage.getItem('adv.autoBattle')==='1'}catch(e){return false}}
+function setAutoPref(v){try{localStorage.setItem('adv.autoBattle',v?'1':'0')}catch(e){}}
+var LV=null;/* 手動戰鬥的狀態：S = 引擎、mp = 動畫轉換、order/qi = 這回合的行動順序、wait = 等誰選、auto = 整隊自動 */
+function startLive(a,l,auto){setLastArea(a);PARTS=[];curClear();
+  var allies=Math.min(3,MEMB.length-1),P=MEMB.slice(0,4).map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
+  var M=BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
+  B={live:true,sheep:P.map(function(u,i){return u.runes.indexOf('rune24')>=0?i:-1}).filter(function(i){return i>=0}),ev:mp.ev,mons:ms,pkl:mp.pkl,psw:mp.psw,pko:{},mko:mp.mko,res:null,end:1e15,a:a,l:l,
+    mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true};
+  B.wall=Date.now();B.hp0=B.hpNow;B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
+  LV={S:S,P:P,M:M,mp:mp,n:0,order:[],qi:0,wait:null,auto:!!auto,b:B};
+  showView('battle');var bh=$('bhead');bh.textContent=AREA[a].n+'　第 '+l+' 關'+(isBoss(a,l)?'（Boss）':'');var tg=el('button','atg');tg.type='button';tg.id='atg';tg.addEventListener('click',function(){setLiveAuto(!LV.auto)});bh.appendChild(tg);setLiveAuto(LV.auto,true);
+  $('log').textContent='';$('bres').hidden=true;$('mmenu').hidden=true;setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick);liveStep()}
+function setLiveAuto(v,quiet){if(!LV)return;LV.auto=v;var b=$('atg');if(b){b.textContent=v?'自動中':'自動';b.classList.toggle('on',v)}if(v&&LV.wait){var u=LV.wait;closeMenu();liveAct(u,null)}}
+function liveNow(){return B?performance.now()-B.t0:0}
+/* 把引擎新加的戰報轉成動畫事件；先把時間拉到「現在」以後，免得選招花的時間讓動畫倒著播 */
+function liveFlush(){var S=LV.S,mp=LV.mp;if(mp.ev.length===0&&LV.n===0)mp.t=Math.max(mp.t,WALK+400);mp.t=Math.max(mp.t,liveNow()+120);var before=B.mons.length;
+  while(LV.n<S.ev.length&&!(LV.hold&&S.ev[LV.n]===LV.hold))mp.add(S.ev[LV.n++]);
+  if(mp.sum){mp.sum=false;LV.M.forEach(function(m,i){if(B.mhpM[i]==null)B.mhpM[i]=m.b.mhp});sumSlots(B.mons,B.mko);build()}}
+function liveStep(){var S=LV.S;if(B!==LV.b)return;
+  for(var guard=0;guard<400;guard++){
+    if(S.over()){S.endSwallow();liveFlush();B.res=S.res()==='win'?'win':'lose';B.end=LV.mp.t+400;B.req=makeReq(B);closeMenu();var g=$('atg');if(g)g.remove();return}
+    if(LV.qi>=LV.order.length){LV.order=S.round();LV.qi=0;continue}
+    var u=LV.order[LV.qi++];if(u.dead)continue;if(!S.alive(LV.P)||!S.alive(LV.M))continue;
+    if(!S.start(u)){liveFlush();continue}
+    /* 我方、沒開自動、而且不是被魅惑／混亂（那兩種照自動亂打）→ 停下來等玩家 */
+    if(u.side==='p'&&!LV.auto&&!S.ctrl(u,'charm')&&!S.ctrl(u,'confuse')){LV.hold=u._e;liveFlush();LV.wait=u;/* 這個人的戰報行還沒寫好，先不轉 */LV.waitAt=LV.mp.t;menuWhenReady();return}
+    S.finish(u);liveFlush()}}
+function liveAct(u,forced){var S=LV.S;LV.wait=null;LV.hold=null;closeMenu();clearTg();S.finish(u,forced||undefined);liveFlush();liveStep()}
+/* 等前面的動畫演完才跳選單 */
+function menuWhenReady(){if(!LV||!LV.wait||B!==LV.b)return;if(liveNow()<LV.waitAt-150){setTimeout(menuWhenReady,80);return}openMenu(LV.wait)}
+function closeMenu(){var m=$('mmenu');m.hidden=true;m.textContent='';clearTg()}
+function spDots(n){var d=el('span','spd');for(var i=0;i<5;i++)d.appendChild(el('i',i<n?'on':null));return d}
+var TGL=[];function clearTg(){TGL.forEach(function(f){f()});TGL=[]}
+/* 技能組：現職（只算現職本身的技能）＋最多兩組額外技能組 */
+function skillSets(u,p){var main=p.jobSn||(Doll.JOBSN&&Doll.JOBSN[p.job|0])||'',ex=(p.skills&&p.skills.extra);ex=Array.isArray(ex)?ex:ex?[ex]:[];ex=ex.filter(function(j,i){return j&&j!==main&&ex.indexOf(j)===i}).slice(0,2);
+  return [main].concat(ex).map(function(j){return{j:j,n:(JOBI[j]&&JOBI[j].skill_set)||((JOBI[j]&&JOBI[j].job_name)||j)+'技能',sk:(u.learned||[]).filter(function(k){return k.j===j})}}).filter(function(g){return g.sk.length})}
+function tgtLabel(t){return t==='enemy_single'?'敵方單體':t==='enemy_all'?'敵方全體':t==='ally_single'?'我方單體':t==='ally_all'?'我方全體':t==='ally_others'?'其他隊友':t==='self'?'自身':''}
+function openMenu(u,view){var S=LV.S,p=MEMB[u.i],m=$('mmenu');m.textContent='';m.hidden=false;var sealed=S.ctrl(u,'seal');
+  var h=el('div','mm-h');h.appendChild(el('span','nm',u.name));h.appendChild(spDots(u.sp|0));h.appendChild(el('span',null,'SP '+(u.sp|0)+'/5'));m.appendChild(h);
+  if(!view){var g=el('div','mm-b'),b0=el('button','atk','普通攻擊');b0.type='button';b0.addEventListener('click',function(){pickTarget(u,'atk')});g.appendChild(b0);
+    skillSets(u,p).forEach(function(set){var b=el('button',null,set.n);b.type='button';if(sealed)b.disabled=true;b.addEventListener('click',function(){openMenu(u,set)});g.appendChild(b)});
+    var ba=el('button','au','自動');ba.type='button';ba.title='這次行動交給自動';ba.addEventListener('click',function(){liveAct(u,null)});g.appendChild(ba);m.appendChild(g);
+    if(sealed)m.appendChild(el('p','mm-t','封禁中：只能普通攻擊'));return}
+  m.appendChild(el('p','mm-t',view.n));var L=el('div','mm-l');
+  view.sk.forEach(function(k){var cd=S.cdOf(u,k.id),ok=S.canUse(u,k)&&!sealed,b=el('button');b.type='button';b.appendChild(el('b',null,k.n));
+    b.appendChild(el('span','co'+(cd>0?' cd':''),cd>0?'冷卻 '+cd:k.sp+' SP'));var r=ENG.SK[k.id]&&ENG.SK[k.id].raw;
+    b.appendChild(el('small',null,tgtLabel(k.t)+(k.cdN?'・冷卻 '+k.cdN:'')+'｜'+skText(k.id)));if(!ok)b.disabled=true;b.addEventListener('click',function(){pickTarget(u,k.id)});L.appendChild(b)});
+  m.appendChild(L);var bk=el('button','mm-x','‹ 返回');bk.type='button';bk.addEventListener('click',function(){openMenu(u)});m.appendChild(bk)}
+function skText(id){try{var r=ENG.SK[id]&&ENG.SK[id].raw;if(!r)return '';var o=SkillDesc.fromRow(r),e=SkillDesc.fromEff(ENG.EFF[id]);return SkillDesc.text(o,e.st,e.hl,function(n){return ENG.STS[n]&&ENG.STS[n].d})}catch(e){return ''}}
+/* 選目標：單體技能點敵人（或隊友）；群體、自身直接放 */
+function pickTarget(u,id){var S=LV.S,k=ENG.SK[id]||ENG.SK.atk,t=k.t;
+  if(t!=='enemy_single'&&t!=='ally_single'){liveAct(u,{sk:id,tg:S.cands(u,id)});return}
+  var C=S.cands(u,id);if(C.length===1){liveAct(u,{sk:id,tg:C});return}
+  var m=$('mmenu');m.textContent='';var h=el('div','mm-h');h.appendChild(el('span','nm',u.name+'：'+k.n));m.appendChild(h);m.appendChild(el('p','mm-t','點戰場上的目標，或從下面選'));
+  var g=el('div','mm-b');C.forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100),b=el('button',null,x.name+'　'+hpP+'%');b.type='button';b.addEventListener('click',function(){liveAct(u,{sk:id,tg:[x]})});g.appendChild(b);
+    var node=x.side==='p'?(party[x.i]&&party[x.i].f):(mons[x.i]&&mons[x.i].f);if(node){node.classList.add('tgt');node.style.pointerEvents='auto';node.style.cursor='pointer';var fn=function(ev){ev.stopPropagation();liveAct(u,{sk:id,tg:[x]})};node.addEventListener('click',fn);TGL.push(function(){node.classList.remove('tgt');node.style.pointerEvents='';node.style.cursor='';node.removeEventListener('click',fn)})}});
+  m.appendChild(g);var bk=el('button','mm-x','‹ 返回');bk.type='button';bk.addEventListener('click',function(){clearTg();openMenu(u)});m.appendChild(bk)}
 /* ---- 獎勵：開戰時就決定好（加成、餅乾的機率在這裡擲），結果出來時才寫入 ---- */
 /* 獎勵等級遞減：戰力（隊長的人物等級＋所有職業等級加總）超過關卡建議等級（stage_info 的 level，沒填就 3×關數），
    每超過 REW.step 級少 REW.cut，最低保留 REW.floor；隊友分紅照隊長打折後的數字算 */
@@ -1154,7 +1249,7 @@ function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hi
   (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>1300){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */
 try{document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})())}catch(e){}
-var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),VFXT=/[?&]vfx=1/.test(location.search);
+var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),MANUAL=/[?&]manual=1/.test(location.search),VFXT=/[?&]vfx=1/.test(location.search);
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function demoPlayers(){var names=['阿明','小美','阿傑','雞湯'],ws=['劍','斧','匕','弓'];return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3][i],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i]}})}
 function loadPx(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
@@ -1189,6 +1284,10 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).then(function(){
   if(VFXT){vtStart();return}
   if(demo&&/demo=2/.test(location.search)){var d2=demoPlayers().concat(demoPlayers().slice(0,1).map(function(q){return Object.assign({},q,{uid:'d4',name:'小強'})}));d2.forEach(function(q,i){var jn='job0'+((i%5)+1),k=WBYNAME[q.weapon];q.jobSn=jn;q.job=i%5;q.lv=12;q.jobLv={};q.jobLv[jn]=12;q.alloc={str:30,int:0,agi:10,vit:15,luk:0};q.weapons={};if(k)q.weapons[k]={lv:15};q.skills={combat:['skill001','skill006','skill003','skill008'],reaction:'',passive:[]};var jx='job0'+(((i+1)%5)+1);q.jobLv[jx]=8;q.skills.extra=jx/* 示範：另練一個職業，戰棋帶它當額外技能組 */});start(d2[0],d2.slice(1));return}
+  if(demo&&MANUAL){var dm=demoPlayers(),JS=['job06','job08','job12','job14'],EX=[['job01','job02'],['job02','job05'],['job01','job03'],['job04','job01']];/* 手動戰鬥測試：給示範隊伍一轉職業、技能和兩組額外技能組 */
+    dm.forEach(function(q,i){var j=JS[i];q.jobSn=j;q.job=parseInt(j.slice(3),10)-1;q.lv=40;q.jobLv={};q.jobLv[j]=20;EX[i].forEach(function(x){q.jobLv[x]=30});
+      var mine=Object.keys(ENG.SK).map(function(k){return ENG.SK[k]}).filter(function(k){return k.kind==='combat'&&k.j===j&&k.lv<=20}).map(function(k){return k.id});
+      q.skills={combat:mine.slice(0,4),extra:EX[i].slice()}});start(dm[0],dm.slice(1));return}
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
