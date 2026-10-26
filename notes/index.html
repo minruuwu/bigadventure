@@ -95,6 +95,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 .stage{position:relative;height:210px;margin:6px 0 10px;background:rgba(58,38,22,.12);border:2px solid rgba(58,38,22,.3);overflow:hidden}
 .stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;background:rgba(58,38,22,.16)}
 .stage img{position:absolute;left:50%;transform-origin:50% 100%;z-index:1}
+.stage canvas.ifx{position:absolute;inset:0;z-index:2;pointer-events:none;width:100%;height:100%}
 .stage .shd{position:absolute;left:50%;height:6px;background:rgba(30,18,8,.35);border-radius:50%;z-index:0}
 .desc{margin:0 0 10px;font-size:13px}
 .k2{font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--pink2);margin:12px 0 4px;border-bottom:1px dashed var(--pink2);padding-bottom:1px}
@@ -156,7 +157,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/skilldesc.js?v=1"></script>
-<script src="../common/monsters.js?v=1"></script>
+<script src="../common/monsters.js?v=2"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -284,9 +285,17 @@ function seen(a,i,id){if(!areaOpen(i))return false;var reach=Math.min(NST,cleare
 var SPR=[];/* 會動的怪物圖：{img, k, ph, sc, base} */
 function sprite(k,box,maxH,maxW){var sz=Monsters.size(k),w=sz[0],h=sz[1],sc=Math.min(maxW/w,maxH/h);sc=sc>=1?Math.max(1,Math.floor(sc*4)/4):sc;
   var im=el('img','px');im.alt='';im.draggable=false;im.style.width=(w*sc)+'px';im.style.height=(h*sc)+'px';box.appendChild(im);var o={img:im,k:k,ph:Math.random()*2000,sc:sc,src:''};SPR.push(o);return o}
+/* 明細頁：所有怪用同一個倍率（照戰鬥裡的大小比例），最大隻的（含飛起來的高度）剛好放得進展示區 */
+var DU=null,STG_H=210,STG_G=14;
+function detailU(){if(DU)return DU;var mh=1,mw=1;D.monList.forEach(function(m){var k=m.sprite,sz=Monsters.size(k),sc=Monsters.scale(k),lf=0;for(var t=0;t<4000;t+=40)lf=Math.max(lf,Monsters.lift(k,t,0));mh=Math.max(mh,sz[1]*sc+lf);mw=Math.max(mw,sz[0]*sc)});
+  DU=Math.min(3,(STG_H-STG_G-8)/mh,300/mw);return DU}
+function bigSprite(k,stg){var u=detailU(),sz=Monsters.size(k),sc=Monsters.scale(k),im=el('img','px');im.alt='';im.draggable=false;im.style.width=(sz[0]*sc*u)+'px';im.style.height=(sz[1]*sc*u)+'px';im.style.bottom=STG_G+'px';stg.appendChild(im);
+  var cvs=document.createElement('canvas');cvs.className='ifx';stg.appendChild(cvs);var o={img:im,k:k,ph:Math.random()*2000,sc:sc*u,u:u,msc:sc,src:'',glow:true,fx:cvs,stg:stg};SPR.push(o);return o}
 function tick(now){SPR.forEach(function(o){if(!o.img.isConnected)return;var s=Monsters.src(o.k,now,o.ph);if(s&&s!==o.src){o.src=s;o.img.src=s}
-  var lf=Monsters.lift(o.k,now,o.ph)*o.sc,sq=Monsters.squash(o.k,now,o.ph);o.img.style.transform='translate(-50%,'+(-lf)+'px)'+(sq?' scale('+sq[0]+','+sq[1]+')':'');
-  if(o.glow)o.img.style.filter=Monsters.glow(o.k,now+o.ph,o.sc)||''});
+  var lift=Monsters.lift(o.k,now,o.ph),lf=o.u?lift*o.u:lift*o.sc,sq=Monsters.squash(o.k,now,o.ph);
+  if(o.fx){var W=o.stg.clientWidth,H=o.stg.clientHeight,c=o.fx;if(c.width!==W||c.height!==H){c.width=W;c.height=H}var x=c.getContext('2d');x.clearRect(0,0,W,H);x.imageSmoothingEnabled=false;
+    Monsters.idle(x,o.u,{k:o.k,lx:W/2/o.u,gy:(H-STG_G)/o.u,lift:lift,sc:o.msc,ph:o.ph},now)}o.img.style.transform='translate(-50%,'+(-lf)+'px)'+(sq?' scale('+sq[0]+','+sq[1]+')':'');
+  if(o.glow)o.img.style.filter=Monsters.glow(o.k,now+o.ph,o.u||o.sc)||''});
   SPR=SPR.filter(function(o){return o.img.isConnected});requestAnimationFrame(tick)}
 
 function renderAcct(){var a=$('acct');a.textContent='';var av=el('div','av');
@@ -321,8 +330,8 @@ function icon(src){var i=el('img','px');i.alt='';i.src=src;i.onerror=function(){
 function openMon(id){var m=D.mon[id];openSheet(function(s){
   var h=el('h2',null,m.monster_name);if(m.boss==='1')h.appendChild(el('span','tag','首領'));s.appendChild(h);
   var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
-  var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.appendChild(sh);o=sprite(m.sprite,stg,176,280);o.img.style.bottom='14px';o.glow=true;
-  sh.style.width=Math.round(sz[0]*o.sc*.7)+'px';sh.style.marginLeft=-Math.round(sz[0]*o.sc*.35)+'px';sh.style.bottom='11px';s.appendChild(stg);
+  var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.style.height=STG_H+'px';stg.appendChild(sh);o=bigSprite(m.sprite,stg);
+  sh.style.width=Math.round(sz[0]*o.sc*.7)+'px';sh.style.marginLeft=-Math.round(sz[0]*o.sc*.35)+'px';sh.style.bottom=(STG_G-3)+'px';s.appendChild(stg);
   if(m.monster_desc)s.appendChild(el('p','desc',m.monster_desc));
   s.appendChild(el('div','k2','強度'));
   STATS.forEach(function(q){var r=el('div','pr');r.appendChild(icon(BASE+'icons/stats/'+q[2]+'.png'));r.appendChild(el('span','lb',q[1]));r.appendChild(pips(pipsOf(q[0],num(m[q[0]]))));s.appendChild(r)});
