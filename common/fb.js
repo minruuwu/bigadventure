@@ -124,6 +124,8 @@ const FB = {
   // 符文改版遷移：所有武器的附魔清空，標記 runeV = 2（只做一次）
   async runeMigrate(ks) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { runeV: 2 }; (ks || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), weapons = Object.assign({}, (c && c.player.weapons) || {}); (ks || []).forEach(k => { weapons[k] = Object.assign({}, weapons[k], { ench: [] }); }); mePatch({ runeV: 2, weapons }); },
   // 秘境勝利：碎片用 increment 加上去、這間的最高等級往前、今天的次數（日期換了就從 1 算），同一次寫入；第一次打秘境也順便做符文遷移
+  /* 秘境：讀資料庫裡最新的今日次數、進度、碎片（管理後台改過時，畫面上的快取會是舊的） */
+  async riftState() { await ready; const u = auth.currentUser; if (!u) return null; const s0 = await withTimeout(getDoc(doc(db, 'players', u.uid)), 8000); if (!s0.exists()) return null; const d = s0.data(), o = { riftDay: d.riftDay || '', riftN: d.riftN | 0, rift: d.rift || {}, rs: d.rs || {}, runeV: d.runeV | 0 }; mePatch(o); return o; },
   async riftWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     /* 存檔前先讀一次自己的最新資料：今日次數、這間房的進度、是否已轉新版都以資料庫為準（避免畫面上的資料過期，例如管理後台剛改過） */
     let d = {}; try { const s0 = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); d = s0.exists() ? s0.data() : {}; } catch (e) { d = null; }

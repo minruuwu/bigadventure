@@ -1258,7 +1258,9 @@ function riftLevels(i){var R=RIFTS[i],best=riftBest(R),left=Math.max(0,RIFTMAX-r
   else h+='<div class="lvgo2"><button type="button" class="go" id="rfgo" data-a="rgo" data-m="auto" disabled>自動戰鬥</button></div>';
   h+='<p class="rfleft">今日剩餘 '+left+'／'+RIFTMAX+' 次（三間共用，打輸不扣）</p></div>';
   var o=$('lvov');o.innerHTML=h;o.hidden=false}
-$('portal').addEventListener('click',function(){if(!RIFTS.length){toast('秘境資料還沒讀到');return}riftList()});
+$('portal').addEventListener('click',function(){if(!RIFTS.length){toast('秘境資料還沒讀到');return}riftList();
+  /* 打開秘境時再讀一次資料庫的今日次數與進度（管理後台歸零或改進度後，不用重新整理就會更新） */
+  if(!demo&&MEMB[0])withFB(function(FB){if(!FB.riftState)return;FB.riftState().then(function(o){if(!o||!MEMB[0])return;Object.assign(MEMB[0],o);var ov=$('lvov');if(ov&&!ov.hidden&&ov.querySelector('.rfbox')&&!$('rfinfo'))riftList()},function(){})})});
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='rfx')closeLevels();
   else if(a==='rroom')riftLevels(+b.getAttribute('data-i'));
@@ -1629,5 +1631,5 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=34"></script>
+<script type="module" src="../common/fb.js?v=35"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>
