@@ -149,7 +149,8 @@ const FB = {
       const rsF = F.rs && F.rs.mapValue && F.rs.mapValue.fields || {}; Object.keys(rsF).forEach(k => { if (!('integerValue' in rsF[k])) why.push(k + ' 碎片存成了小數或其他型別'); });
       const rfF = F.rift && F.rift.mapValue && F.rift.mapValue.fields || {}; Object.keys(rfF).forEach(k => { if (!('integerValue' in rfF[k])) why.push('秘境進度 ' + k + ' 不是整數'); });
       if (F.riftN && !('integerValue' in F.riftN)) why.push('riftN 不是整數'); } catch (e) { }
-    if (!why.length) why.push('資料都符合規則，可能 Firestore 規則還不是最新版（請確認已發布第二版 firestore_rules.txt）');
+    if (!why.length) why.push('資料檢查都正常（規則還在除錯中）');
+    why.push('存檔前：日=' + d.riftDay + ' 次=' + d.riftN + ' 隔=' + (at ? Math.round((Date.now() - at) / 1000) + '秒' : '無') + ' 版=' + (d.runeV | 0) + ' 武器=' + Object.keys(d.weapons || {}).join('/') + ' 進度=' + JSON.stringify(d.rift || {}) + ' 碎片=' + JSON.stringify(d.rs || {}) + '；寫入：房=' + r.room + ' 日=' + r.day + ' 次=' + r.n + ' 進度=' + r.best + ' 遷移=' + (r.migrate ? r.migrate.join('/') : '否') + ' 碎片+' + JSON.stringify(r.shards || {}));
     return why; },
   // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成累積在自己（隊長）資料的 owe.<隊友uid> 裡，同一次寫入
   // 存檔前讀一次自己的最新資料：用最新的隊伍名單過濾隊友分成、檢查跟上一場的間隔；失敗時附上判斷到的原因（e.why）
