@@ -76,12 +76,12 @@ button{font:inherit;color:inherit}
 .bi-p canvas{position:absolute;left:-9px;top:-4px;width:48px;height:48px;image-rendering:pixelated}
 .bi-p img.mi{position:absolute;left:50%;top:0;height:36px;transform:translateX(-50%);image-rendering:pixelated}
 .bi-x{display:flex;flex-direction:column;line-height:1.15;font-size:10px;color:#c8b48a}.bi-x b{font-size:11px;color:#f0e2c4}
-.bi-sp{display:flex;gap:2px;margin-top:2px}.bi-sp i{width:7px;height:7px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.bi-sp i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a,inset 1px 1px 0 #c8f0ff}
+.bi-sp{display:flex;gap:2px;margin-top:2px}.bi-sp i{width:7px;height:7px;border-radius:50%;background:#1a0d08;box-shadow:0 0 0 1px #080503}.bi-sp i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a,inset 1px 1px 0 #c8f0ff}
 .bi-hp{position:relative;width:78px;height:9px;background:#1a0d08;box-shadow:0 0 0 1px #080503;margin-top:2px}.bi-hp i{position:absolute;left:0;top:0;bottom:0;background:#5fd36a}.bi-hp.lo i{background:#e0b84a}.bi-hp.cr i{background:#e0503a}
 .bi-hp span{position:absolute;inset:0;text-align:center;font-size:8px;font-weight:900;line-height:9px;color:#fff;text-shadow:1px 0 0 #000,-1px 0 0 #000,0 1px 0 #000,0 -1px 0 #000}
 .bi-pop{position:absolute;z-index:1195;max-width:150px;background:#f0e2c4;color:#2b1a0d;font-size:10px;line-height:1.35;padding:4px 6px;box-shadow:0 0 0 2px #2b1a0d,2px 2px 0 2px rgba(0,0,0,.35)}
 .bi-pop b{display:block;font-size:11px}
-.bm-c button .sq{display:flex;gap:2px}.bm-c button .sq i{width:6px;height:6px;background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a}
+.bm-c button .sq{display:flex;gap:2px}.bm-c button .sq i{width:7px;height:7px;border-radius:50%;background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a}
 .bi-l{margin-top:4px;display:flex;flex-direction:column;gap:2px;max-height:130px;overflow:auto}
 .bi-s{font:inherit;font-size:11px;font-weight:900;text-align:left;color:#f0e2c4;background:#2f4a26;border:0;padding:1px 4px;gap:4px;justify-content:flex-start;padding-right:2px 5px;display:flex;justify-content:space-between;gap:8px;cursor:pointer}.bi-s.db{background:#5a2418}.bi-s.on{box-shadow:inset 0 0 0 1px #ffe08a}
 .bi-s em{font-style:normal;font-weight:500;font-size:10px;color:#c8b48a}
@@ -92,7 +92,7 @@ button{font:inherit;color:inherit}
 .mmenu{margin:10px 0 0;background:#2a1b0f;box-shadow:0 0 0 2px #080503,inset 0 2px 0 #6b4a2a;padding:10px 10px 12px}
 .mmenu[hidden]{display:none}
 .mm-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:900;font-size:14px;color:#f0e2c4}
-.mm-h .spd{display:flex;gap:3px;margin-right:auto}.spd i{width:9px;height:9px;background:#1a0d08;box-shadow:0 0 0 1px #080503}.spd i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a,inset 1px 1px 0 #c8f0ff}
+.mm-h .spd{display:flex;gap:3px;margin-right:auto}.spd i{width:9px;height:9px;border-radius:50%;background:#1a0d08;box-shadow:0 0 0 1px #080503}.spd i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a,inset 1px 1px 0 #c8f0ff}
 .mm-h .nm{white-space:nowrap}
 .mm-b{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .mm-b button,.mm-x{font:inherit;font-size:13px;font-weight:900;color:#f0e2c4;background:#4a2a12;border:0;padding:9px 6px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;text-align:center;min-width:0}
@@ -106,7 +106,7 @@ button{font:inherit;color:inherit}
 .mm-l button[disabled]{opacity:.4;cursor:default}
 .mm-t{font-size:12px;color:var(--dim);margin:0 0 6px}
 .mm-x{display:block;width:100%;margin-top:8px;background:#2a1b0f}
-.spb{position:absolute;display:flex;gap:1px;pointer-events:none;z-index:998}.spb i{flex:1;background:#1a0d08;box-shadow:0 0 0 1px #080503}.spb i.on{background:#5ec8ff}
+.spb{position:absolute;display:flex;justify-content:center;gap:1px;pointer-events:none;z-index:998}.spb i{flex:none;height:100%;aspect-ratio:1;border-radius:50%;background:#1a0d08;box-shadow:0 0 0 1px #080503}.spb i.on{background:#5ec8ff;box-shadow:0 0 0 1px #0a3a5a}/* SP：圓形藍點 */
 .tgt{outline:2px solid #ffe08a;outline-offset:-2px;animation:tgp .8s ease-in-out infinite alternate}@keyframes tgp{from{filter:brightness(1)}to{filter:brightness(1.6)}}
 .go{display:block;width:100%;font-weight:900;font-size:15px;border:0;background:#3f6a2c;color:#f0e2c4;padding:10px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c,inset 0 -2px 0 #24401a}
 .go:disabled{opacity:.45;cursor:default}
@@ -352,7 +352,7 @@ function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* SP 點數：血條下面一排 5 格（手動戰鬥測試） */
 function spBar(p,k,pp,hide){if(!p.spb||!p.spb.isConnected){p.spb=el('div','spb');for(var i=0;i<5;i++)p.spb.appendChild(el('i'));frame.appendChild(p.spb);els.push(p.spb)}var d=p.spb;if(hide){d.style.display='none';return}d.style.display='';
-  var n=(B.hpNow&&B.hpNow.pp&&B.hpNow.pp[k])|0;d.style.left=((pp[0]-7)*U)+'px';d.style.top=((pp[1]+3)*U)+'px';d.style.width=(14*U)+'px';d.style.height=Math.max(2,Math.round(1.6*U))+'px';[].forEach.call(d.children,function(c,i){c.className=i<n?'on':''})}
+  var n=(B.hpNow&&B.hpNow.pp&&B.hpNow.pp[k])|0;d.style.left=((pp[0]-7)*U)+'px';d.style.top=((pp[1]+3)*U)+'px';d.style.width=(14*U)+'px';d.style.height=Math.max(4,Math.round(2.2*U))+'px';[].forEach.call(d.children,function(c,i){c.className=i<n?'on':''})}
 /* 血條：顯示在腳下；hide 時藏起來 */
 function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.style.display='none';return}d.style.display='';d.style.left=(x*U)+'px';d.style.top=(y*U)+'px';d.style.width=(w*U)+'px';d.style.zIndex=999;d.firstChild.style.width=Math.max(0,Math.min(100,hp/mx*100))+'%'}
 /* 倒下／復活：B.pkl[k] = [{t, d:true 倒下 / false 復活}] */
