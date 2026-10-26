@@ -31,6 +31,7 @@
 | monster_25 | 火焰幽魂（塵嵐荒漠；顯示 0.55 倍） | `monster_25.png`（46×63，從約 11.5 倍的白底圖縮回）；懸空上下漂浮，火把火焰搖曳和火星由程式畫 |
 | monster_26 | 沙晶幼龍（塵嵐荒漠第 10 關，陪同沙晶龍；也是牠召喚的對象） | `monster_26.png`（40×32，從 4 倍圖縮回原像素，原圖在 `src/monster_26_full.png`）；腳以上起伏 |
 | monster_27 | 雛火龍（秘境・火曜之間，炎王龍的幼龍；尚未接進遊戲） | `monster_27.png`（40×32，從 4 倍圖縮回，原圖在 `src/monster_27_full.png`） |
+| monster_28 | 浮空龍（秘境・土曜之間，翔風龍的幼龍；尚未接進遊戲） | `monster_28.png`（27×42，從 4 倍圖縮回，原圖在 `src/monster_28_full.png`） |
 | monster_boss_01 | 半獸人戰酋（怪物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
 | monster_boss_04 | 眼魔（魔晶礦洞第 10 關 Boss；顯示 1.8 倍） | `monster_boss_04.png`（33×32，觸手眼全開＋大眼睜開）、`monster_boss_04_blink.png`（觸手眼全開＋大眼閉，眨大眼用）、`monster_boss_04_tc.png`（觸手眼全閉，程式依 `BHE` 的位置一顆一顆截來蓋，讓十顆各自眨眼）；懸空上下飄，觸手眼黃光由程式畫 |
@@ -38,6 +39,7 @@
 | monster_boss_06 | 黑曜之王‧歐西里斯（塵嵐荒漠第 20 關 Boss；顯示 0.95 倍） | `monster_boss_06.png`（95×83，從 3 倍圖縮回）；腿以上起伏，熒綠輪廓光、往上飄的熒綠氣勁、審判靈氣光環由程式畫 |
 | monster_boss_02 | 翠綠龍‧歐伯隆（怪物森林第 20 關 Boss；顯示 1 倍） | `monster_boss_02.png`（97×79，新圖從 4 倍圖縮回原像素；尾巴以上的身體慢慢起伏，藍眼發光由程式畫） |
 | monster_boss_07 | 炎王龍（秘境・火曜之間首領；尚未接進遊戲） | `monster_boss_07.png`（91×90，從 4 倍圖縮回，原圖在 `src/monster_boss_07_full.png`） |
+| monster_boss_08 | 翔風龍（秘境・土曜之間首領；尚未接進遊戲） | `monster_boss_08.png`（112×81，從 4 倍圖縮回，原圖在 `src/monster_boss_08_full.png`） |
 
 規則：
 - 透明背景 PNG，面向左邊（朝向隊伍）。
