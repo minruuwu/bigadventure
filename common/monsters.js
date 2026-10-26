@@ -31,7 +31,7 @@ function layInit(k,b,e){var L=LAY[k];L.base=b;L.eyes=e;if(!b)return;var W=b.natu
   if(a1>=0){L.bb=[a0,b0,a1-a0+1,b1-b0+1];L.sz=[a1-a0+1,b1-b0+1]}}
 function msrc(k,now,ph){if(FLY[k]){var fi=FLY[k].im&&FLY[k].im[flyFr(k,now,ph)];return fi&&fi.naturalWidth?fi.src:''}return k==='sk'?skFrame(now):LAY[k]?layFrame(k,now):ANI[k]?aniFrame(k,now):k==='pslime'?PSLIME:SLIME}
 function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:k==='fdragon'?.95:k==='wdragon'?.8:k==='wydragon'?.85:k==='idragon'?.85:k==='ldragon'?.9:k==='udragon'?1.2:k==='u2dragon'?1.2:k==='bonedragon'?.75:boss?(k==='sk'?1.5:1.2):1}
-function monGlow(k,now,U){if(k==='queen'){/* 蘿絲：紫黑色輪廓光，慢慢脈動 */var aq=.6+.25*Math.sin(now/700),q1=Math.max(1,Math.round(U*1.2)),q2=Math.max(2,Math.round(U*3.2)),hq=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+q1+'px #8a3ad8'+hq(aq)+') drop-shadow(0 0 '+q2+'px #3a0a5a'+hq(aq*.9)+')'}if(k!=='osiris')return '';var a=.55+.25*Math.sin(now/600),r1=Math.max(1,Math.round(U*1.3)),r2=Math.max(2,Math.round(U*3.5)),h=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+r1+'px #6dff8a'+h(a)+') drop-shadow(0 0 '+r2+'px #2adf6a'+h(a*.7)+')'}
+function monGlow(k,now,U){if(k==='queen'){/* 蘿絲：紫黑色輪廓光，慢慢脈動 */var aq=.6+.25*Math.sin(now/700),q1=Math.max(1,Math.round(U*1.2)),q2=Math.max(2,Math.round(U*3.2)),hq=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+q1+'px #8a3ad8'+hq(aq)+') drop-shadow(0 0 '+q2+'px #3a0a5a'+hq(aq*.9)+')'}if(k!=='osiris'&&k!=='bonedragon')return '';/* 黑曜之王、骨龍：螢綠輪廓光 */var a=.55+.25*Math.sin(now/600),r1=Math.max(1,Math.round(U*1.3)),r2=Math.max(2,Math.round(U*3.5)),h=function(x){return('0'+Math.round(x*255).toString(16)).slice(-2)};return 'drop-shadow(0 0 '+r1+'px #6dff8a'+h(a)+') drop-shadow(0 0 '+r2+'px #2adf6a'+h(a*.7)+')'}
 /* ---- 待機特效（法杖寶珠、火把火焰、口水、吐信、毒煙……）：跟戰鬥頁的 idleOne 同一份 ----
    Monsters.idle(ctx, U, m, now)：m = {k, lx, gy, lift, sc, ph}，座標以「格」為單位，U = 每格幾個畫面像素 */
 var pctx=null,U=1,IMG={};
@@ -123,17 +123,12 @@ function idleOne(m,now){(function(){
     if(UP.length)for(var g8=0;g8<14;g8++){var pu=1800+g8*110,uu=((ut+g8*347)%pu)/pu,cu=Math.floor((ut+g8*347)/pu),pq=UP[Math.floor(hsh(cu,g8+41)*UP.length)];if(!pq)continue;
       var cxu=ux0+(pq[0]+.5)*us+Math.sin(uu*5+g8)*2*us,cyu=uy0+(pq[1]+.5)*us-uu*16*us,ru=Math.round(1+uu*3.5),au=Math.sin(uu*Math.PI)*.38;
       for(var a8=-ru;a8<=ru;a8++)for(var b8=-ru;b8<=ru;b8++){var d8=a8*a8+b8*b8;if(d8>ru*ru+.5)continue;if(d8>=ru*ru*.45&&((Math.round(cxu+a8)+Math.round(cyu+b8))&1))continue;VP(cxu+a8,cyu+b8,(a8+b8<0)?'#c08aff':d8<ru*ru*.3?'#9a4af0':'#6a2ab0',au*(d8<ru*ru*.3?1:.7))}}}
-  /* 亡骸‧冥屍龍：身邊一圈深紅色噬血光環慢慢脈動，血滴從腳邊往上飛 */
-  if(m.k==='u2dragon'&&m.alive){var VZ=msz('u2dragon'),vs=m.sc,vcx=m.lx,vcy=m.gy-(m.lift||0)-VZ[1]*vs*.48,vt=now+m.ph*3,vrx=VZ[0]*vs*.56,vry=VZ[1]*vs*.56,vp=.6+.4*Math.sin(vt/600);pctx.globalCompositeOperation='lighter';
-    for(var k9=0;k9<160;k9++){var an9=k9/160*Math.PI*2,wob=1+.06*Math.sin(an9*5+vt/400),rx9=vrx*wob,ry9=vry*wob;for(var w9=0;w9<3;w9++){var x9=vcx+Math.cos(an9)*(rx9+w9*1.5),y9=vcy+Math.sin(an9)*(ry9+w9*1.5);if(w9===2&&(k9&1))continue;VP(x9,y9,w9===0?'#ff3a4a':w9===1?'#d8142e':'#8a0a1e',vp*(w9===0?.55:w9===1?.38:.22))}}
-    pctx.globalCompositeOperation='source-over';
-    for(var d9=0;d9<9;d9++){var pd=1500+d9*170,ud=((vt+d9*433)%pd)/pd,cd=Math.floor((vt+d9*433)/pd),dx9=vcx+(hsh(cd,d9+71)-.5)*vrx*1.6,dy9=m.gy-(m.lift||0)-2-ud*VZ[1]*vs*.9,ad=ud<.15?ud/.15:1-(ud-.15)/.85;
-      VP(dx9,dy9,'#e0142e',ad);VP(dx9,dy9+1,'#a00a20',ad*.9);VP(dx9,dy9-1,'#ff6a78',ad*.6)}}
   /* 骨龍：不呼吸；眼窩螢綠光、身邊螢綠光點慢慢繞著飄 */
   if(m.k==='bonedragon'&&m.alive){var BZ2=msz('bonedragon'),bs2=m.sc,bx2=m.lx-BZ2[0]*bs2/2,by2=m.gy-(m.lift||0)-BZ2[1]*bs2,bt=now+m.ph*3,bp2=.65+.35*Math.sin(bt/420);pctx.globalCompositeOperation='lighter';
     var ex9=bx2+7.5*bs2,ey9=by2+20*bs2;VP(ex9,ey9,'#e8ffe8',bp2);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){VP(ex9+o[0],ey9+o[1],'#7dff8a',.6*bp2)});[[-2,0],[2,0],[-1,-1],[1,-1],[-1,1],[1,1],[0,-2],[0,2]].forEach(function(o){VP(ex9+o[0],ey9+o[1],'#3ad85a',.28*bp2)});
-    for(var g9=0;g9<10;g9++){var pg9=2600+g9*230,ug9=((bt+g9*517)%pg9)/pg9,an=ug9*Math.PI*2+g9,gx9=m.lx+Math.cos(an)*BZ2[0]*bs2*(.45+.1*hsh(g9,1)),gy9=by2+BZ2[1]*bs2*(.5+.1*hsh(g9,2))+Math.sin(an)*BZ2[1]*bs2*.3-ug9*4,ga=.4+.4*Math.sin(bt/300+g9*1.7);
-      VP(gx9,gy9,'#c8ffc8',ga);VP(gx9+1,gy9,'#5aff7a',ga*.5);VP(gx9,gy9+1,'#5aff7a',ga*.4)}
+    /* 螢火：從身上各處冒起，邊飄邊忽明忽暗，飄一段就散掉 */
+    for(var g9=0;g9<7;g9++){var pg9=2200+g9*260,ug9=((bt+g9*613)%pg9)/pg9,cg9=Math.floor((bt+g9*613)/pg9),gx9=bx2+(.15+.7*hsh(cg9,g9+3))*BZ2[0]*bs2+Math.sin(ug9*5+g9)*2,gy9=by2+(.25+.6*hsh(cg9,g9+9))*BZ2[1]*bs2-ug9*14,ga=Math.sin(ug9*Math.PI)*(.55+.45*Math.sin(bt/140+g9*2.1));
+      VP(gx9,gy9,'#e8ffe0',ga);VP(gx9+1,gy9,'#7dff8a',ga*.55);VP(gx9-1,gy9,'#7dff8a',ga*.35);VP(gx9,gy9+1,'#3ad85a',ga*.4)}
     pctx.globalCompositeOperation='source-over'}
   /* 浮空龍：身邊一道小旋風繞著轉（比翔風龍小、只有一道半） */
   if(m.k==='wydragon'&&m.alive){var YZ=msz('wydragon'),ys=m.sc,ycx=m.lx,ycy=m.gy-(m.lift||0)-YZ[1]*ys*.45,yt=now+m.ph*3;pctx.globalCompositeOperation='lighter';

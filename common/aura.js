@@ -12,7 +12,8 @@
     skill152: { n: '抵抗靈氣', j: 'job13', lv: 25, c: ['#ff7a3a', '#8ed4ff', '#ffe95a', '#7cf0c4', '#8ed65a', '#ffe9a0', '#a35af0'], m: 'rainbow' },
     skill175: { n: '引導靈光', j: 'job16', lv: 10, c: ['#e6d4ff', '#b48cff', '#7a4ae0'], m: 'rune' },
     skill193: { n: '狂熱靈氣', j: 'job18', lv: 10, c: ['#ffd06a', '#ff7a2a', '#d8341a'], m: 'ember' },
-    skill197: { n: '審判靈氣', j: 'job18', lv: 25, c: ['#fff2c0', '#ffb42a', '#e0442a'], m: 'star' }
+    skill197: { n: '審判靈氣', j: 'job18', lv: 25, c: ['#fff2c0', '#ffb42a', '#e0442a'], m: 'star' },
+    skill313: { n: '噬血光環', j: 'monster', lv: 999, c: ['#ff6a78', '#d8142e', '#7a0a1a'], m: 'blood' } /* 亡骸‧冥屍龍（怪物專用）：深紅光環，血滴往上飛 */
   };
   var PSLOT = [1, 30, 60, 90];
   function ids(p) {
@@ -55,6 +56,7 @@
       if (d.m === 'shield') { pat(ctx, mx - 1, my - 1, s, SHIELD, d.c[1], a); px(ctx, mx, my - 1, s, d.c[0], a) }
       else if (d.m === 'rune') { pat(ctx, mx - 1, my - 1, s, RUNE, c, a); px(ctx, mx, my, s, d.c[0], a * .6) }
       else if (d.m === 'star') { pat(ctx, mx - 1, my - 1, s, STAR, d.c[1], a); px(ctx, mx, my, s, '#ffffff', a) }
+      else if (d.m === 'blood') { px(ctx, mx, my - 1, s, d.c[0], a); px(ctx, mx, my, s, d.c[1], a); px(ctx, mx, my + 1, s, d.c[1], a * .9); px(ctx, mx + 1, my + 1, s, d.c[2], a * .6) }
       else if (d.m === 'ember') { px(ctx, mx, my, s, u < .4 ? d.c[0] : d.c[1], a); if (Math.floor(t / 90 + i) % 3) px(ctx, mx, my + 1, s, d.c[2], a * .6) }
       else { px(ctx, mx, my, s, c, a); px(ctx, mx + 1, my, s, c, a * .6) }
     }
