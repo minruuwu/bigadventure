@@ -89,6 +89,8 @@ canvas{image-rendering:pixelated;display:block}
 .step button:disabled,.b:disabled{opacity:.4;cursor:default}
 .b.alt{background:var(--paper2);color:var(--pink)}
 .b.go{background:var(--seal)}
+.sheet .sth{position:sticky;top:-40px;z-index:6;margin:-40px -28px 6px;padding:30px 70px 6px 28px;min-height:66px;box-sizing:border-box;background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px;border-bottom:1px dashed rgba(107,74,42,.35)}
+.sheet .sth .bk{margin-bottom:2px;display:block}.sheet .sth h2{margin:0}.sheet .sth .x{top:30px}
 .bar{position:sticky;bottom:-36px;margin:14px -28px -36px;padding:10px 28px calc(80px + env(safe-area-inset-bottom,0px));background:#cdb27a;border-top:2px dashed var(--pink2);display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .bar .t{margin-right:auto;font-size:12px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
@@ -465,7 +467,7 @@ function bookHTML(){if(!skDraft)skDraft=skValid(S.skills);if(!skJob)skJob=S.jobS
   h+='<div class="sec">反應技能</div>'+skSlot('R',D.reaction,'data-a="skpick" data-g="r" data-i="0"');
   h+='<div class="sec" style="display:flex;justify-content:space-between"><span>被動技能</span><span>人物 Lv'+S.lv+'</span></div>';
   D.passive.forEach(function(id,i){if(S.lv>=PSLOT[i])h+=skSlot(i+1,id,'data-a="skpick" data-g="p" data-i="'+i+'"');else h+='<div class="sks lk"><span class="no">'+(i+1)+'</span><span class="ski bl"></span><span class="nm3">未開放<small>人物 Lv'+PSLOT[i]+' 開放</small></span></div>'});
-  h+='<div class="sec">技能組</div><p class="hint" style="margin:0 2px 6px">手動戰鬥（測試中）和戰棋可以帶「現職技能組」＋最多兩組額外技能組；自動戰鬥照上面的循環。</p>';
+  h+='<div class="sec">技能組</div><p class="hint" style="margin:0 2px 6px">手動戰鬥時可以用「現職技能組」＋最多兩組額外技能組；上面 4 格也只能放這幾組的技能。</p>';
   h+='<div class="skl"><span class="lv">現職</span><div style="flex:1;min-width:0"><div class="t">'+esc(skSetName(S.jobSn))+'<span class="jtag">'+esc(jobName(S.jobSn))+'</span></div></div></div>';
   var EX=JOBORDER.filter(function(sn){return sn!==S.jobSn&&skSetOk(sn)});
   [0,1].forEach(function(q){var other=D.extra[1-q]||'',cur2=D.extra[q]||'';h+='<select class="sksel" id="skextra'+q+'" aria-label="額外技能組 '+(q+1)+'" style="margin-top:'+(q?6:0)+'px"><option value="">額外技能組 '+(q+1)+'：（不帶）</option>'+EX.filter(function(sn){return sn!==other}).map(function(sn){return '<option value="'+sn+'"'+(sn===cur2?' selected':'')+'>額外技能組 '+(q+1)+'：'+esc(skSetName(sn))+'（'+esc(jobName(sn))+' Lv'+(S.jobLvs[sn]|0)+'）</option>'}).join('')+'</select>'});
@@ -595,6 +597,8 @@ function jobDetailHTML(sn,nodesc){var j=JOB[sn];if(!j)return '';var g=GROWTH[sn]
   var us=usableList(sn);h+='<h4>可用武器</h4><div class="jw">'+WORDER.filter(function(k){return us.indexOf(WEAPON[k].n)>=0}).map(function(k){return '<span class="jwi" role="img" aria-label="'+esc(WEAPON[k].n)+'" title="'+esc(WEAPON[k].n)+'" style="background-image:url('+wframe(0)+')"><img alt="" src="../assets/icons/weapons/'+k+'.png?v=2" onerror="this.remove()"></span>'}).join('')+'</div>';
   if(j.job_desc&&!nodesc)h+='<div class="jdsc">'+esc(j.job_desc)+'</div>';return h+'</div>'}
 function treeCap(sn){var j=JOB[sn];if(!j)return '';var ok=reqMet(sn);return jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b>　'+(sn===S.jobSn?'目前職業':ok?'已可轉職':'未解鎖：'+esc(j.required_desc||''))}
+/* 上方的 ✕ 和「‹ 返回」包進一條固定在紙頁頂端的列，捲下去也點得到（下方的取消／確定本來就固定在底部） */
+function pinHead(sh){var x=sh.querySelector(':scope > .x'),bk=sh.querySelector(':scope > .bk'),h2=sh.querySelector(':scope > h2');if(!x&&!bk)return;var hd=document.createElement('div');hd.className='sth';if(bk)hd.appendChild(bk);if(h2)hd.appendChild(h2);if(x)hd.appendChild(x);sh.insertBefore(hd,sh.firstChild)}
 function head(t,h){return '<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><h2>'+t+'</h2><p class="hint">'+h+'</p>'}
 var HAS_ICONS=true,DKEYS=['hp','patk','matk','pdmg','mdmg','eva','crit','critdmg','pdef','mdef'],askReset=false;
 function ic(id){if(HAS_ICONS&&(DKEYS.indexOf(id)>=0||/^res_/.test(id)))return '<span class="ic icf" style="background-image:url('+wframe(2)+')"><img class="ic" style="margin:0" alt="" src="../assets/icons/stats/'+id+'.png?v=5" onerror="this.remove()"></span>';return HAS_ICONS?'<img class="ic" alt="" src="../assets/icons/stats/'+id+'.png?v=5" onerror="this.remove()">':''}
@@ -691,7 +695,7 @@ function jag(){var w=$('sw');if(!w||back.hidden)return;if(cur==='mirror'){w.styl
 window.addEventListener('resize',jag);
 function paintSheetPaper(){if(!window.PaperLit)return;if(cur==='mirror'){sheet.style.backgroundImage='none';sheet.__pw=0;return}var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
 window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
-function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);var sj=$('skjob');if(sj)sj.onchange=function(){skJob=sj.value;render()};[0,1].forEach(function(q){var sx=$('skextra'+q);if(sx)sx.onchange=function(){var a=[skDraft.extra[0]||'',skDraft.extra[1]||''];a[q]=sx.value;skDraft.extra=a.filter(function(x,i){return x&&a.indexOf(x)===i});skDraft=skValid(skDraft);skMsg='';render()}});sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
+function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);pinHead(sheet);var sj=$('skjob');if(sj)sj.onchange=function(){skJob=sj.value;render()};[0,1].forEach(function(q){var sx=$('skextra'+q);if(sx)sx.onchange=function(){var a=[skDraft.extra[0]||'',skDraft.extra[1]||''];a[q]=sx.value;skDraft.extra=a.filter(function(x,i){return x&&a.indexOf(x)===i});skDraft=skValid(skDraft);skMsg='';render()}});sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
 function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';upDone=null;confirmRst=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}if(k==='book'){skDraft=null;skPick=null;skFlt='all';skJob=S.jobSn;skMsg=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;updateWeaponSprites()}
