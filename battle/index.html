@@ -324,7 +324,7 @@ function tick(now){
     var x=pp[0]+lx+(sf.fx.shake?Math.sin(now/45+p.ph)*.8:0),y=pp[1]-bob,s=48*U,fall=ko?ease((t-kt)/420):0;
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
     var sw=swAt(k,t);p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=(fall?'rotate('+(-90*fall)+'deg)':'')+(sw.s<1?' scale('+sw.s+')':'')||'none';
-    p.f.style.opacity=sw.a;p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':((stFilter(sf.fx,p.fireT&&now-p.fireT<260)+' '+castGlow('p',k,t)).trim()||'none');
+    p.f.style.opacity=sw.a*(sf.fx.ban?.5:1);p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':((stFilter(sf.fx,p.fireT&&now-p.fireT<260)+' '+castGlow('p',k,t)).trim()||'none');
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
     hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
     p.auOk=!ko&&sw.a>.5;p.sfx=sf;p.sx=x;p.gy=pp[1];p.top=y-34;p.vis=!ko&&!walk&&sw.a>.5;
@@ -342,7 +342,7 @@ function tick(now){
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh+bur*mh)+'px';m.f.style.clipPath=bur>0?'inset(0 0 '+(bur*100).toFixed(1)+'% 0)':'';
-    m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf;m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');m.sfx=sf;
+    m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf*(sf.fx.ban?.5:1);m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');m.sfx=sf;
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
     else if(FLOAT[m.k]){/* 漂浮：影子留在地上，飄越高越小、越淡 */var Fq=FLOAT[m.k],hq=Math.max(0,Math.min(1,(lift-Fq.hov)/Fq.amp)),sw=MZ[0]*.7*m.sc*(1-.25*hq);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U*(1-.2*hq))+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-5*m.sc)*U)+'px';m.sh.style.opacity=op*(.8-.35*hq)}
     else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=(((shx!=null?shx:mx)-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
@@ -778,7 +778,7 @@ function stIconC(q){var key=q.k+'|'+q.m;if(STIC[key])return STIC[key];var im=stI
 function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=q[1],def=ENG&&ENG.STS[nm],o={fx:{},ic:[]};
   (def?def.rows:[]).forEach(function(r){var k=r.k;
     if(k==='seal')o.fx.seal=1;else if(k==='stun'){if(nm==='暈眩')o.fx.swirl=1;else if(nm==='凍結')o.fx.frozen=1;else o.fx.shake=1}
-    else if(k==='sleep')o.fx.sleep=1;else if(k==='petrify')o.fx.stone=1;else if(k==='charm')o.fx.heart=1;else if(k==='confuse')o.fx.star=1;
+    else if(k==='sleep')o.fx.sleep=1;else if(k==='petrify')o.fx.stone=1;else if(k==='banish')o.fx.ban=1;else if(k==='charm')o.fx.heart=1;else if(k==='confuse')o.fx.star=1;
     else if(k==='dot'){if(r.el==='fire')o.fx.fire=1;else if(r.el==='nature'||/毒/.test(nm))o.fx.poison=1;else if(/血|撕裂/.test(nm))o.fx.blood=1}
     var v=r.v||0,ic=null;
     if(/_res_rate$/.test(k)&&k!=='hit_taken_rate'){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none'&&v)ic={k:'res_'+el,m:v>0?'up':'down'}}else ic=stIc(k,v);
@@ -787,7 +787,7 @@ function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=
 function stOf(list){var fx={},ic=[],seen={};(list||[]).forEach(function(n){var c=stCls(n);Object.keys(c.fx).forEach(function(k){fx[k]=1});c.ic.forEach(function(x){var key=x.k+'|'+x.m;if(!seen[key]){seen[key]=1;ic.push(x)}})});return{fx:fx,ic:ic}}
 function stNowP(k){var q=B&&B.stNow;return stOf(q&&q.p&&q.p[k])}
 function stNowM(i){var q=B&&B.stNow;return stOf(q&&q.m&&q.m[i])}
-function stFilter(fx,fl){if(fl)return 'sepia(1) saturate(5) hue-rotate(-35deg) brightness(.62)';/* 剛中燒灼：暗紅色閃一下 */if(fx.stone)return 'grayscale(1) brightness(1.08) contrast(.85)';
+function stFilter(fx,fl){if(fx.ban)return 'grayscale(1) sepia(1) hue-rotate(70deg) saturate(4) brightness(1.15) drop-shadow(0 0 2px #5dff8a)';/* 放逐：整隻變成半透明的綠色（透明度在外面另外乘） */if(fl)return 'sepia(1) saturate(5) hue-rotate(-35deg) brightness(.62)';/* 剛中燒灼：暗紅色閃一下 */if(fx.stone)return 'grayscale(1) brightness(1.08) contrast(.85)';
   if(fx.frozen){var o=Math.max(1,Math.round(U*.6))+'px',c='#8ed8ff';return 'sepia(.5) hue-rotate(165deg) saturate(1.7) brightness(1.18) drop-shadow('+o+' 0 0 '+c+') drop-shadow(-'+o+' 0 0 '+c+') drop-shadow(0 '+o+' 0 '+c+') drop-shadow(0 -'+o+' 0 '+c+')'}return ''}
 /* 用字元圖畫小圖案：X = 主色 */
 function stPat(px,x0,y0,rows,c,a){rows.forEach(function(r,j){for(var i=0;i<r.length;i++)if(r.charAt(i)==='X')VP(x0+i,y0+j,c,a)})}
@@ -1101,7 +1101,7 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 /* ---- data / start ---- */
 /* ================= 特效測試模式：battle/?vfx=1 ================= */
 var VT={w:'劍',el:'',atk:true,kind:'damage',mon:'sk',lastT:-99999,st:{},au:{},auAlly:false};
-var VTS=[['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破'],['英雄之歌','英雄之歌'],['枷鎖','枷鎖'],['待罪之身','待罪之身']];
+var VTS=[['放逐','放逐'],['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破'],['英雄之歌','英雄之歌'],['枷鎖','枷鎖'],['待罪之身','待罪之身']];
 var VTW=[['劍','sword'],['斧','axe'],['錘','hammer'],['匕','dagger'],['槍','spear'],['弓','bow'],['杖','staff'],['書','book'],['拋擲','throw']];
 var VTE=[['','00 無屬性'],['fire','01 火焰'],['frost','02 冰霜'],['lightning','03 雷電'],['wind','04 疾風'],['nature','05 自然'],['light','06 光明'],['dark','07 黑暗']];
 function vtChar(){var w=VT.w==='拋擲'?'書':VT.w,k=WBYNAME[w],p={uid:'t',name:'測試員',job:0,jobSn:'job01',skin:0,style:0,hair:0,eyes:6,outfit:0,weapon:w,weapons:{}};if(k)p.weapons[k]={lv:1};return p}
