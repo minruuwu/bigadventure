@@ -1237,7 +1237,7 @@ function riftSave(bb,req){if(bb.saved)return;var msg=function(t){var q=$('rsave'
   requestAnimationFrame(frame)})();
 /* ---- 秘境列表、選等級 ---- */
 var RHEAD={};/* 龍頭：首領圖左上方（脖子以上）裁一塊 */
-var HEADBOX={fdragon:[0,4,31,46,2],wdragon:[26,4,60,42,2.4,1],idragon:[55,5,82,40,2,1],dragon:[16,0,50,31,2.5],ldragon:[24,2,54,36,2.3,1],udragon:[0,30,32,58,2.5],hdragon:[31,2,71,52,1.65,1],sdragon:[0,0,28,30,2.6]};
+var HEADBOX={fdragon:[0,14,31,46,2.5],wdragon:[26,4,60,42,2.4,1],idragon:[55,5,82,40,2.6,1],dragon:[16,0,50,31,2.5],ldragon:[24,2,54,36,2.3,1],udragon:[0,30,32,58,2.5],hdragon:[31,2,71,52,1.65,1],sdragon:[0,0,28,30,2.6]};
 function riftHead(R,big){var m=ENG.mon[R.boss]||{},k=m.sprite,hb=HEADBOX[k],key=k+(big?'b':'s'),c=document.createElement('canvas');var src=null;
   if(FLY[k]&&FLY[k].im)src=FLY[k].im[0];else if(LAY[k])src=LAY[k].base;else if(ANI[k])src=ANI[k].im;
   if(!src||!src.naturalWidth||!hb){c.width=c.height=1;return c}
