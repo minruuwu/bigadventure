@@ -119,11 +119,32 @@ const FB = {
   // 符文改版遷移：所有武器的附魔清空，標記 runeV = 2（只做一次）
   async runeMigrate(ks) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { runeV: 2 }; (ks || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), weapons = Object.assign({}, (c && c.player.weapons) || {}); (ks || []).forEach(k => { weapons[k] = Object.assign({}, weapons[k], { ench: [] }); }); mePatch({ runeV: 2, weapons }); },
   // 秘境勝利：碎片用 increment 加上去、這間的最高等級往前、今天的次數（日期換了就從 1 算），同一次寫入；第一次打秘境也順便做符文遷移
-  async riftWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { riftAt: serverTimestamp(), riftDay: r.day, riftN: r.n };
+  async riftWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
+    /* 存檔前先讀一次自己的最新資料：今日次數、這間房的進度、是否已轉新版都以資料庫為準（避免畫面上的資料過期，例如管理後台剛改過） */
+    let d = {}; try { const s0 = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); d = s0.exists() ? s0.data() : {}; } catch (e) { d = null; }
+    if (d) { r = Object.assign({}, r); const used = d.riftDay === r.day ? (d.riftN | 0) : 0; r.n = used + 1; const ob = ((d.rift || {})[r.room]) | 0; r.best = r.lv && r.lv > ob ? r.lv : 0; r.migrate = (d.runeV | 0) >= 2 ? null : Object.keys(d.weapons || {}); }
+    const f = { riftAt: serverTimestamp(), riftDay: r.day, riftN: r.n };
     Object.keys(r.shards || {}).forEach(k => { f['rs.' + k] = increment(r.shards[k]); }); if (r.best) f['rift.' + r.room] = r.best;
     if (r.migrate) { f.runeV = 2; (r.migrate || []).forEach(k => { f['weapons.' + k + '.ench'] = []; }); }
-    await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(), pl = (c && c.player) || {}, rs = Object.assign({}, pl.rs || {}), rift = Object.assign({}, pl.rift || {});
-    Object.keys(r.shards || {}).forEach(k => { rs[k] = (rs[k] | 0) + r.shards[k]; }); if (r.best) rift[r.room] = r.best; const p2 = { rs, rift, riftDay: r.day, riftN: r.n }; if (r.migrate) p2.runeV = 2; mePatch(p2); },
+    try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); } catch (e) { try { e.why = await this.riftWhy(r, d || {}); } catch (e2) { e.why = ['檢查失敗']; } throw e; }
+    const c = meGet(), pl = (c && c.player) || {}, rs = Object.assign({}, (d && d.rs) || pl.rs || {}), rift = Object.assign({}, (d && d.rift) || pl.rift || {});
+    Object.keys(r.shards || {}).forEach(k => { rs[k] = (rs[k] | 0) + r.shards[k]; }); if (r.best) rift[r.room] = r.best; const p2 = { rs, rift, riftDay: r.day, riftN: r.n }; if (r.migrate) p2.runeV = 2; mePatch(p2); return r; },
+  /* 秘境存檔被擋時，照資料庫規則逐項檢查，找出是哪一條不符合 */
+  async riftWhy(r, d) { const why = [], RK = [], WK = []; for (let i = 1; i <= 26; i++) RK.push('rune' + String(i).padStart(2, '0')); for (let i = 1; i <= 8; i++) WK.push('weapon0' + i);
+    const at = d.riftAt && d.riftAt.toMillis ? d.riftAt.toMillis() : 0; if (at && Date.now() - at < 10000) why.push('距離上一場秘境存檔不到 10 秒');
+    if (r.n > 10) why.push('今天已經打滿 10 次（資料庫 riftN=' + (d.riftN | 0) + '）');
+    const bad = Object.keys(d.rs || {}).filter(k => RK.indexOf(k) < 0); if (bad.length) why.push('碎片裡有不認得的欄位：' + bad.join('、'));
+    const tot = Object.keys(r.shards || {}).reduce((a, k) => a + r.shards[k], 0); if (tot < 2 || tot > 5) why.push('這場碎片共 ' + tot + ' 片（規則要 2～5）');
+    if (r.pool && Object.keys(r.shards || {}).some(k => r.pool.indexOf(k) < 0)) why.push('掉落的碎片不在這間房的符文池');
+    const rb = Object.keys(d.rift || {}).filter(k => !/^r[1-7]$/.test(k)); if (rb.length) why.push('秘境進度有不認得的房間：' + rb.join('、'));
+    const ob = ((d.rift || {})[r.room]) | 0; if (r.best && (r.best % 10 || r.best > 200 || r.best > ob + 10)) why.push('進度 Lv' + r.best + ' 跳太多（資料庫是 Lv' + ob + '）');
+    if (r.migrate) { const wb = Object.keys(d.weapons || {}).filter(k => WK.indexOf(k) < 0); if (wb.length) why.push('武器裡有不認得的欄位：' + wb.join('、')); }
+    try { const tk = await auth.currentUser.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + auth.currentUser.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
+      const rsF = F.rs && F.rs.mapValue && F.rs.mapValue.fields || {}; Object.keys(rsF).forEach(k => { if (!('integerValue' in rsF[k])) why.push(k + ' 碎片存成了小數或其他型別'); });
+      const rfF = F.rift && F.rift.mapValue && F.rift.mapValue.fields || {}; Object.keys(rfF).forEach(k => { if (!('integerValue' in rfF[k])) why.push('秘境進度 ' + k + ' 不是整數'); });
+      if (F.riftN && !('integerValue' in F.riftN)) why.push('riftN 不是整數'); } catch (e) { }
+    if (!why.length) why.push('資料都符合規則，可能 Firestore 規則還不是最新版（請確認已發布第二版 firestore_rules.txt）');
+    return why; },
   // 冒險勝利：自己的經驗、鍛造石（、寵物餅乾）用 increment 加上去，關卡進度往前；隊友的分成累積在自己（隊長）資料的 owe.<隊友uid> 裡，同一次寫入
   // 存檔前讀一次自己的最新資料：用最新的隊伍名單過濾隊友分成、檢查跟上一場的間隔；失敗時附上判斷到的原因（e.why）
   async advCheck(r) { await ready; const u = auth.currentUser; if (!u) return {}; const s = await withTimeout(getDoc(doc(db, 'players', u.uid)), 10000); const d = s.exists() ? s.data() : {};
