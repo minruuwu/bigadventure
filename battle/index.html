@@ -60,6 +60,30 @@ button{font:inherit;color:inherit}
 .lvgo3{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 .bhead{position:relative}.bhead .atg{position:absolute;right:6px;top:50%;transform:translateY(-50%);font:inherit;font-size:12px;font-weight:900;letter-spacing:0;color:#f0e2c4;background:#4a2a12;border:0;padding:3px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a}
 .bhead .atg.on{background:#3f6a2c;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c}
+.bmenu{position:absolute;z-index:1200;display:flex;gap:3px;align-items:flex-start;pointer-events:auto}
+.bmenu[hidden]{display:none}
+.bm-c{display:flex;flex-direction:column;gap:2px;background:rgba(20,12,6,.88);box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6b4a2a;padding:3px}
+.bm-c button{font:inherit;font-size:12px;font-weight:900;color:#f0e2c4;background:#4a2a12;border:0;padding:4px 7px;min-width:62px;cursor:pointer;display:flex;justify-content:space-between;gap:6px;align-items:center;white-space:nowrap;box-shadow:inset 0 1px 0 #6b4a2a}
+.bm-c button em{font-style:normal;font-size:10px;font-weight:900;color:#5ec8ff}.bm-c button.cdn em{color:#ff9a8a}
+.bm-c button.on{background:#a8741e;color:#fff;box-shadow:inset 0 0 0 1px #ffe08a}
+.bm-c button.set::after{content:"›";color:#c8b48a;margin-left:4px}
+.bm-c button.wt{background:#2c4a5a}.bm-c button.au{background:#3a3a3a}
+.bm-c button[disabled]{opacity:.38;cursor:default}
+.binfo{position:absolute;left:4px;top:4px;z-index:1190;background:rgba(20,12,6,.86);box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6b4a2a;padding:3px 6px 3px 3px;cursor:pointer;max-width:58%}
+.binfo[hidden]{display:none}
+.bi-t{display:flex;gap:5px;align-items:center}
+.bi-p{width:30px;height:24px;overflow:hidden;position:relative;background:#120c08;box-shadow:inset 0 0 0 1px #3a2616;flex:none}
+.bi-p canvas{position:absolute;left:-9px;top:-4px;width:48px;height:48px;image-rendering:pixelated}
+.bi-p img.mi{position:absolute;left:50%;top:0;height:36px;transform:translateX(-50%);image-rendering:pixelated}
+.bi-x{display:flex;flex-direction:column;line-height:1.15;font-size:10px;color:#c8b48a}.bi-x b{font-size:11px;color:#f0e2c4}
+.bi-sp{display:flex;gap:4px;align-items:center}.bi-sp .spd i{width:6px;height:6px}
+.bi-l{margin-top:4px;display:flex;flex-direction:column;gap:2px;max-height:130px;overflow:auto}
+.bi-s{font:inherit;font-size:11px;font-weight:900;text-align:left;color:#f0e2c4;background:#2f4a26;border:0;padding:2px 5px;display:flex;justify-content:space-between;gap:8px;cursor:pointer}.bi-s.db{background:#5a2418}.bi-s.on{box-shadow:inset 0 0 0 1px #ffe08a}
+.bi-s em{font-style:normal;font-weight:500;font-size:10px;color:#c8b48a}
+.bi-d{margin:0 0 2px;font-size:10px;line-height:1.35;color:#eadbbd;padding:2px 4px;background:rgba(0,0,0,.35)}
+.bi-n,.bi-h{margin:0;font-size:10px;color:#9a8a6a}
+.bdesc{margin:6px 0 0;background:rgba(20,12,6,.9);box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6b4a2a;padding:4px 7px;font-size:11px;line-height:1.35;color:#eadbbd}
+.bdesc[hidden]{display:none}.bdesc b{color:#ffe08a;font-size:12px}.bdesc span{color:#c8b48a}
 .mmenu{margin:10px 0 0;background:#2a1b0f;box-shadow:0 0 0 2px #080503,inset 0 2px 0 #6b4a2a;padding:10px 10px 12px}
 .mmenu[hidden]{display:none}
 .mm-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:900;font-size:14px;color:#f0e2c4}
@@ -120,10 +144,10 @@ html,body,*{touch-action:manipulation}
   <div id="tacv" hidden></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
-  <div class="frame" id="frame"><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
+  <div class="frame" id="frame"><div class="bmenu" id="bmenu" hidden></div><div class="binfo" id="binfo" hidden></div><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
    <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><canvas id="auc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas><canvas id="pfx" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250"></canvas>
   </div>
-  <div class="mmenu" id="mmenu" hidden></div>
+  <div class="bdesc" id="bdesc" hidden></div>
   <div class="panel"><div class="btabs" id="btabs" role="tablist"><button type="button" role="tab" data-v="log" class="on">戰報</button><button type="button" role="tab" data-v="dmg">傷害</button><button type="button" role="tab" data-v="taken">承受</button><button type="button" role="tab" data-v="heal">恢復</button></div><div class="log" id="log" aria-live="polite"></div><div class="stats" id="stats" hidden></div></div>
   </div>
  </div>
@@ -134,7 +158,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=4"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=26"></script>
+<script src="engine.js?v=27"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=17"></script>
 <script>
@@ -338,7 +362,7 @@ function tick(now){
   sizeU();var t=now-B.t0,walk=t<WALK,spawn=ease(t/WALK);
   var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
   /* 戰報逐行出現 */
-  while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(ce.hp){B.hpNow=ce.hp;if(ce.hp.sp)B.stNow={p:ce.hp.sp,m:ce.hp.sm}}B.li++}
+  while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){B.hpNow=ce.hp;if(ce.hp.sp)B.stNow={p:ce.hp.sp,m:ce.hp.sm}}B.li++}
   if(VFXT&&B){var VL=Object.keys(VT.st).filter(function(q){return VT.st[q]});B.stNow={p:[VL],m:[VL]}}/* 特效測試：按鈕選的狀態同時套在角色和怪物身上 */
   if(!B.done&&t>=B.end){B.done=true;showResult()}
   party.forEach(function(p,k){
@@ -353,6 +377,7 @@ function tick(now){
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
     var sw=swAt(k,t);p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=(fall?'rotate('+(-90*fall)+'deg)':'')+(sw.s<1?' scale('+sw.s+')':'')||'none';
     p.f.style.opacity=sw.a*(sf.fx.ban?.5:1);p.f.style.filter=fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':((stFilter(sf.fx,p.fireT&&now-p.fireT<260)+' '+castGlow('p',k,t)).trim()||'none');
+    if(B.live&&LV&&LV.hl&&!ko&&LV.hl.some(function(q){return q[0]==='p'&&q[1]===k})){p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' brightness(1.35) drop-shadow(0 0 3px #ffffff)'}
     if(B.live&&LV&&LV.wait&&LV.wait.i===k&&!ko){var fq=Math.round(3+2*Math.sin(now/220));p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' drop-shadow(0 0 1px #fff2a0) drop-shadow(0 0 '+fq+'px #ffb020)'}/* 手動戰鬥：輪到的人發金光 */
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
     hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
@@ -372,12 +397,13 @@ function tick(now){
     var evap=0;if(dt!=null&&t>=dt){var u2=Math.min(1,(t-dt)/380);op=1-u2;evap=u2;if(!m.boom)burst(m,mx,gy-lift,mw,mh,t)}
     m.lx=mx;m.gy=gy;m.lift=lift;m.alive=op>.99&&t>=WALK;
     m.f.style.width=mw+'px';m.f.style.height=mh+'px';m.f.style.left=(mx*U-mw/2)+'px';m.f.style.top=((gy-lift)*U-mh+bur*mh)+'px';m.f.style.clipPath=bur>0?'inset(0 0 '+(bur*100).toFixed(1)+'% 0)':'';
-    m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf*(sf.fx.ban?.5:1);m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');m.sfx=sf;
+    m.f.style.transformOrigin=WORMS[m.k]?'50% 100%':'';m.f.style.transform='scale('+sx+','+sy+')';m.gf=m.k==='ghost'?.675+.225*Math.sin(now/520+m.ph):1;/* 亡魂若隱若現：透明度 45%～90% */m.f.style.opacity=op*m.gf*(sf.fx.ban?.5:1);if(B.live&&LV&&LV.hl&&LV.hl.some(function(q){return q[0]==='m'&&q[1]===i})){var fs2=Math.round(3+2*Math.sin(now/180));m.f.style.filter=(m.f.style.filter==='none'?'':m.f.style.filter)+' brightness(1.3) drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 '+fs2+'px #ffe08a)'}m.f.style.zIndex=Math.round(gy);if(m.fx)m.fx.style.zIndex=Math.round(gy);m.f.style.filter=fl?'brightness(3.2) saturate(.3)':evap?'brightness('+(1+evap*1.6)+') saturate('+(1-evap*.6)+')':((stFilter(sf.fx,m.fireT&&now-m.fireT<260)+' '+castGlow('m',i,t)+' '+monGlow(m.k,now+m.ph)).trim()||'none');m.sfx=sf;
     if(FLY[m.k]){/* 懸空的影子：飛得越高越小、越淡 */var F=FLY[m.k],hk=Math.max(0,Math.min(1,(lift-F.hov)/(F.amp+1))),sw=MZ[0]*.42*m.sc*(1-.22*hk);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(3*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-1.5)*U)+'px';m.sh.style.opacity=op*(.75-.3*hk)}
     else if(FLOAT[m.k]){/* 漂浮：影子留在地上，飄越高越小、越淡 */var Fq=FLOAT[m.k],hq=Math.max(0,Math.min(1,(lift-Fq.hov)/Fq.amp)),sw=MZ[0]*.7*m.sc*(1-.25*hq);m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U*(1-.2*hq))+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((gy-5*m.sc)*U)+'px';m.sh.style.opacity=op*(.8-.35*hq)}
     else if(SHD[m.k]){var Q=SHD[m.k],sw=MZ[0]*Q.w*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(Q.h*m.sc*U)+'px';m.sh.style.left=(((shx!=null?shx:mx)-sw/2+(Q.dx||0)*m.sc)*U)+'px';m.sh.style.top=((gy-Q.up*m.sc)*U)+'px';m.sh.style.opacity=op}
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
+  if(B.live&&LV&&LV.infoDirty&&now-(LV.infoT||0)>200){LV.infoDirty=0;LV.infoT=now;renderInfo()}placeMenu();
   drawAura(t,now);drawParts(t);drawVfx(t);drawSheep(t,now);drawOrbs(t,now);drawBlood(t);drawIdle(now);drawStatus(now);drawSongs(t,now);
   raf=requestAnimationFrame(tick);
 }
@@ -1037,6 +1063,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
         else{o.thr=o.rtg;o.hit=Math.max(1,RI-140);if(e.rfx==='grave'){o.gs=e.side;o.ga=e.a;o.cast='#5a4632';o.castLen=420}}}
       else if(e.rn)o.rn=e.rn;
       if(e.tome)o.tome=e.tome;
+    if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
       if(e.kind!=='round')t+=e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
       (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
       (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
@@ -1075,13 +1102,13 @@ function startLive(a,l,auto){setLastArea(a);PARTS=[];curClear();
   B.wall=Date.now();B.hp0=B.hpNow;B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   LV={S:S,P:P,M:M,mp:mp,n:0,order:[],qi:0,wait:null,auto:!!auto,b:B};
   showView('battle');var bh=$('bhead');bh.textContent=AREA[a].n+'　第 '+l+' 關'+(isBoss(a,l)?'（Boss）':'');var tg=el('button','atg');tg.type='button';tg.id='atg';tg.addEventListener('click',function(){setLiveAuto(!LV.auto)});bh.appendChild(tg);setLiveAuto(LV.auto,true);
-  $('log').textContent='';$('bres').hidden=true;$('mmenu').hidden=true;setBG(AREA[a].bg);build();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick);liveStep()}
+  $('log').textContent='';$('bres').hidden=true;closeMenu();$('binfo').hidden=true;LV.infoOpen=false;setBG(AREA[a].bg);build();liveBind();B.t0=performance.now();lastNow=B.t0;if(!raf)raf=requestAnimationFrame(tick);liveStep()}
 function setLiveAuto(v,quiet){if(!LV)return;LV.auto=v;var b=$('atg');if(b){b.textContent=v?'自動中':'自動';b.classList.toggle('on',v)}if(v&&LV.wait){var u=LV.wait;closeMenu();liveAct(u,null)}}
 function liveNow(){return B?performance.now()-B.t0:0}
 /* 把引擎新加的戰報轉成動畫事件；先把時間拉到「現在」以後，免得選招花的時間讓動畫倒著播 */
 function liveFlush(){var S=LV.S,mp=LV.mp;if(mp.ev.length===0&&LV.n===0)mp.t=Math.max(mp.t,WALK+400);mp.t=Math.max(mp.t,liveNow()+120);var before=B.mons.length;
   while(LV.n<S.ev.length&&!(LV.hold&&S.ev[LV.n]===LV.hold))mp.add(S.ev[LV.n++]);
-  if(mp.sum){mp.sum=false;LV.M.forEach(function(m,i){if(B.mhpM[i]==null)B.mhpM[i]=m.b.mhp});sumSlots(B.mons,B.mko);build()}}
+  if(mp.sum){mp.sum=false;LV.M.forEach(function(m,i){if(B.mhpM[i]==null)B.mhpM[i]=m.b.mhp});sumSlots(B.mons,B.mko);build();liveBind()}}
 function liveStep(){var S=LV.S;if(B!==LV.b)return;
   for(var guard=0;guard<400;guard++){
     if(S.over()){S.endSwallow();liveFlush();B.res=S.res()==='win'?'win':'lose';B.end=LV.mp.t+400;B.req=makeReq(B);closeMenu();var g=$('atg');if(g)g.remove();return}
@@ -1091,36 +1118,62 @@ function liveStep(){var S=LV.S;if(B!==LV.b)return;
     /* 我方、沒開自動、而且不是被魅惑／混亂（那兩種照自動亂打）→ 停下來等玩家 */
     if(u.side==='p'&&!LV.auto&&!S.ctrl(u,'charm')&&!S.ctrl(u,'confuse')){LV.hold=u._e;liveFlush();LV.wait=u;/* 這個人的戰報行還沒寫好，先不轉 */LV.waitAt=LV.mp.t;menuWhenReady();return}
     S.finish(u);liveFlush()}}
-function liveAct(u,forced){var S=LV.S;LV.wait=null;LV.hold=null;closeMenu();clearTg();S.finish(u,forced||undefined);liveFlush();liveStep()}
+function liveAct(u,forced){var S=LV.S;LV.wait=null;LV.hold=null;closeMenu();S.finish(u,forced||undefined);liveFlush();liveStep()}
 /* 等前面的動畫演完才跳選單 */
 function menuWhenReady(){if(!LV||!LV.wait||B!==LV.b)return;if(liveNow()<LV.waitAt-150){setTimeout(menuWhenReady,80);return}openMenu(LV.wait)}
-function closeMenu(){var m=$('mmenu');m.hidden=true;m.textContent='';clearTg()}
+/* ---- 行動選單：跳在輪到的人右邊，三欄往右展開（主選單｜技能｜目標）；目標都從清單選，點兩次才施放；點選單外面退一步 ---- */
+var MS=null;/* {u, set, sk, tg} */
+function closeMenu(){var m=$('bmenu');if(m){m.hidden=true;m.textContent=''}var d=$('bdesc');if(d)d.hidden=true;MS=null;LV&&(LV.hl=null)}
 function spDots(n){var d=el('span','spd');for(var i=0;i<5;i++)d.appendChild(el('i',i<n?'on':null));return d}
-var TGL=[];function clearTg(){TGL.forEach(function(f){f()});TGL=[]}
+function clearTg(){if(LV)LV.hl=null}
 /* 技能組：現職（只算現職本身的技能）＋最多兩組額外技能組 */
 function skillSets(u,p){var main=p.jobSn||(Doll.JOBSN&&Doll.JOBSN[p.job|0])||'',ex=(p.skills&&p.skills.extra);ex=Array.isArray(ex)?ex:ex?[ex]:[];ex=ex.filter(function(j,i){return j&&j!==main&&ex.indexOf(j)===i}).slice(0,2);
   return [main].concat(ex).map(function(j){return{j:j,n:(JOBI[j]&&JOBI[j].skill_set)||((JOBI[j]&&JOBI[j].job_name)||j)+'技能',sk:(u.learned||[]).filter(function(k){return k.j===j})}}).filter(function(g){return g.sk.length})}
 function tgtLabel(t){return t==='enemy_single'?'敵方單體':t==='enemy_all'?'敵方全體':t==='ally_single'?'我方單體':t==='ally_all'?'我方全體':t==='ally_others'?'其他隊友':t==='self'?'自身':''}
-function openMenu(u,view){var S=LV.S,p=MEMB[u.i],m=$('mmenu');m.textContent='';m.hidden=false;var sealed=S.ctrl(u,'seal');
-  var h=el('div','mm-h');h.appendChild(el('span','nm',u.name));h.appendChild(spDots(u.sp|0));h.appendChild(el('span',null,'SP '+(u.sp|0)+'/5'));m.appendChild(h);
-  if(!view){var g=el('div','mm-b'),b0=el('button','atk','普通攻擊');b0.type='button';b0.addEventListener('click',function(){pickTarget(u,'atk')});g.appendChild(b0);
-    skillSets(u,p).forEach(function(set){var b=el('button',null,set.n);b.type='button';if(sealed)b.disabled=true;b.addEventListener('click',function(){openMenu(u,set)});g.appendChild(b)});
-    var ba=el('button','au','自動');ba.type='button';ba.title='這次行動交給自動';ba.addEventListener('click',function(){liveAct(u,null)});g.appendChild(ba);m.appendChild(g);
-    if(sealed)m.appendChild(el('p','mm-t','封禁中：只能普通攻擊'));return}
-  m.appendChild(el('p','mm-t',view.n));var L=el('div','mm-l');
-  view.sk.forEach(function(k){var cd=S.cdOf(u,k.id),ok=S.canUse(u,k)&&!sealed,b=el('button');b.type='button';b.appendChild(el('b',null,k.n));
-    b.appendChild(el('span','co'+(cd>0?' cd':''),cd>0?'冷卻 '+cd:k.sp+' SP'));var r=ENG.SK[k.id]&&ENG.SK[k.id].raw;
-    b.appendChild(el('small',null,tgtLabel(k.t)+(k.cdN?'・冷卻 '+k.cdN:'')+'｜'+skText(k.id)));if(!ok)b.disabled=true;b.addEventListener('click',function(){pickTarget(u,k.id)});L.appendChild(b)});
-  m.appendChild(L);var bk=el('button','mm-x','‹ 返回');bk.type='button';bk.addEventListener('click',function(){openMenu(u)});m.appendChild(bk)}
+function openMenu(u){MS={u:u,set:null,sk:null,tg:null};LV.view=u;renderMenu();renderInfo()}
+function renderMenu(){var m=$('bmenu');if(!m||!MS)return;var u=MS.u,S=LV.S,p=MEMB[u.i],sealed=S.ctrl(u,'seal');m.textContent='';m.hidden=false;
+  function col(){var c=el('div','bm-c');m.appendChild(c);return c}
+  function item(c,txt,on,cls,fn,side){var b=el('button',(cls||'')+(on?' on':''));b.type='button';b.appendChild(el('span',null,txt));if(side!=null)b.appendChild(el('em',null,side));b.addEventListener('click',function(ev){ev.stopPropagation();fn(b)});c.appendChild(b);return b}
+  var c1=col(),sets=skillSets(u,p);
+  item(c1,'攻擊',MS.sk==='atk',null,function(){selSkill('atk')});
+  sets.forEach(function(g){var b=item(c1,g.n,MS.set===g.j,'set',function(){MS.set=MS.set===g.j?null:g.j;MS.sk=null;MS.tg=null;LV.hl=null;renderMenu();desc(null)});if(sealed)b.disabled=true});
+  item(c1,'待機',false,'wt',function(){liveWait(u)});
+  item(c1,'自動',false,'au',function(){liveAct(u,null)});
+  if(MS.set){var g=sets.filter(function(x){return x.j===MS.set})[0],c2=col();
+    (g?g.sk:[]).forEach(function(k){var cd=S.cdOf(u,k.id),ok=S.canUse(u,k)&&!sealed,b=item(c2,k.n,MS.sk===k.id,cd>0?'cdn':null,function(){selSkill(k.id)},cd>0?'冷卻'+cd:k.sp+'SP');if(!ok)b.disabled=true})}
+  if(MS.sk){var k=ENG.SK[MS.sk];if(k&&(k.t==='enemy_single'||k.t==='ally_single')){var c3=col();S.cands(u,MS.sk).forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100);item(c3,x.name,MS.tg===x,null,function(){selTarget(x)},hpP+'%')})}}
+  placeMenu()}
+/* 選單位置：輪到的人的右邊；太靠右就往左推，太靠下就往上 */
+function placeMenu(){var m=$('bmenu');if(!m||m.hidden||!MS)return;var pp=posOf(MS.u.i),fw=frame.clientWidth,fh=frame.clientHeight,w=m.offsetWidth,h=m.offsetHeight,x=(pp[0]+12)*U,y=(pp[1]-38)*U;
+  x=Math.max(4,Math.min(x,fw-w-4));y=Math.max(30,Math.min(y,fh-h-4));m.style.left=x+'px';m.style.top=y+'px'}
+function selSkill(id){var S=LV.S,u=MS.u,k=ENG.SK[id]||ENG.SK.atk;
+  if(MS.sk===id&&!(k.t==='enemy_single'||k.t==='ally_single')){liveAct(u,{sk:id,tg:S.cands(u,id)});return}/* 群體／自身：同一招點第二次才施放 */
+  MS.sk=id;MS.tg=null;var C=S.cands(u,id);LV.hl=(k.t==='enemy_single'||k.t==='ally_single')?null:C.map(function(x){return[x.side,x.i]});
+  if(id==='atk')MS.set=null;renderMenu();desc(k)}
+function selTarget(x){var u=MS.u;if(MS.tg===x){liveAct(u,{sk:MS.sk,tg:[x]});return}MS.tg=x;LV.hl=[[x.side,x.i]];renderMenu()}
+/* 點選單外面：退一步（目標 → 技能 → 技能組）；在最上層就不動 */
+function menuBack(){if(!MS)return;if(MS.tg){MS.tg=null;LV.hl=null}else if(MS.sk){MS.sk=null;LV.hl=null;desc(null)}else if(MS.set){MS.set=null}else return;renderMenu()}
+document.addEventListener('click',function(e){if(!MS||!$('bmenu')||$('bmenu').hidden)return;if(e.target.closest('#bmenu,#binfo,.sp,#atg,.btabs'))return;menuBack()});
+function desc(k){var d=$('bdesc');if(!d)return;if(!k){d.hidden=true;return}d.hidden=false;d.textContent='';d.appendChild(el('b',null,k.n));d.appendChild(el('span',null,'　'+tgtLabel(k.t)+(k.sp?'・'+k.sp+' SP':'')+(k.cdN?'・冷卻 '+k.cdN:'')));d.appendChild(el('div',null,k.id==='atk'?'對敵方單體造成 100% 物理傷害。':skText(k.id)))}
+function liveWait(u){var S=LV.S;LV.wait=null;LV.hold=null;closeMenu();S.wait(u);liveFlush();liveStep()}
 function skText(id){try{var r=ENG.SK[id]&&ENG.SK[id].raw;if(!r)return '';var o=SkillDesc.fromRow(r),e=SkillDesc.fromEff(ENG.EFF[id]);return SkillDesc.text(o,e.st,e.hl,function(n){return ENG.STS[n]&&ENG.STS[n].d})}catch(e){return ''}}
-/* 選目標：單體技能點敵人（或隊友）；群體、自身直接放 */
-function pickTarget(u,id){var S=LV.S,k=ENG.SK[id]||ENG.SK.atk,t=k.t;
-  if(t!=='enemy_single'&&t!=='ally_single'){liveAct(u,{sk:id,tg:S.cands(u,id)});return}
-  var C=S.cands(u,id);if(C.length===1){liveAct(u,{sk:id,tg:C});return}
-  var m=$('mmenu');m.textContent='';var h=el('div','mm-h');h.appendChild(el('span','nm',u.name+'：'+k.n));m.appendChild(h);m.appendChild(el('p','mm-t','點戰場上的目標，或從下面選'));
-  var g=el('div','mm-b');C.forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100),b=el('button',null,x.name+'　'+hpP+'%');b.type='button';b.addEventListener('click',function(){liveAct(u,{sk:id,tg:[x]})});g.appendChild(b);
-    var node=x.side==='p'?(party[x.i]&&party[x.i].f):(mons[x.i]&&mons[x.i].f);if(node){node.classList.add('tgt');node.style.pointerEvents='auto';node.style.cursor='pointer';var fn=function(ev){ev.stopPropagation();liveAct(u,{sk:id,tg:[x]})};node.addEventListener('click',fn);TGL.push(function(){node.classList.remove('tgt');node.style.pointerEvents='';node.style.cursor='';node.removeEventListener('click',fn)})}});
-  m.appendChild(g);var bk=el('button','mm-x','‹ 返回');bk.type='button';bk.addEventListener('click',function(){clearTg();openMenu(u)});m.appendChild(bk)}
+/* 選目標（舊版相容）：直接用清單 */
+function pickTarget(u,id){openMenu(u);selSkill(id)}
+/* ---- 左上角的人物小窗：小上半身＋血量＋SP；點一下看狀態，點狀態看說明；展開時點戰場上的人改看那個人 ---- */
+function liveUnit(side,i){return side==='p'?LV.P[i]:LV.M[i]}
+function renderInfo(){var w=$('binfo');if(!w||!LV)return;var u=LV.view||LV.wait;if(!u){w.hidden=true;return}w.hidden=false;w.textContent='';w.classList.toggle('open',!!LV.infoOpen);
+  var top=el('div','bi-t'),pic=el('div','bi-p');top.appendChild(pic);
+  if(u.side==='p'&&party[u.i]){var c=document.createElement('canvas');c.width=c.height=48;try{c.getContext('2d').drawImage(party[u.i].f,0,0)}catch(e){}pic.appendChild(c)}
+  else if(mons[u.i]&&mons[u.i].f.src){var im=new Image();im.src=mons[u.i].f.src;im.className='mi';pic.appendChild(im)}
+  var tx=el('div','bi-x');tx.appendChild(el('b',null,u.name));tx.appendChild(el('span',null,Math.max(0,Math.round(u.hp))+' / '+u.b.mhp));if(u.side==='p'&&u.sp!=null){var sp=el('div','bi-sp');sp.appendChild(spDots(u.sp|0));sp.appendChild(el('span',null,'SP '+(u.sp|0)));tx.appendChild(sp)}
+  top.appendChild(tx);w.appendChild(top);
+  if(LV.infoOpen){var L=el('div','bi-l'),sts=(u.st||[]).filter(function(x){return !x.hidden});if(!sts.length)L.appendChild(el('p','bi-n','沒有狀態'));
+    sts.forEach(function(x){var def=ENG.STS[x.n]||{},b=el('button','bi-s'+(def.pol==='debuff'?' db':'')+(LV.stOpen===x.n?' on':''));b.type='button';b.appendChild(el('b',null,x.n));b.appendChild(el('em',null,x.turns==='attack'?'到下次攻擊':(x.turns>0?'剩 '+x.turns+' 回合':'')));
+      b.addEventListener('click',function(ev){ev.stopPropagation();LV.stOpen=LV.stOpen===x.n?null:x.n;renderInfo()});L.appendChild(b);if(LV.stOpen===x.n)L.appendChild(el('p','bi-d',def.d||''))});
+    w.appendChild(L);w.appendChild(el('p','bi-h','點戰場上的人可以看他的狀態'))}}
+document.addEventListener('click',function(e){var w=e.target.closest('#binfo');if(!w||!LV||e.target.closest('.bi-s'))return;LV.infoOpen=!LV.infoOpen;LV.stOpen=null;if(!LV.infoOpen&&LV.wait)LV.view=LV.wait;renderInfo()});
+function liveBind(){party.forEach(function(p,k){p.f.style.pointerEvents='auto';p.f.style.cursor='pointer';p.f.onclick=function(ev){ev.stopPropagation();LV.view=LV.P[k];LV.infoOpen=true;LV.stOpen=null;renderInfo()}});
+  mons.forEach(function(m,i){m.f.style.pointerEvents='auto';m.f.style.cursor='pointer';m.f.onclick=function(ev){ev.stopPropagation();if(!LV.M[i]||LV.M[i].dead)return;LV.view=LV.M[i];LV.infoOpen=true;LV.stOpen=null;renderInfo()}})}
 /* ---- 獎勵：開戰時就決定好（加成、餅乾的機率在這裡擲），結果出來時才寫入 ---- */
 /* 獎勵等級遞減：戰力（隊長的人物等級＋所有職業等級加總）超過關卡建議等級（stage_info 的 level，沒填就 3×關數），
    每超過 REW.step 級少 REW.cut，最低保留 REW.floor；隊友分紅照隊長打折後的數字算 */

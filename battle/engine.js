@@ -735,7 +735,10 @@
     /* 輪到 u 時先做的事（聖潔驅散），再 begin */
     function start(u) { if (u.special.some(function (x) { return x.k === 'auto_cleanse' })) autoClean(u); return begin(u) }
     /* 戰棋的「待機」：有行動但不出手，狀態照常減一次 */
-    function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1; e.hp = hpSnap(); endAct(u, null) }
+    /* 待機：有行動但不出手，狀態照常減一次；SP 制度下額外 +1 SP */
+    function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1;
+      if (SPM && u.side === 'p') { var g0 = u.sp | 0; u.sp = Math.min(SPMAX, g0 + 1); e.txt += u.sp > g0 ? '，恢復 1 SP' : ''; e.wt = 1 }
+      endAct(u, null); e.hp = hpSnap() }
     /* 戰鬥結束時還在肚子裡的人算陣亡 */
     function endSwallow() { P.forEach(function (x) { if (x.dead || !swallowed(x)) return; x.hp = 0; x.dead = true; x.st = []; line({ kind: 'note', idle: true, txt: x.name + ' 沒能從肚子裡出來……', pko: [x.i], hp: hpSnap() }) }) }
     function over() { return !alive(P) || !alive(M) || rounds >= MAXR }
