@@ -824,7 +824,7 @@ function idleOne(m,now){(function(){
    控制類：封禁（對話框＋紅叉）、麻痺／束縛／恐懼（不呼吸＋晃）、暈眩（漩渦）、凍結（藍色＋藍框）、睡眠（Zzz、不眨眼）、石化（變灰）、魅惑（愛心）、混亂（星星）
    持續傷害：中毒類（毒泡泡）、燒灼類（火）、出血類（血滴）；冷凍類（霜凍、凍足、冷凝）身邊冷氣
    能力升降：腳邊屬性圖示＋藍上／紅下箭頭（最多 4 個，其餘 +N），身上冒黃色半透明小箭頭 */
-var STI={},STC={},STCOLD={'霜凍':1,'凍足':1,'冷凝':1};
+var STI={},STC={},STCOLD={'霜凍':1,'凍足':1,'冷凝':1,'霜凝':1};
 var STK={p_atk_rate:'patk',m_atk_rate:'matk',str_rate:'patk',int_rate:'matk',p_reduce_rate:'pdef',m_reduce_rate:'mdef',p_damage_rate:'pdmg',m_damage_rate:'mdmg',crit_rate:'crit',crit_damage_rate:'critdmg',speed:'agi'};
 /* 圖示：{k: 圖檔, m: up 藍上箭頭／down 紅下箭頭／x 疊紅 X／plain 單純圖示}；受傷增加＝裂盾、易被暴擊＝靶心、閃避下降與容易被命中＝敏捷＋X、命中下降＝眼睛＋X；
    「受到的傷害減少」（例如石化）不顯示 */
@@ -1303,7 +1303,7 @@ function vtFire(t){var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return
   else if(VT.kind==='beam')e={side:'p',a:0,t:t,tg:[0],wk:'beam',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:180};
   else if(VT.kind.indexOf('song:')===0)e=vtSong(t,VT.kind.slice(5));
   else if(VT.kind.indexOf('rune:')===0){var rf=VT.kind.slice(5),rid={moon:'rune15',tome:'rune21',drown:'rune25',grave:'rune26',bear:'rune22',sun:'rune14',nm:'rune13',stone:'rune23'}[rf],rc=(RUNE[rid]||{}).color||'#ffffff',RI=RIMP[rf]||300;
-    if(rf==='tome'){/* 啟示之書：每次魔法攻擊累積一層，第 3 次飛出去 */VT.tc=(VT.tc||0)%3+1;e={side:'p',a:0,t:t,tg:[0],wk:'staff',vc:'#d6b8ff',atk:false,el:'',ty:'damage',far:true,hit:290,tome:['p',0,VT.tc,3]};
+    if(rf==='tome'){/* 啟示之書：每次傷害技能累積一層，第 3 次飛出去 */VT.tc=(VT.tc||0)%3+1;e={side:'p',a:0,t:t,tg:[0],wk:'staff',vc:'#d6b8ff',atk:false,el:'',ty:'damage',far:true,hit:290,tome:['p',0,VT.tc,3]};
       if(VT.tc===3)B.ev.push({t:t+700,rn:rid,rfx:'tome',rc:rc,rs:['p',0],rtg:[['m',0]],thr:[['m',0]],hit:RI-140,tome:['p',0,0,3]})}
     else{e={t:t,rn:rid,rfx:rf,rc:rc,rs:['p',0],rtg:[rf==='sun'?['p',0]:['m',0]]};if(rf==='sun'){e.gs='p';e.ga=0;e.cast=rc;e.castLen=820}else if(rf==='nm'||rf==='stone'){e.dring=['m',0];e.dcol=rc}else{e.thr=[['m',0]];e.hit=Math.max(1,RI-140);if(rf==='grave'){e.gs='p';e.ga=0;e.cast='#5a4632';e.castLen=420}}}}
   else if(VT.kind==='pillar')e={side:'p',a:0,t:t,tg:[0],wk:'pillar',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:330};

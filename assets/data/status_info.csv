@@ -130,3 +130,9 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 待罪之身,debuff,m_dmg_taken_rate,0.2,,,,
 枷鎖,debuff,hit_rate,-0.3,,,,命中率 −30%、暴擊率 −20%
 枷鎖,debuff,crit_rate,-0.2,,,,
+血沸,debuff,dot,0.1,p_atk,fire,p,每回合造成施加者物理攻擊力 10% 的火焰物理傷害
+魂灼,debuff,dot,0.1,m_atk,fire,m,每回合造成施加者魔法攻擊力 10% 的火焰魔法傷害
+霜凝,debuff,eva_rate,-0.2,,,,閃避率 −20%、被命中率 +30%
+霜凝,debuff,hit_taken_rate,0.3,,,,
+風化,debuff,p_reduce_rate,-0.15,,,,物理減傷 −15%、魔法減傷 −15%
+風化,debuff,m_reduce_rate,-0.15,,,,

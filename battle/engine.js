@@ -372,6 +372,7 @@
     function rq(e, rid, run) { (e._rn = e._rn || []).push({ rid: rid, run: run }) }
     function fxOn(r, fx, src, tgs) { r.rfx = fx; r.side = src.side; r.a = src.i; r.rtg = tgs.map(function (t) { return [t.side, t.i] }) }
     var RUNEN = { rune01: '火炬之光', rune02: '霜之停滯', rune03: '雷神之鎚', rune04: '風之氣息' };
+    var RUNEST = { rune01: 'fire', rune02: '霜凝', rune03: '麻痺', rune04: '風化' }; /* 元素符文附加的狀態（fire = 依攻擊力高低選血沸或魂灼） */
     function flushRunes(e) {
       var q = e._rn || []; delete e._rn; if (!q.length) return;
       /* 元素符文：同一個符文的所有目標合成一行，排在最前面（緊接著主攻擊） */
@@ -382,8 +383,11 @@
         var r = line({ rn: rid, txt: '' });
         L.forEach(function (x) { if (x.t.dead || banished(x.t)) return; var d = hurt(x.t, x.amt, u); addStat(r, u, 'dmg', d, RUNEN[rid]); addStat(r, x.t, 'taken', d, u.name + ' ' + RUNEN[rid]); out.push(x.t.name + ' ' + d); if (tgs.indexOf(x.t) < 0) tgs.push(x.t); checkDeath(x.t, r) });
         if (!out.length) { ev.pop(); return }
-        r.txt = u.name + ' 的「' + RUNEN[rid] + '」：' + out.join('、') + ' ' + ELN[L[0].el] + '傷害'; r.el = L[0].el; fxOn(r, 'el', u, tgs);
-        flushRel(r); r.hp = hpSnap();
+        var dt = L[0].dt; r.txt = u.name + ' 的「' + RUNEN[rid] + '」：' + out.join('、') + ' ' + ELN[L[0].el] + (dt === 'p' ? '物理' : dt === 'm' ? '魔法' : '') + '傷害'; r.el = L[0].el; fxOn(r, 'el', u, tgs);
+        /* 附加狀態：每個被追加傷害的目標各一次。火炬之光看物攻、魔攻較高者（血沸／魂灼）；雷神之鎚的麻痺對 Boss 無效 */
+        var sn = RUNEST[rid] === 'fire' ? (stat(u, 'patk') >= stat(u, 'matk') ? '血沸' : '魂灼') : RUNEST[rid], tn = RV(D, rid, 1, rid === 'rune03' ? 1 : 3), ch = RV(D, rid, 2, rid === 'rune03' ? 0.15 : 1);
+        if (sn && !u.dead) tgs.forEach(function (t) { if (t.dead || banished(t) || (rid === 'rune03' && t.boss)) return; applyStatus(u, t, sn, tn, ch, r) });
+        flushSt(r); flushRel(r); r.hp = hpSnap();
       });
       q.forEach(function (x) { if (x.elx) return; var r = line({ rn: x.rid, txt: '' }); if (x.run(r) === false) { ev.splice(ev.indexOf(r), 1); return } flushSt(r); flushRel(r); r.hp = hpSnap() });
     }
@@ -511,11 +515,11 @@
       var dealt = (e._dealt || 0) > 0;
       if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * RV(D, 'rune26', 0, 0.05))), lt = Math.round(loss * RV(D, 'rune26', 1, 2));
         rq(e, 'rune26', function (r) { if (u.dead) return false; var hitT = foes(u).filter(function (q) { return !banished(q) }); u.hp -= loss; r.txt = u.name + ' 的「墓之土」：失去 ' + loss + ' 生命，全體敵人受到 ' + lt + ' 真實傷害'; addStat(r, u, 'taken', loss, '墓之土'); trueAll(u, lt, r, '墓之土'); fxOn(r, 'grave', u, hitT); checkDeath(u, r) }) }
-      if (!isExtra && dealt && u.runes.indexOf('rune21') >= 0 && sk.parts.some(function (x) { return x.d === 'm' })) {
+      if (!isExtra && dealt && u.runes.indexOf('rune21') >= 0 && sk.id !== 'atk' && sk.ty === 'damage') {
         u.r21 = (u.r21 || 0) + 1; var need = RV(D, 'rune21', 1, 3);
         /* 光球累積：tome = [陣營, 編號, 目前層數, 滿層數]；畫面照這個畫角色左上方的光球 */
         e.tome = [u.side, u.i, Math.min(u.r21, need), need];
-        if (u.r21 >= need) { u.r21 = 0; var wv = Math.round(stat(u, 'matk') * RV(D, 'rune21', 0, 2));
+        if (u.r21 >= need) { u.r21 = 0; var wv = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * RV(D, 'rune21', 0, 2));
           rq(e, 'rune21', function (r) { if (u.dead) return false; var hitT = foes(u).filter(function (q) { return !banished(q) }); r.txt = u.name + ' 的「啟示之書」：魔力幽界波對全體敵人造成 ' + wv + ' 真實傷害'; trueAll(u, wv, r, '啟示之書'); fxOn(r, 'tome', u, hitT); r.tome = [u.side, u.i, 0, need] }) }
       }
       e.hp = hpSnap();
@@ -606,10 +610,10 @@
             var real = x.amt ? hurt(t, x.amt, u) : 0; totalDmg += real; if (x.crit) anyCrit = true;
             /* 武器淬毒：該次傷害的一定比例，額外的屬性傷害 */
             u.special.forEach(function (s) { if (s.k === 'extra_dmg' && real > 0 && !t.dead) { var ex = Math.round(real * s.v * (1 - Math.min(resOf(t, s.el), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
-            /* 元素符文：額外 50% 屬性魔法傷害 */
-            /* 元素符文：額外 50% 屬性魔法傷害——數字現在就算好，但等這一招結束後才獨立一行結算、演出（同武器的屬性攻擊特效） */
-            var elx = 0;
-            [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * RV(D, q[0], 0, 0.5) * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { elx += ex; totalDmg += ex; (e._rn = e._rn || []).push({ rid: q[0], elx: 1, el: q[1], u: u, t: t, amt: ex }) } } });
+            /* 元素符文：主傷害（減傷後實際傷害）的 30% 屬性傷害，類型跟著技能（物理／魔法／混合），再吃該元素抗性；
+               數字現在就算好，等這一招結束後才獨立一行結算、演出，並附加該符文的狀態 */
+            var elx = 0, dtp = (sk.parts.some(function (x) { return x.d === 'p' }) ? 'p' : '') + (sk.parts.some(function (x) { return x.d === 'm' }) ? 'm' : '');
+            [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * RV(D, q[0], 0, 0.3) * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { elx += ex; totalDmg += ex; (e._rn = e._rn || []).push({ rid: q[0], elx: 1, el: q[1], dt: dtp, u: u, t: t, amt: ex }) } } });
             if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round((real + elx) * RV(D, 'rune12', 0, 0.5)); real += hurt(t, cr, u); totalDmg += cr }
             rec.hs.push((x.crit ? '暴擊 ' : '') + real + (x.absorbed ? '（吸收 ' + x.absorbed + '）' : ''));
             /* 水之幽暗：每次暴擊，對隨機一名敵人造成物攻、魔攻較高者 200% 的黑暗魔法傷害（不再暴擊、不連鎖） */
