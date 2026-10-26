@@ -60,6 +60,7 @@
   /* ---------- 建立玩家單位（算法跟角色頁、營地一致） ---------- */
   function jobSn(p) { return p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)) }
   function learned(p, sk) { var jl = p.jobLv || {}; return !!sk && (sk.id === 'atk' || (/^job\d+$/.test(sk.j || '') && (jl[sk.j] | 0) >= sk.lv)) }
+  function setJobs(p) { var main = p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)), x = p.skills && p.skills.extra, ex = Array.isArray(x) ? x : (typeof x === 'string' && x ? [x] : []); return [main].concat(ex.slice(0, 2)) }
   function player(p, D, opt) {
     opt = opt || {};
     var jl = p.jobLv || {}, lv = Math.max(1, p.lv | 0 || 1), sv = p.skills || {}, ws = D.wbyname[p.weapon] || '';
@@ -103,7 +104,8 @@
         pred: pn(at.p_def_bonus) + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? RV(D, 'rune06', 0, 0.2) : 0) + sp('p_reduce_rate'),
         mred: pn(at.m_def_bonus) + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? RV(D, 'rune07', 0, 0.2) : 0) + sp('m_reduce_rate'),
         res: res, heal: sp('heal_rate'), speed: 10 + num(at.speed_bonus) + a / 20, hit: 0 },
-      cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) ? id : 'atk' }),
+      /* 4 格只認「現職＋額外技能組（最多兩組）」的技能，其他當普通攻擊 */
+      cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) && setJobs(p).indexOf(D.SK[id].j) >= 0 ? id : 'atk' }),
       reaction: sv.reaction && D.SK[sv.reaction] && learned(p, D.SK[sv.reaction]) ? sv.reaction : '',
       aura: aura, special: special, runes: en.slice(), weapon: p.weapon || '', p: p,
       apa: sp('atk_per_ally'), apaN: opt.allies || 0, pB: s + wsum('p_atk') + Math.round(v * sp('vit_to_p_atk')), mB: i + wsum('m_atk') + Math.round(s * sp('str_to_m_atk')),

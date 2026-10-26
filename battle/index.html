@@ -163,7 +163,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=4"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=28"></script>
+<script src="engine.js?v=29"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=17"></script>
 <script>
@@ -1116,7 +1116,7 @@ function liveFlush(){var S=LV.S,mp=LV.mp;if(mp.ev.length===0&&LV.n===0)mp.t=Math
   if(mp.sum){mp.sum=false;LV.M.forEach(function(m,i){if(B.mhpM[i]==null)B.mhpM[i]=m.b.mhp});sumSlots(B.mons,B.mko);build();liveBind()}}
 function liveStep(){var S=LV.S;if(B!==LV.b)return;
   for(var guard=0;guard<400;guard++){
-    if(S.over()){S.endSwallow();liveFlush();B.res=S.res()==='win'?'win':'lose';B.end=LV.mp.t+400;B.req=makeReq(B);closeMenu();var g=$('atg');if(g)g.remove();return}
+    if(S.over()){S.endSwallow();liveFlush();B.res=S.res()==='win'?'win':'lose';B.end=LV.mp.t+400;B.req=makeReq(B);B.wall=Date.now()-liveNow();curSave();/* 勝負已定：存起來，切到別頁再回來照樣領獎勵 */closeMenu();var g=$('atg');if(g)g.remove();return}
     if(LV.qi>=LV.order.length){LV.order=S.round();LV.qi=0;continue}
     var u=LV.order[LV.qi++];if(u.dead)continue;if(!S.alive(LV.P)||!S.alive(LV.M))continue;
     if(!S.start(u)){liveFlush();continue}
@@ -1329,7 +1329,7 @@ function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hi
   (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>1300){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */
 try{document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})())}catch(e){}
-var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),MANUAL=/[?&]manual=1/.test(location.search),VFXT=/[?&]vfx=1/.test(location.search);
+var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),MANUAL=!/[?&]manual=0/.test(location.search)/* SP 制度＋手動戰鬥：正式開放（網址加 ?manual=0 回到舊版自動戰鬥） */,VFXT=/[?&]vfx=1/.test(location.search);
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function demoPlayers(){var names=['阿明','小美','阿傑','雞湯'],ws=['劍','斧','匕','弓'];return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3][i],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i]}})}
 function loadPx(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
@@ -1364,7 +1364,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).then(function(){
   if(VFXT){vtStart();return}
   if(demo&&/demo=2/.test(location.search)){var d2=demoPlayers().concat(demoPlayers().slice(0,1).map(function(q){return Object.assign({},q,{uid:'d4',name:'小強'})}));d2.forEach(function(q,i){var jn='job0'+((i%5)+1),k=WBYNAME[q.weapon];q.jobSn=jn;q.job=i%5;q.lv=12;q.jobLv={};q.jobLv[jn]=12;q.alloc={str:30,int:0,agi:10,vit:15,luk:0};q.weapons={};if(k)q.weapons[k]={lv:15};q.skills={combat:['skill001','skill006','skill003','skill008'],reaction:'',passive:[]};var jx='job0'+(((i+1)%5)+1);q.jobLv[jx]=8;q.skills.extra=jx/* 示範：另練一個職業，戰棋帶它當額外技能組 */});start(d2[0],d2.slice(1));return}
-  if(demo&&MANUAL){var dm=demoPlayers(),JS=['job06','job08','job12','job14'],EX=[['job01','job02'],['job02','job05'],['job01','job03'],['job04','job01']];/* 手動戰鬥測試：給示範隊伍一轉職業、技能和兩組額外技能組 */
+  if(demo&&/[?&]manual=1/.test(location.search)){var dm=demoPlayers(),JS=['job06','job08','job12','job14'],EX=[['job01','job02'],['job02','job05'],['job01','job03'],['job04','job01']];/* 手動戰鬥測試：給示範隊伍一轉職業、技能和兩組額外技能組 */
     dm.forEach(function(q,i){var j=JS[i];q.jobSn=j;q.job=parseInt(j.slice(3),10)-1;q.lv=40;q.jobLv={};q.jobLv[j]=20;EX[i].forEach(function(x){q.jobLv[x]=30});
       var mine=Object.keys(ENG.SK).map(function(k){return ENG.SK[k]}).filter(function(k){return k.kind==='combat'&&k.j===j&&k.lv<=20}).map(function(k){return k.id});
       q.skills={combat:mine.slice(0,4),extra:EX[i].slice()}});start(dm[0],dm.slice(1));return}

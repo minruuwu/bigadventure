@@ -138,10 +138,10 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
             <button type="button" data-go="dex"><b>魔物圖鑑</b><small id="foundM"></small></button>
             <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文</small></button>
           </div></section>
-        <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 記事</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
-        <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 記事</button><h1>魔物圖鑑</h1>
+        <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
+        <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>魔物圖鑑</h1>
           <p class="hint"><span id="found"></span>　冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子。點怪物看詳細資料。</p><div id="dex"></div></section>
-        <section id="v-doc" hidden><button type="button" class="bk" data-go="">‹ 記事</button><h1>事典</h1><div class="toc" id="toc"></div></section>
+        <section id="v-doc" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>事典</h1><div class="toc" id="toc"></div></section>
         <p class="demo" id="demoNote" hidden>示範模式：用範例進度顯示。</p>
       </div>
     <i class="edge r"></i><i class="edge t"></i><i class="edge b"></i></div></div>
@@ -362,9 +362,14 @@ function openDoc(k){openSheet(function(s){
   else if(k==='st'){s.appendChild(el('h2',null,'狀態'));s.appendChild(el('p','sub','持續回合寫在各技能裡。狀態可以被驅散，倒下時全部清除。'));
     [['buff','增益'],['debuff','減益']].forEach(function(p){var L=D.sts.filter(function(r){return r.polarity===p[0]});if(!L.length)return;s.appendChild(el('div','k2',p[1]+'（'+L.length+'）'));
       L.forEach(function(r){var tg=el('span','pol '+p[0],p[1]);s.appendChild(ent(null,r.status_name,r.status_desc||'',tg))})})}
-  else if(k==='rule'){s.appendChild(el('h2',null,'戰鬥規則'));s.appendChild(el('p','sub','戰鬥全自動進行，以下是計算方式。'));
+  else if(k==='rule'){s.appendChild(el('h2',null,'戰鬥規則'));s.appendChild(el('p','sub','回合制戰鬥，可以手動操作或交給自動；以下是規則與計算方式。'));
     s.appendChild(rule('行動順序','每回合所有人各行動一次，速度高的先動，同速隨機。'));
-    s.appendChild(rule('技能循環','每個角色照技能欄的順序輪流施放；沒有可用目標就換下一招，都不能用就普通攻擊。'));
+    s.appendChild(rule('手動與自動','輪到我方角色時會停下來，從選單選攻擊、技能、待機或自動。勾選「自動戰鬥」或按右上角「自動」就整隊自動打，隨時可以切回手動。'));
+    s.appendChild(rule('SP','每個角色各自有 SP（最多 5 點）。開戰時 2 點，第 2 回合起每回合 +1。單體技能用 1 點、群體技能用 2 點，少數大招用 3 點；普通攻擊不用 SP。反應技和被動技能不用 SP，怪物也沒有 SP 限制。'));
+    s.appendChild(rule('擊倒回 SP','打倒敵人的那個角色恢復 1 SP；持續傷害、符文、反擊打倒的也算。'));
+    s.appendChild(rule('待機','這次不行動，改成恢復 1 SP，留著下回合放大招。'));
+    s.appendChild(rule('冷卻','技能放完後要等幾次自己的行動才能再用（例如冷卻 2 = 接下來 2 次行動不能用），被控制跳過的行動也算。'));
+    s.appendChild(rule('自動時的技能','照技能書的 4 格順序輪：輪到的招在冷卻就跳下一招；SP 不夠就先普通攻擊，這招留到下次。4 格只能放現職和額外技能組的技能。'));
     s.appendChild(rule('命中','基本命中 80%，再依雙方等級差和目標的閃避率調整；最低 1%、最高 100%。目盲會大幅降低命中。'));
     s.appendChild(rule('暴擊','暴擊率來自敏捷與裝備；暴擊時傷害 ×（1 + 暴擊傷害），基本暴擊傷害 50%。'));
     s.appendChild(rule('傷害','攻擊力 × 技能倍率 × 傷害加成 ×（暴擊）×（1 − 減傷）×（1 − 屬性抗性），最後再有 ±5% 浮動。減傷上限 80%。'));
