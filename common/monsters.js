@@ -135,6 +135,23 @@ function idleOne(m,now){(function(){
     for(var g9=0;g9<10;g9++){var pg9=2600+g9*230,ug9=((bt+g9*517)%pg9)/pg9,an=ug9*Math.PI*2+g9,gx9=m.lx+Math.cos(an)*BZ2[0]*bs2*(.45+.1*hsh(g9,1)),gy9=by2+BZ2[1]*bs2*(.5+.1*hsh(g9,2))+Math.sin(an)*BZ2[1]*bs2*.3-ug9*4,ga=.4+.4*Math.sin(bt/300+g9*1.7);
       VP(gx9,gy9,'#c8ffc8',ga);VP(gx9+1,gy9,'#5aff7a',ga*.5);VP(gx9,gy9+1,'#5aff7a',ga*.4)}
     pctx.globalCompositeOperation='source-over'}
+  /* 浮空龍：身邊一道小旋風繞著轉（比翔風龍小、只有一道半） */
+  if(m.k==='wydragon'&&m.alive){var YZ=msz('wydragon'),ys=m.sc,ycx=m.lx,ycy=m.gy-(m.lift||0)-YZ[1]*ys*.45,yt=now+m.ph*3;pctx.globalCompositeOperation='lighter';
+    [[.85,.16,.25,1500,0],[.65,.12,-.3,1900,2.4]].forEach(function(o,oi){var rx=YZ[0]*ys*o[0],ry=YZ[1]*ys*o[1],tl=YZ[1]*ys*o[2],a0=yt/o[3]*Math.PI*2+o[4],da=.8/rx,L=Math.round(Math.PI*(oi?.7:1)/da);
+      for(var k8=0;k8<L;k8++){var a8=a0-k8*da,c8=Math.cos(a8),s8=Math.sin(a8),x8=ycx+c8*rx,y8=ycy+s8*ry+c8*tl*.5,f8=k8/L,al=(1-f8)*(1-f8*.6)*(s8<0?.3:1);VP(x8,y8,f8<.15?'#ffffff':f8<.5?'#d6fff4':'#8ae8cc',al*.85)}});
+    pctx.globalCompositeOperation='source-over'}
+  /* 雛火龍：尾巴火苗與身上偶爾冒出小火花，往上飄一小段就熄（比炎王龍少） */
+  if(m.k==='fydragon'&&m.alive){var FY=msz('fydragon'),fys=m.sc,fyx=m.lx-FY[0]*fys/2,fyy=m.gy-(m.lift||0)-FY[1]*fys,fyt=now+m.ph*3,FYP=IMG.__fyp;
+    if(!FYP){FYP=[];var fyi=IMG.monster_27;if(fyi&&fyi.naturalWidth){var fw2=fyi.naturalWidth,fh2=fyi.naturalHeight,fc2=document.createElement('canvas');fc2.width=fw2;fc2.height=fh2;var fx2c=fc2.getContext('2d');fx2c.drawImage(fyi,0,0);var fd2=fx2c.getImageData(0,0,fw2,fh2).data;
+      for(var y2=0;y2<fh2;y2++)for(var x2=0;x2<fw2;x2++){var q2=(y2*fw2+x2)*4;if(fd2[q2+3]<200)continue;if(y2>0&&fd2[q2-fw2*4+3]>0)continue;if(fd2[q2]>200&&fd2[q2+1]>110&&fd2[q2+2]<120)FYP.push([x2,y2,1])}
+      if(FYP.length<3)for(var y3=0;y3<fh2;y3+=3)for(var x3=0;x3<fw2;x3+=3){if(fd2[(y3*fw2+x3)*4+3]>200&&(y3===0||fd2[((y3-1)*fw2+x3)*4+3]===0))FYP.push([x3,y3,0])}}if(FYP.length)IMG.__fyp=FYP}
+    if(FYP.length){pctx.globalCompositeOperation='lighter';for(var e8=0;e8<5;e8++){var pe=950+e8*170,ue=((fyt+e8*401)%pe)/pe,ce=Math.floor((fyt+e8*401)/pe),pq2=FYP[Math.floor(hsh(ce,e8+17)*FYP.length)];if(!pq2)continue;
+      var sxe=fyx+(pq2[0]+.5)*fys+Math.sin(ue*7+e8)*1.6*ue,sye=fyy+(pq2[1]+.5)*fys-ue*10;VP(sxe,sye,ue<.3?'#fff2b0':ue<.6?'#ffb040':'#ff5a1a',(1-ue)*.95);if(ue<.3)VP(sxe,sye+1,'#ff8a20',(1-ue)*.4)}
+      pctx.globalCompositeOperation='source-over'}}
+  /* 雪白龍：腳邊幾團淡淡的冰霧慢慢飄（比冰咒龍少、偏低） */
+  if(m.k==='iydragon'&&m.alive){var IY=msz('iydragon'),iys=m.sc,iyt=now+m.ph*3;
+    for(var m8=0;m8<4;m8++){var pm8=7000+m8*1500,um8=((iyt+m8*1999)%pm8)/pm8,am8=um8*Math.PI*2*(m8%2?1:-1)+m8,cxm8=m.lx+Math.cos(am8)*IY[0]*iys*.5,cym8=m.gy-(m.lift||0)-IY[1]*iys*.22+Math.sin(am8)*IY[1]*iys*.12,rm8=(5+hsh(m8,4)*4)*iys,dm8=.55+.45*Math.sin(iyt/(1200+m8*190)+m8);
+      for(var a6=-Math.ceil(rm8);a6<=Math.ceil(rm8);a6++)for(var b6=-Math.ceil(rm8*.55);b6<=Math.ceil(rm8*.55);b6++){var r6=Math.sqrt(a6*a6+(b6/.55)*(b6/.55))/rm8;if(r6>1)continue;if(r6>.55&&((Math.round(cxm8+a6)+Math.round(cym8+b6))&1))continue;VP(cxm8+a6,cym8+b6,r6<.4?'#f2fbff':'#cfeaff',(r6<.4?.24:.14)*dm8)}}}
   if(m.k==='fwraith'&&m.alive){var WZ=msz('fwraith'),ws=m.sc,wx0=m.lx-WZ[0]*ws/2,wy0=m.gy-(m.lift||0)-WZ[1]*ws,wt=now+m.ph*3,fbx=wx0+5*ws,fby=wy0+17*ws;pctx.globalCompositeOperation='lighter';
     [-2,-1,0,1,2,3].forEach(function(q){var hh=(q===0||q===1?13:Math.abs(q-.5)<2?10:6)*ws*(.7+.3*Math.sin(wt/(60+Math.abs(q)*13)+q*2.1)),sw3=Math.sin(wt/120+q)*1.3;for(var k6=0;k6<hh;k6++){var f6=k6/hh;VP(fbx+q*ws*.8+sw3*f6*2,fby-k6,f6<.3?'#fff2a0':f6<.65?'#ff9a2a':'#e0401a',(f6>.8?.35:.6)*(1-f6*.3))}});
     for(var e6=0;e6<3;e6++){var eu=((wt+e6*430)%1300)/1300,ex6=fbx+Math.sin(eu*7+e6)*3,ey6=fby-12*ws-eu*14;VP(ex6,ey6,eu<.5?'#ffd060':'#ff6a1a',1-eu)}
