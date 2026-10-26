@@ -1149,8 +1149,11 @@ function renderMenu(){var m=$('bmenu');if(!m||!MS)return;var u=MS.u,S=LV.S,p=MEM
   if(MS.sk){var k=ENG.SK[MS.sk];if(k&&(k.t==='enemy_single'||k.t==='ally_single')){var c3=col();S.cands(u,MS.sk).forEach(function(x){var hpP=Math.round(Math.max(0,x.hp)/x.b.mhp*100);item(c3,x.name,MS.tg===x,null,function(){selTarget(x)},hpP+'%')})}}
   placeMenu()}
 /* 選單位置：輪到的人的右邊；太靠右就往左推，太靠下就往上 */
-function placeMenu(){var m=$('bmenu');if(!m||m.hidden||!MS)return;var pp=posOf(MS.u.i),fw=frame.clientWidth,fh=frame.clientHeight,w=m.offsetWidth,h=m.offsetHeight,x=(pp[0]+12)*U,y=(pp[1]-38)*U;
-  x=Math.max(4,Math.min(x,fw-w-4));y=Math.max(30,Math.min(y,fh-h-4));m.style.left=x+'px';m.style.top=y+'px'}
+/* 選單位置：固定在左上角人物小窗的右邊（不擋到戰場上的人）；三欄放不下時整個往左推，最多貼齊畫面右緣 */
+function placeMenu(){var m=$('bmenu');if(!m||m.hidden||!MS)return;var fw=frame.clientWidth,w=m.offsetWidth,inf=$('binfo'),x=4,y=4;
+  if(inf&&!inf.hidden)x=inf.offsetLeft+inf.offsetWidth+4;
+  /* 放不下（三欄都開）：先藏第一欄（主選單），點外面退回時會再出現 */var cs=m.querySelectorAll('.bm-c');if(cs.length>2){cs[0].style.display='';w=m.offsetWidth;if(x+w>fw-4){cs[0].style.display='none';w=m.offsetWidth}}
+  x=Math.max(4,Math.min(x,fw-w-4));m.style.left=x+'px';m.style.top=y+'px'}
 function selSkill(id){var S=LV.S,u=MS.u,k=ENG.SK[id]||ENG.SK.atk;
   if(MS.sk===id&&!(k.t==='enemy_single'||k.t==='ally_single')){liveAct(u,{sk:id,tg:S.cands(u,id)});return}/* 群體／自身：同一招點第二次才施放 */
   MS.sk=id;MS.tg=null;var C=S.cands(u,id);LV.hl=(k.t==='enemy_single'||k.t==='ally_single')?null:C.map(function(x){return[x.side,x.i]});
@@ -1182,7 +1185,7 @@ function renderInfo(){var w=$('binfo');if(!w||!LV)return;var u=LV.view||LV.wait;
     w.appendChild(L)}}
 function popClose(){var q=$('bipop');if(q)q.remove();if(LV)LV.stOpen=null;[].forEach.call(document.querySelectorAll('.bi-s.on'),function(b){b.classList.remove('on')})}
 function popOpen(b,n,d){popClose();LV.stOpen=n;b.classList.add('on');var q=el('div','bi-pop');q.id='bipop';q.appendChild(el('b',null,n));q.appendChild(document.createTextNode(d||'—'));frame.appendChild(q);
-  var fr=frame.getBoundingClientRect(),br=b.getBoundingClientRect(),w2=$('binfo').getBoundingClientRect();q.style.left=Math.round(w2.right-fr.left+4)+'px';q.style.top=Math.round(br.top-fr.top)+'px';
+  var fr=frame.getBoundingClientRect(),br=b.getBoundingClientRect(),w2=$('binfo').getBoundingClientRect();q.style.left=Math.round(w2.left-fr.left)+'px';q.style.top=Math.round(w2.bottom-fr.top+4)+'px';
   var qr=q.getBoundingClientRect();if(qr.bottom>fr.bottom-4)q.style.top=Math.max(4,Math.round(fr.bottom-fr.top-qr.height-4))+'px'}
 document.addEventListener('click',function(e){if($('bipop')&&!e.target.closest('.bi-s'))popClose()},true);
 document.addEventListener('click',function(e){var w=e.target.closest('#binfo');if(!w||!LV||e.target.closest('.bi-s'))return;LV.infoOpen=!LV.infoOpen;LV.stOpen=null;if(!LV.infoOpen&&LV.wait)LV.view=LV.wait;renderInfo()});
