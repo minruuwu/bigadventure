@@ -197,7 +197,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=6"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=32"></script>
+<script src="engine.js?v=33"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=17"></script>
 <script>
@@ -713,6 +713,10 @@ function runeFx(e,d){if(d<0||d>1300)return;var src=cen(e.rs);
       if(u<.3){var st=1-u/.3,R=4+u*20;ringBurst(c[0],c[1],R,C,st,.8);for(var r=0;r<8;r++){VB(c[0]+r,c[1],C.l,st);VB(c[0]-r,c[1],C.l,st);VB(c[0],c[1]+r*.8,C.l,st);VB(c[0],c[1]-r*.8,C.l,st)}}})}
   else if(e.rfx==='sun'){/* 太陽之照耀：自己發光，金色光芒往上升 */var C=shades(e.rc),f=e.rs&&footOf(e.rs[0],e.rs[1]);if(!f)return;for(var k=0;k<8;k++){var u=(d-k*60)/520;if(u<0||u>1)continue;var x=f.x-f.w+hsh(k,61)*f.w*2,y=f.y-2-u*(f.h+6);for(var j=0;j<6;j++)(j<3?VB:VP)(x,y+j*1.4,j?C.c:'#ffffff',(1-u)*(1-j/7))}ringBurst(f.x,f.y-1,4+Math.min(1,d/500)*8,C,Math.max(0,1-d/700),.3)}}
 /* 地面上一圈光（ry 預設是透視扁圓） */
+/* 被奪走 SP：身上一圈藍色光點往外散開、變淡（像精神被抽走） */
+function spDrainFx(f,d){if(d<0||d>700)return;var u=d/700,cx=f.x,cy=f.y-f.h*.55;
+  for(var k=0;k<14;k++){var an=k/14*Math.PI*2+hsh(k,91),sp=4+u*(10+hsh(k,93)*8),x=cx+Math.cos(an)*sp,y=cy+Math.sin(an)*sp*.8-u*6,a=(1-u)*(u<.1?u/.1:1);VB(x,y,k%3?'#5ec8ff':'#c8f0ff',a);VP(x,y,'#ffffff',a*.6)}
+  if(u<.35){var a2=1-u/.35;ringBurst(cx,cy,3+u*14,{c:'#5ec8ff',l:'#c8f0ff',d:'#0a3a5a'},a2*.8,.8)}}
 function ringBurst(x,y,r,C,a,fl){if(a<=0)return;var n=Math.max(20,Math.round(r*5)),k=fl||.6;for(var q=0;q<n;q++){var an=q/n*Math.PI*2;VP(x+Math.cos(an)*r,y+Math.sin(an)*r*k,q%2?C.c:C.l,a)}}
 /* 水泡：深藍色（照設計，不用符文表的紫色），從腳下冒起，放大到大約半身高，破掉噴水珠 */
 var BUB={c:'#2048c8',l:'#9cc0ff',d:'#0a1a60'};
@@ -746,7 +750,7 @@ function thornRing(f,d){if(d<0||d>720)return;var C=thornCols(),u=d/720,gr=u<.3?e
 function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
   B.ev.forEach(function(e){for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
-  B.ev.forEach(function(e){if(e.dring){var f=footOf(e.dring[0],e.dring[1]);if(f)debuffRing(f,t-e.t-(e.rfx?40:200),e.dcol)}if(e.rfx)runeFx(e,t-e.t);if(e.tring){var f2=footOf(e.tring[0],e.tring[1]);if(f2)thornRing(f2,t-e.t)}});
+  B.ev.forEach(function(e){if(e.dring){var f=footOf(e.dring[0],e.dring[1]);if(f)debuffRing(f,t-e.t-(e.rfx?40:200),e.dcol)}if(e.rfx)runeFx(e,t-e.t);if(e.spd)e.spd.forEach(function(k){var f=footOf('p',k);if(f)spDrainFx(f,t-e.t-(e.hit||180)-80)});if(e.tring){var f2=footOf(e.tring[0],e.tring[1]);if(f2)thornRing(f2,t-e.t)}});
   function vOne(e,t,hh){var d=t-e.t;if(d<0||d>(e.wk==="pillar"?1000:e.wk==="sandstorm"?1300:900)||!e.side)return;
     if(e.wk==='blood'&&hh===0){var tl=e.side==='p'?(e.tg||[]).map(function(i){return monPos(i)}):(e.tgts||[]).map(function(k){var pp=posOf(k);return[pp[0],pp[1]-14]});tl=tl.filter(Boolean);
       if(tl.length>1){var u7=(d-120)/420;if(u7>=0&&u7<=1){var xs7=tl.map(function(q){return q[0]}),ys7=tl.map(function(q){return q[1]}),L7=Math.min.apply(null,xs7)-14,R7=Math.max.apply(null,xs7)+14,cy7=(Math.min.apply(null,ys7)+Math.max.apply(null,ys7))/2;
@@ -1327,6 +1331,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
         else{o.thr=o.rtg;o.hit=Math.max(1,RI-140);if(e.rfx==='grave'){o.gs=e.side;o.ga=e.a;o.cast='#5a4632';o.castLen=420}}}
       else if(e.rn)o.rn=e.rn;
       if(e.tome)o.tome=e.tome;
+      if(e.spd)o.spd=e.spd;/* 被奪走 SP 的我方角色 */
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
       if(e.kind!=='round')t+=e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
       (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
