@@ -332,6 +332,8 @@
       if (left > 0 && !dot) d.st = d.st.filter(function (s) { return !s.rows.some(function (r) { return r.k === 'sleep' }) });
       return left;
     }
+    /* 算出來的治療數字（含目標的受治療加成、禁療，但不扣「已滿血」）：鹿之守護、月之淨化用這個，溢出也算 */
+    function healCalc(t, amt) { if (t.dead || banished(t)) return 0; return Math.max(0, Math.round(amt * (1 + sv(t, 'heal_taken_rate')))) }
     function heal(src, t, amt, e, raw) {
       if (t.dead || banished(t)) return 0;
       var v = raw ? amt : amt * (1 + sv(t, 'heal_taken_rate'));
@@ -701,18 +703,18 @@
           else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
         });
       } else if (sk.ty === 'heal') {
-        var amtList = [], tot = 0;
+        var amtList = [], tot = 0, cal = 0;
         tg.forEach(function (t) {
           var base = sk.parts[0] ? sk.parts[0].r : 0;
           if (base > 0) {
             var c = RND() < stat(u, 'crit'), v = stat(u, 'matk') * base * (1 + u.b.heal) * (c ? 1 + stat(u, 'cdmg') : 1);
             if (bonus.heal_if_hot && hasHot(t)) v *= 1 + num(bonus.heal_if_hot.value);
-            var got = heal(u, t, v); tot += got; amtList.push(t.name + (got ? (c ? ' 暴擊！' : ' ') + '恢復 ' + got : ' 生命已滿')); addStat(e, u, 'heal', got, sk.n);
+            cal += healCalc(t, v); var got = heal(u, t, v); tot += got; amtList.push(t.name + (got ? (c ? ' 暴擊！' : ' ') + '恢復 ' + got : ' 生命已滿')); addStat(e, u, 'heal', got, sk.n);
           }
         });
         if (amtList.length) e.txt += '，' + amtList.join('，');
         e.hl = tg.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }); e.hlM = tg.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i });
-        if (tot > 0) echo(u, tot, e);
+        if (tot > 0 || cal > 0) echo(u, tot, e, cal);
         effs.forEach(function (r) {
           if (r.effect_kind === 'status') tg.forEach(function (t) { applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
           if (r.effect_kind === 'cleanse') tg.forEach(function (t) { var d = debuffs(t); d.forEach(function (s) { removeStatus(t, s) }); if (d.length) e.txt += '，清除 ' + t.name + ' 的 ' + d.map(function (s) { return '「' + s.n + '」' }).join('') });
@@ -745,25 +747,25 @@
       effs.forEach(function (r) {
         if (r.effect_kind !== 'heal') return;
         var who = r.target === 'target' ? tg.filter(function (t) { return !t.dead && t.side === u.side }) : r.target === 'self' ? [u] : r.target === 'ally_all' ? friends(u) : r.target === 'ally_others' ? friends(u).filter(function (x) { return x !== u }) : r.target === 'ally_single' ? [choose(friends(u), r.condition || 'lowest_hp')] : [];
-        var out = [], tot = 0;
+        var out = [], tot = 0, cal = 0;
         who.forEach(function (t) {
           if (!t) return;
           var v, c = false;
           if (r.base === 'sacrificed_hp') v = sac * num(r.value);
           else if (r.base === 'mhp') v = num(r.value) * t.b.mhp; /* 照目標最大生命的比例（褪皮），不擲暴擊 */
           else { c = RND() < stat(u, 'crit'); v = num(r.value) * (r.base === 'p_atk' ? stat(u, 'patk') : stat(u, 'matk')) * (1 + u.b.heal) * (c ? 1 + stat(u, 'cdmg') : 1) }
-          var got = heal(u, t, v); tot += got; if (got) { out.push(t.name + (c ? ' 暴擊！' : ' ') + '恢復 ' + got); addStat(e, u, 'heal', got, sk.n) }
+          cal += healCalc(t, v); var got = heal(u, t, v); tot += got; if (got) { out.push(t.name + (c ? ' 暴擊！' : ' ') + '恢復 ' + got); addStat(e, u, 'heal', got, sk.n) }
         });
         if (out.length) e.txt += '，' + out.join('，');
-        if (tot > 0 && r.base !== 'sacrificed_hp') echo(u, tot, e);
+        if ((tot > 0 || cal > 0) && r.base !== 'sacrificed_hp') echo(u, tot, e, cal);
         e.hl = (e.hl || []).concat(who.filter(function (t) { return t && t.side === 'p' && (e.hl || []).indexOf(t.i) < 0 }).map(function (t) { return t.i }));
       });
       /* 鹿之守護、月之淨化：主動治療時 */
     }
-    function echo(u, tot, e) {
+    function echo(u, tot, e, cal) { if (cal == null) cal = tot; /* tot = 實際回復量（生命同調用），cal = 算出來的治療數字（鹿之守護、月之淨化用） */
       u.special.forEach(function (s) { if (s.k === 'heal_echo') { var g = heal(u, u, tot * s.v, null, true); if (g) { e.txt += '，' + u.name + ' 同調恢復 ' + g; addStat(e, u, 'heal', g, '生命同調') } } });
-      if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); var shv = 0; u.st.forEach(function (s) { if (s.n === '生命守護') { s.shield = Math.min(tot * RV(D, 'rune16', 0, 0.5, u), u.b.mhp * RV(D, 'rune16', 1, 0.3, u)); shv = s.shield } }); if (shv > 0) e.txt += '，鹿之守護：' + u.name + ' 獲得 ' + Math.round(shv) + ' 護盾' }
-      if (u.runes.indexOf('rune15') >= 0) { var f = foes(u).filter(function (q) { return !banished(q) }); if (f.length) { var t = pickOne(f), mAmt = Math.round(tot * RV(D, 'rune15', 0, 0.5, u));
+      if (u.runes.indexOf('rune16') >= 0 && D.STS['生命守護']) { applyStatus(u, u, '生命守護', 3, 1, null); var shv = 0; u.st.forEach(function (s) { if (s.n === '生命守護') { s.shield = Math.min(cal * RV(D, 'rune16', 0, 0.5, u), u.b.mhp * RV(D, 'rune16', 1, 0.3, u)); shv = s.shield } }); if (shv > 0) e.txt += '，鹿之守護：' + u.name + ' 獲得 ' + Math.round(shv) + ' 護盾' }
+      if (u.runes.indexOf('rune15') >= 0) { var f = foes(u).filter(function (q) { return !banished(q) }); if (f.length) { var t = pickOne(f), mAmt = Math.round(cal * RV(D, 'rune15', 0, 0.5, u));
         rq(e, 'rune15', function (r) { if (t.dead || u.dead) return false; var d = hurt(t, mAmt, u); r.txt = u.name + ' 的「月之淨化」：' + t.name + ' 受到 ' + d + ' 真實傷害'; addStat(r, u, 'dmg', d, '月之淨化'); addStat(r, t, 'taken', d, u.name + ' 月之淨化'); fxOn(r, 'moon', u, [t]); checkDeath(t, r) }) } }
     }
 
