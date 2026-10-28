@@ -90,7 +90,7 @@ skill088,奧術護甲,job11,10,passive,,,passive,,,,,,,,,物理減傷+3%、魔�
 skill089,權能協調,job11,25,passive,,,passive,,,,,,,,,力量的15%加到魔法攻擊力,,,,,,,,
 skill090,暴戾斬,job06,1,combat,enemy_single,random,damage,,,p,,2,,,,20%機率暈眩1回合,,,,1,single,,2,
 skill091,血腥暴風,job06,5,combat,enemy_all,,damage,,,p,,0.8,,,,每回合造成物理攻擊力30%的物理傷害，與撕裂傷獨立計算,blood,,,0,diamond,2,3,
-skill092,嚎叫,job06,8,combat,enemy_all,,damage,,,p,,0.5,,,,自身嘲諷2回合：敵人的單體攻擊優先打自己,,,,0,diamond,4,3,
+skill092,嚎叫,job06,8,combat,enemy_all,,damage,,,p,,0.5,,,,自身嘲諷2回合：敵人的單體攻擊優先打自己,,,,0,diamond,4,3,1
 skill093,英勇突進,job06,12,combat,enemy_single,random,damage,,,p,,1.8,,,,自身物理減傷+15%，持續2回合,,,,2,single,,2,
 skill094,怒意,job06,15,combat,self,,buff,,,,,,,,,物理增傷+40%,,,,0,single,,3,
 skill095,榮耀打擊,job06,20,combat,enemy_single,random,damage,,,p,,2.3,,,,我方全體物理攻擊力+10%，持續3回合,,,,1,single,,2,3
@@ -144,8 +144,8 @@ skill142,熾熵熱線,job10,20,combat,enemy_single,random,damage,,,m,fire,2.3,,,
 skill143,定律,job10,25,passive,,,passive,,,,,,,,,魔法增傷 +10%,,,,,,,,
 skill144,聖光擊,job13,1,combat,enemy_single,random,damage,,,p,light,1.7,,,,,,,1,1,single,,2,
 skill145,槍專精,job13,3,passive,,,passive,,,,,,,,,裝備槍時物理攻擊力 +6%、物理減傷 +3%、魔法減傷 +3%,,,,,,,,
-skill146,守護誓言,job13,5,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
-skill147,聖光盾衛,job13,8,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
+skill146,守護誓言,job13,5,combat,self,,buff,,,,,,,,,,,,,0,single,,3,0
+skill147,聖光盾衛,job13,8,combat,self,,buff,,,,,,,,,,,,,0,single,,3,1
 skill148,虔誠靈氣,job13,10,passive,,,passive,,,,,,,,,全體隊友（含自己）物理減傷 +5%、魔法減傷 +5%（靈氣：同種不疊加，聖騎士倒下時消失）,,,,,,,,
 skill149,祝福之錘,job13,12,combat,enemy_all,,damage,,,p,,0.8,,,,,smash,,,5,diamond,1,3,1
 skill150,神聖衝擊,job13,15,combat,enemy_all,,damage,,,p,lightning,0.95,,,,,,,,3,diamond,2,3,
@@ -201,9 +201,9 @@ skill199,匕專精,job19,3,passive,,,passive,,,,,,,,,裝備匕首時物理攻擊
 skill200,影襲,job19,5,combat,enemy_single,random,damage,0.2,,p,dark,1.7,,,,,,,,3,single,,2,
 skill201,連環刺殺,job19,8,combat,enemy_single,random,damage,,,p,,0.5,,,,,,4,,4,single,,2,1
 skill202,匕精通,job19,10,passive,,,passive,,,,,,,,,裝備匕首時暴擊率 +10%、暴擊傷害 +50%,,,,,,,,
-skill203,潛伏,job19,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
-skill204,致命弱點,job19,15,combat,enemy_single,prefer_without_status,damage,,,p,dark,1.4,,,,,,,,2,single,,2,
-skill205,斷喉,job19,20,combat,enemy_single,random,damage,,0.5,p,nature,1.2,p,dark,1.2,目標生命低於 50% 時這招傷害 +30%,,,,1,single,,2,3
+skill203,潛伏,job19,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,0
+skill204,致命弱點,job19,15,combat,enemy_single,prefer_without_status,damage,,,p,dark,1.4,,,,,,,,2,single,,2,1
+skill205,斷喉,job19,20,combat,enemy_single,random,damage,,0.5,p,nature,1.2,p,dark,1.2,目標生命低於 50% 時這招傷害 +30%,,,,1,single,,2,2
 skill206,武器淬毒,job19,25,passive,,,passive,,,,,,,,,每次攻擊額外造成該次傷害 10% 的自然屬性物理傷害（多段每下、全體每個目標都算；跟著本體暴擊；照自然抗性減免）,,,,,,,,
 skill207,生命之泉,job20,1,combat,ally_single,lowest_hp,heal,,,m,,1.5,,,,,,,,4,single,,3,
 skill208,生命同調,job20,3,passive,,,passive,,,,,,,,,主動治療時（吸血不算），自己額外恢復該次治療總量的 20%（照主治療暴擊後的數字，不另外擲暴擊；治療自己時等於 120%）,,,,,,,,
