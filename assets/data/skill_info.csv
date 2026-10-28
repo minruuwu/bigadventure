@@ -17,12 +17,12 @@ skill015,口袋驚喜,job05,5,reaction,,,reaction,,,,,,,,,受到傷害後，10%�
 skill016,處決,job01,7,combat,enemy_single,lowest_hp,damage,,1,p,,1.5,,,,,slash,,,1,single,,2,
 skill017,雷暴,job02,7,combat,enemy_all,,damage,,,m,lightning,0.7,,,,,missile,,,3,diamond,2,3,
 skill018,閃身步,job03,7,combat,self,,buff,,,,,,,,,閃避率+10%,,,,0,single,,3,
-skill019,堅毅禱言,job04,7,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理減傷+15%，並恢復 40% 魔法攻擊力的生命,,,,0,diamond,3,3,
+skill019,堅毅禱言,job04,7,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理減傷+30%，並恢復 40% 魔法攻擊力的生命,,,,0,diamond,3,3,
 skill020,燃燒瓶,job05,7,combat,enemy_single,random,damage,,,p,fire,1,,,,每回合造成魔法攻擊力20%的火焰傷害,throw,,,5,single,,2,
 skill021,剛毅震擊,job01,10,combat,enemy_single,random,damage,,,p,,1.2,,,,物理減傷+10%,slash,,,1,single,,2,
 skill022,風刃亂舞,job02,10,combat,enemy_single,random,damage,,,m,wind,1.6,,,,,missile,,,5,single,,2,
 skill023,連續影擊,job03,10,combat,enemy_all,,damage,0.2,,p,,0.85,,,,,thrust,,,2,diamond,2,3,
-skill024,意志禱言,job04,10,combat,ally_single,prefer_without_status,buff,,,,,,,,,魔法減傷+15%，並恢復 40% 魔法攻擊力的生命,,,,0,diamond,3,3,
+skill024,意志禱言,job04,10,combat,ally_single,prefer_without_status,buff,,,,,,,,,魔法減傷+30%，並恢復 40% 魔法攻擊力的生命,,,,0,diamond,3,3,
 skill025,冷凍噴霧,job05,10,combat,enemy_all,,damage,,,p,frost,0.8,,,,被命中率+30%,throw,,,4,diamond,2,3,
 skill026,氣血充沛,job01,12,passive,,,passive,,,,,,,,,生命最大值+5%,,,,,,,,
 skill027,元素抵抗,job02,12,passive,,,passive,,,,,,,,,火/冰/雷/風元素抗性+10%,,,,,,,,
@@ -61,9 +61,9 @@ skill059,魔力守護,job02,30,combat,self,,buff,,,,,,,,,物理減傷+15%、魔�
 skill060,飛刃攻擊,job03,25,combat,enemy_single,lowest_hp,damage,,,p,,1.7,,,,,thrust,,,3,single,,2,
 skill061,暗刃突襲,job03,30,combat,enemy_single,lowest_hp,damage,0.2,,p,dark,1.8,,,,,thrust,,,2,single,,2,
 skill062,神力祝福,job04,25,combat,ally_single,prefer_without_status,buff,,,,,,,,,物理增傷 +40%、魔法增傷 +40%,,,,3,single,,3,
-skill063,聖域術,job04,30,combat,ally_all,,buff,,,,,,,,,物理減傷+10%、魔法減傷+10%,,,,3,diamond,2,3,
+skill063,聖域術,job04,30,combat,ally_all,,buff,,,,,,,,,物理減傷+25%、魔法減傷+25%,,,,3,diamond,2,3,
 skill064,催化酸雨,job05,25,combat,enemy_all,,damage,,,p,nature,0.85,,,,物理攻擊力-10%、魔法攻擊力-10%,throw,,,3,diamond,2,3,
-skill065,超頻研究,job05,30,combat,self,,buff,,,,,,,,,物理增傷 +40%、魔法增傷 +40%,,,,0,single,,3,
+skill065,超頻研究,job05,30,combat,self,,buff,,,,,,,,,物理增傷 +50%、魔法增傷 +50%,,,,0,single,,3,1
 skill066,反擊,job06,10,reaction,,,reaction,,,,,,,,,20%機率對物理魔法攻擊來源發動一次100%物理攻擊,,,,,,,,
 skill067,元素吸收,job07,10,reaction,,,reaction,,,,,,,,,10%機率將帶有火焰、冰霜、疾風、雷電屬性的傷害完全轉為恢復自身生命（不受傷）,,,,,,,,
 skill068,燕返箭,job08,10,reaction,,,reaction,,,,,,,,,10%機率對物理魔法攻擊來源發動一次200%物理攻擊,,,,,,,,
@@ -97,10 +97,10 @@ skill095,榮耀打擊,job06,20,combat,enemy_single,random,damage,,,p,,2.3,,,,我
 skill096,斧專精,job06,3,passive,,,passive,,,,,,,,,裝備斧時物理攻擊力+8%,,,,,,,,
 skill097,健壯,job06,10,passive,,,passive,,,,,,,,,生命力 +10%,,,,,,,,
 skill098,血氣昇華,job06,25,passive,,,passive,,,,,,,,,體質的50%加到物理攻擊力,,,,,,,,
-skill099,冰雪暴,job07,1,combat,enemy_all,,damage,,,m,frost,0.95,,,,,missile,,,4,diamond,2,3,
-skill100,閃電雷雲,job07,5,combat,enemy_all,,damage,,,m,lightning,0.95,,,,,missile,,,4,diamond,2,3,
+skill099,冰雪暴,job07,1,combat,enemy_all,,damage,,,m,frost,0.95,,,,,missile,,,4,diamond,2,3,1
+skill100,閃電雷雲,job07,5,combat,enemy_all,,damage,,,m,lightning,0.95,,,,,missile,,,4,diamond,2,3,1
 skill101,龍捲塵沙嵐,job07,8,combat,enemy_all,,damage,,,m,wind,0.85,,,,20%機率目盲2回合,missile,,,4,diamond,2,3,
-skill102,元素屏障,job07,12,combat,self,,buff,,,,,,,,,火焰、冰霜、雷電、疾風抗性各+30%，持續3回合,,,,0,single,,3,
+skill102,元素屏障,job07,12,combat,self,,buff,,,,,,,,,火焰、冰霜、雷電、疾風抗性各+40%，持續3回合,,,,0,single,,3,
 skill103,魔力紊亂,job07,15,combat,enemy_single,random,debuff,,,,,,,,,對敵方隨機一名施加封禁3回合（對Boss機率減半）,,,,4,single,,3,
 skill104,狂龍怒焰,job07,20,combat,enemy_single,random,damage,,,m,fire,2.5,,,,,pillar,,,5,line,,2,3
 skill105,魔力增幅,job07,3,passive,,,passive,,,,,,,,,魔法增傷+10%,,,,,,,,
@@ -135,11 +135,11 @@ skill133,雷神斷影衝,job12,20,combat,enemy_single,random_each,damage,,,p,lig
 skill134,人劍合一,job12,25,passive,,,passive,,,,,,,,,裝備劍時，最終物理攻擊力的 25% 加到生命力上,,,,,,,,
 skill135,雷汞風暴,job10,1,combat,enemy_all,,damage,0.1,,m,lightning,0.85,,,,,smash,,,4,diamond,2,3,
 skill136,書專精,job10,3,passive,,,passive,,,,,,,,,裝備書時魔法攻擊力 +8%,,,,,,,,
-skill137,生命脈衝,job10,5,combat,enemy_all,,damage,,,m,nature,0.7,,,,我方全體恢復魔法攻擊力 80% 的生命,smash,,,4,diamond,2,3,
+skill137,生命脈衝,job10,5,combat,enemy_all,,damage,,,m,nature,0.7,,,,我方全體恢復魔法攻擊力 80% 的生命,smash,,,4,diamond,2,3,1
 skill138,水銀奔流,job10,8,combat,enemy_all,,damage,,,m,,0.9,,,,,missile,,,4,diamond,2,3,
 skill139,原理,job10,10,passive,,,passive,,,,,,,,,暴擊傷害 +50%,,,,,,,,
-skill140,零度反應,job10,12,combat,enemy_all,,damage,,,m,frost,0.5,,,,,smash,,,4,diamond,2,3,
-skill141,分析弱點,job10,15,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,,,,,6,single,,3,
+skill140,零度反應,job10,12,combat,enemy_all,,damage,,,m,frost,0.5,,,,,smash,,,4,diamond,2,3,1
+skill141,分析弱點,job10,15,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,,,,,6,single,,3,0
 skill142,熾熵熱線,job10,20,combat,enemy_single,random,damage,,,m,fire,2.3,,,,,beam,,,7,line,,2,3
 skill143,定律,job10,25,passive,,,passive,,,,,,,,,魔法增傷 +10%,,,,,,,,
 skill144,聖光擊,job13,1,combat,enemy_single,random,damage,,,p,light,1.7,,,,,,,1,1,single,,2,
@@ -147,7 +147,7 @@ skill145,槍專精,job13,3,passive,,,passive,,,,,,,,,裝備槍時物理攻擊力
 skill146,守護誓言,job13,5,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
 skill147,聖光盾衛,job13,8,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
 skill148,虔誠靈氣,job13,10,passive,,,passive,,,,,,,,,全體隊友（含自己）物理減傷 +5%、魔法減傷 +5%（靈氣：同種不疊加，聖騎士倒下時消失）,,,,,,,,
-skill149,祝福之錘,job13,12,combat,enemy_all,,damage,,,p,,0.8,,,,,smash,,,5,diamond,1,3,
+skill149,祝福之錘,job13,12,combat,enemy_all,,damage,,,p,,0.8,,,,,smash,,,5,diamond,1,3,1
 skill150,神聖衝擊,job13,15,combat,enemy_all,,damage,,,p,lightning,0.95,,,,,,,,3,diamond,2,3,
 skill151,至高打擊,job13,20,combat,enemy_single,random,damage,,,p,light,2.2,,,,自身恢復物理攻擊力 50% 的生命,smash,,,1,single,,2,3
 skill152,抵抗靈氣,job13,25,passive,,,passive,,,,,,,,,全體隊友（含自己）七種抗性各 +15%（靈氣：同種不疊加，聖騎士倒下時消失）,,,,,,,,
@@ -157,13 +157,13 @@ skill155,武器研磨,job14,5,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
 skill156,冷凝劑,job14,8,combat,enemy_all,,damage,,,m,frost,0.6,,,,,throw,,,3,diamond,1,3,
 skill157,護甲專精,job14,10,passive,,,passive,,,,,,,,,物理減傷 +5%、魔法減傷 +5%,,,,,,,,
 skill158,狂亂錘打,job14,12,combat,enemy_all,,damage,,,p,,1.4,,,,,smash,,,0,diamond,2,3,
-skill159,武器破壞,job14,15,combat,enemy_single,random,damage,,,p,,1.7,,,,,,,,2,single,,2,
-skill160,法器破壞,job14,20,combat,enemy_single,random,damage,,,p,,1.7,,,,,,,,2,single,,2,3
+skill159,武器破壞,job14,15,combat,enemy_single,random,damage,,,p,,1.7,,,,,,,,2,single,,2,1
+skill160,法器破壞,job14,20,combat,enemy_single,random,damage,,,p,,1.7,,,,,,,,2,single,,2,1
 skill161,鍛造專精,job14,25,passive,,,passive,,,,,,,,,擔任隊長時，戰鬥勝利有 50% 機率讓整場鍛造石變成 1.5 倍（隊友分到的也一起變多，無條件進位）,,,,,,,,
-skill162,英雄之讚美詩,job15,1,combat,ally_all,,buff,,,,,,,,,,,,,0,diamond,4,3,
+skill162,英雄之讚美詩,job15,1,combat,ally_all,,buff,,,,,,,,,,,,,0,diamond,4,3,1
 skill163,靈動,job15,3,passive,,,passive,,,,,,,,,閃避率 +10%,,,,,,,,
-skill164,冥河之安眠曲,job15,5,combat,enemy_all,,debuff,,,,,,,,,,notes,,,0,diamond,4,3,
-skill165,獸之和弦,job15,8,combat,enemy_all,,damage,,,p,,0.8,m,,0.8,,notes,,,0,diamond,3,3,
+skill164,冥河之安眠曲,job15,5,combat,enemy_all,,debuff,,,,,,,,,,notes,,,0,diamond,4,3,1
+skill165,獸之和弦,job15,8,combat,enemy_all,,damage,,,p,,0.8,m,,0.8,,notes,,,0,diamond,3,3,1
 skill166,觀眾熱情,job15,10,passive,,,passive,,,,,,,,,每有一位活著的隊友（不含自己），物理攻擊力、魔法攻擊力各 +4%（最多 3 位 +12%；組隊介面會顯示目前加成）,,,,,,,,
 skill167,奉獻詩歌,job15,12,combat,ally_others,,heal,,,,,,,,,犧牲自己目前生命的 50%，其他每位隊友各恢復犧牲量 × 3 的生命（不擲暴擊、不吃治療加成；沒有其他活著的隊友時跳過）,,,,0,diamond,4,3,
 skill168,放浪小步舞曲,job15,15,combat,enemy_all,,debuff,,,,,,,,,,notes,,,0,diamond,4,3,
@@ -176,16 +176,16 @@ skill174,祕法共振,job16,8,combat,enemy_single,random,damage,,,m,,1.6,,,,我�
 skill175,引導靈光,job16,10,passive,,,passive,,,,,,,,,全體隊友（含自己）魔法增傷 +8%（靈氣：同種不疊加，祕法使倒下時消失）,,,,,,,,
 skill176,秘術守衛,job16,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
 skill177,秘奧之光,job16,15,combat,enemy_all,,damage,,0.5,m,light,1.1,,,,,pillar,,,4,diamond,2,3,
-skill178,秘法裂隙,job16,20,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,對 Boss 成功率減半、只放逐 1 回合,,,,5,single,1,3,3
+skill178,秘法裂隙,job16,20,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,對 Boss 成功率減半、只放逐 1 回合,,,,5,single,1,3,2
 skill179,知識累積,job16,25,passive,,,passive,,,,,,,,,擔任隊長時，戰鬥勝利有 50% 機率讓整場經驗變成 1.5 倍（隊友分到的也一起變多，無條件進位）,,,,,,,,
 skill180,苦痛魔箭,job17,1,combat,enemy_single,random,damage,,,m,dark,1.5,,,,,arrow,,,7,single,,2,
 skill181,邪能充盈,job17,3,passive,,,passive,,,,,,,,,魔法增傷 +10%,,,,,,,,
-skill182,魔能爆,job17,5,combat,enemy_all,,damage,,,m,dark,0.8,,,,,smash,,,4,diamond,2,3,
+skill182,魔能爆,job17,5,combat,enemy_all,,damage,,,m,dark,0.8,,,,,smash,,,4,diamond,2,3,1
 skill183,血噬詛咒,job17,8,combat,enemy_single,prefer_without_status,damage,,,m,dark,1.2,,,,,missile,,,5,single,,2,
 skill184,巫術軀體,job17,10,passive,,,passive,,,,,,,,,魔法減傷 +10%,,,,,,,,
-skill185,異界活力,job17,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
+skill185,異界活力,job17,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,0
 skill186,死靈低語,job17,15,combat,enemy_all,,damage,,,m,dark,0.8,,,,,smash,,,3,diamond,2,3,
-skill187,邪法矛,job17,20,combat,enemy_single,random,damage,,,m,dark,2.2,,,,目標身上每有 1 個減益，這招傷害 +10%（最多 +50%）,beam,,,6,line,,2,3
+skill187,邪法矛,job17,20,combat,enemy_single,random,damage,,,m,dark,2.2,,,,目標身上每有 1 個減益，這招傷害 +10%（最多 +50%）,beam,,,6,line,,2,2
 skill188,竊取精血,job17,25,passive,,,passive,,,,,,,,,造成傷害時，吸收實際傷害的 5% 恢復生命（全體攻擊取加總；只算主動傷害；不擲暴擊、不吃治療加成）,,,,,,,,
 skill189,罪證烙印,job18,1,combat,enemy_single,random,damage,,,p,light,1.5,,,,,,,,7,single,,2,
 skill190,異端追獵,job18,3,passive,,,passive,,,,,,,,,暴擊傷害 +50%,,,,,,,,
@@ -199,7 +199,7 @@ skill197,審判靈氣,job18,25,passive,,,passive,,,,,,,,,全體隊友（含自�
 skill198,毒刃突刺,job19,1,combat,enemy_single,random,damage,,,p,nature,1.4,,,,,,,,2,single,,2,
 skill199,匕專精,job19,3,passive,,,passive,,,,,,,,,裝備匕首時物理攻擊力 +8%,,,,,,,,
 skill200,影襲,job19,5,combat,enemy_single,random,damage,0.2,,p,dark,1.7,,,,,,,,3,single,,2,
-skill201,連環刺殺,job19,8,combat,enemy_single,random,damage,,,p,,0.5,,,,,,4,,4,single,,2,
+skill201,連環刺殺,job19,8,combat,enemy_single,random,damage,,,p,,0.5,,,,,,4,,4,single,,2,1
 skill202,匕精通,job19,10,passive,,,passive,,,,,,,,,裝備匕首時暴擊率 +10%、暴擊傷害 +50%,,,,,,,,
 skill203,潛伏,job19,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,
 skill204,致命弱點,job19,15,combat,enemy_single,prefer_without_status,damage,,,p,dark,1.4,,,,,,,,2,single,,2,
