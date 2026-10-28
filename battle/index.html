@@ -60,6 +60,15 @@ button{font:inherit;color:inherit}
 .lvgo3{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 .bhead{position:relative}.bhead .atg{position:absolute;right:6px;top:50%;transform:translateY(-50%);font:inherit;font-size:12px;font-weight:900;letter-spacing:0;color:#f0e2c4;background:#4a2a12;border:0;padding:3px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a}
 .bhead .atg.on{background:#3f6a2c;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6a9a4c}
+.dnum{position:absolute;inset:0;pointer-events:none;z-index:1100;overflow:hidden}
+.dn{position:absolute;left:0;top:0;white-space:nowrap;font-family:'Arial Black','PingFang TC','Noto Sans TC',sans-serif;font-weight:900;line-height:1;transform-origin:50% 100%;will-change:transform,opacity;
+ text-shadow:1px 0 0 #140a04,-1px 0 0 #140a04,0 1px 0 #140a04,0 -1px 0 #140a04,1px 1px 0 #140a04,-1px -1px 0 #140a04,1px -1px 0 #140a04,-1px 1px 0 #140a04,0 2px 0 rgba(0,0,0,.5)}
+.dn.el-lightning{text-shadow:1px 0 0 #ff7a1a,-1px 0 0 #ff7a1a,0 1px 0 #ff7a1a,0 -1px 0 #ff7a1a,2px 0 0 #3a1404,-2px 0 0 #3a1404,0 2px 0 #3a1404,0 -2px 0 #3a1404,1px 1px 0 #3a1404,-1px -1px 0 #3a1404,1px -1px 0 #3a1404,-1px 1px 0 #3a1404}
+.dn.el-light{text-shadow:1px 0 0 #8a6a1a,-1px 0 0 #8a6a1a,0 1px 0 #8a6a1a,0 -1px 0 #8a6a1a,1px 1px 0 #3a2a08,-1px -1px 0 #3a2a08,1px -1px 0 #3a2a08,-1px 1px 0 #3a2a08,0 0 4px rgba(255,240,180,.7)}
+.dn small{font-size:.6em;margin-left:2px;vertical-align:.35em;letter-spacing:0}
+.dn .wk,.dn .rs{display:inline-block;font-size:.52em;font-family:'Arial Black',sans-serif;padding:1px 3px;margin-left:3px;vertical-align:.5em;text-shadow:none;letter-spacing:.02em;border-radius:1px}
+.dn .wk{background:#d0281a;color:#fff;box-shadow:0 0 0 1px #3a0804}.dn .rs{background:#6a6a6a;color:#e8e8e8;box-shadow:0 0 0 1px #202020}
+.dn .cr{display:block;font-size:.5em;text-align:center;margin-bottom:1px;color:#ffe08a}
 .bmenu{position:absolute;z-index:1200;display:flex;gap:3px;align-items:flex-start;pointer-events:auto}
 .bmenu[hidden]{display:none}
 .bm-c{display:flex;flex-direction:column;gap:2px;background:rgba(20,12,6,.88);box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6b4a2a;padding:3px}
@@ -183,7 +192,7 @@ html,body,*{touch-action:manipulation}
   <div id="tacv" hidden></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
-  <div class="frame" id="frame"><div class="bmenu" id="bmenu" hidden></div><div class="binfo" id="binfo" hidden></div><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
+  <div class="frame" id="frame"><div class="dnum" id="dnum"></div><div class="bmenu" id="bmenu" hidden></div><div class="binfo" id="binfo" hidden></div><div class="fover" id="bres" hidden><div class="rbox"><div class="rt" id="rtt"></div><p id="rtxt"></p><button type="button" class="go" id="rok">確認結果</button></div></div>
    <div class="sky" id="sky"><canvas id="skc" width="418" height="280"></canvas></div><div class="bg" id="bg"></div><canvas id="fxc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><canvas id="auc" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none"></canvas><div class="sky" id="sky2" style="background:none;pointer-events:none"><canvas id="skc2" width="418" height="280"></canvas></div><canvas id="fxm" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:199"></canvas><div class="fgl" id="fgl"></div><canvas id="fxf" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:201"></canvas><canvas id="pfx" style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:250"></canvas>
   </div>
   <div class="bdesc" id="bdesc" hidden></div>
@@ -197,7 +206,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=6"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=33"></script>
+<script src="engine.js?v=34"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=17"></script>
 <script>
@@ -371,6 +380,7 @@ function msrc(k,now,ph){if(FLY[k]){var fi=FLY[k].im&&FLY[k].im[flyFr(k,now,ph)];
 function sizeU(){U=frame.clientWidth/UW}
 function tileW(){return frame.clientHeight*BG[cur].bw/BG[cur].bh}
 function build(){
+  Object.keys(DNL).forEach(function(k){DNL[k].remove()});DNL={};
   els.forEach(function(e){e.remove()});els=[];party=[];mons=[];
   MEMB.slice(0,B&&B.rift?1:4).forEach(function(p,i){var sh=el('div','sh'),c=document.createElement('canvas');c.width=c.height=48;c.className='sp';
     var hb=el('div','hpb');hb.appendChild(el('i'));party.push({i:i,f:c,sh:sh,hb:hb,ph:Math.random()*2000,look:look(p),far:['杖','書','弓'].indexOf(p.weapon)>=0,au:window.Aura?Aura.ids(p):[]});frame.appendChild(sh);frame.appendChild(c);frame.appendChild(hb);els.push(sh,c,hb)});
@@ -444,7 +454,7 @@ function tick(now){
     else{var sw=MZ[0]*(m.k==='sk'?.6:LAY[m.k]||ANI[m.k]?.7:.9)*m.sc;m.sh.style.width=(sw*U)+'px';m.sh.style.height=(4*U)+'px';m.sh.style.left=((mx-sw/2)*U)+'px';m.sh.style.top=((LAY[m.k]||ANI[m.k]?gy-5*m.sc:gy-1.5)*U)+'px';m.sh.style.opacity=op}
     hpBar(m.hb,B.hpNow&&B.hpNow.m[i],B.mhpM&&B.mhpM[i],mx-7*m.sc,gy+1,14*m.sc,t<WALK||op<.05)});
   if(B.live&&LV&&LV.infoDirty&&now-(LV.infoT||0)>200){LV.infoDirty=0;LV.infoT=now;renderInfo()}placeMenu();
-  drawAura(t,now);drawParts(t);drawVfx(t);drawSheep(t,now);drawOrbs(t,now);drawBlood(t);drawIdle(now);drawStatus(now);drawSongs(t,now);
+  drawAura(t,now);drawParts(t);drawVfx(t);drawSheep(t,now);drawOrbs(t,now);drawBlood(t);drawIdle(now);drawStatus(now);drawSongs(t,now);drawNums(t);
   raf=requestAnimationFrame(tick);
 }
 /* ---- 攻擊特效（依武器種類；顏色：普攻白／魔法淡紫、無屬性技能淡金、有屬性用屬性色） ---- */
@@ -665,6 +675,23 @@ function hitFx(e,d,wk,c,sx,sy,hx,hy,GY,SCM){
         pBurst(pk,hx,hy,d-(wk==='hammer'?220:(e.hit>180?e.hit:220)),14,VS)}
       if(wk!=='hammer'&&wk!=='throw'){var bu=(d-(e.hit>180?e.hit:220))/320;if(bu>=0&&bu<=1){var mg=wk==='staff'||wk==='book',n=mg?14:8;for(var k7=0;k7<n;k7++){var an7=k7/n*Math.PI*2+.3,dd=2+bu*(mg?10:6);VP(hx+Math.cos(an7)*dd,hy+Math.sin(an7)*dd*(mg?.6:1),k7%2?c:'#ffffff',1-bu)}}}
 }
+/* ---- 跳字：傷害、恢復、閃避、SP 增減，顯示在受影響的人旁邊，顏色照屬性 ----
+   時間對準命中那一刻（多段每下間隔 0.13 秒、擴散晚 0.09 秒、吸血等血氣流回來再跳） */
+var DNC={'':'#ffffff',m:'#d6b8ff',fire:'#ff7a3a',frost:'#9ad8ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#fff6d8',dark:'#c08aff'},DNL={};
+function numT(e,n){var base=e.rfx?(RIMP[e.rfx]||300):e.rk==='thorn'?60:(e.tick||(e.idle&&!e.wt))?120:e.wt?200:(e.hit||180);return e.t+base+(n.h||0)*130+(n.spl?90:0)+(n.ls?520:0)+(n.k==='sp'&&!e.wt?220:0)}
+function numXY(n){if(n.s==='p'){var pp=posOf(n.i);return[pp[0]+4,pp[1]-30]}var m=mons[n.i];if(!m||m.lx==null)return null;var MZ=msz(m.k);return[m.lx+MZ[0]*m.sc*.12,m.gy-(m.lift||0)-Math.min(MZ[1]*m.sc*.8,40)]}
+function numHTML(n){var k=n.k;if(k==='miss')return['閃避','#c8c8c8',.8];if(k==='block')return['格擋','#d8d0b8',.8];if(k==='void')return['無效','#c8c8c8',.8];
+  if(k==='sp')return[(n.v>0?'+':'')+n.v+' SP','#5ec8ff',.85];if(k==='h')return['+'+n.v,'#6cf08a',1];if(k==='shd')return['護盾 '+n.v,'#9ad8ff',.8];if(k==='t')return[String(n.v),'#d8d8d8',1];
+  return[String(n.v),n.el?(DNC[n.el]||'#fff'):(n.dt==='m'?DNC.m:DNC['']),n.c?1.45:1]}
+function drawNums(t){var box=$('dnum');if(!box||!B)return;var live={},cnt={};
+  for(var q=B.ev.length-1;q>=0;q--){var e=B.ev[q];if(!e.nums)continue;if(e.t>t+50)continue;if(t-e.t>4000)break;
+    e.nums.forEach(function(n,j){var t0=numT(e,n),d=t-t0;if(d<0||d>900)return;var key=q+'_'+j;live[key]=1;var el=DNL[key];
+      if(!el){var h=numHTML(n);el=document.createElement('div');el.className='dn'+(n.k==='d'&&n.el?' el-'+n.el:'');el.style.color=h[1];el.style.fontSize=(h[2]*Math.max(12,U*6.2)).toFixed(1)+'px';
+        el.innerHTML=(n.c&&n.k==='d'?'<span class="cr">暴擊</span>':'')+h[0]+(n.k==='d'&&n.w===1?'<span class="wk">WEAK</span>':'')+(n.k==='d'&&n.w===-1?'<span class="rs">RESIST</span>':'');
+        var u0=n.s+n.i+'@'+Math.round(t0/60);cnt[u0]=(cnt[u0]||0)+1;el._st=cnt[u0]-1;box.appendChild(el);DNL[key]=el}
+      var xy=numXY(n);if(!xy){el.style.opacity=0;return}var u=d/900,rise=14*(1-Math.pow(1-Math.min(1,u*1.6),2)),pop=d<90?1.35-.35*(d/90):1,a=u<.65?1:1-(u-.65)/.35,jx=((n.h||0)%3-1)*5+el._st*4,jy=el._st*7;
+      el.style.opacity=a.toFixed(2);el.style.transform='translate('+((xy[0]+jx)*U).toFixed(1)+'px,'+((xy[1]-rise-jy)*U).toFixed(1)+'px) translate(-50%,-100%) scale('+pop.toFixed(2)+')'})}
+  Object.keys(DNL).forEach(function(k){if(!live[k]){DNL[k].remove();delete DNL[k]}})}
 /* ---- 反應技特效 ---- */
 /* 單位腳底座標與身形：x、y＝腳底，h＝身高，w＝半寬（光圈大小跟著體型） */
 function footOf(side,i){if(side==='p'){var pp=posOf(i);return{x:pp[0],y:pp[1],h:34,w:9}}var m=mons[i];if(!m||m.lx==null)return null;var MZ=msz(m.k);return{x:m.lx,y:m.gy-(m.lift||0),h:MZ[1]*m.sc,w:Math.max(8,MZ[0]*m.sc*.32)}}
@@ -1331,7 +1358,8 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
         else{o.thr=o.rtg;o.hit=Math.max(1,RI-140);if(e.rfx==='grave'){o.gs=e.side;o.ga=e.a;o.cast='#5a4632';o.castLen=420}}}
       else if(e.rn)o.rn=e.rn;
       if(e.tome)o.tome=e.tome;
-      if(e.spd)o.spd=e.spd;/* 被奪走 SP 的我方角色 */
+      if(e.spd)o.spd=e.spd;
+      if(e.nums&&e.nums.length)o.nums=e.nums;/* 跳字 *//* 被奪走 SP 的我方角色 */
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
       if(e.kind!=='round')t+=e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
       (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});

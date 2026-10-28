@@ -228,7 +228,14 @@
     function resOf(u, el) { if (!el) return u.b.res.none || 0; /* 無屬性：只有怪物有隱藏的無屬性抗性（monster_info 的 none_res_rate），玩家為 0；真實傷害不經過這裡 */ var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV }); return r }
 
     /* --- 戰報 --- */
-    function line(o) { ev.push(o); return o }
+    function line(o) { ev.push(o); NC = null; return o }
+    /* 跳字：每一行戰報帶 nums = [{s 陣營, i 編號, v 數值, k 種類, el 屬性, dt 物理/魔法, c 暴擊, w 弱點1/抗性-1, h 第幾下, ls 吸血}]
+       k：d 傷害、t 真實傷害、h 恢復、shd 護盾吸收、miss 閃避、block 格擋、void 無效、sp SP 增減。NC = 目前這一下的屬性等資訊（每行開頭清空，沒設就算真實傷害） */
+    var NC = null;
+    function numAdd(u, v, k, o) { var e = ev[ev.length - 1]; if (!e || !u) return; var n = { s: u.side, i: u.i, v: Math.round(v || 0), k: k }; if (o) Object.keys(o).forEach(function (q) { if (o[q] != null && o[q] !== '' && o[q] !== false) n[q] = o[q] }); (e.nums = e.nums || []).push(n) }
+    function numHit(d, amt, left) { var c = NC || {}, el = c.el || '', w = 0; if (el) { var r = resOf(d, el); w = r < 0 ? 1 : r >= 0.5 ? -1 : 0 }
+      if (amt - left > 0) numAdd(d, amt - left, 'shd', { h: c.h });
+      if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h }) }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n }) }
     function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null } }
@@ -328,7 +335,7 @@
       var left = amt; if (src && amt > 0 && src !== d) d._lh = src; /* 記下最後打到牠的人（擊殺 +1 SP） */
       d.st.forEach(function (s) { if (left > 0 && s.shield > 0) { var x = Math.min(s.shield, left); s.shield -= x; left -= x } });
       d.st = d.st.filter(function (s) { return !(s.rows.some(function (r) { return r.k === 'shield' }) && s.shield <= 0) });
-      d.hp -= left;
+      d.hp -= left; numHit(d, amt, left);
       if (left > 0 && !dot) d.st = d.st.filter(function (s) { return !s.rows.some(function (r) { return r.k === 'sleep' }) });
       return left;
     }
@@ -338,7 +345,7 @@
       if (t.dead || banished(t)) return 0;
       var v = raw ? amt : amt * (1 + sv(t, 'heal_taken_rate'));
       var real = Math.max(0, Math.min(Math.round(v), t.b.mhp - Math.round(t.hp)));
-      t.hp += real; return real;
+      t.hp += real; if (real > 0) numAdd(t, real, 'h', { ls: NC && NC.ls, h: NC && NC.h }); return real;
     }
     function checkDeath(u, e) {
       if (u.dead || u.hp > 0) return false;
@@ -360,7 +367,7 @@
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
-      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）')) } }
+      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (u._lh.sp > k0) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）')) } }
       /* 吞噬者倒下：肚子裡的人回來（血量維持、狀態恢復計時） */
       if (u.side === 'm') P.forEach(function (x) { var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return; removeStatus(x, q); x.st.forEach(function (s) { s.paused = false }); if (e) { (e._rel = e._rel || []).push(x.name + ' 從 ' + u.name + ' 的肚子裡逃出來了'); (e.rel = e.rel || []).push(x.i) } });
       if (e) { if (u.side === 'm') (e.dead = e.dead || []).push(u.i); else (e.pko = e.pko || []).push(u.i) }
@@ -405,7 +412,7 @@
       order.forEach(function (rid) {
         var L = els[rid], u = L[0].u, out = [], tgs = []; if (u.dead) return;
         var r = line({ rn: rid, txt: '' });
-        L.forEach(function (x) { if (x.t.dead || banished(x.t)) return; var d = hurt(x.t, x.amt, u); addStat(r, u, 'dmg', d, RUNEN[rid]); addStat(r, x.t, 'taken', d, u.name + ' ' + RUNEN[rid]); out.push(x.t.name + ' ' + d); if (tgs.indexOf(x.t) < 0) tgs.push(x.t); checkDeath(x.t, r) });
+        L.forEach(function (x) { if (x.t.dead || banished(x.t)) return; NC = { el: L[0].el, dt: x.dt || 'm' }; var d = hurt(x.t, x.amt, u); addStat(r, u, 'dmg', d, RUNEN[rid]); addStat(r, x.t, 'taken', d, u.name + ' ' + RUNEN[rid]); out.push(x.t.name + ' ' + d); if (tgs.indexOf(x.t) < 0) tgs.push(x.t); checkDeath(x.t, r) });
         if (!out.length) { ev.pop(); return }
         var dt = L[0].dt; r.txt = u.name + ' 的「' + RUNEN[rid] + '」：' + out.join('、') + ' ' + ELN[L[0].el] + (dt === 'p' ? '物理' : dt === 'm' ? '魔法' : '') + '傷害'; r.el = L[0].el; fxOn(r, 'el', u, tgs);
         /* 附加狀態：每個被追加傷害的目標各一次。火炬之光看物攻、魔攻較高者（血沸／魂灼）；雷神之鎚的麻痺對 Boss 無效 */
@@ -443,8 +450,8 @@
       if (canCtr) {
         var parts = ctr.map(function (q) { return { d: q.dmg_type || 'p', e: q.element || '', r: num(q.value) } });
         var x = dmgOnce(d, a, parts, { cr: 0, cd: 0 }, { noReact: true });
-        if (x.miss) { r.txt += '，反擊被閃開'; r.rmiss = 1 }
-        else if (x.amt) { var real = hurt(a, x.amt, d); r.txt += '，反擊 ' + a.name + (x.crit ? ' 暴擊！' : ' ') + real + ' 傷害'; addStat(r, d, 'dmg', real, re.name); addStat(r, a, 'taken', real, d.name + ' ' + re.name); checkDeath(a, r) }
+        if (x.miss) { r.txt += '，反擊被閃開'; r.rmiss = 1; numAdd(a, 0, 'miss') }
+        else if (x.amt) { var cp = parts.reduce(function (p1, p2) { return p2.r > p1.r ? p2 : p1 }, parts[0]); NC = { el: cp.e || '', dt: cp.d, c: x.crit }; var real = hurt(a, x.amt, d); r.txt += '，反擊 ' + a.name + (x.crit ? ' 暴擊！' : ' ') + real + ' 傷害'; addStat(r, d, 'dmg', real, re.name); addStat(r, a, 'taken', real, d.name + ' ' + re.name); checkDeath(a, r) }
       }
       hl.forEach(function (q) { if (d.dead) return; var h = num(q.value) * (q.base === 'p_atk' ? stat(d, 'patk') : stat(d, 'matk')), c = RND() < stat(d, 'crit'); h *= (1 + d.b.heal) * (c ? 1 + stat(d, 'cdmg') : 1); var got = heal(d, d, h); if (got) { r.txt += '，' + d.name + (c ? ' 暴擊！' : ' ') + '恢復 ' + got + ' 生命'; addStat(r, d, 'heal', got, re.name) } });
       sts.forEach(function (q) { if (!a.dead && applyStatus(d, a, q.status_name, q.turns, 1, r)) r.dring = 1 });
@@ -466,7 +473,7 @@
           removeStatus(u, ban); u.st.forEach(function (s) { s.paused = false });
           var src = ban.src, r0 = ban.rows.filter(function (r) { return r.k === 'banish' })[0], c = RND() < stat(src, 'crit');
           var amt = Math.round(r0.amt * (1 + stat(src, 'mdmg')) * (1 - Math.min(stat(u, 'mred'), 0.9)) * (c ? 1 + stat(src, 'cdmg') : 1));
-          var real = hurt(u, amt, src); e.txt = u.name + ' 從裂隙回來，' + (c ? '暴擊！' : '') + '受到 ' + real + ' 魔法傷害'; addStat(e, src, 'dmg', real, '秘法裂隙'); e.snap = 1;
+          NC = { el: '', dt: 'm', c: c }; var real = hurt(u, amt, src); e.txt = u.name + ' 從裂隙回來，' + (c ? '暴擊！' : '') + '受到 ' + real + ' 魔法傷害'; addStat(e, src, 'dmg', real, '秘法裂隙'); e.snap = 1;
           if (checkDeath(u, e)) { flushRel(e); e.hp = hpSnap(); return false }
           e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' });
         } else { ban.turns--; e.txt = u.name + ' 被放逐在時空裂隙中'; e.idle = 1; e.hp = hpSnap(); return false }
@@ -477,8 +484,8 @@
         if (s.paused) return;
         s.rows.forEach(function (r) {
           if (r.k === 'dot' && r.amt) { var red = r.dt === 'm' ? stat(u, 'mred') : stat(u, 'pred'), v = Math.max(1, Math.round(r.amt * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(u, r.el), 0.9)) * (1 + sv(u, 'dmg_taken_rate'))));
-            var real = hurt(u, v, s.src, true); tick.push('「' + s.n + '」' + real + ' 傷害'); addStat(e, s.src, 'dmg', real, s.n); addStat(e, u, 'taken', real, s.n);
-            if (s.rows.some(function (q) { return q.k === 'drain' }) && !s.src.dead) { var g = heal(s.src, s.src, real, null, true); if (g) { addStat(e, s.src, 'heal', g, s.n); (e.drain = e.drain || []).push([s.src.side, s.src.i]) } } }
+            NC = { el: r.el || '', dt: r.dt }; var real = hurt(u, v, s.src, true); tick.push('「' + s.n + '」' + real + ' 傷害'); addStat(e, s.src, 'dmg', real, s.n); addStat(e, u, 'taken', real, s.n);
+            if (s.rows.some(function (q) { return q.k === 'drain' }) && !s.src.dead) { NC = { ls: 1 }; var g = heal(s.src, s.src, real, null, true); if (g) { addStat(e, s.src, 'heal', g, s.n); (e.drain = e.drain || []).push([s.src.side, s.src.i]) } } }
           if (r.k === 'hot' && r.amt) { var h = heal(s.src, u, r.amt); if (h) { tick.push('「' + s.n + '」恢復 ' + h); addStat(e, s.src, 'heal', h, s.n) } }
         });
       });
@@ -551,7 +558,7 @@
       if (u.dead || !u.runes.length) return;
       var dealt = (e._dealt || 0) > 0;
       if (dealt && u.runes.indexOf('rune26') >= 0) { var loss = Math.max(1, Math.round(u.b.mhp * RV(D, 'rune26', 0, 0.05, u))), lt = Math.round(loss * RV(D, 'rune26', 1, 2, u));
-        rq(e, 'rune26', function (r) { if (u.dead) return false; var hitT = foes(u).filter(function (q) { return !banished(q) }); u.hp -= loss; r.txt = u.name + ' 的「墓之土」：失去 ' + loss + ' 生命，全體敵人受到 ' + lt + ' 真實傷害'; addStat(r, u, 'taken', loss, '墓之土'); trueAll(u, lt, r, '墓之土'); fxOn(r, 'grave', u, hitT); checkDeath(u, r) }) }
+        rq(e, 'rune26', function (r) { if (u.dead) return false; var hitT = foes(u).filter(function (q) { return !banished(q) }); u.hp -= loss; numAdd(u, loss, 't'); r.txt = u.name + ' 的「墓之土」：失去 ' + loss + ' 生命，全體敵人受到 ' + lt + ' 真實傷害'; addStat(r, u, 'taken', loss, '墓之土'); trueAll(u, lt, r, '墓之土'); fxOn(r, 'grave', u, hitT); checkDeath(u, r) }) }
       if (!isExtra && dealt && u.runes.indexOf('rune21') >= 0 && sk.id !== 'atk' && sk.ty === 'damage') {
         u.r21 = (u.r21 || 0) + 1; var need = RV(D, 'rune21', 1, 3, u);
         /* 光球累積：tome = [陣營, 編號, 目前層數, 滿層數]；畫面照這個畫角色左上方的光球 */
@@ -606,7 +613,7 @@
       P.forEach(function (x) {
         var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return;
         var r0 = q.rows.filter(function (r) { return r.k === 'swallow' })[0], amt = Math.max(1, Math.round(x.b.mhp * (r0 ? r0.v : 0.05)));
-        x.hp -= amt; var e = line({ side: x.side, a: x.i, txt: x.name + ' 被 ' + u.name + ' 消化了 ' + amt + ' 生命', tick: 1 }); addStat(e, x, 'taken', amt, u.name + ' 消化');
+        x.hp -= amt; var e = line({ side: x.side, a: x.i, txt: x.name + ' 被 ' + u.name + ' 消化了 ' + amt + ' 生命', tick: 1 }); numAdd(x, amt, 't'); addStat(e, x, 'taken', amt, u.name + ' 消化');
         if (checkDeath(x, e)) e.txt += '，被消化殆盡';
         e.hp = hpSnap();
       });
@@ -640,22 +647,25 @@
             if (bonus.sure_crit_low_hp && t.hp / t.b.mhp < (num(bonus.sure_crit_low_hp.value) || 0.3)) sc = true;
             var x = dmgOnce(u, t, sk.parts, sk, { mult: mult, extraCrit: xc, sureCrit: sc });
             var rec = perT[t.i + t.side];
-            if (x.void) { rec.hs.push('無效'); return }
-            if (x.miss) { rec.hs.push('閃開'); return }
-            if (x.blocked) { rec.hs.push('擋下'); reactPost(t, u, x.re, e); return }
+            if (x.void) { rec.hs.push('無效'); numAdd(t, 0, 'void', { h: h }); return }
+            if (x.miss) { rec.hs.push('閃開'); numAdd(t, 0, 'miss', { h: h }); return }
+            if (x.blocked) { rec.hs.push('擋下'); numAdd(t, 0, 'block', { h: h }); reactPost(t, u, x.re, e); return }
             rec.ok = true;
+            /* 跳字：主屬性 = 倍率最高的那一段（混合傷害只跳一個總數） */
+            var mp0 = sk.parts.reduce(function (a, b) { return b.r > a.r ? b : a }, sk.parts[0] || { d: 'p', e: '' });
+            NC = { el: mp0.e || '', dt: mp0.d, c: x.crit, h: h };
             var real = x.amt ? hurt(t, x.amt, u) : 0; totalDmg += real; if (x.crit) anyCrit = true;
             /* 武器淬毒：該次傷害的一定比例，額外的屬性傷害 */
-            u.special.forEach(function (s) { if (s.k === 'extra_dmg' && real > 0 && !t.dead) { var ex = Math.round(real * s.v * (1 - Math.min(resOf(t, s.el), 0.9))); if (ex > 0) { real += hurt(t, ex, u); totalDmg += ex } } });
+            u.special.forEach(function (s) { if (s.k === 'extra_dmg' && real > 0 && !t.dead) { var ex = Math.round(real * s.v * (1 - Math.min(resOf(t, s.el), 0.9))); if (ex > 0) { NC = { el: s.el, dt: 'm', h: h }; real += hurt(t, ex, u); totalDmg += ex } } });
             /* 元素符文：主傷害（減傷後實際傷害）的 30% 屬性傷害，類型跟著技能（物理／魔法／混合），再吃該元素抗性；
                數字現在就算好，等這一招結束後才獨立一行結算、演出，並附加該符文的狀態 */
             var elx = 0, dtp = (sk.parts.some(function (x) { return x.d === 'p' }) ? 'p' : '') + (sk.parts.some(function (x) { return x.d === 'm' }) ? 'm' : '');
             [['rune01', 'fire'], ['rune02', 'frost'], ['rune03', 'lightning'], ['rune04', 'wind']].forEach(function (q) { if (u.runes.indexOf(q[0]) >= 0 && real > 0) { var ex = Math.round(real * RV(D, q[0], 0, 0.3, u) * (1 - Math.min(resOf(t, q[1]), 0.9))); if (ex > 0) { elx += ex; totalDmg += ex; (e._rn = e._rn || []).push({ rid: q[0], elx: 1, el: q[1], dt: dtp, u: u, t: t, amt: ex }) } } });
-            if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round((real + elx) * RV(D, 'rune12', 0, 0.5, u)); real += hurt(t, cr, u); totalDmg += cr }
+            if (u.runes.indexOf('rune12') >= 0 && debuffs(t).length && real > 0) { var cr = Math.round((real + elx) * RV(D, 'rune12', 0, 0.5, u)); NC = { tr: 1, h: h }; real += hurt(t, cr, u); totalDmg += cr }
             rec.hs.push((x.crit ? '暴擊 ' : '') + real + (x.absorbed ? '（吸收 ' + x.absorbed + '）' : ''));
             /* 水之幽暗：每次暴擊，對隨機一名敵人造成物攻、魔攻較高者 200% 的黑暗魔法傷害（不再暴擊、不連鎖） */
             if (x.crit && u.runes.indexOf('rune25') >= 0) { var fs = foes(u).filter(function (q) { return !banished(q) }); if (fs.length) { var wt = pickOne(fs), wa = Math.round(Math.max(stat(u, 'patk'), stat(u, 'matk')) * RV(D, 'rune25', 0, 2, u) * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(wt, 'mred'), 0.9)) * (1 - Math.min(resOf(wt, 'dark'), 0.9))); wa = Math.max(1, wa); totalDmg += wa;
-              rq(e, 'rune25', function (r) { if (wt.dead || u.dead) return false; var wr = hurt(wt, wa, u); addStat(r, u, 'dmg', wr, '水之幽暗'); addStat(r, wt, 'taken', wr, u.name + ' 水之幽暗'); r.txt = u.name + ' 的「水之幽暗」：' + wt.name + ' 受到 ' + wr + ' 黑暗傷害'; fxOn(r, 'drown', u, [wt]); checkDeath(wt, r) }) } }
+              rq(e, 'rune25', function (r) { if (wt.dead || u.dead) return false; NC = { el: 'dark', dt: 'm' }; var wr = hurt(wt, wa, u); addStat(r, u, 'dmg', wr, '水之幽暗'); addStat(r, wt, 'taken', wr, u.name + ' 水之幽暗'); r.txt = u.name + ' 的「水之幽暗」：' + wt.name + ' 受到 ' + wr + ' 黑暗傷害'; fxOn(r, 'drown', u, [wt]); checkDeath(wt, r) }) } }
             addStat(e, u, 'dmg', real, sk.n); addStat(e, t, 'taken', real, u.name + ' ' + sk.n);
             /* 擴散（skill_effect 的 bonus / splash）：其他敵方各受到主目標「減傷前」傷害的 value 倍，再吃各自的減傷；
                跟著主目標的暴擊，主目標閃開就不擴散；擴散本身不能閃避、不觸發反應與符文 */
@@ -663,7 +673,7 @@
               var spP = sk.parts[0] && sk.parts[0].d === 'm', spBase = x.amt / Math.max(0.1, (1 - Math.min(stat(t, spP ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(t, ''), 0.9)));
               foes(u).filter(function (q) { return q !== t && !q.dead && !banished(q) }).forEach(function (q) {
                 var sa = Math.max(1, Math.round(spBase * num(bonus.splash.value) * (1 - Math.min(stat(q, spP ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(q, ''), 0.9))));
-                var sr = hurt(q, sa, u); totalDmg += sr; addStat(e, u, 'dmg', sr, sk.n + '（擴散）'); addStat(e, q, 'taken', sr, u.name + ' ' + sk.n + '（擴散）');
+                NC = { el: mp0.e || '', dt: mp0.d, c: x.crit, h: h, spl: 1 }; var sr = hurt(q, sa, u); totalDmg += sr; addStat(e, u, 'dmg', sr, sk.n + '（擴散）'); addStat(e, q, 'taken', sr, u.name + ' ' + sk.n + '（擴散）');
                 (e._x = e._x || []).push('擴散 → ' + q.name + ' ' + sr); (e.spl = e.spl || []).push([q.side, q.i]); checkDeath(q, e);
               });
             }
@@ -676,7 +686,7 @@
             /* 每一下附加的狀態 */
             /* 奪取 SP（屍爪）：命中後擲 apply_chance，成功就讓被打的我方角色少 value 點 SP（最低 0） */
             effs.forEach(function (r) { if (r.effect_kind !== 'sp_drain' || !SPM || t.side !== 'p' || t.dead || (t.sp | 0) <= 0) return; var ch = String(r.apply_chance || '').trim() === '' ? 1 : num(r.apply_chance); if (RND() >= ch) return;
-              var lost = Math.min(t.sp | 0, Math.max(1, num(r.value) || 1)); t.sp = (t.sp | 0) - lost; (e.spd = e.spd || []).push(t.i); (e._spk = e._spk || []).push(t.name + ' 被奪走 ' + lost + ' SP') });
+              var lost = Math.min(t.sp | 0, Math.max(1, num(r.value) || 1)); t.sp = (t.sp | 0) - lost; numAdd(t, -lost, 'sp', { h: h }); (e.spd = e.spd || []).push(t.i); (e._spk = e._spk || []).push(t.name + ' 被奪走 ' + lost + ' SP') });
             effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'per_hit' && !t.dead) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, null) });
             /* 即死（死之敕命）：每次命中判定，對首領無效；倒下時照常可以被先祖之鄉、神恩救回 */
             if (!t.dead && t.hp > 0 && !t.boss && real > 0) effs.forEach(function (r) { if (r.effect_kind === 'instakill' && !t.dead && t.hp > 0 && RND() < (num(r.apply_chance) || 0)) { t.hp = 0; (e._x = e._x || []).push(t.name + ' 被「' + sk.n + '」即死') } });
@@ -692,7 +702,7 @@
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
         var ls = sv(u, 'lifesteal') + auraVal(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25, u) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v });
-        if (ls > 0 && totalDmg > 0 && !u.dead) { var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
+        if (ls > 0 && totalDmg > 0 && !u.dead) { NC = { ls: 1 }; var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
         /* 熊之力量：濺射 */
         if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bAmt = Math.round(totalDmg * RV(D, 'rune22', 0, 0.3, u));
           rq(e, 'rune22', function (r) { var hitT = []; foes(u).forEach(function (t) { if (banished(t)) return; var sp = hurt(t, bAmt, u); addStat(r, u, 'dmg', sp, '熊之力量'); addStat(r, t, 'taken', sp, u.name + ' 熊之力量'); if (sp > 0) hitT.push(t); checkDeath(t, r) }); if (!hitT.length) return false; r.txt = u.name + ' 的「熊之力量」：' + hitT.length + ' 個敵人各受到 ' + bAmt + ' 真實傷害'; fxOn(r, 'bear', u, hitT) }) }
@@ -746,7 +756,7 @@
         nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0; nu.summoned = true;
         M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
       });
-      /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…）；target 填 target = 跟技能同一個目標（堅毅禱言、意志禱言） */
+      NC = null; /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…）；target 填 target = 跟技能同一個目標（堅毅禱言、意志禱言） */
       effs.forEach(function (r) {
         if (r.effect_kind !== 'heal') return;
         var who = r.target === 'target' ? tg.filter(function (t) { return !t.dead && t.side === u.side }) : r.target === 'self' ? [u] : r.target === 'ally_all' ? friends(u) : r.target === 'ally_others' ? friends(u).filter(function (x) { return x !== u }) : r.target === 'ally_single' ? [choose(friends(u), r.condition || 'lowest_hp')] : [];
@@ -788,7 +798,7 @@
     /* 戰棋的「待機」：有行動但不出手，狀態照常減一次 */
     /* 待機：有行動但不出手，狀態照常減一次；SP 制度下額外 +1 SP */
     function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1;
-      if (SPM && u.side === 'p') { var g0 = u.sp | 0; u.sp = Math.min(SPMAX, g0 + 1); e.txt += u.sp > g0 ? '，恢復 1 SP' : ''; e.wt = 1 }
+      if (SPM && u.side === 'p') { var g0 = u.sp | 0; u.sp = Math.min(SPMAX, g0 + 1); e.txt += u.sp > g0 ? '，恢復 1 SP' : ''; e.wt = 1; if (u.sp > g0) numAdd(u, 1, 'sp') }
       endAct(u, null); e.hp = hpSnap() }
     /* 戰鬥結束時還在肚子裡的人算陣亡 */
     function endSwallow() { P.forEach(function (x) { if (x.dead || !swallowed(x)) return; x.hp = 0; x.dead = true; x.st = []; line({ kind: 'note', idle: true, txt: x.name + ' 沒能從肚子裡出來……', pko: [x.i], hp: hpSnap() }) }) }
