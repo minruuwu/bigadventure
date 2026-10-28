@@ -4,19 +4,19 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 撕裂傷,debuff,dot,0.3,p_atk,,p,每回合造成施加者物理攻擊力 30% 的物理傷害
 再生,buff,hot,0.5,m_atk,,,每回合恢復施加者魔法攻擊力 50% 的生命
 閃身,buff,eva_rate,0.1,,,,閃避率 +10%
-堅毅,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
+堅毅,buff,p_reduce_rate,0.3,,,,物理減傷 +30%
 剛毅,buff,p_reduce_rate,0.1,,,,物理減傷 +10%
-意志,buff,m_reduce_rate,0.15,,,,魔法減傷 +15%
+意志,buff,m_reduce_rate,0.3,,,,魔法減傷 +30%
 強化,buff,p_atk_rate,0.2,,,,物理攻擊力 +20%、魔法攻擊力 +20%
 強化,buff,m_atk_rate,0.2,,,,
 魔力守護,buff,p_reduce_rate,0.15,,,,物理減傷 +15%、魔法減傷 +15%
 魔力守護,buff,m_reduce_rate,0.15,,,,
 神力祝福,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
 神力祝福,buff,m_damage_rate,0.4,,,,
-聖域,buff,p_reduce_rate,0.1,,,,物理減傷 +10%、魔法減傷 +10%
-聖域,buff,m_reduce_rate,0.1,,,,
-超頻,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
-超頻,buff,m_damage_rate,0.4,,,,
+聖域,buff,p_reduce_rate,0.25,,,,物理減傷 +25%、魔法減傷 +25%
+聖域,buff,m_reduce_rate,0.25,,,,
+超頻,buff,p_damage_rate,0.5,,,,物理增傷 +50%、魔法增傷 +50%
+超頻,buff,m_damage_rate,0.5,,,,
 輝煌,buff,str_rate,0.3,,,,力量 +30%、智力 +30%（太陽之照耀）
 輝煌,buff,int_rate,0.3,,,,
 生命守護,buff,shield,0.5,heal_amount,,,護盾吸收傷害：數值為該次治療量的 50%，上限為最大生命 30%（鹿之守護）
@@ -53,27 +53,27 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 英勇,buff,p_reduce_rate,0.15,,,,物理減傷 +15%
 怒意,buff,p_damage_rate,0.4,,,,物理增傷 +40%
 戰意,buff,p_atk_rate,0.1,,,,物理攻擊力 +10%
-元素屏障,buff,fire_res_rate,0.3,,,,火焰、冰霜、雷電、疾風抗性各 +30%
-元素屏障,buff,frost_res_rate,0.3,,,,
-元素屏障,buff,lightning_res_rate,0.3,,,,
-元素屏障,buff,wind_res_rate,0.3,,,,
+元素屏障,buff,fire_res_rate,0.4,,,,火焰、冰霜、雷電、疾風抗性各 +40%
+元素屏障,buff,frost_res_rate,0.4,,,,
+元素屏障,buff,lightning_res_rate,0.4,,,,
+元素屏障,buff,wind_res_rate,0.4,,,,
 纏繞,debuff,eva_rate,-0.3,,,,閃避率 −30%
 蓄力,buff,p_atk_rate,1.2,,,,物理攻擊力 +120%，下次出傷害招（含普通攻擊）後消失；多段攻擊每一下都有效；重複施放不疊加
-禮讚,buff,p_reduce_rate,0.2,,,,物理減傷、魔法減傷 +20%，物理增傷、魔法增傷 +20%
+禮讚,buff,p_reduce_rate,0.2,,,,物理減傷、魔法減傷 +20%，物理增傷、魔法增傷 +30%
 禮讚,buff,m_reduce_rate,0.2,,,,
-禮讚,buff,p_damage_rate,0.2,,,,
-禮讚,buff,m_damage_rate,0.2,,,,
+禮讚,buff,p_damage_rate,0.3,,,,
+禮讚,buff,m_damage_rate,0.3,,,,
 凍足,debuff,eva_rate,-0.2,,,,閃避率 −20%
 劍氣,buff,p_damage_rate,0.4,,,,物理增傷 +40%、閃避率 +15%
 劍氣,buff,eva_rate,0.15,,,,
 汞中毒,debuff,dot,0.3,m_atk,,m,每回合造成施加者魔法攻擊力 30% 的魔法傷害
 凍結,debuff,stun,,,,,跳過行動（同麻痺）
 透析,debuff,dmg_taken_rate,0.5,,,,受到傷害 +50%
-守護誓言,buff,protect,,,,,替所有隊友承受單體攻擊（全體攻擊不擋），物理減傷 +10%、魔法減傷 +10%
-守護誓言,buff,p_reduce_rate,0.1,,,,
-守護誓言,buff,m_reduce_rate,0.1,,,,
-聖盾,buff,p_reduce_rate,0.2,,,,物理減傷 +20%、魔法減傷 +20%
-聖盾,buff,m_reduce_rate,0.2,,,,
+守護誓言,buff,protect,,,,,替所有隊友承受單體攻擊（全體攻擊不擋），物理減傷 +15%、魔法減傷 +15%
+守護誓言,buff,p_reduce_rate,0.15,,,,
+守護誓言,buff,m_reduce_rate,0.15,,,,
+聖盾,buff,p_reduce_rate,0.25,,,,物理減傷 +25%、魔法減傷 +25%
+聖盾,buff,m_reduce_rate,0.25,,,,
 祝福,buff,p_damage_rate,0.4,,,,物理增傷 +40%、魔法增傷 +40%
 祝福,buff,m_damage_rate,0.4,,,,
 武器研磨,buff,p_damage_rate,0.5,,,,物理增傷 +50%
@@ -90,7 +90,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 血噬,debuff,drain,1,,,,
 異界活力,buff,m_damage_rate,0.35,,,,魔法增傷 +35%，造成傷害時額外吸收 10% 恢復生命
 異界活力,buff,lifesteal,0.1,,,,
-死靈低語,debuff,dmg_taken_rate,0.15,,,,受到傷害 +15%、命中率 −15%
+死靈低語,debuff,dmg_taken_rate,0.25,,,,受到傷害 +25%、命中率 −15%
 死靈低語,debuff,hit_rate,-0.15,,,,
 罪印,debuff,crit_taken_rate,0.2,,,,被暴擊率 +20%
 狂信,buff,crit_rate,0.25,,,,暴擊率 +25%、暴擊傷害 +50%
