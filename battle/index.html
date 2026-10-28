@@ -1240,12 +1240,12 @@ function riftSave(bb,req){if(bb.saved)return;var msg=function(t){var q=$('rsave'
     requestAnimationFrame(frame)}
   requestAnimationFrame(frame)})();
 /* ---- 秘境列表、選等級 ---- */
-var RHEAD={};/* 龍頭：首領圖左上方（脖子以上）裁一塊 */
-var HEADBOX={fdragon:[0,14,31,46,2.5],wdragon:[26,4,60,42,2.4,1],idragon:[55,5,82,40,2.6,1],dragon:[16,0,50,31,2.5],ldragon:[24,2,54,36,2.3,1],udragon:[0,30,32,58,2.5],hdragon:[31,2,71,52,1.65,1],sdragon:[0,0,28,30,2.6]};
+var RHEAD={};/* 龍頭：首領圖左上方（脖子以上）裁一塊；[x0,y0,x1,y1,放大倍率,圓形遮罩,要挖掉的小方塊（原圖座標）] */
+var HEADBOX={fdragon:[0,14,31,46,2.5,0,[[17,14,28,18],[23,18,24,19]]],wdragon:[26,4,60,42,2.4,1],idragon:[55,5,82,40,2.6,1],dragon:[16,0,50,31,2.5],ldragon:[24,2,54,36,2.3,1],udragon:[0,30,32,58,2.5],hdragon:[31,2,71,52,1.65,1],sdragon:[0,0,28,30,2.6]};
 function riftHead(R,big){var m=ENG.mon[R.boss]||{},k=m.sprite,hb=HEADBOX[k],key=k+(big?'b':'s'),c=document.createElement('canvas');var src=null;
   if(FLY[k]&&FLY[k].im)src=FLY[k].im[0];else if(LAY[k])src=LAY[k].base;else if(ANI[k])src=ANI[k].im;
   if(!src||!src.naturalWidth||!hb){c.width=c.height=1;return c}
-  var w=hb[2]-hb[0],h=hb[3]-hb[1],t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(src,hb[0],hb[1],w,h,0,0,w,h);
+  var w=hb[2]-hb[0],h=hb[3]-hb[1],t=document.createElement('canvas');t.width=w;t.height=h;var tx=t.getContext('2d');tx.drawImage(src,hb[0],hb[1],w,h,0,0,w,h);(hb[6]||[]).forEach(function(q){tx.clearRect(q[0]-hb[0],q[1]-hb[1],q[2]-q[0],q[3]-q[1])});
   if(hb[5]){var d=tx.getImageData(0,0,w,h);for(var yy=0;yy<h;yy++)for(var xx=0;xx<w;xx++){var nx=(xx+.5-w/2)/(w/2),ny=(yy+.5-h/2)/(h/2);if(nx*nx+ny*ny>1)d.data[(yy*w+xx)*4+3]=0}tx.putImageData(d,0,0)}
   var sc=(hb[4]||2)*(big?1:.6);c.width=w;c.height=h;c.getContext('2d').drawImage(t,0,0);c.style.width=Math.round(w*sc)+'px';c.style.height=Math.round(h*sc)+'px';return c}
 function rIcons(R){return '<span class="rs">'+R.runes.map(function(id){var r=RUNE[id]||{};return r.img?'<img src="'+r.img.src+'" alt="'+esc(r.name||'')+'" title="'+esc(r.name||'')+'">':''}).join('')+'</span>'}
