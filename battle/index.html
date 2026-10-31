@@ -336,7 +336,7 @@ var BG={
  G:{ft:41,src:AS+'bg_07.png',fg:null,band:94,bw:282,bh:140,sky:'cave',fx:'throne'},
  H:{ft:41,src:AS+'bg_09.png?v=2',fg:AS+'fg_09.png?v=2',band:96,bw:564,bh:140,sky:'cave',fx:'castle'},
  R:{ft:41,src:AS+'bg_10.png?v=1',fg:null,band:94,bw:191,bh:140,sky:'cave',fx:'rift'}};/* R = 秘境（龍之聖殿）：固定不捲動 */
-var SCN=[['A','怪物森林'],['B','魔晶礦洞'],['C','塵嵐荒漠'],['F','幽暗墓穴'],['E','凜冬雪山'],['H','聖教城領'],['D','熔岩火原'],['G','惡魔王城']];
+var SCN=[['A','魔物森林'],['B','魔晶礦洞'],['C','塵嵐古漠'],['F','幽暗墓穴'],['E','凜冬雪山'],['H','聖教城領'],['D','熔岩火原'],['G','惡魔王城']];
 var cur='A',off=0,lastNow=0,CLD=[];
 /* 我方站位：依人數 1～4 各有站法，[x, 往下位移]；0 號是隊長，前排在右邊（靠近怪物），故意錯落不排成方陣；我方 x ≤ 48、怪物 x ≥ 110，中間留一段空地隔開兩邊 */
 var PFORM={1:[[40,20]],2:[[46,27],[30,8]],3:[[48,20],[34,4],[22,33]],4:[[48,22],[38,3],[26,34],[14,14]]};
@@ -1187,7 +1187,7 @@ function setBG(k){cur=k;var g=BG[k];$('fgl').hidden=!g.fg;$('fgl').style.backgro
 /* ================= 冒險：地圖 → 選關 → 戰鬥（暫定的假計算）→ 結果 ================= */
 /* 地圖 363×1346；各區域在圖上的上下範圍（像素） */
 var MAPH=1346,AREA=[
- {n:'怪物森林',bg:'A',y0:120,y1:270},{n:'魔晶礦洞',bg:'B',y0:270,y1:395},{n:'塵嵐荒漠',bg:'C',y0:395,y1:525},{n:'幽暗墓穴',bg:'F',y0:525,y1:690},
+ {n:'魔物森林',bg:'A',y0:120,y1:270},{n:'魔晶礦洞',bg:'B',y0:270,y1:395},{n:'塵嵐古漠',bg:'C',y0:395,y1:525},{n:'幽暗墓穴',bg:'F',y0:525,y1:690},
  {n:'凜冬雪山',bg:'E',y0:690,y1:845},{n:'聖教城領',bg:'H',y0:845,y1:1035},{n:'熔岩火原',bg:'D',y0:1035,y1:1130},{n:'惡魔王城',bg:'G',y0:1130,y1:1346}];
 var view='map',raf=0,B=null,pickA=-1,pickL=0,SKN={},FORCE_LOSE=false;
 function lastArea(){try{var v=parseInt(localStorage.getItem('adv.lastArea'),10);return v>=0&&v<AREA.length?v:0}catch(e){return 0}}
