@@ -162,7 +162,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="../common/aura.js?v=6"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="../common/monsters.js?v=6"></script>
+<script src="../common/monsters.js?v=7"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -331,7 +331,7 @@ function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;
   [['n','一般',function(m){return m.boss!=='1'}],['b','首領',function(m){return m.boss==='1'}]].forEach(function(G){
     var L=D.entries.filter(function(E){return G[2](D.mon[E.id])}),n=0;if(!L.length)return;
     /* 秘境七龍排最前面：風 火 水 自然 雷 暗（暗 2）光，其餘照原本順序 */
-    var TOP=G[0]==='n'?['mon36','mon34','mon38','mon10','mon40','mon43','mon45']:['mon35','mon33','mon37','mon07','mon39','mon41','mon42','mon44'],rk=function(E,i){var k=TOP.indexOf(E.id);return k<0?TOP.length+i:k};
+    var TOP=G[0]==='n'?['mon36','mon34','mon38','mon10','mon40','mon43','mon46','mon45']:['mon35','mon33','mon37','mon07','mon39','mon41','mon42','mon44'],rk=function(E,i){var k=TOP.indexOf(E.id);return k<0?TOP.length+i:k};
     L=L.map(function(E,i){return{E:E,r:rk(E,i)}}).sort(function(x,y){return x.r-y.r}).map(function(x){return x.E});
     L.forEach(function(E){tot++;if(seenE(E)){got++;n++}});
     var w=el('div','area'),h=el('button');h.type='button';h.appendChild(el('span',null,G[1]));h.appendChild(el('i',null,n+' / '+L.length));w.appendChild(h);
