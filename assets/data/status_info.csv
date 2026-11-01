@@ -170,3 +170,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 冥想石化,buff,hot,1.5,p_atk,,,
 骨牢,debuff,stun,,,,,被白骨囚牢關住：無法行動，每回合受到施加者魔法攻擊力 40% 的黑暗魔法傷害
 骨牢,debuff,dot,0.4,m_atk,dark,m,
+霜甲,buff,m_reduce_rate,0.2,,,,魔法減傷 +20%；被攻擊時對攻擊者造成施加者魔法攻擊力 20% 的冰霜魔法傷害
+霜甲,buff,frost_thorn,0.2,,,,
