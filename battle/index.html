@@ -464,7 +464,7 @@ function tick(now){
       m.cdb.style.left=((mx+jx)*U)+'px';m.cdb.style.top=((gy-MZ[1]*m.sc-3)*U)+'px';m.cdb.style.transform='translate(-50%,-100%) scale('+pb+')';m.cdb.style.zIndex=Math.round(gy)+50}
     else if(m.cdb)m.cdb.hidden=true});
   if(B.live&&LV&&LV.infoDirty&&now-(LV.infoT||0)>200){LV.infoDirty=0;LV.infoT=now;renderInfo()}placeMenu();
-  drawAura(t,now);drawParts(t);drawVfx(t);drawSheep(t,now);drawOrbs(t,now);drawBlood(t);drawIdle(now);drawStatus(now);drawSongs(t,now);drawNums(t);
+  drawAura(t,now);drawParts(t);drawVfx(t);drawSheep(t,now);drawOrbs(t,now);drawBlood(t);FXA=1;drawIdle(now);drawStatus(now);drawSongs(t,now);drawNums(t);
   raf=requestAnimationFrame(tick);
 }
 /* ---- 攻擊特效（依武器種類；顏色：普攻白／魔法淡紫、無屬性技能淡金、有屬性用屬性色） ---- */
@@ -570,7 +570,7 @@ function boneFx(d,i,sty){var m=mons[i];if(!m||m.lx==null)return;var gx=m.lx,gy=m
   if(d>650&&d<RISESW+80){var u7=Math.min(1,(d-650)/(RISESW-650));for(var k7=0;k7<18;k7++){var fx0=gx+(hsh(k7,4)-.5)*30*sc,fy0=gy-2-hsh(k7,6)*6,tx=gx+(hsh(k7,8)-.5)*24*sc,ty=gy-(6+hsh(k7,1)*44)*sc,e7=u7*u7*(3-2*u7),x7=fx0+(tx-fx0)*e7+Math.sin(u7*6+k7)*2*(1-u7),y7=fy0+(ty-fy0)*e7-Math.sin(u7*Math.PI)*6;VP(x7,y7,BC[k7%3],1);VP(x7,y7+1,'#c08aff',.35)}}
   if(d>=RISESW&&d<RISESW+260){var f=(d-RISESW)/260;for(var k8=0;k8<24;k8++){var a8=k8/24*Math.PI*2,r8=4+f*16;VP(gx+Math.cos(a8)*r8,gy-22*sc+Math.sin(a8)*r8*.9,k8%2?'#ffffff':'#e0c8ff',1-f)}}
   if(d>=RISESW&&d<RISELEN){var BZ=msz('boneman'),ox=gx-BZ[0]*sc/2,oy=gy-BZ[1]*sc,ep=d<RISESW+300?1:Math.max(0,1-(d-RISESW-300)/350);[[24,9],[29,9]].forEach(function(o){var ex=ox+o[0]*sc,ey=oy+o[1]*sc;VP(ex,ey,'#e0b0ff',ep);[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(q){VP(ex+q[0],ey+q[1],'#9a4af0',.55*ep)})})}}
-function drawBlood(t){if(!B)return;B.ev.forEach(function(e){if(e.tfB){boneFx(t-e.t,e.tfB[0],e.tfB[1])}if(e.tfA!=null){var tm=mons[e.tfA];if(tm&&tm.lx!=null){var TZ=msz(tm.k);rebirthFx(t-e.t,tm.lx,tm.gy-2,TZ[0]*tm.sc,TZ[1]*tm.sc)}}if(e.sumR!=null&&e.side==='m'){var sd=t-e.t;if(sd>=0&&sd<1400){var mp=monPos(e.a);if(mp)summonRings(sd,mp[0],mons[e.a]?mons[e.a].gy-2:mp[1],e.sumR);
+function drawBlood(t){if(!B)return;B.ev.forEach(function(e){FXA=e.el==='undead'?UNDA:1;if(e.tfB){boneFx(t-e.t,e.tfB[0],e.tfB[1])}if(e.tfA!=null){var tm=mons[e.tfA];if(tm&&tm.lx!=null){var TZ=msz(tm.k);rebirthFx(t-e.t,tm.lx,tm.gy-2,TZ[0]*tm.sc,TZ[1]*tm.sc)}}if(e.sumR!=null&&e.side==='m'){var sd=t-e.t;if(sd>=0&&sd<1400){var mp=monPos(e.a);if(mp)summonRings(sd,mp[0],mons[e.a]?mons[e.a].gy-2:mp[1],e.sumR);
     /* 被喊到的隊員：腳下漩渦＋氣勁往上竄（顏色照屬性） */(e.tgts||[]).forEach(function(k,n){var pp=posOf(k);soulsFx(sd-(e.hit||420)+60+n*40,pp[0],pp[1],e.sumR)})}}if(e.drain&&e.dside!=null){var dd=t-e.t-120;if(dd>=0&&dd<=800){var fr=unitPos(e.dside,e.da);e.drain.forEach(function(q,n){bloodFlow(dd,fr,unitPos(q[0],q[1]),n+3)})}}var d=t-e.t-(e.hit||180)-60;if(d<0||d>800)return;
   if(e.ls&&e.side){var to=unitPos(e.side,e.a),vs=e.side==='p'?(e.tg||[]).map(function(i){return['m',i]}):(e.tgts||[]).map(function(i){return['p',i]});vs.forEach(function(v,n){bloodFlow(d,unitPos(v[0],v[1]),to,n+e.a*7)})}});pctx.globalAlpha=1}
 /* ---- 血系技能（vfx = blood）：暗紅刀氣（兩道交叉的月牙斬）＋噴血點；全體技能另外有三道紅色氣流橫掃敵陣 ---- */
@@ -867,7 +867,7 @@ function thornRing(f,d){if(d<0||d>720)return;var C=thornCols(),u=d/720,gr=u<.3?e
   if(u<.25){var fl=1-u/.25;for(var q2=0;q2<20;q2++){var a3=q2/20*Math.PI*2;VP(f.x+Math.cos(a3)*rx*1.6,f.y-1+Math.sin(a3)*rx*.65,C.l,fl*.6)}}}
 function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
-  B.ev.forEach(function(e){for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh)});
+  B.ev.forEach(function(e){FXA=e.el==='undead'?UNDA:1;for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh);FXA=1});
   B.ev.forEach(function(e){if(e.dring){var f=footOf(e.dring[0],e.dring[1]);if(f)debuffRing(f,t-e.t-(e.rfx?40:200),e.dcol)}if(e.rfx)runeFx(e,t-e.t);if(e.spd)e.spd.forEach(function(k){var f=footOf('p',k);if(f)spDrainFx(f,t-e.t-(e.hit||180)-80)});if(e.tring){var f2=footOf(e.tring[0],e.tring[1]);if(f2)thornRing(f2,t-e.t)}});
   function vOne(e,t,hh){var d=t-e.t;if(d<0||d>(e.wk==="pillar"?1000:e.wk==="sandstorm"||e.wk==="storm"||e.wk==="swords"?1400:900)||!e.side)return;
     if(e.wk==='blood'&&hh===0){var tl=e.side==='p'?(e.tg||[]).map(function(i){return monPos(i)}):(e.tgts||[]).map(function(k){var pp=posOf(k);return[pp[0],pp[1]-14]});tl=tl.filter(Boolean);
@@ -1186,6 +1186,8 @@ function stDraw(sd,x,gy,top,w,t,lf){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math.PI
     if(ci){pctx.globalAlpha=1;pctx.imageSmoothingEnabled=false;pctx.drawImage(ci,Math.round(ix*U),Math.round(iy*U),Math.round(IW*U),Math.round(IW*U))}}}
 /* 怪物蒸發：取怪物圖上的像素變成往上飄、慢慢變淡的小方塊 */
 var PARTS=[],pfx=$('pfx'),pctx=pfx.getContext('2d');
+/* 特效整體透明度：亡靈色的攻擊特效畫淡一點（UNDA）；畫那一招時 FXA 會乘到每一次 globalAlpha 上 */
+var FXA=1,UNDA=.6;(function(){var dsc=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'globalAlpha');if(dsc&&dsc.set)Object.defineProperty(pctx,'globalAlpha',{get:function(){return dsc.get.call(this)},set:function(v){dsc.set.call(this,v*FXA)},configurable:true})})();
 function burst(m,mx,gy,mw,mh,t){m.boom=1;var im=m.f;if(!im.naturalWidth)return;var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.drawImage(im,0,0);var d=x.getImageData(0,0,w,h).data,st=w>30?2:1,uw=mw/U/w,uh=mh/U/h;
   for(var py=0;py<h;py+=st)for(var px=0;px<w;px+=st){var k=(py*w+px)*4;if(d[k+3]<40)continue;
     PARTS.push({x:mx-mw/U/2+px*uw,y:gy-mh/U+py*uh,sz:st*uw,c:'rgb('+Math.min(255,d[k]+60)+','+Math.min(255,d[k+1]+60)+','+Math.min(255,d[k+2]+60)+')',t0:t+(h-py)/h*260*Math.random()+Math.random()*120,life:520+Math.random()*560,vy:-(10+Math.random()*16),vx:(Math.random()-.5)*6,ph:Math.random()*6})}}
@@ -1300,7 +1302,9 @@ function setBG(k){cur=k;var g=BG[k];$('fgl').hidden=!g.fg;$('fgl').style.backgro
 var MAPH=1346,AREA=[
  {n:'魔物森林',bg:'A',y0:120,y1:270},{n:'魔晶礦洞',bg:'B',y0:270,y1:395},{n:'塵嵐古漠',bg:'C',y0:395,y1:525},{n:'幽暗墓穴',bg:'F',y0:525,y1:690},
  {n:'凜冬雪山',bg:'E',y0:690,y1:845},{n:'聖教城領',bg:'H',y0:845,y1:1035},{n:'熔岩火原',bg:'D',y0:1035,y1:1130},{n:'惡魔王城',bg:'G',y0:1130,y1:1346}];
-var VCOL={'亡靈':'undead','秘法':'arcane','血':'blood'};/* skill_info vfx_color → 特效顏色 */var view='map',raf=0,B=null,pickA=-1,pickL=0,SKN={},FORCE_LOSE=false;
+var VCOL={'亡靈':'undead','秘法':'arcane','血':'blood'};
+/* 怪物普通攻擊的樣式：monster_info 的 atk_vfx = dagger／staff／bow／axe…，冒號後面是顏色（fire、nature、undead…）；空白 = 爪痕 */
+var ATKV=null;function monAtkV(k){if(!ATKV){ATKV={};if(ENG&&ENG.mon)Object.keys(ENG.mon).forEach(function(id){var r=ENG.mon[id],v=String(r.atk_vfx||'').trim();if(!v||ATKV[r.sprite])return;var q=v.split(':');ATKV[r.sprite]={w:q[0],el:q[1]?(VCOL[q[1]]||q[1]):''}})}return ATKV[k]||null}/* skill_info vfx_color → 特效顏色 */var view='map',raf=0,B=null,pickA=-1,pickL=0,SKN={},FORCE_LOSE=false;
 function lastArea(){try{var v=parseInt(localStorage.getItem('adv.lastArea'),10);return v>=0&&v<AREA.length?v:0}catch(e){return 0}}
 function setLastArea(i){try{localStorage.setItem('adv.lastArea',String(i))}catch(e){}}
 var NST=20;/* 每章節關數 */
@@ -1458,7 +1462,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       if(e.sk&&!e.idle&&!e.tick){
         if(e.side==='p'){var p=MEMB[e.a],sk=ENG.SK[e.sk]||{};Object.assign(o,fxOf(p,e.sk,e.ty));o.side='p';o.a=e.a;o.tg=e.tg||[];o.tgh=e.tgh||null;
           o.hits=e.tgh?e.tgh.length:(sk.hits>1&&o.tg.length===1?sk.hits:1);if(e.ty==='heal'||(e.hl&&e.hl.length&&e.ty!=='damage'))o.hl=e.hl;}
-        else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;if(e.ty==='heal'&&e.hlM&&e.hlM.length&&!o.mhl)o.mhl=e.hlM;o.skid=e.sk;var mk=SKN[e.sk];if(mk&&mk.vfx==='grasp')o.cast='#6dff8a';if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx==='roots')o.roots=1;if(mk&&mk.vfx==='claw')o.clawc=ELC[mk.el]||null;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='grasp'?440:mw==='souls'?420:mw==='chains'?540:mw==='burrow'?480:mw==='miasma'?360:mw==='sandstorm'?650:mw==='swords'?470:mw==='storm'?520:mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
+        else{o.side='m';o.a=e.a;if(e.ty==='damage'||e.ty==='debuff')o.tgts=e.tgP||[];if(e.tghP&&e.tghP.length>1){o.tgh=e.tghP;o.hits=e.tghP.length}if(e.spl)o.spl=e.spl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]});if(e.ty==='heal'&&e.hl&&e.hl.length)o.mhl=e.hl;if(e.ty==='heal'&&e.hlM&&e.hlM.length&&!o.mhl)o.mhl=e.hlM;o.skid=e.sk;if(e.sk==='atk'){var av=monAtkV((ms[e.a]||{}).k);if(av){o.wk=av.w;o.el=av.el;o.vc=vfxColor(av.w,{el:av.el,atk:true});o.hit=(av.w==='staff'||av.w==='book')?290:180}}/* 怪物普攻的武器樣式（monster_info 的 atk_vfx） */var mk=SKN[e.sk];if(mk&&mk.vfx==='grasp')o.cast='#6dff8a';if(mk&&mk.vfx==='sonic')o.sonic=1;if(mk&&mk.vfx==='roots')o.roots=1;if(mk&&mk.vfx==='claw')o.clawc=ELC[mk.el]||null;if(mk&&mk.vfx&&VFXK[mk.vfx]){var mw=VFXK[mk.vfx]('');o.wk=mw;o.el=mk.el||'';o.vc=vfxColor(mw,{el:o.el,atk:true});o.hit=mw==='grasp'?440:mw==='souls'?420:mw==='chains'?540:mw==='burrow'?480:mw==='miasma'?360:mw==='sandstorm'?650:mw==='swords'?470:mw==='storm'?520:mw==='pillar'?330:mw==='throw'?300:(mw==='staff'||mw==='book')?290:180}}}
       if(e.side==='p'&&e.sk&&SONG[e.sk]&&!e.idle&&!e.tick){o.song=SONG[e.sk];o.cast=o.song;o.castLen=1000;o.sid=e.sk;/* 吟遊詩人的歌：施法光暈＋音符；打敵人的歌用音符特效 */
         if(o.wk==='notes'){o.vc=o.song;o.nsp=SONGSP[e.sk]||300;o.nn=(e.tg&&e.tg.length===1)?6:3;o.hit=o.nsp+60}}
       if(e.rk){/* 反應技：敵人整招結束後依速度逐一演出。counter 攻擊動作打回去；debuff 攻擊動作＋對方腳下向下的光圈；buff 自己發光；thorn 腳下荊棘光環 */
