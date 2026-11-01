@@ -542,14 +542,15 @@ function deathSweep(e,d){var mp=monPos(e.a),im=dswImg();if(!mp||!im)return;var L
   for(var k=7;k>=0;k--){var uk=u-k*.045;if(uk<0)continue;var cx=sx+(ex-sx)*ease2(uk),sc=1-k*.06,ak=a*(k?.32*(1-k/8):.78);if(ak<=0)continue;pctx.globalAlpha=ak;var w2=Ww*sc*(k?1+k*.08:1),h2=Hh*sc;pctx.drawImage(im,Math.round((cx-w2/2)*U),Math.round((cy-h2/2)*U),Math.round(w2*U),Math.round(h2*U))}
   pctx.restore();pctx.globalAlpha=1}
 /* 骨刺：一根粗骨頭直直往上，每隔幾格有一個比較寬的骨節，頂端尖刺；h = 目前長到多高 */
-function boneSpike(x,gy,h,a){var n=Math.round(h);for(var k=0;k<=n;k++){var y=gy-k,tip=n-k,jn=k>2&&k%6===0;
+function boneSpike(x,gy,h,a,sd){sd=sd||0;var n=Math.round(h),gap=5+(sd%3),off=2+(sd*7)%4;/* 每根骨刺的骨節間距、起點都不一樣 */
+  for(var k=0;k<=n;k++){var y=gy-k,tip=n-k,jn=k>off&&(k-off)%gap===0,jn2=k>off&&(k-off)%gap===1;
     if(tip<=1){VP(x,y,'#ffffff',a);continue}if(tip<=3){VP(x,y,'#ece4ce',a);VP(x+1,y,'#c2b79c',a);continue}
-    VP(x-1,y,'#2a1a10',a*.55);VP(x,y,'#f4eedc',a);VP(x+1,y,'#d8cdb0',a);VP(x+2,y,'#2a1a10',a*.55);
-    if(jn){VP(x-1,y,'#ece4ce',a);VP(x+2,y,'#c2b79c',a);VP(x-2,y,'#2a1a10',a*.5);VP(x+3,y,'#2a1a10',a*.5);VP(x-1,y+1,'#c2b79c',a);VP(x+2,y+1,'#a89c80',a)}}}
+    VP(x-1,y,'#2a1a10',a*.55);VP(x+2,y,'#2a1a10',a*.55);
+    if(jn){VP(x,y,'#9a8e72',a);VP(x+1,y,'#7d725a',a)}else if(jn2){VP(x,y,'#c8bd9f',a);VP(x+1,y,'#aa9e82',a)}else{VP(x,y,'#f4eedc',a);VP(x+1,y,'#d8cdb0',a)}}}
 var CAGEX=[[-11,.78],[-7,.95],[-3,1.05],[1,1],[5,1.08],[9,.9],[13,.75]];/* 骨刺的位置與相對高度 */
 /* 白骨囚牢：地面竄出一排粗骨刺直直往上，圍住目標（中了骨牢的人之後一直顯示，見 stDraw 的 cage） */
 function cageFx(pp,d){var u=(d-100)/320,v=(d-720)/260;if(u<0||v>1)return;var a=v<0?1:1-v,gx=pp[0]-1,gy=pp[1]+1;var fa=FXA;FXA=1;/* 骨頭不套亡靈透明度 */
-  CAGEX.forEach(function(c,i){var ui=Math.max(0,Math.min(1,(u-i*.05)/(1-.3))),g=ui<1?1-Math.pow(1-ui,3):1;if(g<=0)return;boneSpike(gx+c[0],gy,34*c[1]*g,a)});
+  CAGEX.forEach(function(c,i){var ui=Math.max(0,Math.min(1,(u-i*.05)/(1-.3))),g=ui<1?1-Math.pow(1-ui,3):1;if(g<=0)return;boneSpike(gx+c[0],gy,34*c[1]*g,a,i)});
   if(u>0&&u<.5)for(var q=0;q<14;q++)VP(gx-13+q*2,gy+(q%2?0:-1),'#857a63',(1-u*2)*.8);FXA=fa}
 /* 骸骨風暴：暴風裡面有骨頭碎片跟著轉 */
 function boneStorm(d,cx,gy,rx,h){if(d<60||d>900)return;var fa=FXA;FXA=1;/* 骨頭碎片不套亡靈透明度 */var a=d<200?(d-60)/140:d>760?(900-d)/140:1;for(var k=0;k<16;k++){var an=d/170+k*2.4,yy=gy-4-(k/16)*h*.9,rr=rx*(.35+.6*(k/16)),x=cx+Math.cos(an)*rr,y=yy+Math.sin(an)*3;VP(x,y,'#ece4ce',a);VP(x+1,y,k%2?'#c2b79c':'#ece4ce',a);if(k%3===0)VP(x,y-1,'#857a63',a)}FXA=fa}
@@ -1212,7 +1213,7 @@ function drawStatus(now){if(!B||view!=='battle')return;
   party.forEach(function(p){if(p.sfx&&p.vis)stDraw(p.sfx,p.sx,p.gy,p.top,14,now+p.ph*5,0)});
   mons.forEach(function(m){if(!m.sfx||!m.alive)return;var MZ=msz(m.k),lf=m.lift||0;stDraw(m.sfx,m.lx,m.gy,m.gy-lf-MZ[1]*m.sc*(m.k==='dragon'?.8:1),Math.min(30,MZ[0]*m.sc*.6),now+m.ph*7,lf)});pctx.globalAlpha=1}
 function stDraw(sd,x,gy,top,w,t,lf){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math.PI*2;
-  if(f.cage){/* 骨牢：一排粗骨刺直直圍住人，底下偶爾冒一點亡靈光 */var H=by-top+2,gl=.5+.5*Math.sin(t/300);CAGEX.forEach(function(c){boneSpike(x-1+c[0],by+1,H*c[1],.95)});for(var k2=0;k2<5;k2++)VP(x-8+k2*4,by-1,'#5af0c8',(.3+.4*gl)*(k2%2?1:.6))}
+  if(f.cage){/* 骨牢：一排粗骨刺直直圍住人，底下偶爾冒一點亡靈光 */var H=by-top+2,gl=.5+.5*Math.sin(t/300);CAGEX.forEach(function(c,i){boneSpike(x-1+c[0],by+1,H*c[1],.95,i)});for(var k2=0;k2<5;k2++)VP(x-8+k2*4,by-1,'#5af0c8',(.3+.4*gl)*(k2%2?1:.6))}
   if(f.seal){var bx=x+4,byy=top-9+Math.round(Math.sin(t/160)*1),nd=1+Math.floor(t/400)%3;/* 對話框輕輕跳、裡面的點 . .. ... 循序出現 */for(var i=0;i<9;i++)for(var j=0;j<6;j++){if((i===0||i===8)&&(j===0||j===5))continue;VP(bx+i,byy+j,(i===0||i===8||j===0||j===5)?'#2a1a10':'#ffffff',.95)}
     for(var q=0;q<nd;q++)VP(bx+2+q*2,byy+3,'#2a1a10',1);VP(bx+2,byy+6,'#2a1a10',.95);VP(bx+1,byy+7,'#2a1a10',.95)}
   if(f.swirl){for(var q=0;q<18;q++){var an=q/18*T;VP(x+Math.cos(an)*7,top-2+Math.sin(an)*2.5,'#ffffff',.45)}
