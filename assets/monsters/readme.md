@@ -60,3 +60,4 @@
 - 新圖要在 `battle/index.html` 的 `IMGF` 清單加一行（檔名當 key），不用再算 r[] 的位置。
 - monster_34：行屍（幽暗墓穴，關卡尚未建立）；`monster_34.png`，上半身呼吸起伏、腳不動，不眨眼。
 - monster_35：腐林德魯伊（魔物森林第 15～19 關）；`monster_35.png`（64×64，顯示 0.8 倍），上半身呼吸起伏，左手黃綠光暈由程式畫。
+- monster_boss_14：森古凶獸‧貝希摩斯（魔物森林第 20 關 Boss，顯示 0.85 倍）；`monster_boss_14.png` 身體、`monster_boss_14_blink.png` 眼睛圖層；上半身起伏、眨眼，身上綠色符文由程式慢慢閃爍。
