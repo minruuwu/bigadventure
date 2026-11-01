@@ -164,3 +164,4 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 聖輝,buff,p_reduce_rate,0.2,,,,物理、魔法減傷 +20%
 聖輝,buff,m_reduce_rate,0.2,,,,
 屍毒,debuff,dot,0.25,p_atk,dark,p,每回合造成施加者物理攻擊力 25% 的黑暗物理傷害
+自然詛咒,debuff,nature_res_rate,-0.4,,,,自然抗性 −40%
