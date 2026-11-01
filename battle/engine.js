@@ -816,6 +816,10 @@
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.aura || []).forEach(function (a) { if (a.k !== 'regen_all') return; var gl = [];
         M.forEach(function (q) { if (q.dead || q.hp >= q.b.mhp) return; var g = heal(src, q, q.b.mhp * a.v, null, true); if (g) gl.push(q.name + ' ' + g) });
         if (gl.length) { var hz = line({ side: 'm', a: src.i, idle: 1, txt: src.name + ' 的「' + (D.SK[a.id] ? D.SK[a.id].n : '靈氣') + '」：' + gl.join('、') + ' 恢復生命' }); hz.hp = hpSnap() } }) });
+      /* 死靈威壓（被動 stun_all，trigger round_start）：每回合開始，每個敵人擲一次機率暈眩；上回合被這招暈過的人這回合不會再被暈 */
+      M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'stun_all') return; var hit = [];
+        foes(src).forEach(function (q) { if (q.dead || banished(q) || q._dread === rounds - 1) return; if (RND() < sp.ch && applyStatus(src, q, sp.st || '暈眩', sp.turns || 1, 1, null)) { q._dread = rounds; hit.push(q) } });
+        if (hit.length) { var dz = line({ side: 'm', a: src.i, idle: 1, dread: hit.filter(function (q) { return q.side === 'p' }).map(function (q) { return q.i }), txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '威壓') + '」：' + hit.map(function (q) { return q.name }).join('、') + ' 陷入暈眩' }); dz.hp = hpSnap() } }) });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2, u), u.dragon - RV(D, 'rune18', 1, 0.05, u)) });
       return U.filter(function (u) { return !u.dead && !u.undead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } })/* 骨堆不行動 */.sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }

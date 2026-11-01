@@ -352,3 +352,8 @@ skill350,屍塊噴吐,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技�
 skill351,屠夫之鏈,monster,0,combat,enemy_single,random,damage,,,p,,1.4,,,,怪物技能（單體物理傷害 ×1.4，回復造成傷害的 50%；戰棋時把目標拉近 2 格）,hook,,,3,single,,2,,
 skill352,死靈龍火,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（單體火焰魔法傷害 ×1.4，附加魂灼 3 回合）,missile,,,3,single,,2,,亡靈
 skill353,不死,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下後散成骨堆，3 回合後滿血重生；骨堆被打碎才算消滅）,,,,,,,,,
+skill354,三重龍息,monster,0,combat,enemy_single,random,damage,,,m,dark,0.55,,,,怪物技能（單體黑暗魔法傷害 ×0.55，連續 3 下：輪流吐出火焰、冰霜、亡靈龍息；附加魂灼 3 回合、凍足 2 回合）,tribreath,3,,3,single,,2,,
+skill355,褻瀆風暴,monster,0,combat,enemy_all,,damage,,,m,dark,1,,,,怪物技能（全體黑暗魔法傷害 ×1.0，每個目標 30% 虛弱 2 回合）,storm,,,0,diamond,3,3,,亡靈
+skill356,冰霜禁錮,monster,0,combat,enemy_single,random,damage,,,m,frost,1.5,,,,怪物技能（單體冰霜魔法傷害 ×1.5，30% 凍結 1 回合）,iceencase,,,3,single,,2,,
+skill357,火焰詛咒,monster,0,combat,enemy_single,random,damage,,,m,fire,1.5,,,,怪物技能（單體火焰魔法傷害 ×1.5，附加血沸 3 回合）,firepillar,,,3,single,,2,,
+skill358,死靈威壓,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開始，每個敵人 15% 機率暈眩 1 回合；同一人不會連續兩回合被暈）,,,,,,,,,
