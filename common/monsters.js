@@ -133,7 +133,7 @@ function idleOne(m,now){(function(){
     var mp=Math.floor(dt/210)%8;if(mp<3)VP(hx+Math.round(Math.sin(dt/120)*3),hy-4-mp*2,'#eaffb0',.9)}
   /* 不死使徒：雙手各捧一顆亡靈光球（青綠色，左右錯開明暗，偶爾冒光點；跟著上半身起伏） */
   if(m.k==='apostle'&&m.alive){var AZ=msz('apostle'),as2=m.sc,at2=now+m.ph*3,aox=m.lx-AZ[0]*as2/2,aoy=m.gy-(m.lift||0)-AZ[1]*as2,ady=Math.sin(now/620)>0?1:0,akn=AZ[1]-20;
-    [[13,44],[29,46]].forEach(function(o,oi){var hx=aox+o[0]*as2,hy=aoy+(o[1]+(o[1]<akn?ady:0))*as2,hp=.85+.15*Math.sin((at2+oi*800)/420),R=7;
+    [[6,36],[28,36]].forEach(function(o,oi){var hx=aox+o[0]*as2,hy=aoy+(o[1]+(o[1]<akn?ady:0))*as2,hp=.85+.15*Math.sin((at2+oi*800)/420),R=7;
       for(var hi=-R;hi<=R;hi++)for(var hj=-R;hj<=R;hj++){var hr=Math.sqrt(hi*hi+hj*hj);if(hr>R+.2)continue;VP(hx+hi,hy+hj,hr<2?'#e8fff8':hr<3.8?'#5af0c8':'#14a88a',hp*(hr<2?1:hr<3.8?.75:.35)*(1-hr/(R+2.5)))}
       var mp=Math.floor((at2+oi*500)/200)%9;if(mp<3)VP(hx+Math.round(Math.sin((at2+oi*300)/110)*2),hy-3-mp*2,'#c8fff0',.85)})}
   /* 石像鬼：睜眼的那一下，兩眼散出紅色光暈（跟眼睛圖層同步） */
