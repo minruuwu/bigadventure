@@ -337,3 +337,5 @@ skill335,不死,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下後散�
 skill336,死靈箭,monster,0,combat,enemy_single,random,damage,,,p,dark,1.3,,,,怪物技能（單體黑暗物理傷害 ×1.3，附加虛弱 3 回合）,arrow,,,3,single,,2,,亡靈
 skill337,寒霜箭,monster,0,combat,enemy_single,random,damage,,,p,frost,1.3,,,,怪物技能（單體冰霜物理傷害 ×1.3，附加凍足 2 回合）,arrow,,,3,single,,2,,
 skill338,不死,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下後散成骨堆，3 回合後滿血重生；骨堆被打碎才算消滅）,,,,,,,,,
+skill339,石鬼爪,monster,0,combat,enemy_single,random,damage,,,p,,1.4,,,,怪物技能（單體物理傷害 ×1.4，附加破甲 3 回合）,claw,,,1,single,,2,,
+skill340,冥想石化,monster,0,combat,self,,buff,,,,,,,,,怪物技能（生命低於 30% 才會使用，否則改用普通攻擊；自身石化 3 回合：無法行動、受到傷害 −50%，每回合恢復物理攻擊力 ×1.5 的生命）,,,,0,single,,3,,
