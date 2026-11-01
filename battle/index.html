@@ -395,7 +395,7 @@ function build(){
 var SHD={spider:{w:1.06,h:13,up:12},scorpion:{w:1,h:12,up:10}};
 /* 大型龍王：站在後面（DFORM 站位）、超出畫面右邊沒關係 */
 var BIGD={behemoth:1,dragon:1,sdragon:1,osiris:1,fdragon:1,wdragon:1,idragon:1,ldragon:1,udragon:1,u2dragon:1,hdragon:1};var AUOFF={u2dragon:[-9,-3]};/* 怪物靈氣光環圓心偏移（格），同 common/monsters.js */var FXFRONT={fdragon:1,wdragon:1,idragon:1,ldragon:1,lydragon:1,udragon:1,u2dragon:1,bonedragon:1,mdragon:1,wydragon:1,fydragon:1,iydragon:1,dragon:1,bdragon:1,hdragon:1};/* 待機特效畫在怪物前面（身上的火、繞身的風） */
-function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:k==='fdragon'?.95:k==='wdragon'?.8:k==='wydragon'?.85:k==='idragon'?.85:k==='ldragon'?.9:k==='udragon'?1.2:k==='u2dragon'?1.2:k==='bonedragon'?.75:k==='zombie'?.8:k==='druid'?.8:k==='boneman'?.72:k==='bonearcher'?.72:k==='apostle'?.75:k==='bonepile'?.6:k==='behemoth'?.85:k==='hdragon'?.85:boss?(k==='sk'?1.5:1.2):1}
+function mscale(k,boss){return k==='dragon'?1:k==='queen'?1.2:k==='bat'?.8:k==='cgolem'?1.2:k==='spider'?.9:k==='bdragon'?.8:k==='ghost'?1.4:k==='beholder'?1.8:k==='sandsnake'?.75:k==='mummy'?.78:k==='scorpion'?.7:k==='gorgon'?.68:k==='fwraith'?.55:k==='sdragon'?1.45:k==='osiris'?.95:k==='fdragon'?.95:k==='wdragon'?.8:k==='wydragon'?.85:k==='idragon'?.85:k==='ldragon'?.9:k==='udragon'?1.2:k==='u2dragon'?1.2:k==='bonedragon'?.75:k==='zombie'?.8:k==='druid'?.8:k==='boneman'?.66:k==='bonearcher'?.66:k==='apostle'?.75:k==='bonepile'?.55:k==='behemoth'?.85:k==='hdragon'?.85:boss?(k==='sk'?1.5:1.2):1}
 function ease(t){return t<0?0:t>1?1:t*t*(3-2*t)}
 /* SP 點數：血條下面一排 5 格（手動戰鬥測試） */
 function spBar(p,k,pp,hide){if(!p.spb||!p.spb.isConnected){p.spb=el('div','spb');for(var i=0;i<5;i++)p.spb.appendChild(el('i'));frame.appendChild(p.spb);els.push(p.spb)}var d=p.spb;if(hide){d.style.display='none';return}d.style.display='';
@@ -559,7 +559,7 @@ function bloodFlow(d,from,to,seed){if(!from||!to)return;for(var w=0;w<3;w++){var
   for(var k=0;k<16;k++){var u=(d-w*70-k*14)/520;if(u<0||u>1)continue;var a=Math.min(1,(1-u)*3),x=(1-u)*(1-u)*from[0]+2*(1-u)*u*mx+u*u*to[0],y=(1-u)*(1-u)*from[1]+2*(1-u)*u*my+u*u*to[1],c=k<3?'#ff5a6a':k<9?'#e0142e':'#8a0a1c',al=(1-k/16)*a;VP(x,y,c,al);VP(x,y-1,c,al*.85);if(k<6){VP(x+1,y,c,al*.7);VP(x,y+1,c,al*.5)}if(k<2)VP(x,y-1,'#ffb0b8',.7)}}}
 /* 骨兵特效：bone = 骨頭往下掉散開＋落地揚塵；rise = 腳下紫黑法陣＋黑霧 → 骨頭往上飛拼回骨兵 → 閃光、眼窩亮紫光 */
 var BONEEYE={boneman:[[24,9],[29,9]],bonearcher:[[27,11],[31,11]]};/* 重組時眼窩亮紫光的位置（相對裁切後的圖） */
-function boneFx(d,i,sty){var m=mons[i];if(!m||m.lx==null)return;var gx=m.lx,gy=m.gy,sc=.72,BC=['#ece4ce','#c2b79c','#857a63'];
+function boneFx(d,i,sty){var m=mons[i];if(!m||m.lx==null)return;var gx=m.lx,gy=m.gy,sc=.66,BC=['#ece4ce','#c2b79c','#857a63'];
   if(sty==='bone'){if(d<0||d>BONELEN)return;for(var k=0;k<16;k++){var sx0=gx+(hsh(k,3)-.5)*30*sc,sy0=gy-(10+hsh(k,7)*36)*sc,u=Math.min(1,d/(320+hsh(k,5)*160)),yy=sy0+(gy-1-sy0)*u*u,xx=sx0+(hsh(k,9)-.5)*10*u,a=d<700?1:1-(d-700)/300;
       VP(xx,yy,BC[k%3],a);if(k%2)VP(xx+1,yy,BC[(k+1)%3],a)}
     if(d>300&&d<900){var q=(d-300)/600;for(var k2=0;k2<10;k2++){var an=k2/10*Math.PI,r=4+q*12;VP(gx+Math.cos(an)*r*(k2%2?1:-1),gy-1-Math.sin(an)*r*.3,'#8a7a62',.5*(1-q))}}return}
