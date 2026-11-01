@@ -106,6 +106,13 @@
   function udist(a, b) { return dmin(cellsOf(a), cellsOf(b)) }
   function at(x, y) { var r = null; living().forEach(function (u) { if (inFp(u, x, y)) r = u }); return r }
   function onBoard(x, y) { return x >= 0 && y >= 0 && x < N && y < N }
+  /* 拉近（屠夫之鏈）：skill_effect 的 pull，value = 最多拉幾格；被打中還活著的目標一格一格往施放者靠，遇到人或邊界就停 */
+  function pullHits(u, a, h) {
+    var n = 0; (ctx.D.EFF[a.id] || []).forEach(function (r) { if (r.effect_kind === 'pull') n = Math.max(n, int(r.value, 1)) }); if (!n || !h) return;
+    h.forEach(function (t) { if (t.dead || t === u || t.tx == null) return; for (var s = 0; s < n; s++) { var M = occMap(t), cur = dmin(cellsOf(u), [[t.tx, t.ty]]), best = null;
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { var nx = t.tx + o[0], ny = t.ty + o[1]; if (!onBoard(nx, ny) || M[key(nx, ny)]) return; var dd = dmin(cellsOf(u), [[nx, ny]]); if (dd >= 1 && dd < cur && (!best || dd < best[2])) best = [nx, ny, dd] });
+        if (!best) break; t.tx = best[0]; t.ty = best[1] } setPos(t) });
+  }
   function int(v, dflt) { var n = parseInt(v, 10); return isNaN(n) ? dflt : n }
   function jobSn(p) { return p.jobSn || ('job' + ('0' + (((p.job | 0) + 1))).slice(-2)) }
   function mine() { return cur && cur.side === 'p' && !auto && !done && !busy }
@@ -656,6 +663,7 @@
       S.hooks.pool = null; S.hooks.area = false;
       if (a.cost > 0) { u.cd = u.cd || {}; u.cd[a.id] = a.cost + 1 }   /* 開始行動時先減 1，所以 +1：之後 cost 次行動都不能用 */
       placeSummons(u);
+      pullHits(u, a, h);
       /* 單體攻擊被保護者擋下：原目標沒掉血、同陣營有別人掉血 → 標「被保護」而不是「未命中」 */
       var prot = a.side === 'foe' && h.length === 1 && Math.round(h[0].hp) === Math.round(before.get(h[0]).hp) && units.some(function (x) { var b = before.get(x); return x !== h[0] && x.side === h[0].side && b && x.hp < b.hp });
       showDiff(before, a.side === 'foe' && !prot ? h : null); if (prot) float(h[0], '被保護', 's');

@@ -347,3 +347,6 @@ skill345,女妖之嚎,monster,0,combat,enemy_single,random,damage,,,m,dark,1.3,,
 skill346,寒霜甲,monster,0,combat,ally_single,prefer_without_status,buff,,,,,,,,,怪物技能（我方單體獲得霜甲 4 回合：魔法減傷 +20%，被攻擊時對攻擊者造成女妖魔法攻擊力 20% 的冰霜魔法傷害）,,,,3,single,,2,,
 skill347,寒冰爆,monster,0,combat,enemy_all,,damage,,,m,frost,0.9,,,,怪物技能（全體冰霜魔法傷害 ×0.9，附加凍傷 3 回合）,bigsmash,,,0,diamond,3,3,,
 skill348,死亡預言,monster,0,combat,enemy_single,random,debuff,,,,,,,,,怪物技能（敵方單體附加易傷 3 回合）,souls,,,4,single,,2,,亡靈
+skill349,猛砸,monster,0,combat,enemy_all,,damage,,,p,,0.9,,,,怪物技能（全體物理傷害 ×0.9，25% 暈眩 1 回合）,bigsmash,,,0,diamond,3,3,,
+skill350,屍塊噴吐,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體物理傷害 ×0.7，附加屍毒 3 回合）,gore,,,0,diamond,3,3,,
+skill351,屠夫之鏈,monster,0,combat,enemy_single,random,damage,,,p,,1.4,,,,怪物技能（單體物理傷害 ×1.4，回復造成傷害的 50%；戰棋時把目標拉近 2 格）,hook,,,3,single,,2,,
