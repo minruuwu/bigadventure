@@ -163,3 +163,4 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 光縛,debuff,crit_rate,-0.3,,,,暴擊率 −30%
 聖輝,buff,p_reduce_rate,0.2,,,,物理、魔法減傷 +20%
 聖輝,buff,m_reduce_rate,0.2,,,,
+屍毒,debuff,dot,0.25,p_atk,dark,p,每回合造成施加者物理攻擊力 25% 的黑暗物理傷害
