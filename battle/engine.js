@@ -810,6 +810,10 @@
       M.forEach(function (u) { if (u.dead || !u.undead || u.undead.born >= rounds) return; u.undead.n--;
         if (u.undead.n <= 0) { var o2 = u.name, bk = u.undead.back; delete u.undead; morph(u, bk); var rz = line({ side: 'm', a: u.i, txt: o2 + ' 重新組成了「' + u.name + '」！', tf: [u.i, u.sprite, u.name, 'rise'] }); rz.hp = hpSnap() }
         else { var cz = line({ side: 'm', a: u.i, idle: 1, txt: u.name + ' 的骨頭微微顫動……（倒數 ' + u.undead.n + '）', cd: [u.i, u.undead.n] }); cz.hp = hpSnap() } });
+      /* 褻瀆之光（靈氣 regen_all）：每回合開始，持有者替全體同伴（含骨堆）恢復最大生命的一定比例 */
+      M.forEach(function (src) { if (src.dead || src.undead) return; (src.aura || []).forEach(function (a) { if (a.k !== 'regen_all') return; var gl = [];
+        M.forEach(function (q) { if (q.dead || q.hp >= q.b.mhp) return; var g = heal(src, q, q.b.mhp * a.v, null, true); if (g) gl.push(q.name + ' ' + g) });
+        if (gl.length) { var hz = line({ side: 'm', a: src.i, idle: 1, txt: src.name + ' 的「' + (D.SK[a.id] ? D.SK[a.id].n : '靈氣') + '」：' + gl.join('、') + ' 恢復生命' }); hz.hp = hpSnap() } }) });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2, u), u.dragon - RV(D, 'rune18', 1, 0.05, u)) });
       return U.filter(function (u) { return !u.dead && !u.undead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } })/* 骨堆不行動 */.sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }

@@ -13,7 +13,8 @@
     skill175: { n: '引導靈光', j: 'job16', lv: 10, c: ['#e6d4ff', '#b48cff', '#7a4ae0'], m: 'rune' },
     skill193: { n: '狂熱靈氣', j: 'job18', lv: 10, c: ['#ffd06a', '#ff7a2a', '#d8341a'], m: 'ember' },
     skill197: { n: '審判靈氣', j: 'job18', lv: 25, c: ['#fff2c0', '#ffb42a', '#e0442a'], m: 'star' },
-    skill313: { n: '噬血光環', j: 'monster', lv: 999, c: ['#ff6a78', '#d8142e', '#7a0a1a'], m: 'blood' } /* 亡骸‧冥屍龍（怪物專用）：深紅光環，血滴往上飛 */
+    skill313: { n: '噬血光環', j: 'monster', lv: 999, c: ['#ff6a78', '#d8142e', '#7a0a1a'], m: 'blood' }, /* 亡骸‧冥屍龍（怪物專用）：深紅光環，血滴往上飛 */
+    skill344: { n: '褻瀆之光', j: 'monster', lv: 999, c: ['#c8fff0', '#3fe8c0', '#0f7a64'], m: 'blood' } /* 不死君王‧李奧瑞克（怪物專用）：亡靈青綠光環 */
   };
   var PSLOT = [1, 30, 60, 90];
   function ids(p) {

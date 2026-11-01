@@ -327,3 +327,6 @@ skill338,不死,passive,,self,,,undying,3,,,,death,1,mon53
 skill339,石鬼爪,status,破甲,enemy_single,3,1,,,,,,,,
 skill340,冥想石化,status,冥想石化,self,3,1,,,,,,,,
 skill340,冥想石化,use_if,,,,,hp_below,0.3,,,,,,
+skill342,白骨囚牢,status,骨牢,enemy_single,3,0.2,,,,,,,,
+skill343,骸骨風暴,status,易傷,enemy_all,3,1,,,,,,,,
+skill344,褻瀆之光,passive,,ally_all,,,regen_all,0.05,,,,,,

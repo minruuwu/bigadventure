@@ -168,3 +168,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 冥想石化,buff,petrify,,,,,石化冥想：跳過行動，受到的傷害 −50%，每回合恢復物理攻擊力 ×1.5 的生命
 冥想石化,buff,dmg_taken_rate,-0.5,,,,
 冥想石化,buff,hot,1.5,p_atk,,,
+骨牢,debuff,stun,,,,,被白骨囚牢關住：無法行動，每回合受到施加者魔法攻擊力 40% 的黑暗魔法傷害
+骨牢,debuff,dot,0.4,m_atk,dark,m,
