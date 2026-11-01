@@ -1357,7 +1357,7 @@ function setBG(k){cur=k;var g=BG[k];$('fgl').hidden=!g.fg;$('fgl').style.backgro
 var MAPH=1346,AREA=[
  {n:'魔物森林',bg:'A',y0:120,y1:270},{n:'魔晶礦洞',bg:'B',y0:270,y1:395},{n:'塵嵐古漠',bg:'C',y0:395,y1:525},{n:'幽暗墓穴',bg:'F',y0:525,y1:690},
  {n:'凜冬雪山',bg:'E',y0:690,y1:845},{n:'聖教城領',bg:'H',y0:845,y1:1035},{n:'熔岩火原',bg:'D',y0:1035,y1:1130},{n:'惡魔王城',bg:'G',y0:1130,y1:1346}];
-var VCOL={'亡靈':'undead','秘法':'arcane','血':'blood'};
+var VCOL={'亡靈':'undead','秘法':'arcane','血':'blood','火焰':'fire','冰霜':'frost','雷電':'lightning','疾風':'wind','自然':'nature','光明':'light','黑暗':'dark'};/* vfx_color 也可以填屬性名稱：只改特效顏色，不改傷害屬性 */
 /* 怪物普通攻擊的樣式：monster_info 的 atk_vfx = dagger／staff／bow／axe…，冒號後面是顏色（fire、nature、undead…）；空白 = 爪痕 */
 var ATKV=null;function monAtkV(k){if(!ATKV){ATKV={};if(ENG&&ENG.mon)Object.keys(ENG.mon).forEach(function(id){var r=ENG.mon[id],v=String(r.atk_vfx||'').trim();if(!v||ATKV[r.sprite])return;var q=v.split(':');ATKV[r.sprite]={w:q[0],el:q[1]?(VCOL[q[1]]||q[1]):''}})}return ATKV[k]||null}/* skill_info vfx_color → 特效顏色 */var view='map',raf=0,B=null,pickA=-1,pickL=0,SKN={},FORCE_LOSE=false;
 function lastArea(){try{var v=parseInt(localStorage.getItem('adv.lastArea'),10);return v>=0&&v<AREA.length?v:0}catch(e){return 0}}
