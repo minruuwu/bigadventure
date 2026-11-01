@@ -148,6 +148,11 @@
     return out;
   }
   /* 怪物被動（monster_info 的 passive 欄，可用 ; 分隔多個）：吸血、追加傷害、攻擊附加狀態等，寫法跟玩家被動一樣 */
+  /* 把怪物換成另一隻（不死、重生用）：數值、技能、圖都換，生命全滿、狀態清空 */
+  function morphUnit(u, mid, D) {
+    var nu = monster(D.mon[mid], u.stg || 1, D); u.name = nu.name; u.mid = nu.mid; u.sprite = nu.sprite; u.b = nu.b; u.b.mhp = Math.round(u.b.mhp * (u.hs || 1));
+    if (u.as) { u.b.patk = Math.round(u.b.patk * u.as); u.b.matk = Math.round(u.b.matk * u.as) } u.hp = u.b.mhp; u.st = []; u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
+  }
   function monPassive(r, D) {
     var out = [];
     String(r.passive || '').split(';').map(function (x) { return x.trim() }).filter(Boolean).forEach(function (id) {
@@ -347,10 +352,18 @@
       var real = Math.max(0, Math.min(Math.round(v), t.b.mhp - Math.round(t.hp)));
       t.hp += real; if (real > 0) numAdd(t, real, 'h', { ls: NC && NC.ls, h: NC && NC.h }); return real;
     }
+    function morph(u, mid) { morphUnit(u, mid, D) }
     function checkDeath(u, e) {
       if (u.dead || u.hp > 0) return false;
       u.hp = 0;
       if (swallowed(u)) { u.flags.r17 = 99; u.flags.grace = 1 } /* 在肚子裡被消化完：不能復活 */
+      /* 不死（骨兵）：倒下就散成骨堆，無限次；骨堆倒數（死掉那回合不算）結束後滿血變回骨兵，見 round() */
+      var und = u.side === 'm' ? (u.special || []).filter(function (x) { return x.k === 'undying' && D.mon[x.cond] })[0] : null;
+      if (und) {
+        var back = u.mid, old0 = u.name; morph(u, und.cond); u.undead = { back: back, n: num(und.v) || 3, born: rounds };
+        var tb = line({ side: 'm', a: u.i, txt: old0 + ' 散成一堆白骨……（' + u.undead.n + ' 回合後重生）', tf: [u.i, u.sprite, u.name, 'bone'], cd: [u.i, u.undead.n] }); tb.hp = hpSnap();
+        return false;
+      }
       /* 變身（冥屍龍的亡骸化）：倒下時化為另一隻怪復活一次，生命全滿、狀態清空，召喚出來的同伴留著 */
       var tfx = u.side === 'm' && !u.flags.tf ? (u.special || []).filter(function (x) { return x.k === 'transform' && x.tr === 'death' && D.mon[x.cond] })[0] : null;
       if (tfx) {
@@ -638,7 +651,7 @@
           if (!list.length) break;
           list.forEach(function (t0) {
             var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr && (hooks.protector || u.side === 'm')) t = pr;
-            if (!perT[t.i + t.side]) { perT[t.i + t.side] = { t: t, hs: [] }; order.push(t) }
+            if (!perT[t.i + t.side]) { perT[t.i + t.side] = { t: t, hs: [], nm: t.name }; order.push(t) }
             hitList.push(t);
             var mult = 1, xc = 0, sc = false;
             if (bonus.dmg_per_debuff) mult += Math.min(debuffs(t).length * num(bonus.dmg_per_debuff.value), num(String(bonus.dmg_per_debuff.condition || '').replace('max', '')) || 9);
@@ -698,7 +711,7 @@
         e.tgP = order.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
         e.hitsN = hitList.length; e.tgh = each ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null; e.tghP = each ? hitList.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) : null;
         e._dealt = (e._dealt || 0) + totalDmg;
-        e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs; return H > 1 ? t.name + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? t.name + ' 閃開了' : hs[0] === '擋下' ? t.name + ' 擋下了' : hs[0] === '無效' ? t.name + ' 不受影響' : t.name + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
+        e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs, tn = perT[t.i + t.side].nm || t.name; return H > 1 ? tn + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? tn + ' 閃開了' : hs[0] === '擋下' ? tn + ' 擋下了' : hs[0] === '無效' ? tn + ' 不受影響' : tn + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
         var ls = sv(u, 'lifesteal') + auraVal(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25, u) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v }); if (bonus.lifesteal) ls += num(bonus.lifesteal.value); /* 單一技能自帶吸血（噬咬） */
@@ -790,11 +803,15 @@
       rounds++;
       line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
       if (SPM && rounds > 1) P.forEach(function (u) { if (!u.dead) u.sp = Math.min(SPMAX, (u.sp | 0) + 1) });
+      /* 骨堆倒數：每回合開始減 1（倒下的那回合不算），到 0 滿血變回骨兵 */
+      M.forEach(function (u) { if (u.dead || !u.undead || u.undead.born >= rounds) return; u.undead.n--;
+        if (u.undead.n <= 0) { var o2 = u.name, bk = u.undead.back; delete u.undead; morph(u, bk); var rz = line({ side: 'm', a: u.i, txt: o2 + ' 重新組成了「' + u.name + '」！', tf: [u.i, u.sprite, u.name, 'rise'] }); rz.hp = hpSnap() }
+        else { var cz = line({ side: 'm', a: u.i, idle: 1, txt: u.name + ' 的骨頭微微顫動……（倒數 ' + u.undead.n + '）', cd: [u.i, u.undead.n] }); cz.hp = hpSnap() } });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2, u), u.dragon - RV(D, 'rune18', 1, 0.05, u)) });
-      return U.filter(function (u) { return !u.dead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } }).sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
+      return U.filter(function (u) { return !u.dead && !u.undead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } })/* 骨堆不行動 */.sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }
     /* 輪到 u 時先做的事（聖潔驅散），再 begin */
-    function start(u) { if (u.special.some(function (x) { return x.k === 'auto_cleanse' })) autoClean(u); return begin(u) }
+    function start(u) { if (u.undead) return false; /* 骨堆不行動 */ if (u.special.some(function (x) { return x.k === 'auto_cleanse' })) autoClean(u); return begin(u) }
     /* 戰棋的「待機」：有行動但不出手，狀態照常減一次 */
     /* 待機：有行動但不出手，狀態照常減一次；SP 制度下額外 +1 SP */
     function wait(u) { var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; e.txt = u.name + ' 待機'; e.idle = 1;

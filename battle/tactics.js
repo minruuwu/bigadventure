@@ -681,7 +681,7 @@
     if (!order || oi >= order.length - 1) { if (S.over()) return end(); order = S.round(); oi = -1; flushLog() }
     oi++;
     var u = order[oi];
-    if (!u || u.dead || u.tx == null) return next();
+    if (!u || u.dead || u.undead || u.tx == null) return next();
     cur = u; u.moved = false; u.from = pos(u); sel = null; pend = null; phase = 'move'; closeMenu(); cardSt = -1;
     if (u.cd) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });   /* 冷卻以自己的行動次數計（被控制跳過也算） */
     renderQueue(); renderCard(u);
