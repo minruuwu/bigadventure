@@ -338,3 +338,5 @@ skill349,猛砸,status,暈眩,enemy_all,1,0.25,,,,,,,,
 skill350,屍塊噴吐,status,屍毒,enemy_all,3,1,,,,,,,,
 skill351,屠夫之鏈,bonus,,,,,lifesteal,0.5,,,,,,
 skill351,屠夫之鏈,pull,,enemy_single,,,,2,,,,,,
+skill352,死靈龍火,status,魂灼,enemy_single,3,1,,,,,,,,
+skill353,不死,passive,,self,,,undying,3,,,,death,1,mon59

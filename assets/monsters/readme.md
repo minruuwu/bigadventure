@@ -34,7 +34,7 @@
 | monster_28 | 浮空龍（秘境・土曜之間，翔風龍的幼龍；尚未接進遊戲） | `monster_28.png`（27×42，從 4 倍圖縮回，原圖在 `src/monster_28_full.png`） |
 | monster_29 | 雪白龍（秘境・水曜之間，冰咒龍的幼龍；尚未接進遊戲） | `monster_29.png`（40×33，從 4 倍圖縮回，原圖在 `src/monster_29_full.png`） |
 | monster_30 | 電擊龍（秘境・金曜之間，雷暴龍的幼龍；尚未接進遊戲） | `monster_30.png`（40×37，從 4 倍圖縮回，原圖在 `src/monster_30_full.png`） |
-| monster_31 | 骨龍（秘境・土曜之間，冥屍龍召喚的小怪；尚未接進遊戲） | `monster_31.png`（從 4 倍圖縮回，原圖在 `src/monster_31_full.png`） |
+| monster_31 | 骨龍（幽暗墓穴 16~20 關，關卡尚未建立） | `monster_31.png`（從 4 倍圖縮回，原圖在 `src/monster_31_full.png`） |
 | monster_32 | 光龍（秘境・日曜之間，輝煌龍召喚的小怪；尚未接進遊戲） | `monster_32.png`（從 4 倍圖縮回，原圖在 `src/monster_32_full.png`） |
 | monster_boss_01 | 半獸人戰酋（魔物森林 Boss，只在王關出現） | `monster_boss_01.png`（48×48 身體）、`monster_boss_01_blink.png`（眼睛圖層） |
 | monster_boss_03 | 黑暗蛛后（魔晶礦洞第 10 關 Boss，目前只在 `?vfx=1` 測試） | `monster_boss_03.png`（48×39，裁掉上方透明）；腰以上起伏，眼睛紅光、左手藍紫光暈由程式畫，不眨眼 |
@@ -68,3 +68,4 @@
 - monster_boss_15：不死君王‧李奧瑞克（幽暗墓穴第 10 關 Boss，顯示 0.85 倍）；`monster_boss_15.png` 身體、`_blink` 眼睛圖層、`_sword` 劍（獨立一層，整把跟著上半身動）；膝蓋以上起伏、眨眼，眼旁亡靈火、身上亡靈死氣、腳下褻瀆之光光環由程式畫。
 - monster_41：報喪女妖（幽暗墓穴，關卡尚未建立，顯示 0.8 倍）；懸空飄動、若隱若現，亡靈青綠輪廓光由程式畫。
 - monster_42：血肉傀儡（幽暗墓穴，關卡尚未建立，顯示 0.85 倍）；上半身起伏。屍塊噴吐從嘴（MPT.mouth）噴出、屠夫之鏈從手（MPT.hand）射出。
+- monster_31：骨龍改為幽暗墓穴怪；下 18 列固定、上半身起伏（br 620），眼睛螢光跟著起伏。被動不死：死亡後化為骨堆（mon59，沿用 bonepile 圖），3 回合後重生。

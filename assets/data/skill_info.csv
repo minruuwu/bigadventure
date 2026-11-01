@@ -350,3 +350,5 @@ skill348,死亡預言,monster,0,combat,enemy_single,random,debuff,,,,,,,,,怪物
 skill349,猛砸,monster,0,combat,enemy_all,,damage,,,p,,0.9,,,,怪物技能（全體物理傷害 ×0.9，25% 暈眩 1 回合）,bigsmash,,,0,diamond,3,3,,
 skill350,屍塊噴吐,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體物理傷害 ×0.7，附加屍毒 3 回合）,gore,,,0,diamond,3,3,,
 skill351,屠夫之鏈,monster,0,combat,enemy_single,random,damage,,,p,,1.4,,,,怪物技能（單體物理傷害 ×1.4，回復造成傷害的 50%；戰棋時把目標拉近 2 格）,hook,,,3,single,,2,,
+skill352,死靈龍火,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（單體火焰魔法傷害 ×1.4，附加魂灼 3 回合）,missile,,,3,single,,2,,亡靈
+skill353,不死,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下後散成骨堆，3 回合後滿血重生；骨堆被打碎才算消滅）,,,,,,,,,
