@@ -184,7 +184,7 @@ skill182,魔能爆,job17,5,combat,enemy_all,,damage,,,m,dark,0.8,,,,,smash,,,4,d
 skill183,血噬詛咒,job17,8,combat,enemy_single,prefer_without_status,damage,,,m,dark,1.2,,,,,missile,,,5,single,,2,,
 skill184,巫術軀體,job17,10,passive,,,passive,,,,,,,,,魔法減傷 +10%,,,,,,,,,
 skill185,異界活力,job17,12,combat,self,,buff,,,,,,,,,,,,,0,single,,3,0,
-skill186,死靈低語,job17,15,combat,enemy_all,,damage,,,m,dark,0.8,,,,,smash,,,3,diamond,2,3,,
+skill186,死靈低語,job17,15,combat,enemy_all,,damage,,,m,dark,0.8,,,,,storm,,,3,diamond,2,3,,亡靈
 skill187,邪法矛,job17,20,combat,enemy_single,random,damage,,,m,dark,2.2,,,,目標身上每有 1 個減益，這招傷害 +10%（最多 +50%）,beam,,,6,line,,2,2,
 skill188,竊取精血,job17,25,passive,,,passive,,,,,,,,,造成傷害時，吸收實際傷害的 5% 恢復生命（全體攻擊取加總；只算主動傷害；不擲暴擊、不吃治療加成）,,,,,,,,,
 skill189,罪證烙印,job18,1,combat,enemy_single,random,damage,,,p,light,1.5,,,,,,,,7,single,,2,,
