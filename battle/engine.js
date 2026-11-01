@@ -352,7 +352,7 @@
       var real = Math.max(0, Math.min(Math.round(v), t.b.mhp - Math.round(t.hp)));
       t.hp += real; if (real > 0) numAdd(t, real, 'h', { ls: NC && NC.ls, h: NC && NC.h }); return real;
     }
-    function morph(u, mid) { morphUnit(u, mid, D) }
+    function morph(u, mid) { morphUnit(u, mid, D); if (u.cycle && u.cycle.length) u.cy = Math.floor(RND() * u.cycle.length) /* 重生後從隨機一招開始 */ }
     function checkDeath(u, e) {
       if (u.dead || u.hp > 0) return false;
       u.hp = 0;

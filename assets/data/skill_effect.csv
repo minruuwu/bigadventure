@@ -321,3 +321,6 @@ skill331,獸王怒號,summon,,,,0.5,mon48,5,,,,,,all_monsters
 skill332,大地之縛,status,纏繞,enemy_all,3,0.3,,,,,,,,
 skill333,凶蛇噬咬,status,蛇毒,enemy_single,3,1,,,,,,,,
 skill335,不死,passive,,self,,,undying,3,,,,death,1,mon51
+skill336,死靈箭,status,虛弱,enemy_single,3,1,,,,,,,,
+skill337,寒霜箭,status,凍足,enemy_single,2,1,,,,,,,,
+skill338,不死,passive,,self,,,undying,3,,,,death,1,mon53
