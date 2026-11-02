@@ -49,6 +49,8 @@
     (c.pet_info || []).forEach(function (r) { if (r.pet_id) D.pet[r.pet_id] = { stat: r.bonus_stat, per: pn(r.bonus_per_level) } });
     (c.monster_info || []).forEach(function (r) { if (r.monster_id) D.mon[r.monster_id] = r });
     (c.stage_info || []).forEach(function (r) { if (r.area_id) D.stage.push(r) });
+    /* 職業精通（job_mastery.csv）：職業 50 級後的永久天賦 */
+    D.MST = {}; (c.job_mastery || []).forEach(function (r) { if (r.job_sn && r.kind) D.MST[r.job_sn] = r });
     D.wbyname = {}; Object.keys(D.wpn).forEach(function (k) { D.wbyname[D.wpn[k].weapon_name] = k });
     /* 符文數值：rune_info.csv 的 value_1～3（有 % 的換成小數，純數字照原樣，文字不算）；空的就用程式內的預設值 */
     /* 符文等級表 rune_level.csv：D.RVL[符文][等級] = [v1, v2, v3, v4]；有這張表時，符文要 Lv1 以上才生效（等級看玩家資料 rs 的碎片數） */
@@ -88,6 +90,13 @@
       if (e.target === 'ally_all') aura.push({ id: id, k: e.effect, v: v });
       else if (['lifesteal', 'extra_dmg', 'heal_echo', 'auto_cleanse'].indexOf(e.effect) >= 0) special.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
     }) });
+    /* 職業精通：職業 50 級 → 天賦永久生效（數值型直接加進被動數值，其他的放在 mst 給戰鬥時觸發）；重置職業後職業等級歸零就自然消失 */
+    var mst = {};
+    Object.keys(D.MST || {}).forEach(function (js) {
+      if ((jl[js] | 0) < 50) return; var r = D.MST[js];
+      if (r.kind === 'stat') { [1, 2].forEach(function (q) { var k = r['stat_' + q]; if (k) self[k] = (self[k] || 0) + num(r['value_' + q]) }) }
+      else mst[r.kind] = { v: num(r.value_1), v2: num(r.value_2), ch: String(r.chance || '').trim() === '' ? 1 : num(r.chance), st: r.status_name || '', turns: parseInt(r.turns, 10) || 1, n: r.talent_name || '' };
+    });
     function sp(k) { return self[k] || 0 }
     var T = {};
     ['str', 'int', 'agi', 'vit', 'luk'].forEach(function (k) {
@@ -117,7 +126,7 @@
       /* 4 格只認「現職＋額外技能組（最多兩組）」的技能，其他當普通攻擊 */
       cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) && setJobs(p).indexOf(D.SK[id].j) >= 0 ? id : 'atk' }),
       reaction: sv.reaction && D.SK[sv.reaction] && learned(p, D.SK[sv.reaction]) ? sv.reaction : '',
-      aura: aura, special: special, runes: en.slice(), rlv: rlv, weapon: p.weapon || '', p: p,
+      aura: aura, special: special, mst: mst, runes: en.slice(), rlv: rlv, weapon: p.weapon || '', p: p,
       apa: sp('atk_per_ally'), apaN: opt.allies || 0, pB: s + wsum('p_atk') + Math.round(v * sp('vit_to_p_atk')), mB: i + wsum('m_atk') + Math.round(s * sp('str_to_m_atk')),
       learned: Object.keys(D.SK).map(function (id) { return D.SK[id] }).filter(function (k) { return k.kind === 'combat' && k.id !== 'atk' && k.j && k.j !== 'monster' && learned(p, k) })
     };
@@ -199,7 +208,7 @@
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
     /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算
        雙人成行：開戰時剛好兩人 → 兩人的生命、物攻、魔攻都 ×1.5（冒險、秘境都適用） */
-    if (SPM) P.forEach(function (u) { u.sp = 2; u.cd = {} });
+    if (SPM) P.forEach(function (u) { u.sp = Math.min(SPMAX, 2 + (u.mst && u.mst.sp_start ? u.mst.sp_start.v | 0 : 0)); u.cd = {} }); /* 賢者之石：開場 SP +1 */
     var lone = P.length === 1 && !P[0].lone;
     if (lone) { var L0 = P[0]; L0.lone = true; L0.b.mhp = Math.round(L0.b.mhp * 1.5); L0.b.patk = Math.round(L0.b.patk * 1.5); L0.b.matk = Math.round(L0.b.matk * 1.5) }
     var duo = P.length === 2 && !P[0].lone && !P[1].lone;
@@ -259,7 +268,9 @@
       if (swl && (tgt.side !== 'p' || P.some(function (x) { return !x.dead && x.st.some(function (q) { return q.swal && q.src === src }) }))) return false;
       var ctl = def.rows.some(function (r) { return CONTROL[r.k] }), nob = def.rows.some(function (r) { return NOBOSS[r.k] });
       if (tgt.boss && nob) return false;
-      var ch = chance == null || chance === '' ? 1 : num(chance); if (tgt.boss && ctl) ch /= 2;
+      var ch = chance == null || chance === '' ? 1 : num(chance);
+      if (src && src.mst && src.mst.debuff_chance && def.pol === 'debuff' && src.side !== tgt.side) ch = Math.min(1, ch + src.mst.debuff_chance.v); /* 咒術精通 */
+      if (tgt.boss && ctl) ch /= 2;
       if (RND() >= ch) return false;
       var t = turns === 'attack' ? 'attack' : (parseInt(turns, 10) || 1);
       if (tgt.boss && def.rows.some(function (r) { return r.k === 'banish' }) && t !== 'attack') t = Math.min(t, 1);
@@ -385,7 +396,7 @@
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
-      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (u._lh.sp > k0) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）')) } }
+      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (u._lh.sp > k0) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); if (u._lh.mst && u._lh.mst.sp_on_kill && RND() < u._lh.mst.sp_on_kill.ch) { var k1 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k1 + 1); if (u._lh.sp > k1) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }) } /* 意志迴流 */ if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）')) } }
       /* 吞噬者倒下：肚子裡的人回來（血量維持、狀態恢復計時） */
       if (u.side === 'm') P.forEach(function (x) { var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return; removeStatus(x, q); x.st.forEach(function (s) { s.paused = false }); if (e) { (e._rel = e._rel || []).push(x.name + ' 從 ' + u.name + ' 的肚子裡逃出來了'); (e.rel = e.rel || []).push(x.i) } });
       if (e) { if (u.side === 'm') (e.dead = e.dead || []).push(u.i); else (e.pko = e.pko || []).push(u.i) }
@@ -497,6 +508,13 @@
         } else { ban.turns--; e.txt = u.name + ' 被放逐在時空裂隙中'; e.idle = 1; e.hp = hpSnap(); return false }
       }
       var tick = [];
+      /* 職業精通：每回合開始（自己行動開始時，被控制也照樣觸發）。回血、SP 只跳數字不寫戰報；驅魔、劍心有發動才寫 */
+      var MS = u.mst || {};
+      if (MS.regen_self) { var gS = heal(u, u, u.b.mhp * MS.regen_self.v, null, true); if (gS) numAdd(u, gS, 'h') }
+      if (MS.heal_lowest) { var fl = friends(u).filter(function (q) { return !q.dead && !banished(q) && q.hp < q.b.mhp }); if (fl.length) { var lw = fl.reduce(function (a, b) { return b.hp / b.b.mhp < a.hp / a.b.mhp ? b : a }); var gL = heal(u, lw, lw.b.mhp * MS.heal_lowest.v, null, true); if (gL) { numAdd(lw, gL, 'h'); addStat(e, u, 'heal', gL, MS.heal_lowest.n) } } }
+      if (MS.cleanse) { var fc = friends(u).filter(function (q) { return !q.dead && debuffs(q).some(function (s) { return !s.swal && !s.banish }) }); if (fc.length) { var ct = pickOne(fc), cs = pickOne(debuffs(ct).filter(function (s) { return !s.swal && !s.banish })); removeStatus(ct, cs); tick.push('「' + MS.cleanse.n + '」解除 ' + ct.name + ' 的「' + cs.n + '」') } }
+      if (MS.sp_turn && SPM && RND() < MS.sp_turn.ch) { var s0 = u.sp | 0; u.sp = Math.min(SPMAX, s0 + 1); if (u.sp > s0) numAdd(u, 1, 'sp') }
+      if (MS.buff_turn && MS.buff_turn.st && RND() < MS.buff_turn.ch) { if (applyStatus(u, u, MS.buff_turn.st, MS.buff_turn.turns, 1, null)) tick.push('「' + MS.buff_turn.n + '」獲得「' + MS.buff_turn.st + '」') }
       u.special.forEach(function (x) { if (x.k === 'regen') { var g = heal(u, u, u.b.mhp * x.v, null, true); if (g) tick.push('「' + (D.SK[x.id] ? D.SK[x.id].n : '再生') + '」恢復 ' + g) } });
       u.st.slice().forEach(function (s) {
         if (s.paused) return;
@@ -542,7 +560,12 @@
       if (!sk && SPM && u.side === 'p' && !forced) { var ta = pickTargets(u, D.SK.atk, charmed, confused); if (ta.length) { sk = D.SK.atk; tg = ta } } /* 四招都在冷卻：普攻 */
       if (!sk) { e.txt = u.name + ' 沒有可以行動的目標'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
-      if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）' }
+      if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）';
+        /* 職業精通：巧手回收（自己 SP +1）、餘韻（隨機一名同伴 SP +1），只算消耗 SP 的技能 */
+        if (sk.sp && u.mst) {
+          if (u.mst.sp_on_skill && RND() < u.mst.sp_on_skill.ch) { var q0 = u.sp | 0; u.sp = Math.min(SPMAX, q0 + 1); if (u.sp > q0) numAdd(u, 1, 'sp') }
+          if (u.mst.sp_ally_on_skill && RND() < u.mst.sp_ally_on_skill.ch) { var oa = P.filter(function (q) { return q !== u && !q.dead && (q.sp | 0) < SPMAX }); if (oa.length) { var ob = pickOne(oa); ob.sp = (ob.sp | 0) + 1; numAdd(ob, 1, 'sp') } }
+        } }
       doSkill(u, sk, tg, e);
       flushSt(e);
       afterSkill(u, sk, tg, e, false);
@@ -665,6 +688,8 @@
             if (bonus.dmg_if_low_hp && t.hp / t.b.mhp < (num(bonus.dmg_if_low_hp.condition) || 0.5)) mult += num(bonus.dmg_if_low_hp.value);
             if (bonus.crit_if_debuffed && debuffs(t).length) xc += num(bonus.crit_if_debuffed.value);
             if (bonus.sure_crit_low_hp && t.hp / t.b.mhp < (num(bonus.sure_crit_low_hp.value) || 0.3)) sc = true;
+            if (u.mst && u.mst.dmg_vs_debuffed && debuffs(t).length) mult += u.mst.dmg_vs_debuffed.v; /* 審判之眼 */
+            if (u.mst && u.mst.dmg_vs_low && t.hp / t.b.mhp < (u.mst.dmg_vs_low.v2 || 0.4)) mult += u.mst.dmg_vs_low.v; /* 致命要害 */
             var x = dmgOnce(u, t, sk.parts, sk, { mult: mult, extraCrit: xc, sureCrit: sc });
             var rec = perT[t.i + t.side];
             if (x.void) { rec.hs.push('無效'); numAdd(t, 0, 'void', { h: h }); return }
@@ -676,6 +701,9 @@
             NC = { el: mp0.e || '', dt: mp0.d, c: x.crit, h: h };
             var real = x.amt ? hurt(t, x.amt, u) : 0; totalDmg += real; if (x.crit) anyCrit = true;
             /* 武器淬毒：該次傷害的一定比例，額外的屬性傷害 */
+            /* 職業精通：光明（追加主傷害一定比例的光明傷害）、獵人印記（機率讓目標識破） */
+            if (u.mst && u.mst.light_add && real > 0 && !t.dead) { var lx = Math.round(real * u.mst.light_add.v * (1 - Math.min(resOf(t, 'light'), 0.9))); if (lx > 0) { NC = { el: 'light', dt: 'm', h: h }; var lr = hurt(t, lx, u); real += lr; totalDmg += lr } }
+            if (u.mst && u.mst.mark_on_hit && u.mst.mark_on_hit.st && real > 0 && !t.dead && RND() < u.mst.mark_on_hit.ch) applyStatus(u, t, u.mst.mark_on_hit.st, u.mst.mark_on_hit.turns, 1, e);
             u.special.forEach(function (s) { if (s.k === 'extra_dmg' && real > 0 && !t.dead) { var ex = Math.round(real * s.v * (1 - Math.min(resOf(t, s.el), 0.9))); if (ex > 0) { NC = { el: s.el, dt: 'm', h: h }; real += hurt(t, ex, u); totalDmg += ex } } });
             /* 元素符文：主傷害（減傷後實際傷害）的 30% 屬性傷害，類型跟著技能（物理／魔法／混合），再吃該元素抗性；
                數字現在就算好，等這一招結束後才獨立一行結算、演出，並附加該符文的狀態 */

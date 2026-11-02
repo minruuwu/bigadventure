@@ -383,7 +383,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="party.js?v=28"></script>
+<script src="party.js?v=29"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -811,7 +811,7 @@ function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=tr
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name+' Lv.'+Party.charLv(p)));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
-  document.getElementById('pcSub').textContent=Party.jobName(p)+' Lv.'+Party.jobLv(p)+(on?'・'+on:'');
+  document.getElementById('pcSub').textContent=Party.jobName(p)+(Party.jobLv(p)>=50?'★':'')+' Lv.'+Party.jobLv(p)+(on?'・'+on:'');/* ★ = 職業精通（50 級） */
   Party.fillTeam(document.getElementById('pcTeam'),p,function(){return CARD===a});
   /* 想說的話：自己可以改，別人只能看 */
   var mine=p.uid===ME_UID,txt=document.getElementById('pcSayTxt'),ta=document.getElementById('pcSayIn'),row=document.getElementById('pcSayRow'),msg=document.getElementById('pcSayMsg');

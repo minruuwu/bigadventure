@@ -268,6 +268,7 @@ function build(c){
   c.status_info.forEach(function(r){if(!r.status_name||D.stsBy[r.status_name])return;D.stsBy[r.status_name]=r;D.sts.push(r)});
   D.runes=c.rune_info.filter(function(r){return r.u_sn});
   D.rlv={};(c.rune_level||[]).forEach(function(r){if(!r.u_sn)return;(D.rlv[r.u_sn]=D.rlv[r.u_sn]||{})[parseInt(r.level,10)||0]=[r.value_1,r.value_2,r.value_3,r.value_4]});
+  var JN={};(c.job_info||[]).forEach(function(r){if(r.u_sn)JN[r.u_sn]=r.job_name});D.mst=(c.job_mastery||[]).filter(function(r){return r.job_sn&&r.kind}).map(function(r){return{sn:r.job_sn,job:JN[r.job_sn]||r.job_sn,n:r.talent_name,d:r.talent_desc||''}});
   D.rift=(c.rift_info||[]).filter(function(r){return r.room}).map(function(r){return{room:r.room,rift:r.rift,room_name:r.room_name,runes:String(r.runes||'').split(';')}});
   /* 章節：照 stage_info 的順序；每隻怪記下最早出現在哪一關（召喚出來的怪算在召喚者那一關） */
   var A={};c.stage_info.forEach(function(r){if(!r.area_id)return;var a=A[r.area_id];if(!a){a=A[r.area_id]={id:r.area_id,n:r.area_name,first:{},open:false};D.areas.push(a)}
@@ -372,7 +373,7 @@ function skRow(sid,kind){var d=el('div','sk'),r=D.sk[sid],nm=sid==='atk'?'普通
   d.appendChild(el('span','kd',kind));d.appendChild(el('b',null,nm));d.appendChild(el('span',null,txt));return d}
 
 /* ---- 事典 ---- */
-var TOC=[['el','屬性','七種屬性與抗性'],['st','狀態','增益、減益的效果'],['rule','戰鬥規則','命中、暴擊、傷害與順序'],['rune','符文','武器附魔的 26 種符文']];
+var TOC=[['el','屬性','七種屬性與抗性'],['st','狀態','增益、減益的效果'],['rule','戰鬥規則','命中、暴擊、傷害與順序'],['rune','符文','武器附魔的 26 種符文'],['mst','職業精通','職業 50 級的永久天賦']];
 function renderToc(){var t=$('toc');t.textContent='';TOC.forEach(function(x){var b=el('button');b.type='button';b.appendChild(el('span',null,x[1]));b.appendChild(el('small',null,x[2]));b.addEventListener('click',function(){openDoc(x[0])});t.appendChild(b)})}
 function ent(img,title,txt,extra){var d=el('div','ent'+(img?'':' noi'));if(img)d.appendChild(icon(img));var b=el('b',null,title);if(extra)b.appendChild(extra);d.appendChild(b);d.appendChild(el('p',null,txt));return d}
 function rule(t,txt){var d=el('div','rule');d.appendChild(el('b',null,t));d.appendChild(document.createTextNode(txt));return d}
@@ -404,6 +405,11 @@ function openDoc(k){openSheet(function(s){
     s.appendChild(rule('生命','每場戰鬥開始時生命全滿，不會延續到下一場。'));
     s.appendChild(rule('獨狼','開戰時只有一人上陣：生命、物理攻擊力、魔法攻擊力 ×1.5。中途隊友倒下不算。'));
     s.appendChild(rule('雙人成行','開戰時剛好兩人上陣：兩人的生命、物理攻擊力、魔法攻擊力都 ×1.5。冒險與秘境都適用；三人以上沒有這個加成。'))}
+  else if(k==='mst'){s.appendChild(el('h2',null,'職業精通'));s.appendChild(el('p','sub','職業練到 50 級就解鎖該職業的精通天賦：不用裝備、不佔技能格、永久生效，練滿越多職業疊越多。重置職業後職業等級歸零，天賦也會失去。已精通的職業會顯示金色 ★。'));
+    s.appendChild(rule('每回合開始','指自己行動開始的時候（跟中毒、燃燒結算同一時間），被暈眩、凍結跳過行動時也照樣觸發。'));
+    s.appendChild(rule('戰報','回血、SP 增加只在角色身上跳數字；驅魔解除狀態、劍心獲得劍氣才會寫進戰報。'));
+    var my=(ME&&ME.jobLv)||{};
+    D.mst.forEach(function(m){var on=(my[m.sn]|0)>=50;s.appendChild(rule((on?'★ ':'')+m.n+'（'+m.job+'）',m.d))})}
   else if(k==='rune'){s.appendChild(el('h2',null,'符文'));s.appendChild(el('p','sub','在秘境打贏可以拿到符文碎片，碎片累積到門檻就升級（最高 Lv10）。符文 Lv1 以上才能裝備；武器到 30／60／90 級各開一格，任何武器都能裝任何符文，同一把武器不能重複，三格同時生效。點符文看每一級的數值。'));
     var rs=(ME&&ME.rs)||{};
     D.runes.forEach(function(r){var t=el('b','rn');t.textContent=r.rune_name;t.style.color=r.color;var d=el('div','ent rune'),my=window.RuneVals?RuneVals.levelOf(rs[r.u_sn]):0;d.appendChild(icon(BASE+'icons/runes/'+r.u_sn+'.png?v='+V));
@@ -432,8 +438,8 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 /* ================= 開始 ================= */
 var DEMO={uid:'demo',name:'示範冒險者',lv:24,job:0,jobSn:'job01',weapon:'劍',skin:0,style:0,hair:0,eyes:6,outfit:0,adv:{area01:20,area02:9}};
 function start(me){ME=me;if(window.NavIcons)NavIcons.setPlayer(me);renderTabs();renderAcct();renderDex();renderToc();route();var l=$('loading');if(l)l.remove();requestAnimationFrame(tick)}
-Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.csv','status_info.csv','rune_info.csv'].map(getCSV).concat([getCSV('rune_level.csv').catch(function(){return []}),getCSV('rift_info.csv').catch(function(){return []})]).concat([Monsters.load(BASE)])).then(function(r){
-  build({monster_info:r[0],stage_info:r[1],skill_info:r[2],skill_effect:r[3],status_info:r[4],rune_info:r[5],rune_level:r[6],rift_info:r[7]});
+Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.csv','status_info.csv','rune_info.csv'].map(getCSV).concat([getCSV('rune_level.csv').catch(function(){return []}),getCSV('rift_info.csv').catch(function(){return []}),getCSV('job_mastery.csv').catch(function(){return []}),getCSV('job_info.csv').catch(function(){return []})]).concat([Monsters.load(BASE)])).then(function(r){
+  build({monster_info:r[0],stage_info:r[1],skill_info:r[2],skill_effect:r[3],status_info:r[4],rune_info:r[5],rune_level:r[6],rift_info:r[7],job_mastery:r[8],job_info:r[9]});
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){USER=who.user;start(Object.assign({uid:who.user.uid},who.player));res()})})})
 }).catch(function(e){var m=$('loading');if(m){m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')}});

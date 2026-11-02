@@ -72,12 +72,13 @@
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
   function statData() {
     if (STAT) return Promise.resolve(STAT);
-    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] })]).then(function (R) {
+    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] }), C.getCSV('job_mastery.csv').catch(function () { return [] })]).then(function (R) {
       if (R[5] && R[5].length && window.RuneVals) RuneVals.setLevels(R[5]);
       var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element } });
       var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
-      STAT = { attr: A, grow: G, sk: K, eff: E, rune: R[4] || [] }; return STAT
-    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {}, eff: {}, rune: [] }; return STAT })
+      var MS = {}; (R[6] || []).forEach(function (r) { if (r.job_sn && r.kind) MS[r.job_sn] = r });
+      STAT = { attr: A, grow: G, sk: K, eff: E, rune: R[4] || [], mst: MS }; return STAT
+    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {}, eff: {}, rune: [], mst: {} }; return STAT })
   }
   var RES = [['fire', '火炎'], ['frost', '冰霜'], ['lightning', '雷電'], ['wind', '疾風'], ['nature', '自然'], ['light', '光明'], ['dark', '黑暗']];
   var SKEL = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' }, PSLOT = [1, 30, 60, 90];
@@ -85,6 +86,8 @@
   function skPas(p, key) {
     var D = STAT || {}, K = D.sk || {}, E = D.eff || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, pa = Array.isArray(sv.passive) ? sv.passive : [], ws = wsn(p), t = 0;
     for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || !/^job\d+$/.test(k.j || '') || (jl[k.j] | 0) < k.lv) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
+    /* 職業精通（職業 50 級）的數值天賦 */
+    var MS = D.mst || {}; Object.keys(MS).forEach(function (js) { var m = MS[js]; if (m.kind !== 'stat' || (jl[js] | 0) < 50) return; [1, 2].forEach(function (q) { if (m['stat_' + q] === key) t += parseFloat(m['value_' + q]) || 0 }) });
     return t
   }
   function combat(p, allies) {
@@ -138,7 +141,7 @@
   function jobsHtml(p) {
     var jl = p.jobLv || {}, ks = Object.keys(jl).filter(function (k) { return (jl[k] | 0) > 0 }).sort();
     if (!ks.length) return '<div class="none">還沒有職業等級</div>';
-    return '<div class="lst" style="max-height:none">' + ks.map(function (k) { var m = /(\d+)/.exec(k), nm = (m && g.Doll.JOBN[+m[1] - 1]) || k; return '<div class="rw"><img alt="" src="' + snIcon(k) + '"><span class="tx"><b>' + esc(nm) + '</b></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + (jl[k] | 0) + '</span></div>' }).join('') + '</div>'
+    return '<div class="lst" style="max-height:none">' + ks.map(function (k) { var m = /(\d+)/.exec(k), nm = (m && g.Doll.JOBN[+m[1] - 1]) || k; var ms = (jl[k] | 0) >= 50, mr = ms && STAT && STAT.mst && STAT.mst[k]; return '<div class="rw"><img alt="" src="' + snIcon(k) + '"><span class="tx"><b>' + esc(nm) + (ms ? '<span title="職業精通" style="color:#f2b51c;text-shadow:1px 1px 0 #3a2108,-1px 0 0 #3a2108,0 -1px 0 #3a2108;margin-left:3px">★</span>' : '') + '</b>' + (mr ? '<small>精通：' + esc(mr.talent_name) + '｜' + esc(mr.talent_desc || '') + '</small>' : '') + '</span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + (jl[k] | 0) + '</span></div>' }).join('') + '</div>'
   }
   /* 武器分頁：武器名稱（依外觀階）、等級、裝備中的符文（新版帳號、Lv1 以上、在開放的格數內才算，跟戰鬥一致）與目前等級的數值 */
   function weaponHtml(p) {
@@ -293,7 +296,7 @@
     function detail(p, isMe) {
       var d = el('div', 'dtl'), W = wicon(p), idx = isMe ? '' : '<button type="button" class="pbtn" data-a="rm">移出</button>';
       d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span>' + (isMe ? '<span class="tg">隊長</span>' : idx) + '</div>' +
-        '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '<em>Lv.' + jobLv(p) + '</em></span>' +
+        '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + (jobLv(p) >= 50 ? '<span title="職業精通" style="color:#f2b51c;text-shadow:1px 1px 0 #3a2108,-1px 0 0 #3a2108,0 -1px 0 #3a2108;margin-left:2px">★</span>' : '') + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
         '<div class="ptabs"></div><div class="pn"></div>';
       p._allies = Math.min(3, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */

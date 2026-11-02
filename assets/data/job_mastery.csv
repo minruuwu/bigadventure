@@ -1,0 +1,21 @@
+job_sn,talent_name,kind,stat_1,value_1,stat_2,value_2,chance,status_name,turns,talent_desc
+job01,氣魄,regen_self,,0.05,,,,,,每回合開始恢復 5% 最大生命
+job02,魔力掌控,stat,m_damage_rate,0.05,,,,,,魔法傷害加成 +5%
+job03,巧手回收,sp_on_skill,,,,,0.1,,,施放消耗 SP 的技能後，10% 機率 SP +1
+job04,驅魔,cleanse,,,,,,,,每回合開始，隨機解除一名同伴（含自己）的一個負面狀態
+job05,魔力鍊成,sp_turn,,,,,0.1,,,每回合開始 10% 機率 SP +1
+job06,鋼鐵意志,stat,p_reduce_rate,0.05,hp_rate,0.05,,,,物理減傷 +5%、最大生命 +5%
+job07,魔力湧泉,stat,m_atk_rate,0.05,,,,,,魔法攻擊力 +5%
+job08,獵人印記,mark_on_hit,,,,,0.2,識破,2,造成傷害時 20% 機率讓目標「識破」2 回合
+job09,光明,light_add,,0.1,,,,,,造成傷害時，追加主傷害 10% 的光明傷害
+job10,賢者之石,sp_start,,1,,,,,,戰鬥開始時 SP +1
+job11,魔武合一,stat,p_atk_rate,0.03,m_atk_rate,0.03,,,,物理攻擊力、魔法攻擊力各 +3%
+job12,劍心,buff_turn,,,,,0.15,劍氣,2,每回合開始 15% 機率獲得「劍氣」2 回合
+job13,守護之誓,stat,m_reduce_rate,0.05,hp_rate,0.05,,,,魔法減傷 +5%、最大生命 +5%
+job14,精工鍛造,stat,p_atk_rate,0.05,,,,,,物理攻擊力 +5%
+job15,餘韻,sp_ally_on_skill,,,,,0.1,,,施放消耗 SP 的技能後，10% 機率讓隨機一名同伴 SP +1
+job16,意志迴流,sp_on_kill,,,,,0.25,,,擊倒敵人時，額外 25% 機率再 SP +1
+job17,咒術精通,debuff_chance,,0.2,,,,,,自己施加負面狀態的機率 +20%
+job18,審判之眼,dmg_vs_debuffed,,0.05,,,,,,對身上有負面狀態的敵人，傷害 +5%
+job19,致命要害,dmg_vs_low,,0.15,,0.4,,,,對生命低於 40% 的敵人，傷害 +15%
+job20,生生不息,heal_lowest,,0.1,,,,,,每回合開始，替生命比例最低的同伴恢復 10% 最大生命
