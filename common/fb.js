@@ -185,7 +185,7 @@ const FB = {
       if (bad.length) why.push('有欄位存成無效數字：' + bad.slice(0, 5).join('、'));
       /* 關卡進度：規則要求只能有 area01～03、每章都是整數且不超過 20；任何一章不合格，所有冒險存檔都會被擋 */
       const AD = (F.adv && F.adv.mapValue && F.adv.mapValue.fields) || {};
-      Object.keys(AD).forEach(k => { const v = AD[k]; if (['area01', 'area02', 'area03'].indexOf(k) < 0) why.push('關卡進度有規則不認得的章節 ' + k); else if (!('integerValue' in v)) why.push('關卡進度 ' + k + ' 存成了' + ty(v)); else if (Number(v.integerValue) > 20) why.push('關卡進度 ' + k + ' = ' + v.integerValue + '（規則上限 20）'); });
+      Object.keys(AD).forEach(k => { const v = AD[k]; if (!/^area0[1-8]$/.test(k)) why.push('關卡進度有規則不認得的章節 ' + k); else if (!('integerValue' in v)) why.push('關卡進度 ' + k + ' 存成了' + ty(v)); else if (Number(v.integerValue) > 20) why.push('關卡進度 ' + k + ' = ' + v.integerValue + '（規則上限 20）'); });
       why.types = types.join(' '); } catch (e) { why.types = 'REST 讀取失敗 ' + (e && e.message); }
     return { party, at, why, types: why.types, cur, adv: d.adv || {} }; }, /* cur = 資料庫裡這一章目前的進度（換手機打過時會比這台新） */
   async advWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { exp: increment(r.exp), stones: increment(r.stones), advAt: serverTimestamp() };
