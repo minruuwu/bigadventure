@@ -178,6 +178,11 @@ const FB = {
     try { const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
       const ty = v => v ? Object.keys(v)[0] : '無'; const types = ['exp', 'stones', 'cookies', 'advAt', 'party', 'owe'].map(k => k + '=' + ty(F[k])); const ad = F.adv && F.adv.mapValue && F.adv.mapValue.fields || {}; types.push('adv.area01=' + ty(ad.area01));
       ['exp', 'stones', 'cookies'].forEach(k => { if (F[k] && !('integerValue' in F[k])) why.push(k + ' 存成了' + ty(F[k]) + '（規則要整數）'); }); if (ad.area01 && !('integerValue' in ad.area01)) why.push('adv.area01 存成了' + ty(ad.area01));
+      /* 掃整份資料：存成 NaN／Infinity 的欄位，每次比對新舊時都會被當成「有改動」，任何存檔都會被規則擋下 */
+      const bad = []; (function walk(o, path) { Object.keys(o || {}).forEach(k => { const v = o[k], pth = path ? path + '.' + k : k; if (!v || typeof v !== 'object') return;
+        if ('doubleValue' in v && !isFinite(Number(v.doubleValue))) bad.push(pth + '=' + v.doubleValue);
+        else if (v.mapValue) walk(v.mapValue.fields, pth); else if (v.arrayValue) (v.arrayValue.values || []).forEach((x, i) => walk({ [i]: x }, pth)); }); })(F, '');
+      if (bad.length) why.push('有欄位存成無效數字：' + bad.slice(0, 5).join('、'));
       why.types = types.join(' '); } catch (e) { why.types = 'REST 讀取失敗 ' + (e && e.message); }
     return { party, at, why, types: why.types, cur, adv: d.adv || {} }; }, /* cur = 資料庫裡這一章目前的進度（換手機打過時會比這台新） */
   async advWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = { exp: increment(r.exp), stones: increment(r.stones), advAt: serverTimestamp() };
