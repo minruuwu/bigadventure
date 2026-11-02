@@ -140,7 +140,25 @@
     if (!ks.length) return '<div class="none">還沒有職業等級</div>';
     return '<div class="lst" style="max-height:none">' + ks.map(function (k) { var m = /(\d+)/.exec(k), nm = (m && g.Doll.JOBN[+m[1] - 1]) || k; return '<div class="rw"><img alt="" src="' + snIcon(k) + '"><span class="tx"><b>' + esc(nm) + '</b></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + (jl[k] | 0) + '</span></div>' }).join('') + '</div>'
   }
-  var TABN = { say: '想說的話', stat: '屬性', skill: '技能', res: '抗性', job: '職業' };
+  /* 武器分頁：武器名稱（依外觀階）、等級、裝備中的符文（新版帳號、Lv1 以上、在開放的格數內才算，跟戰鬥一致）與目前等級的數值 */
+  function weaponHtml(p) {
+    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, raw = (C.rawWeapons && C.rawWeapons()) || [], row = raw.filter(function (r) { return r.u_sn === ws })[0] || {};
+    var st = Math.min(4, Math.max(wd.stage | 0 || 1, lv >= 90 ? 4 : lv >= 60 ? 3 : lv >= 30 ? 2 : 1)), wn = row['stage_' + st + '_name'] || p.weapon || '武器';
+    var n = lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 };
+    var en = (p.runeV | 0) >= 2 && Array.isArray(wd.ench) ? wd.ench.filter(function (id) { return rlv(id) >= 1 }).slice(0, n) : [];
+    var R = {}; ((STAT && STAT.rune) || []).forEach(function (r) { if (r && r.u_sn) R[r.u_sn] = r });
+    var h = '<div class="rw"><img alt="" src="' + wicon(p) + '"><span class="tx"><b>' + esc(wn) + '</b><small>' + esc(p.weapon || '') + '</small></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + lv + '</span></div>';
+    [30, 60, 90].forEach(function (need, i) {
+      if (i >= n) { h += '<div class="rw off"><span class="tx"><b>（武器 Lv' + need + ' 解鎖）</b><small>符文 ' + (i + 1) + '</small></span></div>'; return }
+      var id = en[i], r = id && R[id];
+      if (!r) { h += '<div class="rw off"><span class="tx"><b>未裝符文</b><small>符文 ' + (i + 1) + '</small></span></div>'; return }
+      var L = rlv(id), vals = [1, 2, 3, 4].map(function (k) { var lb = r['label_' + k], v = window.RuneVals ? RuneVals.raw(id, L, k - 1) : ''; return lb && v ? esc(lb) + ' ' + esc(v) : '' }).filter(Boolean).join('、');
+      var desc = String(r.rune_desc || '').replace(/（數值隨等級提升）/g, '');
+      h += '<div class="rw"><img alt="" src="' + C.base + 'icons/runes/' + id + '.png?v=' + (C.v || 1) + '" style="image-rendering:pixelated"><span class="tx"><b style="color:' + esc(r.color || '#2e1d0e') + ';text-shadow:1px 1px 0 rgba(0,0,0,.35)">' + esc(r.rune_name || id) + '</b><small>' + esc(desc) + (vals ? '<br>' + vals : '') + '</small></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + L + '</span></div>';
+    });
+    return '<div class="lst" style="max-height:none">' + h + '</div>'
+  }
+  var TABN = { say: '想說的話', stat: '屬性', skill: '技能', res: '抗性', wpn: '武器', job: '職業' };
   /* 分頁：bar 放按鈕，panel 放內容；onTab(name) 讓呼叫端決定其他區塊（例如想說的話）要不要顯示 */
   function mountTabs(bar, panel, p, names, onTab, alive) {
     var cur = names[0];
@@ -149,7 +167,7 @@
       if (onTab) onTab(cur);
       if (cur === 'say') { panel.innerHTML = ''; return }
       panel.innerHTML = '<div class="none">讀取中…</div>'; var mine = cur;
-      statData().then(function () { if (cur !== mine || (alive && !alive())) return; panel.innerHTML = mine === 'stat' ? gridHtml(combat(p)) : mine === 'res' ? gridHtml(resists(p)) : mine === 'skill' ? skillsHtml(p) : jobsHtml(p) })
+      statData().then(function () { if (cur !== mine || (alive && !alive())) return; panel.innerHTML = mine === 'stat' ? gridHtml(combat(p)) + '<div style="margin:10px 0 4px;font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a;border-top:2px dashed rgba(60,30,10,.35);padding-top:8px">抗性</div>' + gridHtml(resists(p)) : mine === 'res' ? gridHtml(resists(p)) : mine === 'wpn' ? weaponHtml(p) : mine === 'skill' ? skillsHtml(p) : jobsHtml(p) })
     }
     bar.onclick = function (e) { var b = e.target.closest && e.target.closest('button[data-t]'); if (!b || b.dataset.t === cur) return; cur = b.dataset.t; paint() };
     bar.hidden = false; panel.hidden = false; paint()
@@ -279,7 +297,7 @@
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
         '<div class="ptabs"></div><div class="pn"></div>';
       p._allies = Math.min(3, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */
-      mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'res', 'job']);
+      mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'wpn', 'job']);
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
           API.remove(p.uid).then(function () { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== p.uid }); bust(p.uid); sel = 0; syncBtn(); load(); C.toast('已移出 ' + p.name) }, function (e) { C.toast(errText(e, '移出')) })

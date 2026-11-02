@@ -383,7 +383,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="party.js?v=27"></script>
+<script src="party.js?v=28"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -819,7 +819,7 @@ function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=tr
   if(mine){ta.value=p.say||'';document.getElementById('pcSayCnt').textContent=ta.value.length+'/50';document.getElementById('pcSaySv').disabled=false}
   else{txt.textContent=p.say||'（還沒有想說的話）';txt.className='txt'+(p.say?'':' none')}
   sayWhen(p);
-  Party.mountTabs(document.getElementById('pcTabs'),document.getElementById('pcPanel'),p,['say','stat','skill','res','job'],function(t){var sy=t==='say';document.getElementById('pcSayBox').hidden=!sy;document.getElementById('pcTeam').hidden=!sy},function(){return CARD===a});
+  Party.mountTabs(document.getElementById('pcTabs'),document.getElementById('pcPanel'),p,['say','stat','skill','wpn','job'],function(t){var sy=t==='say';document.getElementById('pcSayBox').hidden=!sy;document.getElementById('pcTeam').hidden=!sy},function(){return CARD===a});
   document.getElementById('pcard').hidden=false}
 function sayAgo(t){var m=Math.floor((Date.now()-t)/60000);if(m<1)return '剛剛';if(m<60)return m+' 分鐘前';var h=Math.floor(m/60);if(h<24)return h+' 小時前';return Math.floor(h/24)+' 天前'}
 function sayWhen(p){document.getElementById('pcSayWhen').textContent=p.say&&tms(p.sayAt)?'更新於 '+sayAgo(tms(p.sayAt)):''}
