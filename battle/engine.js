@@ -246,7 +246,7 @@
       if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h }) }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n }) }
-    function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null } }
+    function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null } }
     function addStat(e, u, kind, v, sk) { if (u.side !== 'p' || !v) return; (e.st = e.st || []).push([u.i, kind, Math.round(v), sk]) }
 
     /* --- 狀態 --- */
@@ -365,14 +365,14 @@
       /* 不死（骨兵）：倒下就散成骨堆，無限次；骨堆倒數（死掉那回合不算）結束後滿血變回骨兵，見 round() */
       var und = u.side === 'm' ? (u.special || []).filter(function (x) { return x.k === 'undying' && D.mon[x.cond] })[0] : null;
       if (und) {
-        var back = u.mid, old0 = u.name; morph(u, und.cond); u.undead = { back: back, n: num(und.v) || 3, born: rounds };
+        if (e) (e.hz = e.hz || []).push(u.i); /* 打倒牠的那一招：血條先歸零 */ var back = u.mid, old0 = u.name; morph(u, und.cond); u.undead = { back: back, n: num(und.v) || 3, born: rounds };
         var tb = line({ side: 'm', a: u.i, txt: old0 + ' 散成一堆白骨……（' + u.undead.n + ' 回合後重生）', tf: [u.i, u.sprite, u.name, 'bone'], cd: [u.i, u.undead.n] }); tb.hp = hpSnap();
         return false;
       }
       /* 變身（冥屍龍的亡骸化）：倒下時化為另一隻怪復活一次，生命全滿、狀態清空，召喚出來的同伴留著 */
       var tfx = u.side === 'm' && !u.flags.tf ? (u.special || []).filter(function (x) { return x.k === 'transform' && x.tr === 'death' && D.mon[x.cond] })[0] : null;
       if (tfx) {
-        u.flags.tf = 1; var nu = monster(D.mon[tfx.cond], u.stg || 1, D), old = u.name;
+        if (e) (e.hz = e.hz || []).push(u.i); u.flags.tf = 1; var nu = monster(D.mon[tfx.cond], u.stg || 1, D), old = u.name;
         u.name = nu.name; u.mid = nu.mid; u.sprite = nu.sprite; u.b = nu.b; u.b.mhp = Math.round(u.b.mhp * (u.hs || 1)); if (u.as) { u.b.patk = Math.round(u.b.patk * u.as); u.b.matk = Math.round(u.b.matk * u.as) } /* as = 秘境攻擊倍率，變身後保留 */ u.hp = u.b.mhp; u.st = [];
         u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
         u.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = u });
