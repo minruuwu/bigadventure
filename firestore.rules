@@ -1,0 +1,541 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /players/{uid} {
+      // 寵物好感:這隻寵物若有被改動,等級必須剛好 +1 且不超過 10
+      function petOk(id) {
+        let aff = request.resource.data.get('pets', {}).diff(resource.data.get('pets', {})).affectedKeys();
+        let oldLv = resource.data.get('pets', {}).get(id, {}).get('lv', 0);
+        let newLv = request.resource.data.get('pets', {}).get(id, {}).get('lv', 0);
+        return !(id in aff) || (newLv == oldLv + 1 && newLv <= 10);
+      }
+
+      // 鍛造:武器等級(只能增加、整數、1~100,其他欄位不能動)
+      // 規則每次請求最多算 1000 個運算式:沒改到的武器(新舊完全一樣)直接放行,有改到的才逐項檢查,每把武器的新舊資料只讀一次
+      function wOld(id) { return resource.data.get('weapons', {}).get(id, {}); }
+      function wNew(id) { return request.resource.data.get('weapons', {}).get(id, {}); }
+      function wLvOk(id) {
+        let n = wNew(id);
+        let o = wOld(id);
+        return n == o || wChk(n, o);
+      }
+      function wChk(n, o) {
+        let lv = n.get('lv', 1);
+        let ak = n.diff(o).affectedKeys();
+        return lv is int && lv >= o.get('lv', 1) && lv <= 100
+          && ak.hasOnly(['lv', 'pts', 'ench'])
+          // 淬火點數:3 個非負整數,總和不超過 等級/5
+          && (!('pts' in ak) || (n.pts is list && n.pts.size() == 3
+              && n.pts[0] is int && n.pts[1] is int && n.pts[2] is int
+              && n.pts[0] >= 0 && n.pts[1] >= 0 && n.pts[2] >= 0
+              && (n.pts[0] + n.pts[1] + n.pts[2]) * 5 <= lv))
+          // 附魔:符文清單,數量不超過欄位數(30/60/90 級各 1 格)
+          && (!('ench' in ak) || (n.ench is list
+              && n.ench.size() <= (lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)
+              // 符文改版:新版帳號才能附魔、同一把武器不能重複、每個符文都要 Lv1 以上
+              && resource.data.get('runeV', 0) == 2
+              && n.ench.toSet().size() == n.ench.size()
+              // 每個符文都要有碎片紀錄(用集合比對,不逐格取值,省運算也避開清單索引)
+              && n.ench.toSet().difference(resource.data.get('rs', {}).keys().toSet()).size() == 0));
+      }
+      // 每升 n 級,至少要付 3*(n*原等級 + n*(n-1)/2) 顆(實際單價 3*lv^1.3 一定比這個高)
+      function wPaid(id) {
+        let a = wOld(id).get('lv', 1);
+        let k = wNew(id).get('lv', 1) - a;
+        return k <= 0 ? 0 : 3 * (k * a + k * (k - 1) / 2);
+      }
+
+
+      // 工會證:人物與職業共用一個經驗池。升到 L+1 級要 30*(L+1) 經驗(要改曲線時,下面的 15* 要一起改)
+      // 從 a 升到 b 的總花費 = 15*(b*(b+1) - a*(a+1))。規則有 1000 次運算的上限,所以只列 job01~job20(終極職業開放時再補),職業升級一次只能升一個職業
+      function jOld(id) { return resource.data.get('jobLv', {}).get(id, 0); }
+      function jNew(id) { return request.resource.data.get('jobLv', {}).get(id, 0); }
+      function jR(x) { return 15 * x * (x + 1); }
+      function jSumNew() { return jNew('job01') + jNew('job02') + jNew('job03') + jNew('job04') + jNew('job05') + jNew('job06') + jNew('job07') + jNew('job08') + jNew('job09') + jNew('job10') + jNew('job11') + jNew('job12') + jNew('job13') + jNew('job14') + jNew('job15') + jNew('job16') + jNew('job17') + jNew('job18') + jNew('job19') + jNew('job20'); }
+      // 一轉職業(job06~job20)升級花費是基礎職業的 3 倍
+      function jM(id) { return id in ['job01','job02','job03','job04','job05'] ? 1 : 3; }
+      function jRefSum() { return jR(jOld('job01')) + jR(jOld('job02')) + jR(jOld('job03')) + jR(jOld('job04')) + jR(jOld('job05')) + 3 * (jR(jOld('job06')) + jR(jOld('job07')) + jR(jOld('job08')) + jR(jOld('job09')) + jR(jOld('job10')) + jR(jOld('job11')) + jR(jOld('job12')) + jR(jOld('job13')) + jR(jOld('job14')) + jR(jOld('job15')) + jR(jOld('job16')) + jR(jOld('job17')) + jR(jOld('job18')) + jR(jOld('job19')) + jR(jOld('job20'))); }
+
+      // 冒險:隊長資料裡累積給隊友的分成(owe.<隊友uid> = {exp, stones}),每場只能增加、有上限
+      function oweN(k) { return request.resource.data.get('owe', {}).get(k, {}); }
+      function oweO(k) { return resource.data.get('owe', {}).get(k, {}); }
+      function oweOk(k) {
+        return oweN(k).get('exp', 0) - oweO(k).get('exp', 0) >= 0
+          && oweN(k).get('exp', 0) - oweO(k).get('exp', 0) <= 32
+          && oweN(k).get('stones', 0) - oweO(k).get('stones', 0) >= 0
+          && oweN(k).get('stones', 0) - oweO(k).get('stones', 0) <= 7;
+      }
+      function oweUp(i) {
+        return resource.data.get('party', []).size() <= i || oweOk(resource.data.get('party', [])[i]);
+      }
+      // 冒險進度:每章一次最多往前 1 關、最多 20 關;第二章要先打完第一章、第三章要先打完第二章
+      function advN(k) { return request.resource.data.get('adv', {}).get(k, 0); }
+      function advO(k) { return resource.data.get('adv', {}).get(k, 0); }
+      function advOk(k) { return advN(k) is int && advN(k) >= advO(k) && advN(k) <= advO(k) + 1 && advN(k) <= 20; }
+      // 冒險進度:這次最多只能動一章;那一章一次最多往前 1 關、最多 20 關,而且前一章要先打完(第 1 章除外)
+      function advPrev(k) { return {'area02':'area01','area03':'area02','area04':'area03','area05':'area04','area06':'area05','area07':'area06','area08':'area07'}.get(k, ''); }
+      function advStep(k) { let pv = advPrev(k); return advOk(k) && (pv == '' || advO(pv) >= 20); }
+      function advChg() {
+        let ch = request.resource.data.get('adv', {}).diff(resource.data.get('adv', {})).affectedKeys();
+        return ch.size() <= 1
+          && (!('area01' in ch) || advStep('area01'))
+          && (!('area02' in ch) || advStep('area02'))
+          && (!('area03' in ch) || advStep('area03'))
+          && (!('area04' in ch) || advStep('area04'))
+          && (!('area05' in ch) || advStep('area05'))
+          && (!('area06' in ch) || advStep('area06'))
+          && (!('area07' in ch) || advStep('area07'))
+          && (!('area08' in ch) || advStep('area08'));
+      }
+      // 領取週期:台灣時間每天 06:00(= UTC 22:00)換一天
+      function per(t) { return math.floor((t.toMillis() - 79200000) / 86400000); }
+
+      // 帳棚：寵物「邀請進帳棚」開關（等級不能動，只能改 tent，且好感要 1 級以上才能開）
+      function tentOk(id) {
+        let n = request.resource.data.get('pets', {}).get(id, {});
+        let o = resource.data.get('pets', {}).get(id, {});
+        return n.get('lv', 0) == o.get('lv', 0)
+          && n.keys().hasOnly(['lv', 'tent'])
+          && n.get('tent', false) is bool
+          && (n.get('tent', false) == false || n.get('lv', 0) >= 1);
+      }
+
+      // 符文改版：碎片存在 rs.<符文id>(整數)、秘境各房最高等級存在 rift.<r1~r7>、今日次數 riftDay + riftN、舊帳號遷移標記 runeV = 2
+      function rsN(k) { return request.resource.data.get('rs', {}).get(k, 0); }
+      function rsO(k) { return resource.data.get('rs', {}).get(k, 0); }
+      // 碎片兌換:rsFrom 那種 -10(不能變負數)、rsTo 那種 +1,其他都不能動
+      function rsConv() {
+        let f = request.resource.data.rsFrom;
+        let t = request.resource.data.rsTo;
+        return f is string && t is string && f != t
+          && request.resource.data.rs.diff(resource.data.get('rs', {})).affectedKeys().hasOnly([f, t])
+          && rsN(f) is int && rsN(f) == rsO(f) - 10 && rsN(f) >= 0
+          && rsN(t) is int && rsN(t) == rsO(t) + 1;
+      }
+      // 秘境進度：一次最多往前 10 級(一個難度)、10 的倍數、最高 200
+      function rfOk(k) {
+        let n = request.resource.data.get('rift', {}).get(k, 0);
+        let o = resource.data.get('rift', {}).get(k, 0);
+        return n == o || (n is int && n > o && n <= o + 10 && n <= 200 && n % 10 == 0);
+      }
+      // 台灣日期(午夜換日):時間 +8 小時後只取年月日,用時間直接比大小(不用除法、不用 math.floor)
+      function tpd(t) { return (t + duration.value(8, 'h')).date(); }
+      // 符文遷移：runeV 從舊版變成 2,武器只能把附魔清空,其他欄位不能動
+      function migW(id) { let n = wNew(id); let o = wOld(id); return n == o || (n.diff(o).affectedKeys().hasOnly(['ench']) && n.ench is list && n.ench.size() == 0); }
+      function migOk() {
+        return request.resource.data.get('runeV', 0) == 2 && resource.data.get('runeV', 0) != 2
+          && request.resource.data.get('weapons', {}).keys().hasOnly(['weapon01','weapon02','weapon03','weapon04','weapon05','weapon06','weapon07','weapon08'])
+          && migW('weapon01') && migW('weapon02') && migW('weapon03') && migW('weapon04') && migW('weapon05') && migW('weapon06') && migW('weapon07') && migW('weapon08');
+      }
+      // ===== 秘境勝利 =====
+      // Firebase 規則每次存檔最多算 1000 個運算式,所以這段寫得很省:同一個值只算一次(let),不用長清單
+      // 這場打的是哪間房(r1~r7),由存檔程式寫在 riftRm
+      function rRm() { return request.resource.data.get('riftRm', ''); }
+      function rDel(k) { return rsN(k) - rsO(k); }
+      function rGain4(a, b, c, d) {
+        let x = rDel(a); let y = rDel(b); let z = rDel(c); let w = rDel(d);
+        return x >= 0 && y >= 0 && z >= 0 && w >= 0 && x + y + z + w >= 2 && x + y + z + w <= 5;
+      }
+      function rGain5(a, b, c, d, f) {
+        let x = rDel(a); let y = rDel(b); let z = rDel(c); let w = rDel(d); let v = rDel(f);
+        return x >= 0 && y >= 0 && z >= 0 && w >= 0 && v >= 0 && x + y + z + w + v >= 2 && x + y + z + w + v <= 5;
+      }
+      function rGain3(a, b, c) {
+        let x = rDel(a); let y = rDel(b); let z = rDel(c);
+        return x >= 0 && y >= 0 && z >= 0 && x + y + z >= 2 && x + y + z <= 5;
+      }
+      // 第 1 組:今日次數(同一天 +1;換日從 1 開始,最多 10)
+      function rDay() {
+        let nd = request.resource.data.get('riftDay', '');
+        let od = resource.data.get('riftDay', '');
+        let n = request.resource.data.get('riftN', 0);
+        return n <= 10
+          && ((nd == od && n == resource.data.get('riftN', 0) + 1)
+              || (nd != od && n == 1 && nd is string && nd.size() == 10
+                  && tpd(resource.data.get('riftAt', timestamp.value(0))) < tpd(request.time)));
+      }
+      // 第 2 組:碎片只能是這間房的符文、每種只增不減、合計 +2~5
+      // (2026-11 月之淨化→月曜、水之幽暗→水曜、鴉之旅程→土曜;月、水、土三間暫時也接受搬家前的符文,讓還開著舊頁面的玩家存得進去)
+      function rShard() {
+        let ak = request.resource.data.get('rs', {}).diff(resource.data.get('rs', {})).affectedKeys();
+        let rm = rRm();
+        return (rm == 'r1' && ak.hasOnly(['rune15', 'rune04', 'rune20', 'rune09', 'rune12']) && rGain5('rune15', 'rune04', 'rune20', 'rune09', 'rune12'))
+          || (rm == 'r2' && ak.hasOnly(['rune01', 'rune18', 'rune10', 'rune05']) && rGain4('rune01', 'rune18', 'rune10', 'rune05'))
+          || (rm == 'r3' && ak.hasOnly(['rune02', 'rune07', 'rune16', 'rune25', 'rune15']) && rGain5('rune02', 'rune07', 'rune16', 'rune25', 'rune15'))
+          || (rm == 'r4' && ak.hasOnly(['rune06', 'rune22', 'rune17', 'rune24']) && rGain4('rune06', 'rune22', 'rune17', 'rune24'))
+          || (rm == 'r5' && ak.hasOnly(['rune03', 'rune19', 'rune08', 'rune11']) && rGain4('rune03', 'rune19', 'rune08', 'rune11'))
+          || (rm == 'r6' && ak.hasOnly(['rune13', 'rune12', 'rune26', 'rune25']) && rGain4('rune13', 'rune12', 'rune26', 'rune25'))
+          || (rm == 'r7' && ak.hasOnly(['rune14', 'rune21', 'rune23']) && rGain3('rune14', 'rune21', 'rune23'));
+      }
+      // 第 3 組:秘境進度只動這間房,一次最多 +10 級
+      function rProg() {
+        let rm = rRm();
+        return request.resource.data.get('rift', {}).diff(resource.data.get('rift', {})).affectedKeys().hasOnly([rm]) && rfOk(rm);
+      }
+      // 第 4 組:舊帳號遷移(有動武器就一定要同時轉新版)
+      function rMig(ak) { return (!('weapons' in ak) || 'runeV' in ak) && (!('runeV' in ak) || migOk()); }
+      // 第 5 組:伺服器時間、兩場至少隔 10 秒
+      function rTime() {
+        return request.resource.data.riftAt == request.time
+          && request.time >= resource.data.get('riftAt', timestamp.value(0)) + duration.value(10, 's');
+      }
+      // 五組全部通過才能存(riftDbg 是除錯時留下的舊欄位,只能被刪掉、不能再寫入)
+      function riftOk(ak) {
+        return ak.hasOnly(['rs','rift','riftDay','riftN','riftAt','runeV','weapons','riftDbg','riftRm'])
+          && !('riftDbg' in request.resource.data)
+          && rDay() && rShard() && rProg() && rMig(ak) && rTime();
+      }
+      // 附魔:清單裡每個符文都要至少 1 片碎片(Lv1)
+      function enHas(l, i) { return l.size() <= i || resource.data.get('rs', {}).get(l[i], 0) >= 1; }
+
+      // ===== 自己改自己的資料:所有情況合成一個函式 =====
+      // Firebase 每次存檔最多算 1000 個運算式。「整份資料新舊比較」(diff)很耗額度,以前每條規則各算一次,
+      // 欄位多的帳號(隊長、管理者)會超過上限而被擋。現在只算一次存在 ak,各種情況共用。
+      function selfOk() {
+        let ak = request.resource.data.diff(resource.data).affectedKeys();
+        // 符文、秘境的規則放在最前面:Firebase 每次存檔最多算 1000 個運算式,其他規則先算會吃掉額度(資料欄位多的帳號會超過)
+        // 秘境勝利:碎片每場合計 +2~5、只能是這間房的符文;這間房的進度一次最多 +10 級;每天(台灣午夜換日)最多 10 次;兩場之間至少隔 10 秒
+        // 第一次打秘境的舊帳號,同一次寫入順便做符文遷移(runeV = 2、武器附魔清空)
+        return (
+          riftOk(ak)
+        )
+        // 符文碎片兌換:任一種 10 片換另一種 1 片(rsFrom、rsTo 記這次換的是哪兩種)
+        || (
+          ak.hasOnly(['rs','rsFrom','rsTo'])
+          && rsConv()
+        )
+        // 符文遷移(鍛造頁):標記 runeV = 2,所有武器的舊附魔清空(只做一次)
+        || (
+          ak.hasOnly(['runeV','weapons'])
+          && migOk()
+        )
+        || (
+          (
+          // 在線心跳:只改 lastSeen
+          (ak.hasOnly(['lastSeen'])
+          && request.resource.data.lastSeen == request.time)
+          ||
+          // 角色頁:外觀、武器、職業、配點、改名
+          (ak.hasOnly([
+          'skin','style','hair','eyes','outfit','weapon',
+          'job','jobSn','jobSeen','alloc','name','nameKey','renames'])
+          // 轉職:曾經轉過的職業清單(jobSeen),一次最多多一個,而且就是這次轉去的職業
+          && (!('jobSeen' in ak)
+          || (request.resource.data.jobSeen is list && request.resource.data.jobSeen.size() <= 35
+          && request.resource.data.jobSeen.toSet().difference(resource.data.get('jobSeen', []).toSet()).hasOnly([request.resource.data.jobSn])))
+          // 配點:不能是負數,總和不能超過等級給的點數
+          && (!('alloc' in ak)
+          || (request.resource.data.alloc.str >= 0 && request.resource.data.alloc.int >= 0
+          && request.resource.data.alloc.agi >= 0 && request.resource.data.alloc.vit >= 0
+          && request.resource.data.alloc.luk >= 0
+          && request.resource.data.alloc.str + request.resource.data.alloc.int
+          + request.resource.data.alloc.agi + request.resource.data.alloc.vit
+          + request.resource.data.alloc.luk
+          <= 5 * (resource.data.get('lv', 1) - 1)))
+          // 改名:名字規則同創角,要連 renames 一起改,最多 3 次,每次加 1
+          && (!('name' in ak)
+          || ('renames' in ak
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 10
+          && request.resource.data.nameKey == request.resource.data.name.lower()
+          && getAfter(/databases/$(database)/documents/names/$(request.resource.data.nameKey)).data.uid == uid))
+          && (!('renames' in ak)
+          || (request.resource.data.renames == resource.data.get('renames', 0) + 1
+          && request.resource.data.renames <= 3)))
+          ||
+          // 營地:想說的話(最多 50 字,時間必須是伺服器時間)
+          (ak.hasOnly(['say','sayAt'])
+          && 'say' in request.resource.data && 'sayAt' in request.resource.data
+          && request.resource.data.say is string
+          && request.resource.data.say.size() <= 50
+          && request.resource.data.sayAt == request.time)
+          ||
+          // 營地:餵寵物(餅乾只能減 1~5 塊、一次只能升一隻寵物、等級只能 +1、最高 10 級)
+          (ak.hasOnly(['cookies','pets'])
+          && request.resource.data.cookies is int
+          && request.resource.data.cookies >= 0
+          && resource.data.get('cookies', 0) - request.resource.data.cookies >= 1
+          && resource.data.get('cookies', 0) - request.resource.data.cookies <= 5
+          && request.resource.data.pets.keys().hasOnly(['gm_pet_01','gm_pet_02','gm_pet_03'])
+          && request.resource.data.pets.diff(resource.data.get('pets', {})).affectedKeys().size() == 1
+          && petOk('gm_pet_01') && petOk('gm_pet_02') && petOk('gm_pet_03'))
+          ||
+          // 帳棚：只改自己寵物的「邀請進帳棚」開關
+          (ak.hasOnly(['pets'])
+          && request.resource.data.pets.keys().hasOnly(['gm_pet_01','gm_pet_02','gm_pet_03'])
+          && request.resource.data.pets.diff(resource.data.get('pets', {})).affectedKeys().size() == 1
+          && tentOk('gm_pet_01') && tentOk('gm_pet_02') && tentOk('gm_pet_03'))
+          )
+        )
+        // 鍛造:鍛造石只能減少、武器等級只能增加,而且付的鍛造石要夠
+        || (
+          ak.hasOnly(['stones','weapons'])
+          && request.resource.data.get('stones', 0) is int
+          && request.resource.data.get('stones', 0) >= 0
+          && request.resource.data.get('stones', 0) <= resource.data.get('stones', 0)
+          && request.resource.data.get('weapons', {}).keys().hasOnly(['weapon01','weapon02','weapon03','weapon04','weapon05','weapon06','weapon07','weapon08'])
+          && wLvOk('weapon01') && wLvOk('weapon02') && wLvOk('weapon03') && wLvOk('weapon04')
+          && wLvOk('weapon05') && wLvOk('weapon06') && wLvOk('weapon07') && wLvOk('weapon08')
+          && resource.data.get('stones', 0) - request.resource.data.get('stones', 0)
+          >= wPaid('weapon01') + wPaid('weapon02') + wPaid('weapon03') + wPaid('weapon04')
+          + wPaid('weapon05') + wPaid('weapon06') + wPaid('weapon07') + wPaid('weapon08')
+        )
+        // 組隊：隊長改自己的 party(全隊最多 4 人)
+        || (
+          ak.hasOnly(['party'])
+          // 全隊最多 4 人(隊員 3 位);原本超過的隊伍只能減少人數
+          && (request.resource.data.party.size() <= 3 || request.resource.data.party.size() < resource.data.get('party', []).size())
+          && !(uid in request.resource.data.party)
+        )
+        // 以前的隊長清單(被移出後還能領以前累積的分成):自己整理,最多 30 個
+        || (
+          ak.hasOnly(['pastLeaders'])
+          && request.resource.data.pastLeaders is list
+          && request.resource.data.pastLeaders.size() <= 30
+        )
+        // 聊天：記錄自己上次發言時間
+        || (
+          ak.hasOnly(['chatAt'])
+          && request.resource.data.chatAt == request.time
+        )
+        // 退出：只能移除自己的 leaders
+        || (
+          ak.hasOnly(['leaders'])
+          && request.resource.data.leaders.toSet().difference(resource.data.get('leaders', []).toSet()).size() == 0
+        )
+        // 工會證升級(人物):只改 lv、exp;等級只能增加,經驗池要付得起
+        || (
+          ak.hasOnly(['lv','exp'])
+          && request.resource.data.lv is int
+          && request.resource.data.lv >= resource.data.get('lv', 1)
+          && request.resource.data.exp is int
+          && request.resource.data.exp >= 0
+          && resource.data.get('exp', 0) - request.resource.data.exp
+          >= 15 * (request.resource.data.lv * (request.resource.data.lv + 1) - resource.data.get('lv', 1) * (resource.data.get('lv', 1) + 1))
+        )
+        // 工會證升級(職業):一轉職業花費 ×3;一次只升一個職業(jobUp 寫明是哪一個);等級只能增加、最高 50;職業總和 <= 人物等級的 2 倍;經驗池要付得起
+        || (
+          ak.hasOnly(['exp','jobLv','jobUp'])
+          && request.resource.data.jobUp in ['job01','job02','job03','job04','job05','job06','job07','job08','job09','job10','job11','job12','job13','job14','job15','job16','job17','job18','job19','job20']
+          && request.resource.data.get('jobLv', {}).diff(resource.data.get('jobLv', {})).affectedKeys().hasOnly([request.resource.data.jobUp])
+          && jNew(request.resource.data.jobUp) is int
+          && jNew(request.resource.data.jobUp) >= jOld(request.resource.data.jobUp)
+          && jNew(request.resource.data.jobUp) <= 50
+          && request.resource.data.exp is int
+          && request.resource.data.exp >= 0
+          && jSumNew() <= 2 * resource.data.get('lv', 1)
+          && resource.data.get('exp', 0) - request.resource.data.exp
+          >= jM(request.resource.data.jobUp) * (jR(jNew(request.resource.data.jobUp)) - jR(jOld(request.resource.data.jobUp)))
+        )
+        // 工會證重置所有職業:職業等級全部歸零、職業轉回戰士,經驗池最多退還已花職業經驗的全部（目前不扣懲罰）
+        || (
+          ak.hasOnly(['exp','jobLv','job','jobSn','jobSeen','weapon','outfit','skills'])
+          && request.resource.data.get('jobSeen', []).size() == 0
+          && request.resource.data.get('jobLv', {}).keys().size() == 0
+          && request.resource.data.job == 0
+          && request.resource.data.jobSn == 'job01'
+          && request.resource.data.exp is int
+          && request.resource.data.exp >= resource.data.get('exp', 0)
+          && request.resource.data.exp - resource.data.get('exp', 0) <= jRefSum()
+        )
+        // 技能書:技能配置(戰鬥 4 格、反應 1 格、被動 4 格;技能 id 是字串,普通攻擊是 'atk',空格是 '';extra = 額外技能組的職業 id 清單,最多 2 組(舊資料是單一字串,也接受))
+        || (
+          ak.hasOnly(['skills'])
+          && request.resource.data.skills is map
+          && request.resource.data.skills.keys().hasOnly(['combat','reaction','passive','extra'])
+          && request.resource.data.skills.combat is list && request.resource.data.skills.combat.size() == 4
+          && request.resource.data.skills.passive is list && request.resource.data.skills.passive.size() == 4
+          && request.resource.data.skills.reaction is string
+          && (request.resource.data.skills.get('extra', '') is string
+          ? request.resource.data.skills.get('extra', '').size() <= 10
+          : (request.resource.data.skills.extra is list
+          && request.resource.data.skills.extra.size() <= 2
+          && (request.resource.data.skills.extra.size() < 1
+          || (request.resource.data.skills.extra[0] is string && request.resource.data.skills.extra[0].size() <= 10))
+          && (request.resource.data.skills.extra.size() < 2
+          || (request.resource.data.skills.extra[1] is string && request.resource.data.skills.extra[1].size() <= 10))))
+        )
+        // 冒險勝利:經驗(每場最多 1500)、鍛造石(最多 500)、寵物餅乾只能增加而且有上限;關卡進度每章一次最多往前 1 關,第二章要先打完第一章、第三章要先打完第二章;兩場之間至少隔 20 秒(advAt 是伺服器時間)
+        || (
+          ak.hasOnly(['exp','stones','cookies','adv','advAt','owe'])
+          // 隊友分成只能記給自己隊伍裡的人(這場沒有記分成就跳過;數量上限改在隊友領取時檢查)
+          && (!('owe' in ak)
+          || request.resource.data.owe.diff(resource.data.get('owe', {})).affectedKeys().hasOnly(resource.data.get('party', [])))
+          && request.resource.data.advAt == request.time
+          && request.time >= resource.data.get('advAt', timestamp.value(0)) + duration.value(20, 's')
+          && request.resource.data.get('exp', 0) is int
+          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) >= 0
+          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) <= 1500
+          && request.resource.data.get('stones', 0) is int
+          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) >= 0
+          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) <= 500
+          && request.resource.data.get('cookies', 0) - resource.data.get('cookies', 0) >= 0
+          && request.resource.data.get('cookies', 0) - resource.data.get('cookies', 0) <= 1
+          // 章節 area01～area08(目前開放到第 4 章,先預留到第 8 章);只檢查這次有動到的那一章,其他章不用逐一檢查
+          && request.resource.data.get('adv', {}).keys().hasOnly(['area01','area02','area03','area04','area05','area06','area07','area08'])
+          && advChg()
+        )
+        // 領取隊友分成(隊員自己的資料):一次領一位隊長;增加的經驗、鍛造石必須剛好等於那位隊長資料裡記給我的量,
+        // 而且同一批寫入要把隊長那邊的記錄刪掉;同一位隊長每天早上 6 點後才能再領一次
+        || (
+          ak.hasOnly(['exp','stones','claims','claimFrom'])
+          && request.resource.data.claimFrom is string
+          && request.resource.data.claims.diff(resource.data.get('claims', {})).affectedKeys().hasOnly([request.resource.data.claimFrom])
+          && request.resource.data.claims[request.resource.data.claimFrom] == request.time
+          && (!(request.resource.data.claimFrom in resource.data.get('claims', {}))
+          || per(resource.data.claims[request.resource.data.claimFrom]) < per(request.time))
+          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0)
+          == get(/databases/$(database)/documents/players/$(request.resource.data.claimFrom)).data.get('owe', {}).get(uid, {}).get('exp', 0)
+          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) >= 0
+          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) <= 100000
+          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) >= 0
+          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) <= 25000
+          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0)
+          == get(/databases/$(database)/documents/players/$(request.resource.data.claimFrom)).data.get('owe', {}).get(uid, {}).get('stones', 0)
+          && !(uid in getAfter(/databases/$(database)/documents/players/$(request.resource.data.claimFrom)).data.get('owe', {}))
+        );
+      }
+
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && !('disabled' in request.resource.data)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 10
+        && request.resource.data.nameKey == request.resource.data.name.lower()
+        && getAfter(/databases/$(database)/documents/names/$(request.resource.data.nameKey)).data.uid == uid
+        && getAfter(/databases/$(database)/documents/meta/stats).data.active
+           == get(/databases/$(database)/documents/meta/stats).data.active + 1;
+
+      allow update: if request.auth != null && request.auth.uid == uid && selfOk();
+
+// 管理後台:改餅乾、寵物、武器、鍛造石、等級、經驗、職業等級,以及一鍵重置角色進度、組隊分紅歸零
+allow update: if request.auth != null
+  && request.auth.token.email == 'minruu0215@gmail.com'
+  && request.auth.token.email_verified == true
+  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cookies','pets','weapons','stones','lv','exp','jobLv','jobUp',
+       'job','jobSn','jobSeen','alloc','weapon','outfit','skills','adv','owe','rs','rift','riftDay','riftN','runeV']);
+
+
+// 隊長把我加入／移出：只動對方的 leaders(加入時順便記到 pastLeaders),只增減隊長自己,最多 5 個
+allow update: if request.auth != null && request.auth.uid != uid
+  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leaders','pastLeaders'])
+  && (!('pastLeaders' in request.resource.data.diff(resource.data).affectedKeys())
+      || (request.resource.data.pastLeaders.size() <= 30
+          && request.resource.data.pastLeaders.toSet().difference(resource.data.get('pastLeaders', []).toSet()).hasOnly([request.auth.uid])))
+  && request.resource.data.leaders.size() <= 5
+  && request.resource.data.leaders.toSet().difference(resource.data.get('leaders', []).toSet())
+     .union(resource.data.get('leaders', []).toSet().difference(request.resource.data.leaders.toSet()))
+     .hasOnly([request.auth.uid]);
+
+
+// 隊員退出時：只動隊長的 party，只移除自己
+allow update: if request.auth != null && request.auth.uid != uid
+  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['party'])
+  && request.resource.data.party.toSet().difference(resource.data.get('party', []).toSet()).size() == 0
+  && resource.data.get('party', []).toSet().difference(request.resource.data.party.toSet()).hasOnly([request.auth.uid]);
+
+
+// 隊員領取時:只刪掉隊長資料裡記給自己的那一筆分成
+allow update: if request.auth != null && request.auth.uid != uid
+  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['owe'])
+  && request.resource.data.get('owe', {}).diff(resource.data.get('owe', {})).affectedKeys().hasOnly([request.auth.uid])
+  && !(request.auth.uid in request.resource.data.get('owe', {}));
+
+      allow delete: if false;
+    }
+match /chat/meta {
+  allow read: if request.auth != null;
+  allow create, update: if request.auth != null
+    && request.resource.data.keys().hasOnly(['n'])
+    && request.resource.data.n is int;
+}
+
+match /chat/{id} {
+  allow read: if request.auth != null;
+  allow create, update: if request.auth != null
+    && id.matches('s[0-2][0-9]')
+    && request.resource.data.keys().hasOnly(['uid','name','jobSn','text','at'])
+    && request.resource.data.uid == request.auth.uid
+    && request.resource.data.text is string
+    && request.resource.data.text.size() >= 1
+    && request.resource.data.text.size() <= 50
+    && request.resource.data.name is string
+    && request.resource.data.name.size() <= 20
+    && request.resource.data.at == request.time
+    && request.time >= get(/databases/$(database)/documents/players/$(request.auth.uid)).data.get('chatAt', timestamp.value(0)) + duration.value(2, 'm')
+    && (resource == null || resource.data.at <= request.time - duration.value(60, 's'));
+  allow delete: if false;
+}
+    match /names/{nameKey} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/players/$(request.auth.uid)).data.nameKey == nameKey;
+      allow update: if false;
+      // 改名時釋放自己的舊名字
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    match /meta/config { allow get: if request.auth != null; }
+    // 營地跑馬燈公告:大家都能讀,只有管理者能寫
+    match /meta/notice {
+      allow get: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.token.email == 'minruu0215@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['text','on'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 200
+        && request.resource.data.on is bool;
+    }
+    // 怪物強度倍率:大家都能讀,只有管理者能寫(血量、攻擊倍率都在 0.5~2)
+    match /meta/difficulty {
+      allow get: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.token.email == 'minruu0215@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['hp','atk'])
+        && request.resource.data.hp is number
+        && request.resource.data.hp >= 0.5 && request.resource.data.hp <= 2
+        && request.resource.data.atk is number
+        && request.resource.data.atk >= 0.5 && request.resource.data.atk <= 2;
+    }
+    // 秘境專用倍率:大家都能讀,只有管理者能寫(只影響秘境,血量、攻擊倍率都在 0.5~3)
+    match /meta/rift {
+      allow get: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.token.email == 'minruu0215@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['hp','atk'])
+        && request.resource.data.hp is number
+        && request.resource.data.hp >= 0.5 && request.resource.data.hp <= 3
+        && request.resource.data.atk is number
+        && request.resource.data.atk >= 0.5 && request.resource.data.atk <= 3;
+    }
+    // 獎勵等級遞減:大家都能讀,只有管理者能寫(每超過 step 級少 cut,最低保留 floor;cut、floor 是 0~1 的比例)
+    match /meta/reward {
+      allow get: if request.auth != null;
+      allow write: if request.auth != null
+        && request.auth.token.email == 'minruu0215@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['step','cut','floor'])
+        && request.resource.data.step is int
+        && request.resource.data.step >= 1 && request.resource.data.step <= 50
+        && request.resource.data.cut is number
+        && request.resource.data.cut >= 0 && request.resource.data.cut <= 1
+        && request.resource.data.floor is number
+        && request.resource.data.floor >= 0 && request.resource.data.floor <= 1;
+    }
+    match /meta/stats {
+      allow get: if request.auth != null;
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active'])
+        && request.resource.data.active == resource.data.active + 1
+        && resource.data.active < get(/databases/$(database)/documents/meta/config).data.maxPlayers
+        && !exists(/databases/$(database)/documents/players/$(request.auth.uid))
+        && existsAfter(/databases/$(database)/documents/players/$(request.auth.uid));
+    }
+  }
+}
