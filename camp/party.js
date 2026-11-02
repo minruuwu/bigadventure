@@ -141,7 +141,7 @@
   function jobsHtml(p) {
     var jl = p.jobLv || {}, ks = Object.keys(jl).filter(function (k) { return (jl[k] | 0) > 0 }).sort();
     if (!ks.length) return '<div class="none">還沒有職業等級</div>';
-    return '<div class="lst" style="max-height:none">' + ks.map(function (k) { var m = /(\d+)/.exec(k), nm = (m && g.Doll.JOBN[+m[1] - 1]) || k; var ms = (jl[k] | 0) >= 50, mr = ms && STAT && STAT.mst && STAT.mst[k]; return '<div class="rw"><img alt="" src="' + snIcon(k) + '"><span class="tx"><b>' + esc(nm) + (ms ? '<span title="職業精通" style="color:#f2b51c;text-shadow:1px 1px 0 #3a2108,-1px 0 0 #3a2108,0 -1px 0 #3a2108;margin-left:3px">★</span>' : '') + '</b>' + (mr ? '<small>精通：' + esc(mr.talent_name) + '｜' + esc(mr.talent_desc || '') + '</small>' : '') + '</span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + (jl[k] | 0) + '</span></div>' }).join('') + '</div>'
+    return '<div class="lst" style="max-height:none">' + ks.map(function (k) { var m = /(\d+)/.exec(k), nm = (m && g.Doll.JOBN[+m[1] - 1]) || k; var ms = (jl[k] | 0) >= 50, mr = ms && STAT && STAT.mst && STAT.mst[k]; return '<div class="rw"><img alt="" src="' + snIcon(k) + '"><span class="tx"><b>' + esc(nm) + (ms ? '<span title="職業精通" class="mstar">★</span>' : '') + '</b>' + (mr ? '<small>精通：' + esc(mr.talent_name) + '｜' + esc(mr.talent_desc || '') + '</small>' : '') + '</span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + (jl[k] | 0) + '</span></div>' }).join('') + '</div>'
   }
   /* 武器分頁：武器名稱（依外觀階）、等級、裝備中的符文（新版帳號、Lv1 以上、在開放的格數內才算，跟戰鬥一致）與目前等級的數值 */
   function weaponHtml(p) {
@@ -296,7 +296,7 @@
     function detail(p, isMe) {
       var d = el('div', 'dtl'), W = wicon(p), idx = isMe ? '' : '<button type="button" class="pbtn" data-a="rm">移出</button>';
       d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span>' + (isMe ? '<span class="tg">隊長</span>' : idx) + '</div>' +
-        '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + (jobLv(p) >= 50 ? '<span title="職業精通" style="color:#f2b51c;text-shadow:1px 1px 0 #3a2108,-1px 0 0 #3a2108,0 -1px 0 #3a2108;margin-left:2px">★</span>' : '') + '<em>Lv.' + jobLv(p) + '</em></span>' +
+        '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + (jobLv(p) >= 50 ? '<span title="職業精通" class="mstar">★</span>' : '') + '<em>Lv.' + jobLv(p) + '</em></span>' +
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
         '<div class="ptabs"></div><div class="pn"></div>';
       p._allies = Math.min(3, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */

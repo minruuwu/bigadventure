@@ -270,7 +270,8 @@ body.sheeton .grain{opacity:0}
 #loading.err{top:12px;padding:8px;background:#000;color:#ff9a8a;text-align:left}
 @media (max-width:360px){.card{flex-direction:column}.art{align-self:center}}
 @media (prefers-reduced-motion:reduce){body::after{animation:none}}
-#scene{filter:none}</style>
+#scene{filter:none}.mstar{display:inline-block;margin-left:3px;font-weight:900;background:linear-gradient(180deg,#ffe9a0 0%,#f2c232 30%,#b07d0c 52%,#f7d566 72%,#7a4f06 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:0;text-shadow:none}
+</style>
 <style>
 html,body,*{touch-action:manipulation}
 .dollcard{padding:14px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--wear) 0 0/288px 288px,linear-gradient(180deg,rgba(220,235,255,.07),rgba(0,0,0,.26)),var(--panel);box-shadow:inset 0 0 0 2px var(--bd),inset 0 4px 0 0 var(--hi),inset 0 -4px 0 0 var(--lo);clip-path:var(--cpC)}
@@ -383,7 +384,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="party.js?v=29"></script>
+<script src="party.js?v=30"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -811,7 +812,7 @@ function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=tr
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name+' Lv.'+Party.charLv(p)));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
-  document.getElementById('pcSub').textContent=Party.jobName(p)+(Party.jobLv(p)>=50?'★':'')+' Lv.'+Party.jobLv(p)+(on?'・'+on:'');/* ★ = 職業精通（50 級） */
+  var pcs=document.getElementById('pcSub');pcs.textContent=Party.jobName(p);if(Party.jobLv(p)>=50){var ms=document.createElement('span');ms.className='mstar';ms.title='職業精通';ms.textContent='★';pcs.appendChild(ms)}pcs.appendChild(document.createTextNode(' Lv.'+Party.jobLv(p)+(on?'・'+on:'')));/* ★ = 職業精通（50 級） */
   Party.fillTeam(document.getElementById('pcTeam'),p,function(){return CARD===a});
   /* 想說的話：自己可以改，別人只能看 */
   var mine=p.uid===ME_UID,txt=document.getElementById('pcSayTxt'),ta=document.getElementById('pcSayIn'),row=document.getElementById('pcSayRow'),msg=document.getElementById('pcSayMsg');
