@@ -1654,7 +1654,8 @@ function liveFlush(){var S=LV.S,mp=LV.mp;if(mp.ev.length===0&&LV.n===0)mp.t=Math
   if(mp.sum){mp.sum=false;LV.M.forEach(function(m,i){if(B.mhpM[i]==null)B.mhpM[i]=m.b.mhp});sumSlots(B.mons,B.mko);build();liveBind()}}
 function liveStep(){var S=LV.S;if(B!==LV.b)return;
   for(var guard=0;guard<400;guard++){
-    if(S.over()){S.endSwallow();liveFlush();B.res=S.res()==='win'?'win':'lose';B.end=LV.mp.t+400;B.req=makeReq(B);B.wall=Date.now()-liveNow();curSave();/* 勝負已定：存起來，切到別頁再回來照樣領獎勵 */closeMenu();var g=$('atg');if(g)g.remove();return}
+    /* 回合上限：第 30 回合要整回合打完才結束（以前一進第 30 回合就判定結束，實際只打 29 回合） */
+    if(!S.alive(LV.P)||!S.alive(LV.M)||(LV.qi>=LV.order.length&&S.rounds()>=S.MAXR)){S.endSwallow();liveFlush();B.res=S.res()==='win'?'win':'lose';B.end=LV.mp.t+400;B.req=makeReq(B);B.wall=Date.now()-liveNow();curSave();/* 勝負已定：存起來，切到別頁再回來照樣領獎勵 */closeMenu();var g=$('atg');if(g)g.remove();return}
     if(LV.qi>=LV.order.length){LV.order=S.round();LV.qi=0;continue}
     var u=LV.order[LV.qi++];if(u.dead)continue;if(!S.alive(LV.P)||!S.alive(LV.M))continue;
     if(!S.start(u)){liveFlush();continue}
