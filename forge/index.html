@@ -638,7 +638,7 @@ function flush(){clearTimeout(saveT);if(demo)return;var ks=Object.keys(DIRTY);if
     /* 被規則擋下：多半是這支手機的資料比伺服器舊（例如在別的裝置鍛造過），重新讀一次伺服器的資料，這次的變更不存 */
     if(c==='permission-denied'){
       /* 先檢查伺服器上的資料型別：鍛造石或武器等級存成小數時，自動修正後再存一次；修不了就說明原因並重新讀取 */
-      FB.forgeCheck().then(function(r){
+      FB.forgeCheck(lvs).then(function(r){
         if(r.fixable){saving=true;FB.saveForge(spent,lvs,r.fix).then(function(){saving=false;toast('已自動修正資料格式並存檔')},function(e2){saving=false;toast('存檔失敗：'+(r.why.join('、')||'原因不明')+'（'+(e2&&e2.code||'')+'）');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){})});return}
         toast(r.why.length?'存檔失敗：'+r.why.join('、')+'，請截圖給管理者':'存檔失敗：這台裝置的資料比較舊，已重新讀取，請再操作一次');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){})
       },function(){toast('存檔失敗：已重新讀取最新的鍛造石與武器，請再操作一次');FB.myFresh().then(function(p){if(p)applyFresh(p)},function(){})});return}
@@ -763,5 +763,5 @@ function getCSVs(){var who=demo?Promise.resolve({player:{job:0,weapon:'劍',weap
 <script src="../common/paper.js?v=6"></script>
 <script src="../common/doll.js?v=11"></script>
 <script src="../common/nav.js?v=30"></script>
-<script type="module" src="../common/fb.js?v=37"></script>
+<script type="module" src="../common/fb.js?v=38"></script>
 </body></html>

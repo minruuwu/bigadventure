@@ -104,7 +104,7 @@ const FB = {
     return { step: st >= 1 && st <= 50 ? st : 3, cut: c >= 0 && c <= 1 ? c : 0.1, floor: f >= 0 && f <= 1 ? f : 0.1 }; },
   async rewardSet(step, cut, floor) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'reward'), { step: parseInt(step, 10), cut: Number(cut), floor: Number(floor) })); },
   // 鍛造存檔被擋時的檢查：用 REST 讀原始型別，找出哪個欄位不合規則（小數型別的鍛造石或武器等級可以自動修正）
-  async forgeCheck() { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
+  async forgeCheck(lvs) { await ready; const u = auth.currentUser; if (!u) return { why: ['沒有登入'] }; const why = [], fix = { stones: null, lv: {} };
     const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000); const j = await rr.json(), F = j.fields || {};
     const ty = v => v ? Object.keys(v)[0] : '無', nv = v => v ? Number(v.integerValue != null ? v.integerValue : v.doubleValue) : 0;
     if (F.stones && !('integerValue' in F.stones)) { why.push('鍛造石存成了' + ty(F.stones)); fix.stones = Math.max(0, Math.floor(nv(F.stones))); }
@@ -114,6 +114,15 @@ const FB = {
       const lv = nv(w.lv) || 1, pts = w.pts && w.pts.arrayValue ? (w.pts.arrayValue.values || []) : null;
       if (pts) { if (pts.length !== 3 || pts.some(x => !('integerValue' in x))) why.push(k + ' 淬火點數格式不對'); else if (pts.reduce((a, x) => a + Number(x.integerValue), 0) * 5 > lv) why.push(k + ' 淬火點數超過上限'); }
       const en = w.ench && w.ench.arrayValue ? (w.ench.arrayValue.values || []) : []; if (en.length > (lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)) why.push(k + ' 符文數量超過上限'); });
+    /* 這次要寫入的附魔：規則要求新版帳號、同一把不重複、每個符文至少 1 片碎片、數量不超過格數 */
+    const RS = (F.rs && F.rs.mapValue && F.rs.mapValue.fields) || {}, rv = F.runeV ? nv(F.runeV) : 0;
+    Object.keys(lvs || {}).forEach(k => { const v = lvs[k] || {}, en = Array.isArray(v.ench) ? v.ench : [], lv = v.lv | 0 || 1, w = (W[k] && W[k].mapValue && W[k].mapValue.fields) || {};
+      const old = w.ench && w.ench.arrayValue ? (w.ench.arrayValue.values || []).map(x => x.stringValue) : [];
+      if (JSON.stringify(old) === JSON.stringify(en)) return;
+      if (rv !== 2) why.push('帳號還沒轉成新版符文（runeV=' + rv + '）');
+      if (new Set(en).size !== en.length) why.push(k + ' 同一個符文裝了兩次');
+      en.forEach(id => { if (!(RS[id] && nv(RS[id]) >= 1)) why.push(k + ' 的 ' + id + ' 在資料庫裡沒有碎片'); });
+      if (en.length > (lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)) why.push(k + ' 符文數量超過 Lv' + lv + ' 的格數'); });
     return { why, fix, fixable: fix.stones != null || Object.keys(fix.lv).length > 0, types: 'stones=' + ty(F.stones) }; },
   // 鍛造存檔：鍛造石用「減少花掉的量」寫入（不寫絕對值），手機上的舊快取不會蓋掉伺服器上的數字
   async saveForge(spent, lvs, fix) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); const f = {}; if (fix && fix.stones != null) f.stones = Math.max(0, fix.stones - spent); else if (spent > 0) f.stones = increment(-spent); if (fix && fix.lv) Object.keys(fix.lv).forEach(k => { if (!lvs[k]) f['weapons.' + k + '.lv'] = fix.lv[k]; }); Object.keys(lvs).forEach(k => { const v = lvs[k]; f['weapons.' + k + '.lv'] = v.lv; f['weapons.' + k + '.pts'] = v.pts; f['weapons.' + k + '.ench'] = v.ench; }); await tmo(updateDoc(doc(db, 'players', u.uid), f)); const c = meGet(); const weapons = Object.assign({}, (c && c.player.weapons) || {}); Object.keys(lvs).forEach(k => { weapons[k] = Object.assign({}, weapons[k], lvs[k]); }); mePatch({ stones: Math.max(0, ((c && c.player.stones) | 0) - spent), weapons }); },
