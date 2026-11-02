@@ -197,10 +197,13 @@
        area = 這次是範圍／直線出手（不算單體，不觸發保護）；protector(t, a) = 回傳替 t 擋下單體攻擊的人（雙方都適用），沒有回傳 null */
     var hooks = {};
     P.forEach(function (u, i) { u.i = i }); M.forEach(function (u, i) { u.i = i });
-    /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算 */
+    /* 獨狼：開戰時沒有隊友（一人上陣）→ 生命、物攻、魔攻 ×1.5；隊友中途陣亡不算
+       雙人成行：開戰時剛好兩人 → 兩人的生命、物攻、魔攻都 ×1.5（冒險、秘境都適用） */
     if (SPM) P.forEach(function (u) { u.sp = 2; u.cd = {} });
     var lone = P.length === 1 && !P[0].lone;
     if (lone) { var L0 = P[0]; L0.lone = true; L0.b.mhp = Math.round(L0.b.mhp * 1.5); L0.b.patk = Math.round(L0.b.patk * 1.5); L0.b.matk = Math.round(L0.b.matk * 1.5) }
+    var duo = P.length === 2 && !P[0].lone && !P[1].lone;
+    if (duo) P.forEach(function (Q) { Q.lone = true; Q.b.mhp = Math.round(Q.b.mhp * 1.5); Q.b.patk = Math.round(Q.b.patk * 1.5); Q.b.matk = Math.round(Q.b.matk * 1.5) });
     U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = RV(D, 'rune18', 0, 0.5, u) });
     /* 靈氣：同一招只算一次，套到同陣營每個人（自己的已算在基礎值） */
     var auraSeen = {};
@@ -804,6 +807,7 @@
     /* --- 主迴圈 --- */
     function alive(a) { return a.some(function (x) { return !x.dead && !swallowed(x) }) } /* 被吞的人不算還能戰鬥 */
     if (lone) line({ kind: 'note', idle: true, txt: P[0].name + ' 獨自上陣，進入「獨狼」狀態：生命、物理攻擊力、魔法攻擊力 ×1.5' });
+    if (duo) line({ kind: 'note', idle: true, txt: P[0].name + ' 與 ' + P[1].name + ' 兩人同行，進入「雙人成行」狀態：兩人的生命、物理攻擊力、魔法攻擊力 ×1.5' });
     /* 新的一回合：回傳這回合的行動順序（速度高先動，加一點隨機讓同速的隨機排） */
     function round() {
       rounds++;

@@ -401,7 +401,9 @@ function openDoc(k){openSheet(function(s){
     s.appendChild(rule('反應技','被敵人的技能打到時有機率觸發；等敵人整招結束後，依速度順序發動。'));
     s.appendChild(rule('持續傷害','中毒、燃燒這類傷害在持有者每次行動開始時結算。'));
     s.appendChild(rule('回合上限','打到第 30 回合還沒分出勝負就算輸。'));
-    s.appendChild(rule('生命','每場戰鬥開始時生命全滿，不會延續到下一場。'))}
+    s.appendChild(rule('生命','每場戰鬥開始時生命全滿，不會延續到下一場。'));
+    s.appendChild(rule('獨狼','開戰時只有一人上陣：生命、物理攻擊力、魔法攻擊力 ×1.5。中途隊友倒下不算。'));
+    s.appendChild(rule('雙人成行','開戰時剛好兩人上陣：兩人的生命、物理攻擊力、魔法攻擊力都 ×1.5。冒險與秘境都適用；三人以上沒有這個加成。'))}
   else if(k==='rune'){s.appendChild(el('h2',null,'符文'));s.appendChild(el('p','sub','在秘境打贏可以拿到符文碎片，碎片累積到門檻就升級（最高 Lv10）。符文 Lv1 以上才能裝備；武器到 30／60／90 級各開一格，任何武器都能裝任何符文，同一把武器不能重複，三格同時生效。點符文看每一級的數值。'));
     var rs=(ME&&ME.rs)||{};
     D.runes.forEach(function(r){var t=el('b','rn');t.textContent=r.rune_name;t.style.color=r.color;var d=el('div','ent rune'),my=window.RuneVals?RuneVals.levelOf(rs[r.u_sn]):0;d.appendChild(icon(BASE+'icons/runes/'+r.u_sn+'.png?v='+V));
