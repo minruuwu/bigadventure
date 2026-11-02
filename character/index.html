@@ -492,6 +492,7 @@ var JMAX=50;
 var MSTR={};
 function mastered(sn){return (S&&S.jobLvs&&(S.jobLvs[sn]|0)>=JMAX)}
 function star(sn){return mastered(sn)?'<span class="mstar" title="職業精通">★</span>':''}
+function mstLine(sn){var mr=MSTR[sn];return mr?'<h4>精通天賦（Lv'+JMAX+' 解鎖）</h4><div class="jdsc" style="margin:0 0 6px">'+(mastered(sn)?'<span class="mstar">★</span> ':'')+'<b>'+esc(mr.talent_name)+'</b>：'+esc(mr.talent_desc||'')+'</div>':''}
 function mstHTML(){var ks=JOBORDER.filter(function(sn){return MSTR[sn]}),on=ks.filter(mastered);
   var h='<div class="sec gs">職業精通　'+on.length+' / '+ks.length+'</div>';
   if(!on.length)h+='<p class="hint" style="margin:2px 0 8px">任一職業練到 Lv'+JMAX+'，就能解鎖該職業的精通天賦：不用裝備、永久生效、可以疊加；重置職業後會失去。</p>';
@@ -609,6 +610,7 @@ function jobDetailHTML(sn,nodesc){var j=JOB[sn];if(!j)return '';var g=GROWTH[sn]
   KEYS.forEach(function(k){var v=parseFloat(g['per_level_'+k])||0;h+='<div>'+NAMES[k]+'<b>'+(v?'+'+v:'—')+'</b></div>'});h+='</div><h4>職業加成</h4>';
   var bl=BONUSL.filter(function(b){return String(at[b[0]]||'').trim()});
   h+=bl.length?'<div class="jb">'+bl.map(function(b){return '<span>'+b[1]+'<b>+'+esc(String(at[b[0]]).trim())+'</b></span>'}).join('')+'</div>':'<div class="jb"><span>無</span></div>';
+  h+=mstLine(sn);
   var us=usableList(sn);h+='<h4>可用武器</h4><div class="jw">'+WORDER.filter(function(k){return us.indexOf(WEAPON[k].n)>=0}).map(function(k){return '<span class="jwi" role="img" aria-label="'+esc(WEAPON[k].n)+'" title="'+esc(WEAPON[k].n)+'" style="background-image:url('+wframe(0)+')"><img alt="" src="../assets/icons/weapons/'+k+'.png?v=2" onerror="this.remove()"></span>'}).join('')+'</div>';
   if(j.job_desc&&!nodesc)h+='<div class="jdsc">'+esc(j.job_desc)+'</div>';return h+'</div>'}
 function treeCap(sn){var j=JOB[sn];if(!j)return '';var ok=reqMet(sn);return jobIcon(sn)+'<b class="bold">'+esc(j.job_name)+'</b>　'+(sn===S.jobSn?'目前職業':ok?'已可轉職':'未解鎖：'+esc(j.required_desc||''))}
@@ -625,9 +627,9 @@ function jobStatus(sn){if(tierOf(sn)===2)return 'cl';if(sn===S.jobSn)return 'cur
 function upJobSum(){var s=0;Object.keys(UP.job).forEach(function(k){s+=UP.job[k]});return s}
 function upCost(){var c=expCost(S.lv,S.lv+UP.char);Object.keys(UP.job).forEach(function(k){var l=S.jobLvs[k]|0;c+=jobCost(k,l,l+UP.job[k])});return c}
 function jobInfoHTML(sn){var j=JOB[sn],g=GROWTH[sn]||{},at=ATTR[sn]||{},bl=BONUSL.filter(function(b){return String(at[b[0]]||'').trim()});
-  var h='<div class="jdet"><div class="jdsc" style="margin:0 0 6px">'+esc(j.job_desc||'')+'</div><h4>職業加成</h4>'+(bl.length?'<div class="jb">'+bl.map(function(b){return '<span>'+b[1]+'<b>+'+esc(String(at[b[0]]).trim())+'</b></span>'}).join('')+'</div>':'<div class="jb"><span>無</span></div>')+'<h4>每級成長</h4><div class="jg">';
+  var h='<div class="jdet"><div class="jdsc" style="margin:0 0 6px">'+esc(j.job_desc||'')+'</div><h4>職業加成</h4>'+(bl.length?'<div class="jb">'+bl.map(function(b){return '<span>'+b[1]+'<b>+'+esc(String(at[b[0]]).trim())+'</b></span>'}).join('')+'</div>':'<div class="jb"><span>無</span></div>')+mstLine(sn)+'<h4>每級成長</h4><div class="jg">';
   KEYS.forEach(function(k){var v=parseFloat(g['per_level_'+k])||0;h+='<div>'+NAMES[k]+'<b>'+(v?'+'+v:'—')+'</b></div>'});
-  var dw=defaultWeaponName(sn),mr=MSTR[sn];return h+'</div>'+(mr?'<h4>精通天賦（Lv'+JMAX+'）</h4><div class="jdsc" style="margin:0 0 6px">'+(mastered(sn)?'<span class="mstar">★</span> ':'')+'<b>'+esc(mr.talent_name)+'</b>：'+esc(mr.talent_desc||'')+'</div>':'')+(dw?'<h4>預設武器</h4><div class="jdsc" style="margin:0">'+esc(dw)+'</div>':'')+'</div>'}
+  var dw=defaultWeaponName(sn);return h+'</div>'+(dw?'<h4>預設武器</h4><div class="jdsc" style="margin:0">'+esc(dw)+'</div>':'')+'</div>'}
 function drawJobPrev(){var c=$('jprev');if(!c||!window.Doll)return;var sn=jobSel||S.jobSn,idx=parseInt(sn.slice(3),10)-1,L=Object.assign({},S.saved,{outfit:idx,weapon:null,shield:null,halo:[],breath:false,bare:!Doll.assets.outfits[idx]});Doll.draw(c,L,1000)}
 function sheetHTML(k){
   if(k==='paper'){var a=A(),u=unspent(),ps=pendingSum(),h=head('屬性','點屬性名稱看加成來源；加號只是暫存，按「確定」才會寫入。');
