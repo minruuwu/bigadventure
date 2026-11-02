@@ -489,7 +489,7 @@
           var src = ban.src, r0 = ban.rows.filter(function (r) { return r.k === 'banish' })[0], c = RND() < stat(src, 'crit');
           var amt = Math.round(r0.amt * (1 + stat(src, 'mdmg')) * (1 - Math.min(stat(u, 'mred'), 0.9)) * (c ? 1 + stat(src, 'cdmg') : 1));
           NC = { el: '', dt: 'm', c: c }; var real = hurt(u, amt, src); e.txt = u.name + ' 從裂隙回來，' + (c ? '暴擊！' : '') + '受到 ' + real + ' 魔法傷害'; addStat(e, src, 'dmg', real, '秘法裂隙'); e.snap = 1;
-          if (checkDeath(u, e)) { flushRel(e); e.hp = hpSnap(); return false }
+          if (checkDeath(u, e) || u.undead) { flushRel(e); e.hp = hpSnap(); return false }
           e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' });
         } else { ban.turns--; e.txt = u.name + ' 被放逐在時空裂隙中'; e.idle = 1; e.hp = hpSnap(); return false }
       }
@@ -504,7 +504,7 @@
           if (r.k === 'hot' && r.amt) { var h = heal(s.src, u, r.amt); if (h) { tick.push('「' + s.n + '」恢復 ' + h); addStat(e, s.src, 'heal', h, s.n) } }
         });
       });
-      if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e)) { flushRel(e); e.hp = hpSnap(); return false } e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
+      if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e) || u.undead) { flushRel(e); e.hp = hpSnap(); return false }/* 持續傷害打倒骨兵 → 變成骨堆，這回合不再行動 */ e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
       /* 無法行動 */
       if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return false }
       u._e = e;
@@ -650,6 +650,7 @@
         var single = sk.t === 'enemy_single' && !hooks.area, H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
         var each = sk.p === 'random_each' && H > 1;
         for (var h = 0; h < H; h++) {
+          if (h > 0 && (u.dead || u.undead)) break; /* 出手途中被反擊打倒（變成骨堆）就不再繼續打 */
           var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u)); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
           if (!list.length) break;
           list.forEach(function (t0) {
@@ -695,7 +696,7 @@
             }
             /* 荊棘之皇冠：排進反應佇列，敵人整招結束後才反彈（腳下荊棘光環） */
             /* 霜甲：被打就用施加者的魔攻反擊冰霜魔法傷害（吃攻擊者的魔法減傷、冰霜抗性；施加者倒下就不反擊） */
-            t.st.forEach(function (s) { if (s.paused || !s.src || s.src.dead || !real || u.dead) return; s.rows.forEach(function (r) { if (r.k !== 'frost_thorn') return; var fa = Math.round(stat(s.src, 'matk') * r.v * (1 - Math.min(stat(u, 'mred'), 0.9)) * (1 - Math.min(resOf(u, 'frost'), 0.9))); if (fa > 0) (e._th = e._th || []).push({ d: t, a: u, amt: fa, fr: s.n }) }) });
+            t.st.forEach(function (s) { if (s.paused || !s.src || s.src.dead || s.src.undead || !real || u.dead) return; s.rows.forEach(function (r) { if (r.k !== 'frost_thorn') return; var fa = Math.round(stat(s.src, 'matk') * r.v * (1 - Math.min(stat(u, 'mred'), 0.9)) * (1 - Math.min(resOf(u, 'frost'), 0.9))); if (fa > 0) (e._th = e._th || []).push({ d: t, a: u, amt: fa, fr: s.n }) }) });
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * RV(D, 'rune11', 0, 0.5, t)) });
             /* 被打中時觸發的被動（輝煌龍的神恩寵兒：機率讓攻擊者陷入魅惑） */
             if (t.special && real > 0 && !u.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'apply_status' && sp.tr === 'hit_taken' && !u.dead && RND() < sp.ch && applyStatus(t, u, sp.st, sp.turns, 1, null)) { (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '被動') + '」讓 ' + u.name + ' 陷入「' + sp.st + '」'); (e.dringA = e.dringA || []).push([u.side, u.i]) } });
@@ -808,8 +809,8 @@
       rounds++;
       line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
       if (SPM && rounds > 1) P.forEach(function (u) { if (!u.dead) u.sp = Math.min(SPMAX, (u.sp | 0) + 1) });
-      /* 骨堆倒數：每回合開始減 1（倒下的那回合不算），到 0 滿血變回骨兵 */
-      M.forEach(function (u) { if (u.dead || !u.undead || u.undead.born >= rounds) return; u.undead.n--;
+      /* 骨堆倒數：倒下的那回合不算，下一回合開始時還是滿的倒數，之後每回合開始減 1，到 0 滿血變回骨兵（3 = 整整當 3 回合骨堆） */
+      M.forEach(function (u) { if (u.dead || !u.undead || u.undead.born >= rounds - 1) return; u.undead.n--;
         if (u.undead.n <= 0) { var o2 = u.name, bk = u.undead.back; delete u.undead; morph(u, bk); var rz = line({ side: 'm', a: u.i, txt: o2 + ' 重新組成了「' + u.name + '」！', tf: [u.i, u.sprite, u.name, 'rise'] }); rz.hp = hpSnap() }
         else { var cz = line({ side: 'm', a: u.i, idle: 1, txt: u.name + ' 的骨頭微微顫動……（倒數 ' + u.undead.n + '）', cd: [u.i, u.undead.n] }); cz.hp = hpSnap() } });
       /* 褻瀆之光（靈氣 regen_all）：每回合開始，持有者替全體同伴（含骨堆）恢復最大生命的一定比例 */
