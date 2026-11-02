@@ -11,6 +11,7 @@ button{font:inherit;color:inherit}
 .top{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#1f262e;border-bottom:4px solid #06080b;box-shadow:inset 0 -3px 0 #5d6b7c,0 4px 0 rgba(0,0,0,.4)}
 .top h1{margin:0;font-size:18px;font-weight:900;letter-spacing:.3em;text-shadow:2px 2px 0 #000}
 .tag{font-size:12px;font-weight:900;color:#1d1008;background:var(--accent);padding:1px 8px;box-shadow:0 0 0 2px #080503}
+.app.mapon .top{position:sticky;top:0;z-index:50}/* 地圖畫面：上方「冒險」那條固定不跟著捲 */
 .main{flex:1;padding:14px 18px 100px;display:flex;flex-direction:column;gap:12px}
 .hint{font-size:12px;color:var(--gold);margin:0;text-shadow:1px 1px 0 #000;font-weight:700}
 .frame{position:relative;width:100%;aspect-ratio:160/140;box-shadow:0 0 0 2px var(--edge),inset 0 0 0 2px var(--hi);overflow:hidden;background:#1a1410}
@@ -1431,7 +1432,10 @@ var NST=20;/* 每章節關數 */
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
 function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
-function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';if(v==='map'){renderMap();window.scrollTo(0,0)}}
+function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';var ap=document.querySelector('.app');if(ap)ap.classList.toggle('mapon',v==='map');if(v==='map'){renderMap();mapFocus()}}
+/* 進地圖時捲到最後打的那一章（有光球的區域），放在畫面可見範圍的中間；地圖圖片還沒載完就等載完再捲 */
+function mapFocus(){var img=$('map').querySelector('img');if(!img.complete||!img.naturalHeight){img.addEventListener('load',mapFocus,{once:true});return}if(view!=='map')return;var z=$('zones').children[lastArea()];if(!z){window.scrollTo(0,0);return}
+  var tb=document.querySelector('.top'),th=tb?tb.offsetHeight:0,nv=document.querySelector('.tabs'),nh=nv?nv.offsetHeight:90,r=z.getBoundingClientRect(),vis=window.innerHeight-th-nh;window.scrollTo(0,Math.max(0,window.scrollY+r.top-th-Math.max(0,(vis-r.height)/2)))}
 function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
     var zn=el('span','zn',a.n);if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}b.appendChild(zn);if(i===la){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
