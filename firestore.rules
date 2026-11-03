@@ -356,7 +356,7 @@ service cloud.firestore {
           && (request.resource.data.skills.extra.size() < 2
           || (request.resource.data.skills.extra[1] is string && request.resource.data.skills.extra[1].size() <= 10))))
         )
-        // 冒險勝利:經驗(每場最多 1500)、鍛造石(最多 500)、寵物餅乾只能增加而且有上限;關卡進度每章一次最多往前 1 關,第二章要先打完第一章、第三章要先打完第二章;兩場之間至少隔 20 秒(advAt 是伺服器時間)
+        // 冒險勝利:經驗(每場最多 3000)、鍛造石(最多 800)、寵物餅乾只能增加而且有上限;關卡進度每章一次最多往前 1 關,第二章要先打完第一章、第三章要先打完第二章;兩場之間至少隔 20 秒(advAt 是伺服器時間)
         || (
           ak.hasOnly(['exp','stones','cookies','adv','advAt','owe'])
           // 隊友分成只能記給自己隊伍裡的人(這場沒有記分成就跳過;數量上限改在隊友領取時檢查)
@@ -366,13 +366,13 @@ service cloud.firestore {
           && request.time >= resource.data.get('advAt', timestamp.value(0)) + duration.value(20, 's')
           && request.resource.data.get('exp', 0) is int
           && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) >= 0
-          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) <= 1500
+          && request.resource.data.get('exp', 0) - resource.data.get('exp', 0) <= 3000
           && request.resource.data.get('stones', 0) is int
           && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) >= 0
-          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) <= 500
+          && request.resource.data.get('stones', 0) - resource.data.get('stones', 0) <= 800
           && request.resource.data.get('cookies', 0) - resource.data.get('cookies', 0) >= 0
           && request.resource.data.get('cookies', 0) - resource.data.get('cookies', 0) <= 1
-          // 章節 area01～area08(目前開放到第 4 章,先預留到第 8 章);只檢查這次有動到的那一章,其他章不用逐一檢查
+          // 章節 area01～area08(目前開放到第 5 章,先預留到第 8 章);只檢查這次有動到的那一章,其他章不用逐一檢查
           && request.resource.data.get('adv', {}).keys().hasOnly(['area01','area02','area03','area04','area05','area06','area07','area08'])
           && advChg()
         )
