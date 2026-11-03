@@ -369,7 +369,16 @@
     /* 技能使用條件（skill_effect 的 use_if）：hp_below = 生命比例低於 value 才能用、hp_above = 高於 value 才能用、not_full = 場上活著的怪少於 value 隻才能用（呼喚同伴滿了改普攻） */
     function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : true }) }
     function morph(u, mid) { morphUnit(u, mid, D); if (u.cycle && u.cycle.length) u.cy = Math.floor(RND() * u.cycle.length) /* 重生後從隨機一招開始 */ }
+    /* 永冬誓言（被動 summon_hp）：生命第一次掉到 value 比例以下時，召喚 condition 那隻怪上場（每場一次） */
+    function summonHp(u, e) {
+      if (u.side !== 'm' || u.flags.sumhp || !u.special) return; var sp = u.special.filter(function (x) { return x.k === 'summon_hp' && D.mon[x.cond] })[0]; if (!sp || u.hp / Math.max(1, u.b.mhp) >= sp.v) return;
+      u.flags.sumhp = 1; var nu = monster(D.mon[sp.cond], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs; if (u.as) { nu.b.patk = Math.round(nu.b.patk * u.as); nu.b.matk = Math.round(nu.b.matk * u.as); nu.as = u.as }
+      nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0; nu.summoned = true; M.push(nu); U.push(nu);
+      (nu.aura || []).forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = nu });
+      var sl = line({ side: 'm', a: u.i, idle: 1, summon: [nu.i], sumFx: 'frostgate', txt: u.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '召喚') + '」：' + nu.name + ' 降臨戰場！' }); sl.hp = hpSnap();
+    }
     function checkDeath(u, e) {
+      if (!u.dead && u.hp > 0) summonHp(u, e);
       if (u.dead || u.hp > 0) return false;
       u.hp = 0;
       if (swallowed(u)) { u.flags.r17 = 99; u.flags.grace = 1 } /* 在肚子裡被消化完：不能復活 */
@@ -787,6 +796,8 @@
       } else {
         e.hl = tg.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
         effs.forEach(function (r) {
+          /* 驅散（加狀態類技能也能帶，例：冰之守護）：value = 每人最多驅除幾個，空白 = 全部 */
+          if (r.effect_kind === 'cleanse') { var cn = num(r.value) || 99; tg.forEach(function (t) { var d = debuffs(t).filter(function (q) { return !q.swal && !q.banish }).slice(0, cn); d.forEach(function (q) { removeStatus(t, q) }); if (d.length) e.txt += '，清除 ' + t.name + ' 的 ' + d.map(function (q) { return '「' + q.n + '」' }).join('') }); return }
           if (r.effect_kind !== 'status') return;
           tg.forEach(function (t) { applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
         });
