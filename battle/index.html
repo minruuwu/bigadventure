@@ -544,7 +544,7 @@ function bigSmash(e,d){var L=1e9,R=-1e9,T=1e9,B2=-1e9;(e.tgts||[]).forEach(funct
   if(im){var u=(d-60)/560;if(u>=0&&u<=1){var S=(56+u*40)*VS,a=u<.15?u/.15:1-Math.pow((u-.15)/.85,1.5);pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.max(0,a);pctx.drawImage(im,Math.round((cx-S/2)*U),Math.round((cy-S/2)*U),Math.round(S*U),Math.round(S*U));pctx.restore()}}
   if(d>120&&d<480)shakeY=Math.round(Math.sin(d/16)*2*U*(1-(d-120)/360));pBurst(pk,cx,cy,d-140,30,VS*1.6);(e.tgts||[]).forEach(function(tk,n){var pp=posOf(tk);pBurst(pk,pp[0],pp[1]-14,d-200-n*30,12,VS)});FXA=fa}
 /* 怪物身上的特效起點（相對裁切後的圖）：mouth = 嘴、hand = 手 */
-var MPT={yeti:{hand:[12,8]},fleshgolem:{mouth:[10,14],hand:[7,42]},chroma:{mR:[18,31.5],mG:[38,12],mB:[68,32.5]}};
+var MPT={cqueen:{cast:[9,25]},yeti:{hand:[12,8]},fleshgolem:{mouth:[10,14],hand:[7,42]},chroma:{mR:[18,31.5],mG:[38,12],mB:[68,32.5]}};
 function monPt(i,k){var mo=mons[i];if(!mo||mo.lx==null)return null;var MZ=msz(mo.k),q=(MPT[mo.k]||{})[k]||[MZ[0]*.25,MZ[1]*.35];return[mo.lx-MZ[0]*mo.sc/2+q[0]*mo.sc,mo.gy-(mo.lift||0)-MZ[1]*mo.sc+q[1]*mo.sc]}
 /* 屍塊噴吐：從嘴巴噴出一大把暗紅肉塊，拋物線飛到每個人身上，落地濺血 */
 function goreFx(e,d){var s=monPt(e.a,'mouth');if(!s||d<0||d>1100)return;var C=['#7a1a14','#a8322a','#d06a5a','#4a0e0a','#c89a8a'];
@@ -571,14 +571,20 @@ function firePillarFx(pp,d){if(d<0||d>900)return;var gx=pp[0]-2,gy=pp[1]+1,g=Mat
     for(var x=-Math.ceil(w);x<=Math.ceil(w);x++){var r=Math.abs(x)/w;if(r>1)continue;var col=r<.3?'#fff4c0':r<.6?'#ffc03a':r<.85?'#ff6a1a':'#b82a0a',al=(r<.6?.95:.75)*fo*(f>.8?(1-f)*5:1);VP(cx+x,gy-y,col,al)}}
   for(var k=0;k<10;k++){var pe=520+k*40,uk=((d+k*97)%pe)/pe;if(d<120)break;VP(gx+(hsh(k,7)-.5)*14+Math.sin(uk*7+k)*2,gy-H*.6-uk*26,k%2?'#ffd060':'#ff7a20',Math.sin(uk*Math.PI)*fo)}
   if(d>220)pBurst('fire',gx,gy-16,d-220,14,VS);FXA=fa}
-/* 凜冬浩劫：冰 smash 在隊伍各處接連砸下 5 下，最後全畫面一陣冰藍白光、畫面搖晃 */
-function iceCrashFx(e,d){if(d<0||d>900)return;var im=vimg(SMASH,'frost'),L=(e.tgts||[]).map(function(tk){return posOf(tk)});if(!L.length)return;var fa=FXA;FXA=1;var xs=L.map(function(q){return q[0]}),cx=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2,gy=Math.max.apply(null,L.map(function(q){return q[1]}));
+/* 凜冬浩劫：半透明的大冰 smash 在隊伍各處接連砸下 5 下 → 一整排巨大冰刺從地面竄出、把所有敵人包住，同時全畫面冰光、畫面搖晃 → 冰刺碎掉 */
+function iceCrashFx(e,d){if(d<0||d>1300)return;var im=vimg(SMASH,'frost'),L=(e.tgts||[]).map(function(tk){return posOf(tk)});if(!L.length)return;var fa=FXA;FXA=1;var xs=L.map(function(q){return q[0]}),x0=Math.min.apply(null,xs)-14,x1=Math.max.apply(null,xs)+14,cx=(x0+x1)/2,gy=Math.max.apply(null,L.map(function(q){return q[1]}))+1;
   pctx.save();pctx.imageSmoothingEnabled=false;
-  for(var k=0;k<5;k++){var dk=d-k*95;if(dk<0||dk>340||!im)continue;var u=dk/340,P=L[k%L.length],x=P[0]+(hsh(k,3)-.5)*14,y=P[1]-14+(hsh(k,5)-.5)*10,sz=(24+u*14)*U,a=u<.2?1:1-(u-.2)/.8;
+  for(var k=0;k<5;k++){var dk=d-k*90;if(dk<0||dk>360||!im)continue;var u=dk/360,P=L[k%L.length],x=P[0]+(hsh(k,3)-.5)*16,y=P[1]-16+(hsh(k,5)-.5)*10,sz=(34+u*20)*U,a=(u<.2?1:1-(u-.2)/.8)*.62;
     pctx.globalAlpha=a;pctx.drawImage(im,x*U-sz/2,y*U-sz/2,sz,sz);if(dk<60)shakeY=Math.round((k%2?1:-1)*1.5*U)}
   pctx.restore();
-  if(d>560){var v=(d-560)/340,fl=v<.15?v/.15:1-(v-.15)/.85;pctx.globalAlpha=Math.max(0,fl)*.55;pctx.fillStyle='#d8f4ff';pctx.fillRect(0,0,pfx.width,pfx.height);pctx.globalAlpha=1;if(v<.6)shakeY=Math.round(Math.sin(d/16)*2.5*U*(1-v/.6));
-    for(var q=0;q<20;q++){var qx=cx+(hsh(q,1)-.5)*90,qy=gy-30+hsh(q,2)*36-v*6;VP(qx,qy,q%2?'#ffffff':'#9ae6ff',(1-v)*.9)}}
+  /* 巨大冰刺：從地面往上長，蓋住整排敵人，停一下再碎 */
+  var g0=d-470;if(g0>=0&&g0<800){var gg=g0<160?1-Math.pow(1-g0/160,3):1,ga=g0>560?Math.max(0,1-(g0-560)/240):1,n=Math.round((x1-x0)/5)+1;
+    VR(x0-4,gy-70*gg,x1-x0+8,70*gg,'#bfe8ff',.16*ga);
+    for(var c=0;c<n;c++){var cxk=x0+c*(x1-x0)/(n-1)+(hsh(c,21)-.5)*3,mid=1-Math.abs(cxk-cx)/((x1-x0)/2+8),hi=(36+mid*32+hsh(c,22)*12)*Math.max(0,Math.min(1,gg*1.25-hsh(c,23)*.25)),w=4+Math.round(hsh(c,24)*4),xl=cxk-w/2;if(hi<1)continue;
+      for(var y=0;y<hi;y++){var tw=Math.min(w,Math.max(1,Math.round((hi-y)*1.1))),xs2=xl+(w-tw)/2;for(var x=0;x<tw;x++){var col=x===0?'#f2fbff':x===tw-1?'#2f6ec0':(y%11===5&&x===1)?'#ffffff':'#8fd0ff';VP(xs2+x,gy-y,col,(x===0||x===tw-1?.95:.6)*ga)}}}
+    if(g0<80)shakeY=Math.round(Math.sin(g0/8)*3*U)}
+  if(d>520&&d<1000){var v=(d-520)/480,fl=v<.12?v/.12:1-(v-.12)/.88;pctx.globalAlpha=Math.max(0,fl)*.5;pctx.fillStyle='#d8f4ff';pctx.fillRect(0,0,pfx.width,pfx.height);pctx.globalAlpha=1;if(v>.1&&v<.6)shakeY=Math.round(Math.sin(d/16)*2.5*U*(1-v/.6))}
+  if(d>1030){var w2=(d-1030)/270;for(var q=0;q<30;q++){var qx=x0+hsh(q,1)*(x1-x0),qy=gy-hsh(q,2)*50+w2*w2*20,dx=(hsh(q,3)-.5)*w2*20;VP(qx+dx,qy,q%2?'#ffffff':'#9ae6ff',1-w2)}}
   if(d>300)L.forEach(function(P,n){pBurst('frost',P[0],P[1]-14,d-300-n*40,10,VS)});FXA=fa}
 /* 絕對零度：一圈冰環從施放者腳下往外擴散，掃過整個戰場；環後面的地面結一層薄霜 */
 function zeroRingFx(e,d){if(d<0||d>900)return;var mo=mons[e.a];if(!mo||mo.lx==null)return;var fa=FXA,cx=mo.lx,cy=mo.gy-1;FXA=1;
@@ -997,7 +1003,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
   B.ev.forEach(function(e){FXA=e.el==='undead'?UNDA:1;for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*130,hh);FXA=1});
   B.ev.forEach(function(e){if(e.dring){var f=footOf(e.dring[0],e.dring[1]);if(f)debuffRing(f,t-e.t-(e.rfx?40:200),e.dcol)}if(e.rfx)runeFx(e,t-e.t);if(e.spd)e.spd.forEach(function(k){var f=footOf('p',k);if(f)spDrainFx(f,t-e.t-(e.hit||180)-80)});if(e.tring){var f2=footOf(e.tring[0],e.tring[1]);if(f2)thornRing(f2,t-e.t)}if(e.frr){var fp=e.frr[0]==='p'?posOf(e.frr[1]):monPos(e.frr[1]);if(fp){var fy=e.frr[0]==='p'?fp[1]-14:fp[1];pBurst('frost',fp[0],fy,t-e.t-40,16,VS);frostShardFx(fp[0],fy,t-e.t)}}/* 霜甲反擊：攻擊者身上炸出冰晶 */});
-  function vOne(e,t,hh){var d=t-e.t;if(d<0||d>(e.wk==="pillar"?1000:e.wk==="sandstorm"||e.wk==="storm"||e.wk==="swords"?1400:900)||!e.side)return;
+  function vOne(e,t,hh){var d=t-e.t;if(d<0||d>(e.icrash?1300:e.wk==="pillar"?1000:e.wk==="sandstorm"||e.wk==="storm"||e.wk==="swords"?1400:900)||!e.side)return;
     if(e.wk==='blood'&&hh===0){var tl=e.side==='p'?(e.tg||[]).map(function(i){return monPos(i)}):(e.tgts||[]).map(function(k){var pp=posOf(k);return[pp[0],pp[1]-14]});tl=tl.filter(Boolean);
       if(tl.length>1){var u7=(d-120)/420;if(u7>=0&&u7<=1){var xs7=tl.map(function(q){return q[0]}),ys7=tl.map(function(q){return q[1]}),L7=Math.min.apply(null,xs7)-14,R7=Math.max.apply(null,xs7)+14,cy7=(Math.min.apply(null,ys7)+Math.max.apply(null,ys7))/2;
         for(var s7=0;s7<3;s7++){var yy7=cy7-10+s7*10,head=e.side==='p'?L7+(R7-L7)*u7:R7-(R7-L7)*u7;for(var q7=0;q7<26;q7++){var xx7=head+(e.side==='p'?-q7:q7),fa7=(1-q7/26)*(1-u7*.5);VP(xx7,yy7+Math.sin((xx7+s7*9)/7)*2.5,q7<4?'#ffb0b8':q7<12?'#e0182e':'#7a0818',fa7)}}}}}/* 全體血系技能：三道紅色氣流橫掃 */
@@ -1039,10 +1045,10 @@ function drawVfx(t){shakeY=0;if(!B)return;
     if(e.side==='m'&&e.cage){(e.tgts||[]).forEach(function(tk){cageFx(posOf(tk),d)});return}
     if(e.side==='m'&&e.sonic){sonicFx(e,d);return}
     if(e.side==='m'&&e.roots){(e.tgts||[]).forEach(function(tk){rootsFx(posOf(tk),d)});return}
-    if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-(e.wk==='beam'?0:msz(mo.k)[0]*mo.sc*.3),msy=mp0[1];/* 射線從怪物身體中間（眼魔＝大眼）射出 */
+    if(e.side==='m'&&e.wk&&e.tgts&&e.tgts.length){var mp0=monPos(e.a),mo=mons[e.a];if(!mp0||!mo)return;var WU=pfx.width/U,lu0=Math.max(0,Math.min(1,d/420)),msx=mp0[0]-Math.sin(lu0*Math.PI)*14-(e.wk==='beam'?0:msz(mo.k)[0]*mo.sc*.3),msy=mp0[1];if(MPT[mo.k]&&MPT[mo.k].cast){var cp9=monPt(e.a,'cast');if(cp9){msx=cp9[0];msy=cp9[1]}}/* cast = 法術從哪裡射出（克里奧絲塔＝手上的冰球） *//* 射線從怪物身體中間（眼魔＝大眼）射出 */
       /* 怪物技能特效：把畫面左右翻過來，沿用玩家那套（投擲、刺擊、飛彈……），起點是怪物、終點是被打的隊員 */
       pctx.save();pctx.translate(pfx.width,0);pctx.scale(-1,1);
-      (e.tgh?[e.tgh[hh]]:e.tgts).forEach(function(tk){if(tk==null)return;var pp=posOf(tk);hitFx(e,d,e.wk,e.vc||'#ffffff',WU-msx,msy,WU-pp[0],pp[1]-14,pp[1],1)});
+      var hoy=e.hits>1?((hh%2?-1:1)*(3+(hh%3))):0;/* 連發：一發上一發下輪流射出 */(e.tgh?[e.tgh[hh]]:e.tgts).forEach(function(tk){if(tk==null)return;var pp=posOf(tk);hitFx(e,d,e.wk,e.vc||'#ffffff',WU-msx,msy+hoy,WU-pp[0],pp[1]-14,pp[1],1)});
       pctx.restore();return}
     if(e.side==='m'){if(!e.tgts||!e.tgts.length)return;e.tgts.forEach(function(tk){var pp=posOf(tk);
       /* 怪物攻擊：爪痕圖由上往下劃出約 0.13 秒，再放大淡出約 0.2 秒 */
