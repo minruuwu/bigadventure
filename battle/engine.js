@@ -442,7 +442,16 @@
     }
     /* 反應技：擋下／減傷／吸收在受擊當下就生效（影響那一下的傷害），
        但「發動」本身排進佇列，等敵人整招（含招式後的符文）結算完，才依速度順序一個一個演出、結算反擊／回血／上狀態 */
-    function reactPost(d, a, re, e) { if (re) (e._rq = e._rq || []).push({ d: d, a: a, re: re }) }
+    function isCtr(r) { return r.effect === 'counter' }
+    /* 同一招技能，每個被打的人最多反擊一次（多段招式不會被反擊好幾次）；格擋、減傷等防禦效果照常每段判定 */
+    function reactPost(d, a, re, e) {
+      if (!re) return; e._rq = e._rq || [];
+      if (re.post.some(isCtr) && e._rq.some(function (z) { return z.d === d && z.a === a && z.re.post.some(isCtr) })) {
+        re = Object.assign({}, re, { post: re.post.filter(function (r) { return !isCtr(r) }) });
+        if (!re.block && !re.reduce && !re.absorb && !re.post.length) return;
+      }
+      e._rq.push({ d: d, a: a, re: re });
+    }
     /* 符文佇列：攻擊方的符文在招式結束後一個一個獨立成行（rn = 符文編號，畫面用 rfx 決定特效） */
     function rq(e, rid, run) { (e._rn = e._rn || []).push({ rid: rid, run: run }) }
     function fxOn(r, fx, src, tgs) { r.rfx = fx; r.side = src.side; r.a = src.i; r.rtg = tgs.map(function (t) { return [t.side, t.i] }) }
@@ -744,8 +753,8 @@
             /* 霜甲：被打就用施加者的魔攻反擊冰霜魔法傷害（吃攻擊者的魔法減傷、冰霜抗性；施加者倒下就不反擊） */
             t.st.forEach(function (s) { if (s.paused || !s.src || s.src.dead || s.src.undead || !real || u.dead) return; s.rows.forEach(function (r) { if (r.k !== 'frost_thorn') return; var fa = Math.round(stat(s.src, 'matk') * r.v * (1 - Math.min(stat(u, 'mred'), 0.9)) * (1 - Math.min(resOf(u, 'frost'), 0.9))); if (fa > 0) (e._th = e._th || []).push({ d: t, a: u, amt: fa, fr: s.n }) }) });
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * RV(D, 'rune11', 0, 0.5, t)) });
-            /* 震撼（怪物被動 thorns）：被物理攻擊時，把實際受到傷害的 value 倍以真實傷害反彈（整招結束後才反彈，同荊棘之皇冠） */
-            if (t.special && real > 0 && !u.dead && t.side !== u.side && sk.parts.some(function (q) { return q.d === 'p' })) t.special.forEach(function (sp) { if (sp.k === 'thorns') (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * sp.v), nm: D.SK[sp.id] ? D.SK[sp.id].n : '震撼' }) });
+            /* 震撼（怪物被動 thorns）：被物理攻擊打中時，以自己物攻 value 倍的真實傷害反彈；同一招只反彈一次（整招結束後才反彈） */
+            if (t.special && real > 0 && !u.dead && t.side !== u.side && sk.parts.some(function (q) { return q.d === 'p' })) t.special.forEach(function (sp) { if (sp.k === 'thorns') { var tnm = D.SK[sp.id] ? D.SK[sp.id].n : '震撼'; e._th = e._th || []; if (!e._th.some(function (z) { return z.d === t && z.a === u && z.nm === tnm })) e._th.push({ d: t, a: u, amt: Math.round(stat(t, 'patk') * sp.v), nm: tnm }) } });
             /* 被打中時觸發的被動（輝煌龍的神恩寵兒：機率讓攻擊者陷入魅惑） */
             if (t.special && real > 0 && !u.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'apply_status' && sp.tr === 'hit_taken' && !u.dead && RND() < sp.ch && applyStatus(t, u, sp.st, sp.turns, 1, null)) { (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '被動') + '」讓 ' + u.name + ' 陷入「' + sp.st + '」'); (e.dringA = e.dringA || []).push([u.side, u.i]) } });
             if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2, t)) (function (t, u) { rq(e, 'rune23', function (r) { if (t.dead || u.dead || !applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5, t), 1, null)) return false; r.txt = t.name + ' 的「石之正義」：' + u.name + ' 被石化 ' + RV(D, 'rune23', 1, 5, t) + ' 回合'; fxOn(r, 'stone', t, [u]) }) })(t, u);
