@@ -411,14 +411,14 @@
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
-      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (u._lh.sp > k0) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); if (u._lh.mst && u._lh.mst.sp_on_kill && RND() < u._lh.mst.sp_on_kill.ch) { var k1 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k1 + 1); if (u._lh.sp > k1) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }) } /* 意志迴流 */ if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）')) } }
+      if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (u._lh.sp > k0) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); if (u._lh.mst && u._lh.mst.sp_on_kill && RND() < u._lh.mst.sp_on_kill.ch) { var k1 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k1 + 1); if (u._lh.sp > k1) { numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); var wk1 = u._lh.mst.sp_on_kill.n } } /* 意志迴流 */ if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）') + (wk1 ? '，「' + wk1 + '」再 +1 SP' : '')) } }
       /* 吞噬者倒下：肚子裡的人回來（血量維持、狀態恢復計時） */
       if (u.side === 'm') P.forEach(function (x) { var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return; removeStatus(x, q); x.st.forEach(function (s) { s.paused = false }); if (e) { (e._rel = e._rel || []).push(x.name + ' 從 ' + u.name + ' 的肚子裡逃出來了'); (e.rel = e.rel || []).push(x.i) } });
       if (e) { if (u.side === 'm') (e.dead = e.dead || []).push(u.i); else (e.pko = e.pko || []).push(u.i) }
       return true;
     }
     /* 逃出肚子的文字等這一行的傷害寫完才接在後面 */
-    function flushRel(e) { if (e && e._rel) { e.txt += '；' + e._rel.join('；'); delete e._rel } if (e && e._spk) { e.txt += '；' + e._spk.join('；'); delete e._spk } }
+    function flushRel(e) { if (e && e._rel) { e.txt += '；' + e._rel.join('；'); delete e._rel } if (e && e._spk) { e.txt += '；' + e._spk.join('；'); delete e._spk } if (e && e._spm) { e.txt += '；' + e._spm.join('；'); delete e._spm } }
     function revive(u, f, why, e) { u.st = []; u.hp = Math.max(1, Math.round(u.b.mhp * f)); if (e) { e.txt += '；' + u.name + ' 因「' + why + '」復活（' + u.hp + ' 生命）'; (e.rev = e.rev || []).push([u.side, u.i]) } }
 
     /* --- 反應技 --- */
@@ -537,7 +537,7 @@
       if (MS.regen_self) { var gS = heal(u, u, u.b.mhp * MS.regen_self.v, null, true); if (gS) numAdd(u, gS, 'h') }
       if (MS.heal_lowest) { var fl = friends(u).filter(function (q) { return !q.dead && !banished(q) && q.hp < q.b.mhp }); if (fl.length) { var lw = fl.reduce(function (a, b) { return b.hp / b.b.mhp < a.hp / a.b.mhp ? b : a }); var gL = heal(u, lw, lw.b.mhp * MS.heal_lowest.v, null, true); if (gL) { numAdd(lw, gL, 'h'); addStat(e, u, 'heal', gL, MS.heal_lowest.n) } } }
       if (MS.cleanse) { var fc = friends(u).filter(function (q) { return !q.dead && debuffs(q).some(function (s) { return !s.swal && !s.banish }) }); if (fc.length) { var ct = pickOne(fc), cs = pickOne(debuffs(ct).filter(function (s) { return !s.swal && !s.banish })); removeStatus(ct, cs); tick.push('「' + MS.cleanse.n + '」解除 ' + ct.name + ' 的「' + cs.n + '」') } }
-      if (MS.sp_turn && SPM && RND() < MS.sp_turn.ch) { var s0 = u.sp | 0; u.sp = Math.min(SPMAX, s0 + 1); if (u.sp > s0) numAdd(u, 1, 'sp') }
+      if (MS.sp_turn && SPM && rounds > 1 && RND() < MS.sp_turn.ch) { var s0 = u.sp | 0; u.sp = Math.min(SPMAX, s0 + 1); if (u.sp > s0) { numAdd(u, 1, 'sp'); tick.push('「' + MS.sp_turn.n + '」SP +1') } } /* 跟每回合自然回 SP 一樣，第 1 回合不觸發 */
       if (MS.buff_turn && MS.buff_turn.st && RND() < MS.buff_turn.ch) { if (applyStatus(u, u, MS.buff_turn.st, MS.buff_turn.turns, 1, null)) tick.push('「' + MS.buff_turn.n + '」獲得「' + MS.buff_turn.st + '」') }
       u.special.forEach(function (x) { if (x.k === 'regen') { var g = heal(u, u, u.b.mhp * x.v, null, true); if (g) tick.push('「' + (D.SK[x.id] ? D.SK[x.id].n : '再生') + '」恢復 ' + g) } });
       u.st.slice().forEach(function (s) {
@@ -587,8 +587,8 @@
       if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）';
         /* 職業精通：巧手回收（自己 SP +1）、餘韻（隨機一名同伴 SP +1），只算消耗 SP 的技能 */
         if (sk.sp && u.mst) {
-          if (u.mst.sp_on_skill && RND() < u.mst.sp_on_skill.ch) { var q0 = u.sp | 0; u.sp = Math.min(SPMAX, q0 + 1); if (u.sp > q0) numAdd(u, 1, 'sp') }
-          if (u.mst.sp_ally_on_skill && RND() < u.mst.sp_ally_on_skill.ch) { var oa = P.filter(function (q) { return q !== u && !q.dead && (q.sp | 0) < SPMAX }); if (oa.length) { var ob = pickOne(oa); ob.sp = (ob.sp | 0) + 1; numAdd(ob, 1, 'sp') } }
+          if (u.mst.sp_on_skill && RND() < u.mst.sp_on_skill.ch) { var q0 = u.sp | 0; u.sp = Math.min(SPMAX, q0 + 1); if (u.sp > q0) { numAdd(u, 1, 'sp'); e._spm = (e._spm || []).concat('「' + u.mst.sp_on_skill.n + '」' + u.name + ' SP +1') } }
+          if (u.mst.sp_ally_on_skill && RND() < u.mst.sp_ally_on_skill.ch) { var oa = P.filter(function (q) { return q !== u && !q.dead && (q.sp | 0) < SPMAX }); if (oa.length) { var ob = pickOne(oa); ob.sp = (ob.sp | 0) + 1; numAdd(ob, 1, 'sp'); e._spm = (e._spm || []).concat('「' + u.mst.sp_ally_on_skill.n + '」' + ob.name + ' SP +1') } }
         } }
       doSkill(u, sk, tg, e);
       flushSt(e);
@@ -864,11 +864,13 @@
     function alive(a) { return a.some(function (x) { return !x.dead && !swallowed(x) }) } /* 被吞的人不算還能戰鬥 */
     if (lone) line({ kind: 'note', idle: true, txt: P[0].name + ' 獨自上陣，進入「獨狼」狀態：生命、物理攻擊力、魔法攻擊力 ×1.5' });
     if (duo) line({ kind: 'note', idle: true, txt: P[0].name + ' 與 ' + P[1].name + ' 兩人同行，進入「雙人成行」狀態：兩人的生命、物理攻擊力、魔法攻擊力 ×1.5' });
+    if (SPM) P.forEach(function (u) { if (u.mst && u.mst.sp_start) line({ kind: 'note', idle: true, txt: u.name + ' 的「' + u.mst.sp_start.n + '」：開場 SP +' + (u.mst.sp_start.v | 0) }) }); /* 職業精通加的 SP 都寫進戰報 */
     /* 新的一回合：回傳這回合的行動順序（速度高先動，加一點隨機讓同速的隨機排） */
     function round() {
       rounds++;
-      line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
+      var rl = line({ kind: 'round', txt: '— 第 ' + rounds + ' 回合 —' });
       if (SPM && rounds > 1) P.forEach(function (u) { if (!u.dead) u.sp = Math.min(SPMAX, (u.sp | 0) + 1) });
+      if (SPM) rl.hp = hpSnap(); /* 回合開始回 SP 後馬上更新畫面上的 SP 點，免得跟實際可用的對不上 */
       /* 骨堆倒數：倒下的那回合不算，下一回合開始時還是滿的倒數，之後每回合開始減 1，到 0 滿血變回骨兵（3 = 整整當 3 回合骨堆） */
       M.forEach(function (u) { if (u.dead || !u.undead || u.undead.born >= rounds - 1) return; u.undead.n--;
         if (u.undead.n <= 0) { var o2 = u.name, bk = u.undead.back; delete u.undead; morph(u, bk); var rz = line({ side: 'm', a: u.i, txt: o2 + ' 重新組成了「' + u.name + '」！', tf: [u.i, u.sprite, u.name, 'rise'] }); rz.hp = hpSnap() }
