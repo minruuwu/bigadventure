@@ -544,7 +544,7 @@ function bigSmash(e,d){var L=1e9,R=-1e9,T=1e9,B2=-1e9;(e.tgts||[]).forEach(funct
   if(im){var u=(d-60)/560;if(u>=0&&u<=1){var S=(56+u*40)*VS,a=u<.15?u/.15:1-Math.pow((u-.15)/.85,1.5);pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.max(0,a);pctx.drawImage(im,Math.round((cx-S/2)*U),Math.round((cy-S/2)*U),Math.round(S*U),Math.round(S*U));pctx.restore()}}
   if(d>120&&d<480)shakeY=Math.round(Math.sin(d/16)*2*U*(1-(d-120)/360));pBurst(pk,cx,cy,d-140,30,VS*1.6);(e.tgts||[]).forEach(function(tk,n){var pp=posOf(tk);pBurst(pk,pp[0],pp[1]-14,d-200-n*30,12,VS)});FXA=fa}
 /* 怪物身上的特效起點（相對裁切後的圖）：mouth = 嘴、hand = 手 */
-var MPT={mammoth:{cast:[13,11],mouth:[12,30]},cqueen:{cast:[9,25]},yeti:{hand:[12,8]},fleshgolem:{mouth:[10,14],hand:[7,42]},chroma:{mR:[18,31.5],mG:[38,12],mB:[68,32.5]}};
+var MPT={mammoth:{cast:[13,11],mouth:[12,30]},cqueen:{cast:[12,27]},yeti:{hand:[12,8]},fleshgolem:{mouth:[10,14],hand:[7,42]},chroma:{mR:[18,31.5],mG:[38,12],mB:[68,32.5]}};
 function monPt(i,k){var mo=mons[i];if(!mo||mo.lx==null)return null;var MZ=msz(mo.k),q=(MPT[mo.k]||{})[k]||[MZ[0]*.25,MZ[1]*.35];return[mo.lx-MZ[0]*mo.sc/2+q[0]*mo.sc,mo.gy-(mo.lift||0)-MZ[1]*mo.sc+q[1]*mo.sc]}
 /* 屍塊噴吐：從嘴巴噴出一大把暗紅肉塊，拋物線飛到每個人身上，落地濺血 */
 function goreFx(e,d){var s=monPt(e.a,'mouth');if(!s||d<0||d>1100)return;var C=['#7a1a14','#a8322a','#d06a5a','#4a0e0a','#c89a8a'];
@@ -1254,10 +1254,10 @@ function idleOne(m,now){(function(){
     for(var k9=0;k9<7;k9++){var pr9=1500+k9*170,uu=((ot9+k9*397)%pr9)/pr9,cy9=Math.floor((ot9+k9*397)/pr9),sx9=ox9+(50+hsh(cy9,k9)*16)*os9+uu*3,sy9=oy9+(44+hsh(k9,cy9)*12)*os9+uu*16+Math.sin(uu*6+k9)*1,sa9=Math.sin(uu*Math.PI)*(.55+.45*Math.sin(ot9/120+k9*2.3));
       VP(sx9,sy9,'#ffffff',sa9);if(k9%2){VP(sx9-1,sy9,'#9af6f0',sa9*.6);VP(sx9+1,sy9,'#9af6f0',sa9*.6);VP(sx9,sy9-1,'#9af6f0',sa9*.6);VP(sx9,sy9+1,'#9af6f0',sa9*.6)}}}
   /* 克里奧絲塔：手上冰球慢慢明暗發光、小冰晶繞著轉；腳邊冒出像乾冰的冷氣，緩緩往四周、稍微往下散開 */
-  if(m.k==='cqueen'&&m.alive){var QZ=msz('cqueen'),qs=m.sc,qx0=m.lx-QZ[0]*qs/2,qy0=m.gy-(m.lift||0)-QZ[1]*qs,qt=now+m.ph*3,qdy=Math.sin(now/650)>0?1:0,ocx=qx0+9*qs,ocy=qy0+(25+qdy)*qs,op9=.5+.5*Math.sin(qt/700);pctx.globalCompositeOperation='lighter';
+  if(m.k==='cqueen'&&m.alive){var QZ=msz('cqueen'),qs=m.sc,qx0=m.lx-QZ[0]*qs/2,qy0=m.gy-(m.lift||0)-QZ[1]*qs,qt=now+m.ph*3,qdy=Math.sin(now/650)>0?1:0,ocx=qx0+12*qs,ocy=qy0+(27+qdy)*qs,op9=.5+.5*Math.sin(qt/700);pctx.globalCompositeOperation='lighter';
     for(var qi=-7;qi<=7;qi++)for(var qj=-7;qj<=7;qj++){var qr=Math.sqrt(qi*qi+qj*qj);if(qr>7.2)continue;VP(ocx+qi,ocy+qj,qr<2.5?'#ffffff':qr<4.8?'#bfeeff':'#5ab8f0',op9*(qr<2.5?.7:qr<4.8?.35:.16))}
     for(var qk=0;qk<6;qk++){var qa=qt/900+qk/6*Math.PI*2,qx=ocx+Math.cos(qa)*12*qs,qy=ocy+Math.sin(qa)*4*qs,qb=.75+.25*Math.sin(qa);VP(qx,qy,'#ffffff',qb);VP(qx-1,qy,'#a8e8ff',qb*.6);VP(qx+1,qy,'#a8e8ff',qb*.6);VP(qx,qy-1,'#a8e8ff',qb*.6);VP(qx,qy+1,'#a8e8ff',qb*.6)}
-    for(var qk2=0;qk2<5;qk2++){var qa2=-qt/1100+qk2/5*Math.PI*2,qx2=ocx+Math.cos(qa2)*10*qs,qy2=ocy+Math.sin(qa2)*10*qs;VP(qx2,qy2,'#ffffff',1);VP(qx2-1,qy2,'#d8f6ff',.8);VP(qx2+1,qy2,'#d8f6ff',.8);VP(qx2,qy2-1,'#d8f6ff',.8);VP(qx2,qy2+1,'#d8f6ff',.8);for(var tl=1;tl<=4;tl++){var ta=qa2+tl*.1;VP(ocx+Math.cos(ta)*10*qs,ocy+Math.sin(ta)*10*qs,'#bff0ff',.7-tl*.14)}}/* 第二圈：正面看是圓的，順著冰球的漩渦反方向轉，後面拖一小段軌跡 */
+    for(var qk2=0;qk2<5;qk2++){var qa2=qt/1100+qk2/5*Math.PI*2,qx2=ocx+Math.cos(qa2)*10*qs,qy2=ocy+Math.sin(qa2)*10*qs;VP(qx2,qy2,'#ffffff',1);VP(qx2-1,qy2,'#d8f6ff',.8);VP(qx2+1,qy2,'#d8f6ff',.8);VP(qx2,qy2-1,'#d8f6ff',.8);VP(qx2,qy2+1,'#d8f6ff',.8);for(var tl=1;tl<=4;tl++){var ta=qa2-tl*.1;VP(ocx+Math.cos(ta)*10*qs,ocy+Math.sin(ta)*10*qs,'#bff0ff',.7-tl*.14)}}/* 第二圈：正面看是圓的，以冰晶中心為圓心順時針轉，後面拖一小段軌跡 */
     pctx.globalCompositeOperation='source-over';
     for(var qf=0;qf<22;qf++){var qp=2600+qf*170,qu=((qt+qf*431)%qp)/qp,qc=Math.floor((qt+qf*431)/qp),dir=hsh(qc,qf)<.5?-1:1,hi=qf%2===0?14+hsh(qf,qc+7)*6:3+hsh(qf,qc+5)*5,fx=qf%2===0?m.lx+4+(hsh(qc,qf+9)-.5)*26+dir*qu*9:m.lx+dir*(2+hsh(qc,qf+9)*10+qu*(18+hsh(qf,qc)*16)),fy=m.gy-hi+qu*(qf%2===0?6:3)+(hsh(qc,qf+3)-.5)*2,fr=qf%2===0?3.5+qu*5:2.5+qu*4.5,fv=qf%2===0?2:1,fa=Math.sin(qu*Math.PI)*(qf%2===0?.62:.4);/* 每三團有一團從裙擺上方冒出、往下沉，蓋住裙子下半部 */
       for(var a9=-Math.ceil(fr);a9<=Math.ceil(fr);a9++)for(var b9=-fv;b9<=fv;b9++){if(a9*a9/(fr*fr)+b9*b9/(fv*fv+1.2)>1)continue;VP(fx+a9,fy+b9,b9?'#e6f6ff':'#ffffff',fa*(b9?.75:1))}}}
