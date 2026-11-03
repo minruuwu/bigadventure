@@ -341,7 +341,7 @@
       var cm = r.crit ? 1 + stat(a, 'cdmg') + (sk.cd || 0) : 1, tot = 0, byEl = {};
       parts.forEach(function (x) {
         var atk = x.d === 'm' ? stat(a, 'matk') : stat(a, 'patk'), inc = x.d === 'm' ? stat(a, 'mdmg') : stat(a, 'pdmg'), red = x.d === 'm' ? stat(d, 'mred') : stat(d, 'pred');
-        var v = atk * x.r * (1 + inc) * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(d, x.e), 0.9)) * (1 + sv(d, 'dmg_taken_rate') + sv(d, x.d === 'm' ? 'm_dmg_taken_rate' : 'p_dmg_taken_rate')) * cm * (o.mult || 1) * (0.95 + RND() * 0.1);
+        var v = atk * x.r * (1 + inc) * (1 - Math.min(red, 0.9)) * (1 - Math.min(resOf(d, x.e) - (x.e ? (o.resPierce || 0) : 0), 0.9)) * (1 + sv(d, 'dmg_taken_rate') + sv(d, x.d === 'm' ? 'm_dmg_taken_rate' : 'p_dmg_taken_rate')) * cm * (o.mult || 1) * (0.95 + RND() * 0.1);
         if (re && re.reduce) v *= 1 - re.reduce;
         byEl[x.e] = (byEl[x.e] || 0) + v; tot += v;
       });
@@ -690,7 +690,7 @@
             if (bonus.sure_crit_low_hp && t.hp / t.b.mhp < (num(bonus.sure_crit_low_hp.value) || 0.3)) sc = true;
             if (u.mst && u.mst.dmg_vs_debuffed && debuffs(t).length) mult += u.mst.dmg_vs_debuffed.v; /* 審判之眼 */
             if (u.mst && u.mst.dmg_vs_low && t.hp / t.b.mhp < (u.mst.dmg_vs_low.v2 || 0.4)) mult += u.mst.dmg_vs_low.v; /* 致命要害 */
-            var x = dmgOnce(u, t, sk.parts, sk, { mult: mult, extraCrit: xc, sureCrit: sc });
+            var x = dmgOnce(u, t, sk.parts, sk, { mult: mult, extraCrit: xc, sureCrit: sc, resPierce: bonus.res_pierce ? num(bonus.res_pierce.value) : 0 }); /* res_pierce：計算時視為目標屬性抗性少 value（極光女神之寬恕） */
             var rec = perT[t.i + t.side];
             if (x.void) { rec.hs.push('無效'); numAdd(t, 0, 'void', { h: h }); return }
             if (x.miss) { rec.hs.push('閃開'); numAdd(t, 0, 'miss', { h: h }); return }
@@ -852,7 +852,7 @@
       /* 死靈威壓（被動 stun_all，trigger round_start）：每回合開始，每個敵人擲一次機率暈眩；上回合被這招暈過的人這回合不會再被暈 */
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'stun_all') return; var hit = [];
         foes(src).forEach(function (q) { if (q.dead || banished(q) || q._dread === rounds - 1) return; if (RND() < sp.ch && applyStatus(src, q, sp.st || '暈眩', sp.turns || 1, 1, null)) { q._dread = rounds; hit.push(q) } });
-        if (hit.length) { var dz = line({ side: 'm', a: src.i, idle: 1, dread: hit.filter(function (q) { return q.side === 'p' }).map(function (q) { return q.i }), txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '威壓') + '」：' + hit.map(function (q) { return q.name }).join('、') + ' 陷入暈眩' }); dz.hp = hpSnap() } }) });
+        if (hit.length) { var dz = line({ side: 'm', a: src.i, idle: 1, dread: hit.filter(function (q) { return q.side === 'p' }).map(function (q) { return q.i }), dst: sp.st || '暈眩', txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '威壓') + '」：' + hit.map(function (q) { return q.name }).join('、') + ' 陷入「' + (sp.st || '暈眩') + '」' }); dz.hp = hpSnap() } }) });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2, u), u.dragon - RV(D, 'rune18', 1, 0.05, u)) });
       return U.filter(function (u) { return !u.dead && !u.undead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } })/* 骨堆不行動 */.sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }
