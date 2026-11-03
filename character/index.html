@@ -176,6 +176,8 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .cfm .box{background:var(--paper);color:var(--pink);border:3px solid #2b1a0d;box-shadow:0 0 0 2px #7a5a30,4px 4px 0 2px rgba(0,0,0,.35);padding:18px 16px 14px;max-width:300px;width:100%}
 .cfm p{margin:0 0 6px;font-size:14px;line-height:1.5}.cfm .sub{font-size:12px;color:var(--pink2)}
 .cfm .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+/* 升級完成視窗：一次升很多級、技能很多時，中間的清單自己捲動，「知道了」固定在下面 */
+.cfm .box.upd{max-height:calc(100dvh - 48px);display:flex;flex-direction:column;box-sizing:border-box}.upd .updl{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0;flex:1 1 auto}.upd .acts{flex:none}
 /* 工會證：單一經驗池、升級、轉職 */
 .gcard{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .gcard .cell{padding:8px 2px}.gcard .cell small{display:block;font-size:11px;color:var(--pink2);letter-spacing:.06em}
@@ -430,10 +432,10 @@ function upSummary(b){var o={lines:[],skills:[],jobs:[]},dn=S.lv-b.lv,KL={combat
     SKORDER.forEach(function(id){var sk=SKILL[id];if(sk&&sk.j===k&&sk.lv>a&&sk.lv<=n)o.skills.push({n:sk.n,k:KL[sk.k]||'',j:jobName(k),lv:sk.lv})})});
   Object.keys(JOB).forEach(function(sn){if(!b.req[sn]&&reqMet(sn))o.jobs.push(jobName(sn))});
   return o.lines.length?o:null}
-function upDoneHtml(){var o=upDone;if(!o)return '';var h='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">升級完成！</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.lines.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+function upDoneHtml(){var o=upDone;if(!o)return '';var h='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box upd"><p><b class="bold">升級完成！</b></p><div class="updl"><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.lines.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
   if(o.skills.length)h+='<p class="sub" style="margin:6px 0 2px"><b>學會新技能</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.skills.map(function(x){return '<li>'+esc(x.n)+'<span style="font-size:11px;opacity:.75">（'+esc(x.j)+' Lv'+x.lv+(x.k?'・'+x.k:'')+'）</span></li>'}).join('')+'</ul><p class="sub" style="margin:0 0 6px">到「技能書」就可以裝上。</p>';
   if(o.jobs.length)h+='<p class="sub" style="margin:6px 0 2px"><b>可以轉職</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+o.jobs.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
-  return h+'<div class="acts"><button class="b go" data-a="udone" type="button">知道了</button></div></div></div>'}
+  return h+'</div><div class="acts"><button class="b go" data-a="udone" type="button">知道了</button></div></div></div>'}
 function skLearned(sk){return !!sk&&(S.jobLvs[sk.j]|0)>=sk.lv}
 function skGet(id){return id==='atk'?SKNA:SKILL[id]}
 /* 已配置的被動技能加成（屬性頁用）：回傳 {v:生效合計, L:來源說明}；條件不符的也列出但不算 */
