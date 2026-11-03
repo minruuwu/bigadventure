@@ -571,12 +571,15 @@ function firePillarFx(pp,d){if(d<0||d>900)return;var gx=pp[0]-2,gy=pp[1]+1,g=Mat
     for(var x=-Math.ceil(w);x<=Math.ceil(w);x++){var r=Math.abs(x)/w;if(r>1)continue;var col=r<.3?'#fff4c0':r<.6?'#ffc03a':r<.85?'#ff6a1a':'#b82a0a',al=(r<.6?.95:.75)*fo*(f>.8?(1-f)*5:1);VP(cx+x,gy-y,col,al)}}
   for(var k=0;k<10;k++){var pe=520+k*40,uk=((d+k*97)%pe)/pe;if(d<120)break;VP(gx+(hsh(k,7)-.5)*14+Math.sin(uk*7+k)*2,gy-H*.6-uk*26,k%2?'#ffd060':'#ff7a20',Math.sin(uk*Math.PI)*fo)}
   if(d>220)pBurst('fire',gx,gy-16,d-220,14,VS);FXA=fa}
-/* 冰刃斬：死亡掃蕩的月牙劍氣縮小、染成冰藍色，只砍向一個人，後面拖著漸透明的殘影 */
+/* 冰刃斬：死亡掃蕩的月牙劍氣縮小、染成冰藍色、順時針轉正一點，只砍向一個人；後面拖著漸透明的殘影和一條條冰藍尾勁 */
 var DSWI=null;function dswIce(){if(DSWI)return DSWI;var im=IMG.deathsweep;if(!im||!im.naturalWidth)return null;var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.drawImage(im,0,0);var D=x.getImageData(0,0,w,h),p=D.data;
   for(var i=0;i<p.length;i+=4){if(!p[i+3])continue;var l=Math.min(1,(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/200);p[i]=Math.round(60+l*190);p[i+1]=Math.round(150+l*105);p[i+2]=Math.round(220+l*35)}x.putImageData(D,0,0);return DSWI=c}
-function iceCrescent(e,d){var mp=monPos(e.a),im=dswIce(),tk=(e.tgts||[])[0];if(!mp||!im||tk==null)return;var pp=posOf(tk),u=(d-40)/300;if(u<-.1||u>1.35)return;var Hh=34,Ww=Hh*im.width/im.height,sx=mp[0]-8,ex=pp[0]+2,cy0=mp[1],cy1=pp[1]-14,a=u<0?1+u*10:u>1?Math.max(0,1-(u-1)*3):1,fa=FXA;FXA=1;
+function iceCrescent(e,d){var mp=monPos(e.a),im=dswIce(),tk=(e.tgts||[])[0];if(!mp||!im||tk==null)return;var pp=posOf(tk),u=(d-40)/300;if(u<-.1||u>1.35)return;var Hh=34,Ww=Hh*im.width/im.height,sx=mp[0]-8,ex=pp[0]+2,cy0=mp[1],cy1=pp[1]-14,a=u<0?1+u*10:u>1?Math.max(0,1-(u-1)*3):1,fa=FXA,ROT=.28;FXA=1;
+  var at=function(v){v=Math.max(0,Math.min(1,v));var ee=v*(2-v);return[sx+(ex-sx)*ee,cy0+(cy1-cy0)*ee]},P=at(u);
+  /* 拖曳的尾勁：月牙後方一條條往後拉長、越後面越淡的冰藍氣流 */
+  for(var s9=0;s9<9;s9++){var off=(s9-4)*Hh*.09,L=(18+hsh(s9,1)*16)*Math.min(1,u*2.5),tw=a*(.38-Math.abs(s9-4)*.05);if(tw<=0)continue;for(var q=0;q<L;q++){var qq=q/L,x=P[0]+6+q,y=P[1]+off+qq*(cy0-cy1)*.12;VP(x,y,qq<.25?'#e8f8ff':s9%2?'#9ad8ff':'#bfeaff',tw*(1-qq))}}
   pctx.save();pctx.imageSmoothingEnabled=false;
-  for(var k=5;k>=0;k--){var uk=Math.max(0,Math.min(1,u-k*.05)),ee=uk*(2-uk),cx=sx+(ex-sx)*ee,cy=cy0+(cy1-cy0)*ee,sc=1-k*.07,ak=a*(k?.3*(1-k/6):.85);if(u-k*.05<0||ak<=0)continue;pctx.globalAlpha=ak;var w2=Ww*sc,h2=Hh*sc;pctx.drawImage(im,Math.round((cx-w2/2)*U),Math.round((cy-h2/2)*U),Math.round(w2*U),Math.round(h2*U))}
+  for(var k=5;k>=0;k--){if(u-k*.05<0)continue;var Q=at(u-k*.05),sc=1-k*.07,ak=a*(k?.2*(1-k/6):.6);if(ak<=0)continue;pctx.globalAlpha=ak;var w2=Ww*sc,h2=Hh*sc;pctx.save();pctx.translate(Q[0]*U,Q[1]*U);pctx.rotate(ROT);pctx.drawImage(im,Math.round(-w2/2*U),Math.round(-h2/2*U),Math.round(w2*U),Math.round(h2*U));pctx.restore()}
   pctx.restore();pctx.globalAlpha=1;if(u>.95)pBurst('frost',pp[0],pp[1]-14,d-330,12,VS);FXA=fa}
 /* 冰雪暴：一大堆冰錐從畫面上方往下落，灑滿目標那一側整片戰場（不只落在人身上），落地時碎成冰屑 */
 function iceRainFx(e,d){if(d<0||d>1300)return;var im=vimg(MISSILE,'frost'),P=e.side==='p'?(e.tg||[]).map(function(i){var mo=mons[i];return mo&&mo.lx!=null?[mo.lx,mo.gy]:null}).filter(Boolean):(e.tgts||[]).map(function(tk){var pp=posOf(tk);return[pp[0],pp[1]]});if(!P.length||!im)return;
