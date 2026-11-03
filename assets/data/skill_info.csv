@@ -371,3 +371,6 @@ skill369,極光女神之寬恕,monster,0,combat,enemy_single,random,damage,,,m,f
 skill370,冰華射手,monster,0,combat,enemy_single,random,damage,,,m,frost,0.25,,,,怪物技能（單體冰霜魔法傷害，輪流射出 8 發冰彈、每發 ×0.25）,missile,8,,3,single,,2,,
 skill371,絕對零度,monster,0,combat,enemy_all,,damage,,,m,frost,0.9,,,,怪物技能（全體冰霜魔法傷害 ×0.9，每個目標 25% 凍結 1 回合）,zeroring,,,0,diamond,3,3,,
 skill372,永凍,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開始，每個敵人 7% 機率凍結 1 回合；同一人不會連續兩回合被凍）,,,,,,,,,
+skill373,冰槍突刺,monster,0,combat,enemy_single,random,damage,,,p,frost,1.4,,,,怪物技能（單體冰霜物理傷害 ×1.4，30% 凍足 2 回合）,thrust,,,1,single,,2,,
+skill374,羊角衝撞,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（單體物理傷害 ×1.2，30% 暈眩 1 回合）,smash,,,1,single,,2,,
+skill375,雪原戰號,monster,0,combat,ally_all,,buff,,,,,,,,,怪物技能（全體同伴物理攻擊力 +20%，3 回合）,,,,,,,,,
