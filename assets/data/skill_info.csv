@@ -374,3 +374,7 @@ skill372,永凍,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開�
 skill373,冰槍突刺,monster,0,combat,enemy_single,random,damage,,,p,frost,1.4,,,,怪物技能（單體冰霜物理傷害 ×1.4，30% 凍足 2 回合）,thrust,,,1,single,,2,,
 skill374,羊角衝撞,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（單體物理傷害 ×1.2，30% 暈眩 1 回合）,smash,,,1,single,,2,,
 skill375,雪原戰號,monster,0,combat,ally_all,,buff,,,,,,,,,怪物技能（全體同伴物理攻擊力 +20%，3 回合）,,,,,,,,,
+skill376,冰咒魔眼,monster,0,combat,enemy_single,random,damage,,,m,frost,1.3,,,,怪物技能（單體冰霜魔法傷害 ×1.3，25% 凍結 1 回合）,beam,,,3,single,,2,,
+skill377,重踏,monster,0,combat,enemy_all,,damage,,,p,,0.9,,,,怪物技能（全體物理傷害 ×0.9，每個目標 20% 暈眩 1 回合）,stomp,,,0,diamond,2,3,,
+skill378,寒霜鼻息,monster,0,combat,enemy_single,random,damage,,,p,frost,1.2,,,,怪物技能（單體冰霜物理傷害 ×1.2，附加凍足 2 回合，50% 凍傷 3 回合）,frostbreath,,,2,single,,2,,
+skill379,震撼,monster,0,passive,,,passive,,,,,,,,,怪物被動（被物理攻擊時，把受到傷害的 20% 以真實傷害反彈給攻擊者）,,,,,,,,,
