@@ -420,7 +420,7 @@ function tick(now){
   var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
   /* 戰報逐行出現 */
   while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){B.hpNow=ce.hp;if(ce.hz){B.hpNow=Object.assign({},ce.hp,{m:ce.hp.m.slice()});ce.hz.forEach(function(i){B.hpNow.m[i]=0})}/* 骨兵／冥屍龍倒下：這一招先把血條歸零，散成骨堆、變身那一行才換成新的血量 */if(ce.hp.sp)B.stNow={p:ce.hp.sp,m:ce.hp.sm}}B.li++}
-  if(VFXT&&B){var VL=Object.keys(VT.st).filter(function(q){return VT.st[q]});B.stNow={p:[VL],m:[VL]}}/* 特效測試：按鈕選的狀態同時套在角色和怪物身上 */
+  if(VFXT&&B){var VL=Object.keys(VT.st).filter(function(q){return VT.st[q]}),AS=VT.ast&&t>=VT.ast.t0?VT.ast.d:{p:{},m:{}};B.stNow={p:(MEMB.length?MEMB:[0]).map(function(q,i){return (i?[]:VL).concat(AS.p[i]||[])}),m:(B.mons.length?B.mons:[0]).map(function(q,i){return (i?[]:VL).concat(AS.m[i]||[])})}}/* 特效測試：按鈕選的狀態同時套在角色和怪物身上 */
   if(!B.done&&t>=B.end){B.done=true;showResult()}
   party.forEach(function(p,k){
     var pp=posOf(p.i),bob=0,lx=0,ks=koAt(k,t),kt=ks.t,ko=ks.ko,fl=0;
@@ -1920,7 +1920,11 @@ function vtSkOpts(){var h='<option value="">（不用技能，照上面的按鈕
 function vtSkEv(t){var sk=ENG.SK[VT.sk];if(!sk)return null;var mon=sk.j==='monster',all=sk.t==='enemy_all',n=MEMB.length,e={sk:VT.sk,ty:sk.ty,txt:''};
   if(mon){e.side='m';e.a=0;if(sk.ty==='heal'){e.hl=[0]}else{var tg=all?MEMB.map(function(q,i){return i}):[Math.floor(Math.random()*n)];e.tgP=tg;e.hitsN=sk.hits||1;if((sk.hits||1)>1&&sk.p==='random_each'){e.tghP=[];for(var h=0;h<sk.hits;h++)e.tghP.push(Math.floor(Math.random()*n))}}}
   else{e.side='p';e.a=0;if(sk.ty==='heal'||sk.ty==='buff'){e.tg=[];e.hl=[0]}else{e.tg=[0];if((sk.hits||1)>1&&sk.p==='random_each'){e.tgh=[];for(var h2=0;h2<sk.hits;h2++)e.tgh.push(0)}}}
-  var mp=mkMapper(B.mons,null);mp.t=t;return mp.add(e)}
+  var mp=mkMapper(B.mons,null);mp.t=t;var o=mp.add(e);
+  /* 這招會附加的狀態：打中之後套到對應的角色身上，直到下一次播放（潛伏變暗、凍足寒氣、出血……都看得到） */
+  var ast={p:{},m:{}},any=false;(ENG.EFF[VT.sk]||[]).forEach(function(r){if(r.effect_kind!=='status'||!r.status_name)return;var tgt=String(r.target||''),me=/^(self|ally)/.test(tgt),sd=me?(mon?'m':'p'):(mon?'p':'m'),ix=me?(/_all$/.test(tgt)?(sd==='p'?MEMB.map(function(q,i){return i}):B.mons.map(function(q,i){return i})):[0]):(mon?(e.tgP||[]):(e.tg&&e.tg.length?e.tg:[0]));
+    ix.forEach(function(i){(ast[sd][i]=ast[sd][i]||[]).push(r.status_name);any=true})});
+  VT.ast=any?{t0:t+(o&&o.hit||300),d:ast}:null;return o}
 function vtFire(t){if(VT.sk){var se=vtSkEv(t);if(se){B.ev=B.ev.filter(function(x){return t-x.t<1500});B.ev.push(se);return}}var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
   if(VT.kind==='claw')e={side:'m',a:0,tgt:0,tgts:[0],t:t,clawc:VT.el?ELC[VT.el]:null};
   else if(VT.kind==='roots')e={side:'m',a:0,tgt:0,tgts:[0],t:t,roots:1};
@@ -1967,7 +1971,7 @@ function vtUI(){var h='<div class="vt"><div class="vth">武器</div><div class="
 function vtSync(){function on(id,f){[].forEach.call(document.querySelectorAll('#'+id+' button'),function(b){b.classList.toggle('on',f(b))})}
   on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon});on('vts',function(b){return !!VT.st[b.dataset.s]});on('vta',function(b){return b.dataset.aa?VT.auAlly:!!VT.au[b.dataset.au]});on('vtk2',function(b){return b.dataset.sheep?!!VT.sheep:b.dataset.k===VT.kind})}
 function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hidden=true;$('batv').hidden=false;$('bhead').textContent='特效測試';setBG('A');vtBuild();vtUI();lastNow=performance.now();
-  (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>(VT.kind==='mrebirth'?TFLEN+500:1300)){VT.lastT=t;vtFire(t)}}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
+  (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>(VT.kind==='mrebirth'?TFLEN+500:VT.ast?2400:1300)){VT.lastT=t;VT.ast=null;vtFire(t)}/* 會附加狀態的招式放慢一點，狀態多停一下 */}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */
 try{document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})())}catch(e){}
 var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),MANUAL=!/[?&]manual=0/.test(location.search)/* SP 制度＋手動戰鬥：正式開放（網址加 ?manual=0 回到舊版自動戰鬥） */,VFXT=/[?&]vfx=1/.test(location.search);
