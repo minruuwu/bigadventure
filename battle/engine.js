@@ -661,8 +661,8 @@
       });
     }
     function protectorFor(t, a) {
-      if (t.side !== 'p') return null;
-      var pr = P.filter(function (x) { return x !== t && !x.dead && x.st.some(function (s) { return !s.paused && s.rows.some(function (r) { return r.k === 'protect' }) }) });
+      var TM = t.side === 'p' ? P : M; /* 雙方都適用（怪物的守護誓言也能替同伴擋） */
+      var pr = TM.filter(function (x) { return x !== t && !x.dead && !x.undead && x.st.some(function (s) { return !s.paused && s.rows.some(function (r) { return r.k === 'protect' }) }) });
       return pr.length ? pickOne(pr) : null;
     }
 
@@ -680,7 +680,7 @@
           var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u)); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
           if (!list.length) break;
           list.forEach(function (t0) {
-            var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr && (hooks.protector || u.side === 'm')) t = pr;
+            var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr) t = pr;
             if (!perT[t.i + t.side]) { perT[t.i + t.side] = { t: t, hs: [], nm: t.name }; order.push(t) }
             hitList.push(t);
             var mult = 1, xc = 0, sc = false;
