@@ -353,3 +353,5 @@ skill362,呼喚同伴,summon,,,,,mon63,5,,,,,,all_monsters
 skill362,呼喚同伴,use_if,,,,,not_full,5,,,,,,
 skill363,稜晶光束,status,冰霜詛咒,enemy_single,3,1,,,,,,,,
 skill364,晶羽風暴,status,凍足,enemy_all,2,0.3,,,,,,,,
+skill366,再生,passive,,,,,regen,0.2,,,,,,
+skill367,凜冬獅吼,status,凍足,enemy_all,2,1,,,,,,,,
