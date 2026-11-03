@@ -252,7 +252,7 @@
     function numAdd(u, v, k, o) { var e = ev[ev.length - 1]; if (!e || !u) return; var n = { s: u.side, i: u.i, v: Math.round(v || 0), k: k }; if (o) Object.keys(o).forEach(function (q) { if (o[q] != null && o[q] !== '' && o[q] !== false) n[q] = o[q] }); (e.nums = e.nums || []).push(n) }
     function numHit(d, amt, left) { var c = NC || {}, el = c.el || '', w = 0; if (el) { var r = resOf(d, el); w = r < 0 ? 1 : r >= 0.5 ? -1 : 0 }
       if (amt - left > 0) numAdd(d, amt - left, 'shd', { h: c.h });
-      if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h }) }
+      if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h, bx: NC && !c.tr && banishedOnly(d) ? 1 : 0 }) }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n }) }
     function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null } }
@@ -264,6 +264,7 @@
       /* 吞噬：只吞玩家；一隻怪肚子裡同時只能有一個人；已經在肚子裡的人什麼狀態都上不了 */
       var swl = def.rows.some(function (r) { return r.k === 'swallow' });
       if (swallowed(tgt)) return false;
+      if (s0bn(tgt, def)) return false; /* 放逐中上不了新狀態 */
       if (banished(tgt) && def.rows.some(function (r) { return r.k === 'banish' })) return false; /* 已經在裂隙裡：不能再放逐一次（避免重放刷新回合、一直關住） */
       if (swl && (tgt.side !== 'p' || P.some(function (x) { return !x.dead && x.st.some(function (q) { return q.swal && q.src === src }) }))) return false;
       var ctl = def.rows.some(function (r) { return CONTROL[r.k] }), nob = def.rows.some(function (r) { return NOBOSS[r.k] });
@@ -299,19 +300,23 @@
     /* --- 陣營與選目標 --- */
     function foes(u) { var a = u.side === 'p' ? M : P; return a.filter(function (x) { return !x.dead }) }
     function friends(u) { var a = u.side === 'p' ? P : M; return a.filter(function (x) { return !x.dead }) }
-    function targetable(list) { var ok = list.filter(function (x) { return !banished(x) }); return ok.length ? ok : list }
+    /* 放逐（不含吞噬）：還是能被打，但只有魔法傷害有效、而且 ×2；純物理招式選目標時盡量避開 */
+    function s0bn(t, def) { return banishedOnly(t) && !def.rows.some(function (r) { return r.k === 'banish' }) }
+    function banishedOnly(u) { return u.st.some(function (s) { return s.banish }) }
+    function hasMag(sk) { return !!(sk && sk.parts && sk.parts.some(function (x) { return x.d === 'm' })) }
+    function targetable(list, sk) { var mg = hasMag(sk), ok = list.filter(function (x) { return !swallowed(x) && !(banishedOnly(x) && !mg) }); return ok.length ? ok : list.filter(function (x) { return !swallowed(x) }).length ? list.filter(function (x) { return !swallowed(x) }) : list }
     function pickTargets(u, sk, charmed, confused) {
       var t = sk.t, F = charmed ? friends(u) : foes(u), A = charmed ? foes(u) : friends(u);
       if (charmed) F = F.filter(function (x) { return x !== u });
       var stn = ((D.EFF[sk.id] || []).filter(function (e) { return e.effect_kind === 'status' })[0] || {}).status_name;
       if (confused && t !== 'self') { var all = U.filter(function (x) { return !x.dead && x !== u }); if (!all.length) return []; return t === 'enemy_all' || t === 'ally_all' || t === 'ally_others' ? all : [pickOne(all)] }
       if (t === 'self') return [u];
-      if (t === 'enemy_all') return targetable(F);
+      if (t === 'enemy_all') return targetable(F, { parts: [{ d: 'm' }] }); /* 全體招式照樣打到放逐中的（物理部分會顯示無效） */
       if (t === 'ally_all') return A;
       if (t === 'ally_others') return A.filter(function (x) { return x !== u });
       if (t === 'ally_single') return A.length ? [choose(A, sk.p, stn)] : [];
       if (t === 'enemy_single') {
-        var c = targetable(F); if (!c.length) return [];
+        var c = targetable(F, sk); if (!c.length) return [];
         var tn = c.filter(function (x) { return has(x, 'taunt') }); if (tn.length && !charmed) c = tn;
         return [choose(c, sk.p, stn)];
       }
@@ -328,7 +333,8 @@
     function dmgOnce(a, d, parts, sk, o) {
       /* o: {mult, extraCrit, sure, noReact} → {miss, crit, amt, blocked, absorbed, txt} */
       o = o || {};
-      if (banished(d)) return { amt: 0, void: true };
+      if (swallowed(d)) return { amt: 0, void: true };
+      if (banishedOnly(d)) { parts = parts.filter(function (x) { return x.d === 'm' }); if (!parts.length) return { amt: 0, void: true }; o = Object.assign({}, o, { mult: (o.mult || 1) * 2, noReact: true }) } /* 放逐中：物理無效、魔法 ×2、不會反應 */
       var isP = parts.some(function (x) { return x.d === 'p' }), isM = parts.some(function (x) { return x.d === 'm' });
       var r = { miss: false, crit: false, amt: 0 };
       if (!o.sure && !sk.sure) { var hc = 1 - stat(d, 'eva') + stat(a, 'hit') + sv(d, 'hit_taken_rate'); if (RND() >= clamp(hc, 0.05, 1)) { r.miss = true; return r } }
@@ -643,7 +649,7 @@
     function canUse(u, sk) { return sk && (sk.id === 'atk' || (cdOf(u, sk.id) <= 0 && (u.sp | 0) >= (sk.sp | 0))) }
     /* 手動選目標：單體技能可以點的對象（嘲諷中只能打嘲諷者）；群體回傳整組 */
     function cands(u, id) { var sk = D.SK[id] || D.SK.atk, t = sk.t;
-      if (t === 'enemy_single') { var c = targetable(foes(u)), tn = c.filter(function (x) { return has(x, 'taunt') }); return tn.length ? tn : c }
+      if (t === 'enemy_single') { var c = targetable(foes(u), sk), tn = c.filter(function (x) { return has(x, 'taunt') }); return tn.length ? tn : c }
       if (t === 'ally_single') return friends(u);
       return pickTargets(u, sk, false, false) }
     function endAct(u, sk) {
@@ -686,7 +692,7 @@
         var each = sk.p === 'random_each' && H > 1;
         for (var h = 0; h < H; h++) {
           if (h > 0 && (u.dead || u.undead)) break; /* 出手途中被反擊打倒（變成骨堆）就不再繼續打 */
-          var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u)); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
+          var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u), sk); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
           if (!list.length) break;
           list.forEach(function (t0) {
             var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr) t = pr;
