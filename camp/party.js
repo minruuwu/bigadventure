@@ -72,13 +72,13 @@
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
   function statData() {
     if (STAT) return Promise.resolve(STAT);
-    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] }), C.getCSV('job_mastery.csv').catch(function () { return [] })]).then(function (R) {
+    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] }), C.getCSV('job_mastery.csv').catch(function () { return [] }), C.getCSV('job_info.csv').catch(function () { return [] })]).then(function (R) {
       if (R[5] && R[5].length && window.RuneVals) RuneVals.setLevels(R[5]);
       var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element } });
       var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
-      var MS = {}; (R[6] || []).forEach(function (r) { if (r.job_sn && r.kind) MS[r.job_sn] = r });
-      STAT = { attr: A, grow: G, sk: K, eff: E, rune: R[4] || [], mst: MS }; return STAT
-    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {}, eff: {}, rune: [], mst: {} }; return STAT })
+      var MS = {}; (R[6] || []).forEach(function (r) { if (r.job_sn && r.kind) MS[r.job_sn] = r }); var JS = {}; (R[7] || []).forEach(function (r) { if (r.u_sn) JS[r.u_sn] = r.skill_set || r.job_name || r.u_sn });
+      STAT = { attr: A, grow: G, sk: K, eff: E, rune: R[4] || [], mst: MS, js: JS }; return STAT
+    }).catch(function () { STAT = { attr: {}, grow: {}, sk: {}, eff: {}, rune: [], mst: {}, js: {} }; return STAT })
   }
   var RES = [['fire', '火炎'], ['frost', '冰霜'], ['lightning', '雷電'], ['wind', '疾風'], ['nature', '自然'], ['light', '光明'], ['dark', '黑暗']];
   var SKEL = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' }, PSLOT = [1, 30, 60, 90];
@@ -132,7 +132,11 @@
       var k = id === 'atk' ? 'atk' : ok(id), nm = k === 'atk' ? '普通攻擊' : k ? esc(k.n) : '（空）', el = k && k !== 'atk' && SKEL[k.e] ? '<img class="ske" alt="' + SKEL[k.e] + '" title="' + SKEL[k.e] + '" src="' + C.base + 'icons/stats/res_' + k.e + '.png?v=5">' : '';
       return '<div class="rw"><span class="sico">' + skIco(k, p) + '</span><span class="tx"><b>' + nm + el + '</b><small>' + tag + '</small></span></div>'
     }
-    var h = '';
+    /* 順序：技能組（決定戰鬥技能能放哪些）→ 戰鬥技能循環 → 反應 → 被動，跟角色頁技能書一致 */
+    var JS = (STAT && STAT.js) || {}, ex = Array.isArray(sv.extra) ? sv.extra : (sv.extra ? [sv.extra] : []);
+    function setLine(tag, sn) { var m = /(\d+)/.exec(sn), jn = (m && g.Doll.JOBN[+m[1] - 1]) || sn; return '<div class="rw"><span class="sico"><img alt="" src="' + snIcon(sn) + '"></span><span class="tx"><b>' + esc(JS[sn] || jn) + '</b><small>' + tag + (JS[sn] && JS[sn] !== jn ? '（' + esc(jn) + '）' : '') + '</small></span></div>' }
+    var h = setLine('現職技能組', jobSn(p));
+    ex.filter(Boolean).slice(0, 2).forEach(function (sn, q) { h += setLine('額外技能組 ' + (q + 1), sn) });
     for (var i = 0; i < 4; i++) { var c = cb[i] || 'atk'; h += line('戰鬥 ' + (i + 1), c === 'atk' ? 'atk' : c, p) }
     h += line('反應', sv.reaction || '', p);
     for (var q = 0; q < 4; q++) h += lv >= PSLOT[q] ? line('被動 ' + (q + 1), pa[q] || '', p) : '<div class="rw off"><span class="sico"><span class="sbl"></span></span><span class="tx"><b>（Lv' + PSLOT[q] + ' 解鎖）</b><small>被動 ' + (q + 1) + '</small></span></div>';
