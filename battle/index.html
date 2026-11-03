@@ -576,7 +576,7 @@ function snowballFx(e,d){var s=monPt(e.a,'hand'),tk=(e.tgts||[])[0];if(!s||tk==n
   var T0=40,T1=380,arc=function(u){return[s[0]+(tx-s[0])*u,s[1]+(ty-s[1])*u-Math.sin(u*Math.PI)*22]};
   if(d<T1){var u=Math.max(0,(d-T0)/(T1-T0));
     for(var k=1;k<=22;k++){var uk=u-k*.02;if(uk<0)break;var q=arc(uk),j=hsh(k,Math.floor(d/60)),al=(1-k/23)*.9,sp=2+k*.35,sz=k<8?2:1;VR(q[0]+(j-.5)*sp,q[1]+(hsh(k,9)-.5)*sp,sz,sz,k%3?'#bfe6ff':'#ffffff',al);VP(q[0]+(hsh(k,3)-.5)*sp*1.4,q[1]+(hsh(k,5)-.5)*sp*1.4,'#8fd0f0',al*.8);if(k%3==0)VP(q[0]+(hsh(k,7)-.5)*sp,q[1]+(hsh(k,8)-.5)*sp,'#6fb8e8',al*.7)}
-    var P=arc(u),rot=Math.floor(d/90)%4;var SZ=1.6;for(var y=0;y<10;y++)for(var x=0;x<10;x++){var xx=rot&1?9-x:x,yy=rot&2?9-y:y,c=SNOWB[yy][xx];if(c)VR(P[0]-5*SZ+x*SZ,P[1]-5*SZ+y*SZ,SZ+.05,SZ+.05,SNOWC[c],1)}}
+    var P=arc(u),rot=Math.floor(d/90)%4;var SZ=1.6,bx=P[0]-5*SZ,by=P[1]-5*SZ;pctx.globalAlpha=1;for(var y=0;y<10;y++)for(var x=0;x<10;x++){var xx=rot&1?9-x:x,yy=rot&2?9-y:y,c=SNOWB[yy][xx];if(!c)continue;/* 每格的左右上下邊都照整張畫布的格線四捨五入，相鄰格子剛好接上，不會出現縫 */var X0=Math.round((bx+x*SZ)*U),X1=Math.round((bx+(x+1)*SZ)*U),Y0=Math.round((by+y*SZ)*U),Y1=Math.round((by+(y+1)*SZ)*U);pctx.fillStyle=SNOWC[c];pctx.fillRect(X0,Y0,X1-X0,Y1-Y0)}}
   else{var v=(d-T1)/420;if(v<=1){for(var k=0;k<22;k++){var an=k/22*Math.PI*2+hsh(k,1),r=3+v*(10+hsh(k,2)*10),x=tx+Math.cos(an)*r,y=ty+Math.sin(an)*r*.8+v*v*8;VP(x,y,k%3?'#ffffff':'#bfe6ff',1-v);if(k%2)VP(x+1,y,'#8fd0f0',(1-v)*.7)}
       for(var y=-4;y<=4;y++)for(var x=-5;x<=5;x++){if(x*x/25+y*y/16>1)continue;VP(tx+x,ty+y,'#ffffff',(1-v*2.2)*.8)}}}
   FXA=fa}
