@@ -351,3 +351,5 @@ skill360,白虎爪,status,出血,enemy_single,3,0.75,,,,,,,,
 skill361,寒冰牙,status,凍傷,enemy_single,3,1,,,,,,,,
 skill362,呼喚同伴,summon,,,,,mon63,5,,,,,,all_monsters
 skill362,呼喚同伴,use_if,,,,,not_full,5,,,,,,
+skill363,稜晶光束,status,冰霜詛咒,enemy_single,3,1,,,,,,,,
+skill364,晶羽風暴,status,凍足,enemy_all,2,0.3,,,,,,,,

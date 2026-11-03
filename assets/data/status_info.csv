@@ -174,3 +174,4 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 骨牢,debuff,dot,0.4,m_atk,dark,m,
 霜甲,buff,m_reduce_rate,0.2,,,,魔法減傷 +20%；被攻擊時對攻擊者造成施加者魔法攻擊力 20% 的冰霜魔法傷害
 霜甲,buff,frost_thorn,0.2,,,,
+冰霜詛咒,debuff,frost_res_rate,-0.4,,,,冰霜抗性 −40%
