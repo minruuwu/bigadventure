@@ -851,6 +851,8 @@
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.aura || []).forEach(function (a) { if (a.k !== 'regen_all') return; var gl = [];
         M.forEach(function (q) { if (q.dead || q.hp >= q.b.mhp) return; var g = heal(src, q, q.b.mhp * a.v, null, true); if (g) gl.push(q.name + ' ' + g) });
         if (gl.length) { var hz = line({ side: 'm', a: src.i, idle: 1, txt: src.name + ' 的「' + (D.SK[a.id] ? D.SK[a.id].n : '靈氣') + '」：' + gl.join('、') + ' 恢復生命' }); hz.hp = hpSnap() } }) });
+      /* 常駐狀態（被動 perm_status，例：冰霜元素的元素霜甲）：每回合開始，身上沒有就補上（第一回合等於開場就有） */
+      M.forEach(function (u) { if (u.dead || u.undead) return; (u.special || []).forEach(function (sp) { if (sp.k !== 'perm_status' || !sp.st || u.st.some(function (s) { return s.n === sp.st })) return; applyStatus(u, u, sp.st, sp.turns || 99, 1, null) }) });
       /* 死靈威壓（被動 stun_all，trigger round_start）：每回合開始，每個敵人擲一次機率暈眩；上回合被這招暈過的人這回合不會再被暈 */
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'stun_all') return; var hit = [];
         foes(src).forEach(function (q) { if (q.dead || banished(q) || q._dread === rounds - 1) return; if (RND() < sp.ch && applyStatus(src, q, sp.st || '暈眩', sp.turns || 1, 1, null)) { q._dread = rounds; hit.push(q) } });
