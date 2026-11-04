@@ -504,7 +504,7 @@ function fromPlayer(p){var s={uid:p.uid||'',name:p.name||'冒險者',lv:Math.max
   s.unlocks=(Array.isArray(p.unlocks)?p.unlocks:[]).map(function(x){return String(x).toLowerCase()});
   s.saved={skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?'cur':Doll.val(p.outfit,0)};s.look=Object.assign({},s.saved);return s}
 /* ---- 工會證：人物與職業共用一個經驗池(S.exp)，同一條升級曲線 ---- */
-var JMAX=50;
+var JMAX=50,CMAX=150;/* 人物等級上限（暫定 150） */
 /* 職業精通：職業 50 級的永久天賦（job_mastery.csv）；★ = 已精通 */
 var MSTR={};
 function mastered(sn){return (S&&S.jobLvs&&(S.jobLvs[sn]|0)>=JMAX)}
@@ -705,7 +705,7 @@ function sheetHTML(k){
     var h8='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><button class="bk" data-a="card" type="button">‹ 返回</button><h2 class="bold">升級</h2><p class="hint">加減只是暫存，按「確定」才會寫入。</p>';
     h8+='<div class="gcard"><div class="cell"><small>人物等級</small><b>'+lvN+(UP.char?' <i>+'+UP.char+'</i>':'')+'</b></div><div class="cell'+(ntot>=capN?' warn':'')+'"><small>職業總和 / 上限<button class="qm" data-a="captip" type="button" aria-label="說明">?</button></small><b>'+ntot+' / '+capN+'</b><div class="meter"><i style="width:'+wsave+'%"></i><u style="left:'+wsave+'%;width:'+Math.max(0,Math.min(100-wsave,(ntot-jobSum())/capN*100))+'%"></u></div>'+(capTip?'<div class="qtip">各職業等級的總和，不能超過人物等級的兩倍。想繼續升職業，先把人物等級升上去。</div>':'')+'</div><div class="cell full"><small>經驗池（剩餘）</small><b>'+left.toLocaleString('en-US')+(pcst?' <i>−'+pcst.toLocaleString('en-US')+'</i>':'')+'</b></div></div>';
     var cc=charNext(lvN);
-    h8+='<div class="urow"><div class="nm2">人物<small>下一級需 '+cc.toLocaleString('en-US')+' 經驗</small></div><div class="stp2"><button type="button" data-a="ucm" class="'+(UP.char>0&&ntot<=(lvN-1)*2?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+lvN+(UP.char?'<em>+'+UP.char+'</em>':'')+'</span><button type="button" data-a="ucp" class="'+(left>=cc&&!DN?'':'off')+'" aria-label="增加">＋</button></div></div>';
+    h8+='<div class="urow"><div class="nm2">人物<small>'+(lvN>=CMAX?'已達目前上限 Lv'+CMAX:'下一級需 '+cc.toLocaleString('en-US')+' 經驗')+'</small></div><div class="stp2"><button type="button" data-a="ucm" class="'+(UP.char>0&&ntot<=(lvN-1)*2?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+lvN+(UP.char?'<em>+'+UP.char+'</em>':'')+'</span><button type="button" data-a="ucp" class="'+(left>=cc&&!DN&&lvN<CMAX?'':'off')+'" aria-label="增加">＋</button></div></div>';
     var dirty=UP.char>0||pj>0;
     if(DN){/* 單一職業降級：選好要降到幾級，退還那幾級花的經驗；其他職業不動 */
       var dref=dnRefund(),dl=Object.keys(DN.job).length;
@@ -807,7 +807,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
     if(jobStatus(sn)!=='ok')return;if(us.indexOf(nw)<0){nw=defaultWeaponName(sn)||us[0]||nw;f2.weapon=nw}
     b.disabled=true;persist(f2).then(function(){S.seen=seen2;S.job=idx;S.jobSn=sn;S.weapon=nw;jobToast='已轉職為 '+jobName(sn);render();refresh();pushNavPlayer()},function(er){jobToast=errMsg(er);render()})}
   else if((a==='ucp'||a==='ucm')&&DN){upMsg='降級模式中不能升人物等級，先按「返回升級」。';render()}
-  else if(a==='ucp'){var c=charNext(S.lv+UP.char);if(S.exp-upCost()<c){upMsg='經驗不夠，人物升到下一級需要 '+c.toLocaleString('en-US')+'。'}else{UP.char++;upMsg=''}render()}
+  else if(a==='ucp'){var c=charNext(S.lv+UP.char);if(S.lv+UP.char>=CMAX){upMsg='人物等級目前最高 Lv'+CMAX+'。'}else if(S.exp-upCost()<c){upMsg='經驗不夠，人物升到下一級需要 '+c.toLocaleString('en-US')+'。'}else{UP.char++;upMsg=''}render()}
   else if(a==='ucm'){if(UP.char>0){if(jobSum()+upJobSum()>(S.lv+UP.char-1)*2)upMsg='降低後上限會小於職業總和，請先減少職業等級。';else{UP.char--;upMsg=''}}render()}
   else if(a==='ujp'){var us2=b.getAttribute('data-sn'),l2=(S.jobLvs[us2]|0)+(UP.job[us2]|0),n2=jobNext(us2,l2);
     if(l2>=JMAX)upMsg='這個職業已滿級。';else if(jobSum()+upJobSum()+1>(S.lv+UP.char)*2)upMsg='職業等級已達上限，請先提升人物等級。';else if(S.exp-upCost()<n2)upMsg='經驗不夠，'+jobName(us2)+'升到下一級需要 '+n2.toLocaleString('en-US')+'。';else{UP.job[us2]=(UP.job[us2]|0)+1;upMsg=''}render()}
