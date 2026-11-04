@@ -131,7 +131,7 @@ button{font:inherit;color:inherit}
 .lvov[hidden]{display:none}.lvbg{position:fixed;inset:0;background:rgba(0,0,0,.62)}
 .lvbox{position:relative;width:100%;max-width:340px;background:#b98a57 var(--kraft,none) 0 0/288px 288px;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
 .lvbox h2{margin:0;font-size:19px;font-weight:900;color:#2a1708}.lvh{margin:2px 0 10px;font-size:12px;font-weight:700;color:#5a3a1a}
-.lore{margin:4px 0 10px;font-size:12px;line-height:1.6;color:#6a4a2a;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;cursor:pointer;text-align:justify}.lore.open{display:block;-webkit-line-clamp:unset}
+.lore{margin:4px 0 10px;font-size:12px;line-height:1.6;color:#6a4a2a;text-align:justify}
 .lvbox .x{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:#4a2a12;color:#f0dfb8;font-weight:900;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
 .lvg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .lv{font-weight:900;font-size:15px;border:0;background:#4a2a12;color:#f0dfb8;padding:9px 0;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
@@ -1614,8 +1614,8 @@ function setBG(k){cur=k;var g=BG[k];$('fgl').hidden=!g.fg;$('fgl').style.backgro
 var MAPH=1346,AREA=[
  {n:'魔物森林',bg:'A',y0:120,y1:270},{n:'魔晶礦洞',bg:'B',y0:270,y1:395},{n:'塵嵐古漠',bg:'C',y0:395,y1:525},{n:'幽暗墓穴',bg:'F',y0:525,y1:690},
  {n:'凜冬雪山',bg:'E',y0:690,y1:845},{n:'聖教城領',bg:'H',y0:845,y1:1035},{n:'熔岩火原',bg:'D',y0:1035,y1:1130},{n:'惡魔王城',bg:'G',y0:1130,y1:1346}];
-/* 各章節開場白（選關視窗標題下方；預設顯示 4 行，點一下展開全文） */
-var ALORE=["曾是精靈與自然靈獸棲息的古老翠綠森林，如今已被狂暴的魔力侵蝕，化為凡人不可踏入的魔物巢穴。古樹的陰影下隱藏著成群的哥布林與兇猛的獸群，越深入核心，野獸的體型便越發巨大。這裡也是冒險者們初試身手的起點。", "離開魔物森林後，勇者一行人來到了封閉的地下世界。此處曾是矮人挖掘稀有魔導礦石的重地，如今已被魔王軍的黑暗魔力徹底侵蝕。礦道內亂石崩落、水晶叢生，幽暗的環境中閃爍著詭異的晶光，無數沉睡的古老魔物與徘徊的怨靈正等待著不速之客；傳說最深處的黑暗裡，有一隻巨大的眼睛正注視著每一位闖入者。", "穿過魔晶礦洞的黑暗，勇者一行人踏入了被詛咒的烈日地獄。塵嵐古漠曾是名為「黃金王朝」的繁華國度，卻在一夜之間被永不止息的沙暴徹底埋葬。如今，古老的王陵沉睡於滾滾黃沙之下，被詛咒的木乃伊與黃金遺民仍在守護早已消逝的王權。沙丘深處閃耀的晶光與冥界的熒綠火焰交錯，只有最勇敢的冒險者，才能走到黑曜之王的審判殿前。", "這座宏大的地下墓城，曾是人類王國歷代君王與英雄長眠的神聖之所，如今卻被黑暗魔力徹底污染，亡者不再安息。腐朽的行屍在陰森的廊道間徬徨徘徊，散落的白骨在黑暗魔力驅使下一次又一次重新站起。越往深處前進，四周縈繞的森幽光焰與死亡氣息便越發濃烈。從墓中歸來的不死君王，與燃燒著熊熊龍焰的亡靈天災，正死死盯著入口，等著把生者也化為亡靈的一員。", "終年被暴雪籠罩的極北之巔，是一片連時間都彷彿被凍結的冰雪地獄。勇者一行人在穿過墓穴後，必須攀登這座凡人無法涉足的險峰。雪原上遊蕩著殘暴的野生獵食者與巨大的魔象，極寒的冰霜元素在風雪中隨時凝聚成形。在永凍柩園的深處，美麗而冷酷的冰之女王正靜靜沉睡；而雪山之巔，伴隨著萬劫雪暴降臨的颶父正坐在他冰封永不融化的王座上俯視眾生；冰之國度，生者勿入。", "", "", ""];
+/* 各章節開場白（選關視窗標題下方，最多約 4 行，直接顯示全文） */
+var ALORE=["曾是精靈與靈獸棲息的翠綠森林，如今被狂暴的魔力侵蝕，化為魔物的巢穴。古樹陰影下潛伏著哥布林與兇猛獸群，這裡是冒險者初試身手的起點……", "矮人開採魔導礦石的地下重地，如今已被魔王軍的黑暗魔力侵蝕。晶光幽幽的礦道裡，古老魔物與怨靈等待著不速之客，而最深處的黑暗中，一隻巨眼正注視著你……", "曾經繁華的「黃金王朝」，在一夜之間被永不止息的沙暴埋葬。被詛咒的木乃伊與黃金遺民仍守護著消逝的王權，沙丘深處，黑曜之王的審判殿正等待著勇者……", "歷代君王與英雄長眠的地下墓城，被黑暗魔力污染後，亡者不再安息。行屍徘徊、白骨一次次重新站起，不死君王與亡靈天災正盯著入口，等著生者踏入……", "被暴雪籠罩、連時間都凍結的極北之巔。雪原上遊蕩著獵食者與巨大魔象，冰之女王在永凍柩園沉睡，颶父則坐在永不融化的王座上俯視眾生。冰之國度，生者勿入……", "", "", ""];
 var VCOL={'亡靈':'undead','秘法':'arcane','血':'blood','火焰':'fire','冰霜':'frost','雷電':'lightning','疾風':'wind','自然':'nature','光明':'light','黑暗':'dark'};/* vfx_color 也可以填屬性名稱：只改特效顏色，不改傷害屬性 */
 /* 怪物普通攻擊的樣式：monster_info 的 atk_vfx = dagger／staff／bow／axe…，冒號後面是顏色（fire、nature、undead…）；空白 = 爪痕 */
 var ATKV=null;function monAtkV(k){if(!ATKV){ATKV={};if(ENG&&ENG.mon)Object.keys(ENG.mon).forEach(function(id){var r=ENG.mon[id],v=String(r.atk_vfx||'').trim();if(!v||ATKV[r.sprite])return;var q=v.split(':');ATKV[r.sprite]={w:q[0],el:q[1]?(VCOL[q[1]]||q[1]):''}})}return ATKV[k]||null}/* skill_info vfx_color → 特效顏色 */var view='map',raf=0,B=null,pickA=-1,pickL=0,SKN={},FORCE_LOSE=false;
@@ -1633,7 +1633,7 @@ function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
     var zn=el('span','zn',a.n);if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}b.appendChild(zn);if(i===la||OPENED(i)){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
     b.addEventListener('click',function(){if(OPENED(i))openLevels(i)});h.appendChild(b)})}
-function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2>'+(ALORE[i]?'<p class="lore" data-a="lore" title="點一下展開／收起">'+esc(ALORE[i])+'</p>':'<p class="lvh"></p>')+'<div class="lvg">';
+function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2>'+(ALORE[i]?'<p class="lore">'+esc(ALORE[i])+'</p>':'<p class="lvh"></p>')+'<div class="lvg">';
   var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
   var md=advMode();if(MANUAL){h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo3"><button type="button" class="go" data-a="lvgo" data-m="live" disabled>戰鬥</button><label class="abchk"><input type="checkbox" id="autoChk"'+(autoPref()?' checked':'')+'>自動戰鬥</label></div></div>';var o0=$('lvov');o0.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o0.hidden=false;return}
   h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
@@ -1641,7 +1641,6 @@ function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role=
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
-  else if(a==='lore')b.classList.toggle('open');
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
     $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'');[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
   else if(a==='lvgo'&&pickL&&b.getAttribute('data-m')==='live'){var au0=!!($('autoChk')&&$('autoChk').checked);setAutoPref(au0);var A3=pickA,L3=pickL;closeLevels();startLive(A3,L3,au0)}
