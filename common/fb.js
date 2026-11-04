@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField, documentId } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField, documentId, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -93,6 +93,11 @@ const FB = {
   // 營地跑馬燈公告：meta/notice = {text, on}；只有管理者能寫
   async noticeGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'notice')), 8000); return s.exists() ? s.data() : null; },
   async noticeSet(text, on) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'notice'), { text: String(text || '').slice(0, 200), on: !!on })); },
+  // 營地羊皮紙公告：board/{id} = {title, text, at}；大家都能讀（營地抓最近 20 則），只有管理者能新增、修改、刪除
+  async boardList(n) { await ready; const qs = await withTimeout(getDocs(query(collection(db, 'board'), orderBy('at', 'desc'), limit(n || 20))), 8000); return qs.docs.map(d => { const x = d.data() || {}; return { id: d.id, title: String(x.title || ''), text: String(x.text || ''), at: x.at && x.at.toMillis ? x.at.toMillis() : 0 }; }); },
+  async boardAdd(title, text) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); const r = doc(collection(db, 'board')); await tmo(setDoc(r, { title: String(title || '').slice(0, 40), text: String(text || '').slice(0, 2000), at: serverTimestamp() })); return r.id; },
+  async boardEdit(id, title, text) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'board', id), { title: String(title || '').slice(0, 40), text: String(text || '').slice(0, 2000) })); },
+  async boardDel(id) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(deleteDoc(doc(db, 'board', id))); },
   // 怪物強度倍率：meta/difficulty = {hp, atk}（0.5～2，預設 1）；所有人可讀、只有管理者能寫
   async difficultyGet() { await ready; const s = await withTimeout(getDoc(doc(db, 'meta', 'difficulty')), 6000); const d = s.exists() ? s.data() : {}; const f = v => { v = Number(v); return v >= 0.5 && v <= 2 ? v : 1; }; return { hp: f(d.hp), atk: f(d.atk) }; },
   async difficultySet(hp, atk) { await ready; if (!auth.currentUser) throw new Error('not-signed-in'); await tmo(setDoc(doc(db, 'meta', 'difficulty'), { hp: Number(hp), atk: Number(atk) })); },
