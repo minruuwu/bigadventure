@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="robots" content="noindex,nofollow">
+<title>實境冒險（試作）</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-size-adjust:100%;background:#120c08;color:#eadbbd;font-family:'PingFang TC','Noto Sans TC','Microsoft JhengHei',system-ui,sans-serif;font-size:14px}
+*{box-sizing:border-box}
+#map{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+#ov{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.hud{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 8px);display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(18,12,8,.82);padding:7px 10px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #5a3a18}
+.bar b{font-size:15px;letter-spacing:.06em}.bar small{color:#b09a74;font-size:11px}
+.zn{display:flex;align-items:center;gap:6px}.zn i{width:12px;height:12px;display:inline-block;box-shadow:0 0 0 2px #080503}
+.btns{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column;gap:8px}
+.btns button,.pn button{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;min-width:92px}
+.btns button.on{background:#2f6a2a;box-shadow:0 0 0 2px #0a2408,inset 0 2px 0 #4f9a46}
+.tip{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);max-width:52%;font-size:11px;line-height:1.5;color:#d8c8a4;background:rgba(18,12,8,.75);padding:6px 8px;box-shadow:0 0 0 2px #080503}
+.pn{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);width:min(340px,calc(100% - 24px));background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
+.pn[hidden]{display:none}
+.pn h3{margin:0 0 4px;font-size:16px}.pn p{margin:2px 0;font-size:13px}.pn .row{display:flex;gap:8px;margin-top:10px}.pn .row button{flex:1}
+.pn button:disabled{opacity:.5}.pn .x{position:absolute;top:6px;right:6px;min-width:0;width:28px;height:28px;padding:0}
+#load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#120c08;font-size:15px}
+</style></head><body>
+<canvas id="map"></canvas><canvas id="ov"></canvas>
+<div class="hud"><div class="bar"><span class="zn"><i id="zc"></i><b id="zn">—</b></span><small id="pd"></small></div></div>
+<div class="tip" id="tip" title="點一下收起">試作版：在地圖上按住拖曳就能走路（電腦可用方向鍵）。打開「GPS」改用手機定位。怪物點了可以看資訊，先不能打。</div>
+<div class="btns"><button type="button" id="bGps">GPS：關</button><button type="button" id="bFast">快速移動：關</button><button type="button" id="bHome">回到起點</button></div>
+<div class="pn" id="pn" hidden></div>
+<div id="load">讀取中…</div>
+<script src="../common/monsters.js?v=39"></script>
+<script src="../common/doll.js?v=12"></script>
+<script>
+(function(){
+'use strict';
+var BASE='../assets/',V='5',$=function(i){return document.getElementById(i)};
+/* ---- 設定（之後實際走走看再調） ---- */
+var MPP=1.25;            /* 1 個像素格 = 幾公尺 */
+var ZONE=500;            /* 地域格 500 公尺 */
+var SUB=100;             /* 怪物、裝飾物的小格 100 公尺 */
+var SPAWN=0.4;           /* 每個小格有一群怪的機率 */
+var REACH=50;            /* 可以打的距離（公尺） */
+var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
+var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
+var LV=50;               /* 試作版人物等級（之後改成玩家的） */
+/* 地域（試作版只有兩種） */
+var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']}];
+/* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
+function h32(){var h=2166136261>>>0;for(var i=0;i<arguments.length;i++){var s=String(arguments[i]);for(var j=0;j<s.length;j++){h^=s.charCodeAt(j);h=Math.imul(h,16777619)>>>0}h^=124;h=Math.imul(h,16777619)>>>0}h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;return h>>>0}
+function r01(){return h32.apply(null,arguments)/4294967296}
+/* 時段：台灣時間 07:00 起每 3 小時一批（07、10、13、16、19、22、01、04） */
+function period(t){return Math.floor((t+8*3600e3-7*3600e3)/(3*3600e3))}
+function periodEnd(p){return (p+1)*3*3600e3-1*3600e3}
+/* 經緯度 ↔ 公尺（台灣附近用固定比例，全世界同一套格子） */
+var KX=102090,KY=110574;
+function toM(lat,lon){return[lon*KX,lat*KY]}
+function toLL(x,y){return[y/KY,x/KX]}
+/* ---- 資料 ---- */
+var IM={},POOL={},MON={},P=null,PER=0;
+function img(src){return new Promise(function(res){var i=new Image();i.onload=function(){res(i)};i.onerror=function(){res(null)};i.src=src})}
+function parseCSV(t){t=t.replace(/^﻿/,'');var rows=[],row=[],f='',q=false;for(var i=0;i<t.length;i++){var c=t.charAt(i);if(q){if(c==='"'){if(t.charAt(i+1)==='"'){f+='"';i++}else q=false}else f+=c}else if(c==='"')q=true;else if(c===','){row.push(f);f=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&t.charAt(i+1)==='\n')i++;row.push(f);f='';if(row.length>1||row[0]!=='')rows.push(row);row=[]}else f+=c}if(f!==''||row.length){row.push(f);rows.push(row)}var hd=rows.shift().map(function(h){return h.trim()});return rows.map(function(r){var o={};hd.forEach(function(h,k){o[h]=(r[k]==null?'':r[k]).trim()});return o})}
+function getCSV(n){return fetch(BASE+'data/'+n+'?v='+V+'.'+Math.floor(Date.now()/300000)).then(function(r){return r.arrayBuffer()}).then(function(b){return parseCSV(new TextDecoder('utf-8').decode(b))})}
+/* 自己的外觀：讀這台瀏覽器裡的角色資料（沒有就用預設） */
+function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null');if(c&&c.player)p=c.player}catch(e){}
+  return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],weapon:null,shield:null,halo:[],lv:p.lv|0}}
+/* ---- 世界內容 ---- */
+function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
+/* 小格裡的裝飾物：每 100 公尺一片，片裡 1～3 個、7 成是主要種類 */
+function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=1+h32('dn',sx,sy,PER)%3,main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
+  for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length];L.push({x:(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,y:(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB,im:IM[z.k+'_'+kind]})}return L}
+/* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
+function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
+  var rare=r01('mr',sx,sy,PER)<.05&&pool.boss.length,list=rare?pool.boss:pool.norm,id=list[h32('mk',sx,sy,PER)%list.length],m=MON[id];if(!m)return null;
+  var lv0=Math.max(1,(P&&P.lv)||LV),lv=Math.max(1,lv0+Math.round((r01('ml',sx,sy,PER)*2-1)*20));
+  return{id:sx+','+sy,x:(sx+.2+.6*r01('mx',sx,sy,PER))*SUB,y:(sy+.2+.6*r01('my',sx,sy,PER))*SUB,k:m.sprite,n:m.monster_name.split('‧')[0],lv:lv,cnt:rare?1:2+h32('mc',sx,sy,PER)%3,z:z,rare:!!rare,ph:h32('mp',sx,sy)%1000}}
+/* ---- 狀態 ---- */
+var cv=$('map'),cx=cv.getContext('2d'),ov=$('ov'),ox=ov.getContext('2d'),S=2,W=0,H=0,DPR=1;
+var me={x:0,y:0,face:1,mv:0},gps=false,gpsId=null,fast=false,keys={},drag=null,sel=null,lastT=0,pat={},doll=null,MONS=[];
+function resize(){DPR=window.devicePixelRatio||1;S=innerWidth>=700?3:2;W=Math.ceil(innerWidth/S);H=Math.ceil(innerHeight/S);cv.width=W;cv.height=H;ov.width=innerWidth*DPR;ov.height=innerHeight*DPR;cx.imageSmoothingEnabled=false;pat={}}
+function save(){try{var ll=toLL(me.x,me.y);localStorage.setItem('real.pos',JSON.stringify(ll))}catch(e){}}
+function home(){var ll=HOME;try{var v=JSON.parse(localStorage.getItem('real.pos')||'null');if(v&&v.length===2)ll=v}catch(e){}var m=toM(ll[0],ll[1]);me.x=m[0];me.y=m[1]}
+/* 世界座標（公尺，y 往北）→ 畫面像素 */
+function scr(x,y){return[W/2+(x-me.x)/MPP,H/2-(y-me.y)/MPP]}
+function draw(now){
+  cx.clearRect(0,0,W,H);
+  var x0=me.x-W/2*MPP,x1=me.x+W/2*MPP,y0=me.y-H/2*MPP,y1=me.y+H/2*MPP;
+  /* 地面：每個地域格用自己的圖塊鋪滿（圖塊對齊世界座標，走路時會跟著捲動） */
+  for(var zx=Math.floor(x0/ZONE);zx<=Math.floor(x1/ZONE);zx++)for(var zy=Math.floor(y0/ZONE);zy<=Math.floor(y1/ZONE);zy++){var z=zoneAt(zx,zy),g=IM['g_'+z.k];if(!g)continue;
+    var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
+    if(!pat[z.k])pat[z.k]=cx.createPattern(g,'repeat');var p=pat[z.k],ox0=Math.round(-me.x/MPP),oy0=Math.round(me.y/MPP);
+    cx.save();cx.beginPath();cx.rect(L,T,R-L,B-T);cx.clip();cx.translate(((ox0+W/2)%256+256)%256,((oy0+H/2)%256+256)%256);cx.fillStyle=p;cx.fillRect(-256,-256,W+512,H+512);cx.restore();
+    /* 地域交界：一條淡淡的邊 */cx.fillStyle='rgba(0,0,0,.18)';cx.fillRect(L,T,R-L,1);cx.fillRect(L,T,1,B-T)}
+  /* 可以打的範圍 */
+  var rr=REACH/MPP;cx.save();cx.globalAlpha=.16+.06*Math.sin(now/500);cx.fillStyle='#fff6c8';cx.beginPath();cx.ellipse(W/2,H/2,rr,rr,0,0,Math.PI*2);cx.fill();cx.restore();
+  /* 裝飾物、怪物、自己：依畫面上下排序（下面的蓋住上面的） */
+  var objs=[];MONS=[];
+  for(var sx=Math.floor((x0-30)/SUB);sx<=Math.floor((x1+30)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
+    var mo=monOf(sx,sy);if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
+    decoOf(sx,sy).forEach(function(d){if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14)return;objs.push({t:'d',o:d,y:d.y})})}
+  objs.push({t:'p',y:me.y});
+  objs.sort(function(a,b){return b.y-a.y});
+  objs.forEach(function(q){var o=q.o;
+    if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
+    else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Math.min(1,36/Math.max(sz[0],sz[1])),w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
+      cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
+      if(o.rare){cx.save();cx.globalAlpha=.35+.2*Math.sin(now/300);cx.fillStyle='#ffd34a';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]-h/2-lf),w*.7,h*.6,0,0,Math.PI*2);cx.fill();cx.restore()}
+      var mi=src&&imgFor(src);if(mi&&mi.complete&&mi.naturalWidth)cx.drawImage(mi,Math.round(s2[0]-w/2),Math.round(s2[1]-h-lf),w,h);o.box=[s2[0]-w/2,s2[1]-h-lf,w,h]}
+    else if(doll){Doll.draw(doll,P.look,now);var cxp=Math.round(W/2-24),cyp=Math.round(H/2-44);cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(W/2,H/2,9,3,0,0,Math.PI*2);cx.fill();
+      var bob=me.mv?Math.round(Math.abs(Math.sin(now/120))*-1):0;cx.save();if(me.face<0){cx.translate(cxp*2+48,0);cx.scale(-1,1)}cx.drawImage(doll,cxp,cyp+bob);cx.restore()}});
+  /* 文字層（高解析度）：怪物的隻數、等級 */
+  ox.setTransform(DPR,0,0,DPR,0,0);ox.clearRect(0,0,innerWidth,innerHeight);ox.font='700 11px system-ui,sans-serif';ox.textAlign='center';
+  MONS.forEach(function(o){if(!o.box)return;var bx=(o.box[0]+o.box[2]/2)*S,by=o.box[1]*S-4,t='Lv'+o.lv+(o.cnt>1?' ×'+o.cnt:''),tw=ox.measureText(t).width+8;
+    ox.fillStyle=o===sel?'rgba(154,58,42,.95)':'rgba(18,12,8,.78)';ox.fillRect(bx-tw/2,by-14,tw,15);ox.fillStyle=Math.hypot(o.x-me.x,o.y-me.y)<=REACH?'#9cf08a':'#f0e2c4';ox.fillText(t,bx,by-3)})}
+var IMC={};function imgFor(src){var i=IMC[src];if(!i){i=new Image();i.src=src;IMC[src]=i;var ks=Object.keys(IMC);if(ks.length>400)ks.slice(0,200).forEach(function(k){delete IMC[k]})}return i}
+/* ---- HUD ---- */
+function hud(now){var z=zoneAt(Math.floor(me.x/ZONE),Math.floor(me.y/ZONE));$('zn').textContent=z.n;$('zc').style.background=z.c;
+  var p=period(Date.now()),end=periodEnd(p),left=Math.max(0,end-Date.now()),hh=Math.floor(left/3600e3),mm=Math.floor(left/60e3)%60,ss=Math.floor(left/1e3)%60,st=new Date(end-3*3600e3+8*3600e3).getUTCHours();
+  $('pd').textContent=('0'+st).slice(-2)+':00–'+('0'+(st+3)%24).slice(-2)+':00　'+hh+':'+('0'+mm).slice(-2)+':'+('0'+ss).slice(-2)+' 後換一批';
+  if(p!==PER){PER=p;sel=null;$('pn').hidden=true}}
+/* ---- 怪物資訊 ---- */
+function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');
+  pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" disabled>'+(ok?'戰鬥（試作版尚未開放）':'太遠了')+'</button></div>';pn.hidden=false}
+$('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};
+$('pn').addEventListener('click',function(e){if(e.target.closest('[data-a="x"]')){$('pn').hidden=true;sel=null}});
+/* ---- 操作：按住拖曳走路（像搖桿）、方向鍵、點怪物 ---- */
+cv.addEventListener('pointerdown',function(e){var px=e.clientX/S,py=e.clientY/S,hit=null;MONS.forEach(function(o){if(o.box&&px>=o.box[0]-4&&px<=o.box[0]+o.box[2]+4&&py>=o.box[1]-8&&py<=o.box[1]+o.box[3]+2)hit=o});
+  if(hit){showMon(hit);return}drag={x:e.clientX,y:e.clientY,dx:0,dy:0,id:e.pointerId};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.id)return;drag.dx=e.clientX-drag.x;drag.dy=e.clientY-drag.y});
+['pointerup','pointercancel'].forEach(function(t){cv.addEventListener(t,function(e){if(drag&&e.pointerId===drag.id)drag=null})});
+addEventListener('keydown',function(e){keys[e.key]=1});addEventListener('keyup',function(e){keys[e.key]=0});
+$('bFast').onclick=function(){fast=!fast;this.textContent='快速移動：'+(fast?'開':'關');this.classList.toggle('on',fast)};
+$('bHome').onclick=function(){try{localStorage.removeItem('real.pos')}catch(e){}var m=toM(HOME[0],HOME[1]);me.x=m[0];me.y=m[1];save()};
+$('bGps').onclick=function(){var b=this;if(gps){gps=false;if(gpsId!=null)navigator.geolocation.clearWatch(gpsId);gpsId=null;b.textContent='GPS：關';b.classList.remove('on');return}
+  if(!navigator.geolocation){alert('這個瀏覽器不支援定位');return}b.textContent='GPS：定位中…';
+  gpsId=navigator.geolocation.watchPosition(function(p){var m=toM(p.coords.latitude,p.coords.longitude);if(m[0]!==me.x)me.face=m[0]<me.x?-1:1;me.mv=gps&&Math.hypot(m[0]-me.x,m[1]-me.y)>.5?1:0;me.x=m[0];me.y=m[1];gps=true;b.textContent='GPS：開（±'+Math.round(p.coords.accuracy)+'m）';b.classList.add('on');save()},
+    function(err){gps=false;b.textContent='GPS：關';b.classList.remove('on');alert(err.code===1?'沒有允許使用位置。請到瀏覽器或手機設定裡，允許這個網站使用位置後再試一次。':'定位失敗：'+err.message)},{enableHighAccuracy:true,maximumAge:2000,timeout:20000})};
+/* ---- 主迴圈 ---- */
+function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
+  if(!gps){var vx=0,vy=0;if(drag){var L=Math.hypot(drag.dx,drag.dy);if(L>12){vx=drag.dx/L;vy=-drag.dy/L}}
+    if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy+=1;if(keys.ArrowDown||keys.s)vy-=1;
+    var l2=Math.hypot(vx,vy);if(l2>0){vx/=l2;vy/=l2;var sp=fast?FAST:WALK;me.x+=vx*sp*dt;me.y+=vy*sp*dt;if(vx)me.face=vx<0?-1:1;me.mv=1;if(Math.random()<.02)save()}else me.mv=0}
+  hud(t);draw(t);if(sel&&!$('pn').hidden&&Math.random()<.1)showMon(sel);requestAnimationFrame(tick)}
+/* ---- 開始 ---- */
+Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(BASE),Doll.load(BASE,V),
+  img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png')].concat(
+  ['pine','oak','acacia'].map(function(n){return img(BASE+'real/deco_forest_'+n+'.png').then(function(i){IM['forest_'+n]=i})}),
+  ['blue','violet','gold','green','pink','silver'].map(function(n){return img(BASE+'real/deco_mine_'+n+'.png').then(function(i){IM['mine_'+n]=i})}))).then(function(R){
+  R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
+  ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
+  IM.g_forest=R[4];IM.g_mine=R[5];
+  P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;
+  PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick)
+}).catch(function(e){$('load').textContent='讀取失敗：'+(e&&e.message||e)});
+})();
+</script>
+</body></html>
