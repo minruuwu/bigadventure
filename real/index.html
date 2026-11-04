@@ -42,7 +42,8 @@ var SPAWN=0.4;           /* 每個小格有一群怪的機率 */
 var REACH=50;            /* 可以打的距離（公尺） */
 var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
-var LV=50;               /* 試作版人物等級（之後改成玩家的） */
+var LV=50;
+var GA=0.62;              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
 /* 地域（試作版只有兩種） */
 var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']}];
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
@@ -65,8 +66,8 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],weapon:null,shield:null,halo:[],lv:p.lv|0}}
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
-/* 小格裡的裝飾物：每 100 公尺一片，片裡 1～3 個、7 成是主要種類 */
-function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=1+h32('dn',sx,sy,PER)%3,main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
+/* 小格裡的裝飾物：每 100 公尺一片，森林 1～3 棵、礦洞 0～2 堆，7 成是主要種類 */
+function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=z.k==='mine'?h32('dn',sx,sy,PER)%3:1+h32('dn',sx,sy,PER)%3,main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length];L.push({x:(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,y:(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB,im:IM[z.k+'_'+kind]})}return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
 function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
@@ -91,6 +92,8 @@ function draw(now){
     cx.save();cx.beginPath();cx.rect(L,T,R-L,B-T);cx.clip();cx.translate(((ox0+W/2)%256+256)%256,((oy0+H/2)%256+256)%256);cx.fillStyle=p;cx.fillRect(-256,-256,W+512,H+512);cx.restore();
   }
   blendEdges(x0,x1,y0,y1);
+  /* 地面淡一點：每個地域格再蓋一層它的平均色（GA = 地面花紋保留多少），花紋不會那麼搶眼 */
+  for(var zx2=Math.floor(x0/ZONE);zx2<=Math.floor(x1/ZONE);zx2++)for(var zy2=Math.floor(y0/ZONE);zy2<=Math.floor(y1/ZONE);zy2++){var z2=zoneAt(zx2,zy2),a2=scr(zx2*ZONE,(zy2+1)*ZONE),b2=scr((zx2+1)*ZONE,zy2*ZONE);cx.globalAlpha=1-GA;cx.fillStyle=z2.avg||'#808080';cx.fillRect(Math.floor(a2[0]),Math.floor(a2[1]),Math.ceil(b2[0])-Math.floor(a2[0]),Math.ceil(b2[1])-Math.floor(a2[1]));cx.globalAlpha=1}
   /* 道路（OpenStreetMap） */
   drawRoads(x0,x1,y0,y1);
   /* 可以打的範圍 */
@@ -137,17 +140,25 @@ function blendEdges(x0,x1,y0,y1){
     if(zu!==z){/* 上方交界（畫面上方 = 北邊） */var l=Math.max(L,-4),rr=Math.min(R,W+4);dissolve(zu,l,T,rr-l,BL,0,0);dissolve(z,l,T-BL,rr-l,BL,0,1)}}}
 /* ---- 道路：OpenStreetMap（Overpass API）每 0.01 度一塊（約 1 公里）抓一次，存在瀏覽器 ---- */
 var RD={},RDQ={},RDV=0,RL=document.createElement('canvas'),RX=RL.getContext('2d');
-var RW={motorway:6,trunk:6,primary:5,secondary:5,tertiary:4,unclassified:3,residential:3,living_street:3,service:2,pedestrian:3,track:2,footway:1,path:1,cycleway:1,steps:1};
-var OVP=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+var RW={motorway:6,trunk:6,primary:5,secondary:5,tertiary:4,unclassified:3,residential:3,living_street:3,pedestrian:3,service:2,footway:1};
+/* 免費的 Overpass 服務有好幾個，一個不通就換下一個；一次只抓一塊，免得被限流 */
+var OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+var RQ=[],RBUSY=false,RERR='';
 function chunkKey(i,j){return i+'_'+j}
 function loadChunk(i,j){var k=chunkKey(i,j);if(RD[k]||RDQ[k])return;
-  try{var c=localStorage.getItem('real.rd.'+k);if(c){RD[k]=JSON.parse(c);RDV++;return}}catch(e){}
-  RDQ[k]=1;var s=(j*.01).toFixed(2),w=(i*.01).toFixed(2),n=((j+1)*.01).toFixed(2),e=((i+1)*.01).toFixed(2);
-  var q='[out:json][timeout:25];way["highway"~"^('+Object.keys(RW).join('|')+')$"]('+s+','+w+','+n+','+e+');out geom;';
-  (function tryAt(u){fetch(OVP[u],{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(js){
+  try{var c=localStorage.getItem('real.rd2.'+k);if(c){RD[k]=JSON.parse(c);RDV++;return}}catch(e){}
+  RDQ[k]=1;RQ.push([i,j]);pump()}
+function pump(){if(RBUSY||!RQ.length){rdMsg(RQ.length||RBUSY?'道路載入中…':RERR);return}
+  /* 先抓離自己最近的那塊 */var ll=toLL(me.x,me.y);RQ.sort(function(a,b){return Math.hypot(a[0]+.5-ll[1]*100,a[1]+.5-ll[0]*100)-Math.hypot(b[0]+.5-ll[1]*100,b[1]+.5-ll[0]*100)});
+  var c=RQ.shift(),i=c[0],j=c[1],k=chunkKey(i,j);RBUSY=true;rdMsg('道路載入中…'+(RQ.length?'（還有 '+RQ.length+' 塊）':''));
+  var s=(j*.01).toFixed(2),w=(i*.01).toFixed(2),n=((j+1)*.01).toFixed(2),e=((i+1)*.01).toFixed(2);
+  var q='[out:json][timeout:25];way["highway"~"^('+Object.keys(RW).join('|')+')$"]('+s+','+w+','+n+','+e+');out geom qt;',why=[];
+  (function tryAt(u){var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ac)ac.abort()},30000);
+    fetch(OVP[u]+'?data='+encodeURIComponent(q),{signal:ac&&ac.signal}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(js){clearTimeout(tm);
       var L=(js.elements||[]).filter(function(x){return x.geometry&&x.geometry.length>1}).map(function(x){return{w:RW[x.tags&&x.tags.highway]||2,p:x.geometry.map(function(g){var m=toM(g.lat,g.lon);return[Math.round(m[0]),Math.round(m[1])]})}});
-      RD[k]=L;RDV++;delete RDQ[k];try{localStorage.setItem('real.rd.'+k,JSON.stringify(L))}catch(e){}rdMsg('')},
-    function(){if(u+1<OVP.length)tryAt(u+1);else{delete RDQ[k];RD[k]=[];rdMsg('道路資料載入失敗（之後會再試）');setTimeout(function(){delete RD[k]},60000)}})})(0);rdMsg('道路載入中…')}
+      RD[k]=L;RDV++;delete RDQ[k];RERR='';try{localStorage.setItem('real.rd2.'+k,JSON.stringify(L))}catch(e){}RBUSY=false;pump()},
+    function(err){clearTimeout(tm);why.push((OVP[u].split('/')[2])+'：'+(err&&err.name==='AbortError'?'逾時':(err&&err.message)||'失敗'));
+      if(u+1<OVP.length)tryAt(u+1);else{delete RDQ[k];RD[k]=[];RERR='道路載入失敗，1 分鐘後再試（'+why.join('；')+'）';setTimeout(function(){delete RD[k];RDV++},60000);RBUSY=false;pump()}})})(0)}
 function rdMsg(t){var el=$('rdm');if(el){el.textContent=t;el.hidden=!t}}
 function roadsNear(x0,x1,y0,y1){var a=toLL(x0,y0),b=toLL(x1,y1),out=[];for(var i=Math.floor(a[1]*100);i<=Math.floor(b[1]*100);i++)for(var j=Math.floor(a[0]*100);j<=Math.floor(b[0]*100);j++){loadChunk(i,j);var L=RD[chunkKey(i,j)];if(L)out.push(L)}return out}
 var NRC={},NRV=-1;
@@ -195,7 +206,7 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ['blue','violet','gold','green','pink','silver'].map(function(n){return img(BASE+'real/deco_mine_'+n+'.png').then(function(i){IM['mine_'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
-  IM.g_forest=R[4];IM.g_mine=R[5];
+  IM.g_forest=R[4];IM.g_mine=R[5];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
   P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;
   PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick)
 }).catch(function(e){$('load').textContent='讀取失敗：'+(e&&e.message||e)});
