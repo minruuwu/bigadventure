@@ -25,6 +25,8 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <div class="tip" id="tip" title="點一下收起">試作版：在地圖上按住拖曳就能走路（電腦可用方向鍵）。打開「GPS」改用手機定位。怪物點了可以看資訊，先不能打。</div>
 <div class="btns"><button type="button" id="bGps">GPS：關</button><button type="button" id="bFast">快速移動：關</button><button type="button" id="bHome">回到起點</button></div>
 <div class="pn" id="pn" hidden></div>
+<div id="rdm" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);font-size:12px;background:rgba(18,12,8,.8);padding:3px 8px;pointer-events:none"></div>
+<div style="position:fixed;right:4px;top:calc(env(safe-area-inset-top) + 50px);font-size:9px;color:rgba(255,255,255,.75);text-shadow:0 0 2px #000;pointer-events:none">© OpenStreetMap contributors</div>
 <div id="load">讀取中…</div>
 <script src="../common/monsters.js?v=39"></script>
 <script src="../common/doll.js?v=12"></script>
@@ -87,14 +89,17 @@ function draw(now){
     var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
     if(!pat[z.k])pat[z.k]=cx.createPattern(g,'repeat');var p=pat[z.k],ox0=Math.round(-me.x/MPP),oy0=Math.round(me.y/MPP);
     cx.save();cx.beginPath();cx.rect(L,T,R-L,B-T);cx.clip();cx.translate(((ox0+W/2)%256+256)%256,((oy0+H/2)%256+256)%256);cx.fillStyle=p;cx.fillRect(-256,-256,W+512,H+512);cx.restore();
-    /* 地域交界：一條淡淡的邊 */cx.fillStyle='rgba(0,0,0,.18)';cx.fillRect(L,T,R-L,1);cx.fillRect(L,T,1,B-T)}
+  }
+  blendEdges(x0,x1,y0,y1);
+  /* 道路（OpenStreetMap） */
+  drawRoads(x0,x1,y0,y1);
   /* 可以打的範圍 */
   var rr=REACH/MPP;cx.save();cx.globalAlpha=.16+.06*Math.sin(now/500);cx.fillStyle='#fff6c8';cx.beginPath();cx.ellipse(W/2,H/2,rr,rr,0,0,Math.PI*2);cx.fill();cx.restore();
   /* 裝飾物、怪物、自己：依畫面上下排序（下面的蓋住上面的） */
   var objs=[];MONS=[];
   for(var sx=Math.floor((x0-30)/SUB);sx<=Math.floor((x1+30)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
     var mo=monOf(sx,sy);if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
-    decoOf(sx,sy).forEach(function(d){if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14)return;objs.push({t:'d',o:d,y:d.y})})}
+    decoOf(sx,sy).forEach(function(d){if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14)return;if(nearRoad(d.x,d.y,9))return;objs.push({t:'d',o:d,y:d.y})})}
   objs.push({t:'p',y:me.y});
   objs.sort(function(a,b){return b.y-a.y});
   objs.forEach(function(q){var o=q.o;
@@ -109,6 +114,51 @@ function draw(now){
   ox.setTransform(DPR,0,0,DPR,0,0);ox.clearRect(0,0,innerWidth,innerHeight);ox.font='700 11px system-ui,sans-serif';ox.textAlign='center';
   MONS.forEach(function(o){if(!o.box)return;var bx=(o.box[0]+o.box[2]/2)*S,by=o.box[1]*S-4,t='Lv'+o.lv+(o.cnt>1?' ×'+o.cnt:''),tw=ox.measureText(t).width+8;
     ox.fillStyle=o===sel?'rgba(154,58,42,.95)':'rgba(18,12,8,.78)';ox.fillRect(bx-tw/2,by-14,tw,15);ox.fillStyle=Math.hypot(o.x-me.x,o.y-me.y)<=REACH?'#9cf08a':'#f0e2c4';ox.fillText(t,bx,by-3)})}
+/* ---- 地域交界淡化：交界兩側各 BL 格，用 2×2 的像素顆粒慢慢混進隔壁的地面，不畫硬邊 ---- */
+var BL=18,MASKV=null,MASKH=null,TMP=document.createElement('canvas'),TX=TMP.getContext('2d');
+function mkMasks(){function mk(w,h,vert){var c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d'),d=x.createImageData(w,h);
+  for(var j=0;j<h;j++)for(var i=0;i<w;i++){var dist=vert?i:j,pr=.6*Math.pow(1-(dist+.5)/BL,1.2);if(r01('bm',i>>1,j>>1,vert)<pr)d.data[(j*w+i)*4+3]=255}x.putImageData(d,0,0);return c}
+  MASKV=mk(BL,256,1);MASKH=mk(256,BL,0)}
+/* 在畫面上 (L,T,w,h) 這塊，用 zone 的地面、透過遮罩畫上去；flip = 遮罩方向反過來 */
+function dissolve(z,L,T,w,h,vert,flip){var g=IM['g_'+z.k];if(!g||w<=0||h<=0)return;if(!MASKV)mkMasks();
+  TMP.width=w;TMP.height=h;TX.imageSmoothingEnabled=false;
+  var ox0=Math.round(-me.x/MPP),oy0=Math.round(me.y/MPP),px=(((ox0+W/2)-L)%256+256)%256,py=(((oy0+H/2)-T)%256+256)%256;
+  TX.save();TX.translate(px,py);TX.fillStyle=TX.createPattern(g,'repeat');TX.fillRect(-256,-256,w+512,h+512);TX.restore();
+  TX.globalCompositeOperation='destination-in';var M=vert?MASKV:MASKH;
+  /* 遮罩沿著邊的方向也對齊世界座標，走路時顆粒不會閃 */
+  var wx=Math.round(me.x/MPP)-W/2+L,wy=-Math.round(me.y/MPP)-H/2+T;
+  TX.save();if(flip){if(vert){TX.translate(w,0);TX.scale(-1,1)}else{TX.translate(0,h);TX.scale(1,-1)}}
+  if(vert){var oy=-(((wy%256)+256)%256);for(var yy=oy;yy<h;yy+=256)TX.drawImage(M,0,yy)}else{var oxx=-(((wx%256)+256)%256);for(var xx=oxx;xx<w;xx+=256)TX.drawImage(M,xx,0)}
+  TX.restore();TX.globalCompositeOperation='source-over';cx.drawImage(TMP,L,T)}
+function blendEdges(x0,x1,y0,y1){
+  for(var zx=Math.floor(x0/ZONE);zx<=Math.floor(x1/ZONE);zx++)for(var zy=Math.floor(y0/ZONE);zy<=Math.floor(y1/ZONE);zy++){var z=zoneAt(zx,zy),zr=zoneAt(zx+1,zy),zu=zoneAt(zx,zy+1);
+    var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
+    if(zr!==z){/* 右邊交界：左側混一點右邊的地面，右側混一點左邊的 */var t=Math.max(T,-4),bt=Math.min(B,H+4);dissolve(zr,R-BL,t,BL,bt-t,1,1);dissolve(z,R,t,BL,bt-t,1,0)}
+    if(zu!==z){/* 上方交界（畫面上方 = 北邊） */var l=Math.max(L,-4),rr=Math.min(R,W+4);dissolve(zu,l,T,rr-l,BL,0,0);dissolve(z,l,T-BL,rr-l,BL,0,1)}}}
+/* ---- 道路：OpenStreetMap（Overpass API）每 0.01 度一塊（約 1 公里）抓一次，存在瀏覽器 ---- */
+var RD={},RDQ={},RDV=0,RL=document.createElement('canvas'),RX=RL.getContext('2d');
+var RW={motorway:6,trunk:6,primary:5,secondary:5,tertiary:4,unclassified:3,residential:3,living_street:3,service:2,pedestrian:3,track:2,footway:1,path:1,cycleway:1,steps:1};
+var OVP=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+function chunkKey(i,j){return i+'_'+j}
+function loadChunk(i,j){var k=chunkKey(i,j);if(RD[k]||RDQ[k])return;
+  try{var c=localStorage.getItem('real.rd.'+k);if(c){RD[k]=JSON.parse(c);RDV++;return}}catch(e){}
+  RDQ[k]=1;var s=(j*.01).toFixed(2),w=(i*.01).toFixed(2),n=((j+1)*.01).toFixed(2),e=((i+1)*.01).toFixed(2);
+  var q='[out:json][timeout:25];way["highway"~"^('+Object.keys(RW).join('|')+')$"]('+s+','+w+','+n+','+e+');out geom;';
+  (function tryAt(u){fetch(OVP[u],{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(js){
+      var L=(js.elements||[]).filter(function(x){return x.geometry&&x.geometry.length>1}).map(function(x){return{w:RW[x.tags&&x.tags.highway]||2,p:x.geometry.map(function(g){var m=toM(g.lat,g.lon);return[Math.round(m[0]),Math.round(m[1])]})}});
+      RD[k]=L;RDV++;delete RDQ[k];try{localStorage.setItem('real.rd.'+k,JSON.stringify(L))}catch(e){}rdMsg('')},
+    function(){if(u+1<OVP.length)tryAt(u+1);else{delete RDQ[k];RD[k]=[];rdMsg('道路資料載入失敗（之後會再試）');setTimeout(function(){delete RD[k]},60000)}})})(0);rdMsg('道路載入中…')}
+function rdMsg(t){var el=$('rdm');if(el){el.textContent=t;el.hidden=!t}}
+function roadsNear(x0,x1,y0,y1){var a=toLL(x0,y0),b=toLL(x1,y1),out=[];for(var i=Math.floor(a[1]*100);i<=Math.floor(b[1]*100);i++)for(var j=Math.floor(a[0]*100);j<=Math.floor(b[0]*100);j++){loadChunk(i,j);var L=RD[chunkKey(i,j)];if(L)out.push(L)}return out}
+var NRC={},NRV=-1;
+function nearRoad(x,y,r){if(NRV!==RDV){NRC={};NRV=RDV}var ck=x+','+y;if(ck in NRC)return NRC[ck];return NRC[ck]=nearRoad0(x,y,r)}
+function nearRoad0(x,y,r){var hit=false;roadsNear(x-r,x+r,y-r,y+r).forEach(function(L){if(hit)return;L.forEach(function(rd){if(hit)return;for(var n=1;n<rd.p.length;n++){var a=rd.p[n-1],b=rd.p[n];if(Math.max(a[0],b[0])<x-r-20||Math.min(a[0],b[0])>x+r+20||Math.max(a[1],b[1])<y-r-20||Math.min(a[1],b[1])>y+r+20)continue;
+  var dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx-x,qy=a[1]+t*dy-y;if(qx*qx+qy*qy<(r+rd.w*MPP)*(r+rd.w*MPP)){hit=true;return}}})});return hit}
+/* 先在另一張畫布上畫，再把半透明的邊緣去掉，讓道路也是一格一格的像素 */
+function drawRoads(x0,x1,y0,y1){var groups=roadsNear(x0-50,x1+50,y0-50,y1+50);if(!groups.length)return;
+  if(RL.width!==W||RL.height!==H){RL.width=W;RL.height=H}RX.clearRect(0,0,W,H);RX.lineCap='round';RX.lineJoin='round';
+  [0,1].forEach(function(pass){groups.forEach(function(L){L.forEach(function(rd){RX.strokeStyle=pass?'#dcc79a':'#7a5c34';RX.lineWidth=rd.w+(pass?0:2);RX.beginPath();rd.p.forEach(function(q,n){var s=scr(q[0],q[1]);if(n)RX.lineTo(s[0],s[1]);else RX.moveTo(s[0],s[1])});RX.stroke()})})});
+  var d=RX.getImageData(0,0,W,H),a=d.data;for(var i=3;i<a.length;i+=4)a[i]=a[i]>=110?255:0;RX.putImageData(d,0,0);cx.drawImage(RL,0,0)}
 var IMC={};function imgFor(src){var i=IMC[src];if(!i){i=new Image();i.src=src;IMC[src]=i;var ks=Object.keys(IMC);if(ks.length>400)ks.slice(0,200).forEach(function(k){delete IMC[k]})}return i}
 /* ---- HUD ---- */
 function hud(now){var z=zoneAt(Math.floor(me.x/ZONE),Math.floor(me.y/ZONE));$('zn').textContent=z.n;$('zc').style.background=z.c;
