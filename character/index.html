@@ -525,6 +525,10 @@ function jobNext(sn,l){return expNext(l)*jobMul(sn)}
 function jobCost(sn,a,b){return expCost(a,b)*jobMul(sn)}
 function jobSum(){var t=0;Object.keys(S.jobLvs).forEach(function(k){t+=S.jobLvs[k]|0});return t}
 function tierOf(sn){var n=parseInt(String(sn).slice(3),10)||0;return n<=5?0:n<=20?1:2}
+/* 單一職業降級：最低能降到幾級（目前職業至少 1 級；有等級的進階職業需要它的話，至少要符合轉職條件）→ [最低等級, 原因] */
+function dnMin(sn){var m=sn===S.jobSn?1:0,why=sn===S.jobSn?'目前職業':'';JOBORDER.forEach(function(j){if(j===sn)return;var lj=(S.jobLvs[j]|0)-((DN&&DN.job[j])|0);if(!(lj>0||j===S.jobSn))return;var jj=JOB[j];if(!jj)return;
+  [1,2].forEach(function(n){if(jj['required_job_'+n]!==sn)return;var need=parseInt(jj['required_job_'+n+'_level'],10)||0;if(need>m){m=need;why=jobName(j)+'需要 Lv'+need}})});return[m,why]}
+function dnRefund(){var r=0;if(DN)Object.keys(DN.job).forEach(function(k){var l=S.jobLvs[k]|0;r+=jobCost(k,l-DN.job[k],l)});return r}
 function jobRefund(){var r=0;Object.keys(S.jobLvs).forEach(function(k){r+=jobCost(k,0,S.jobLvs[k]|0)});return r}
 function totalPts(){return 5*(S.lv-1)}
 function spent(){var t=0;KEYS.forEach(function(k){t+=S.alloc[k]+S.pend[k]});return t}
@@ -609,7 +613,7 @@ function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
 var confirmWeapon=null;
 var editName=false,confirmName=null,draftName='',confirmJob=null;
-var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',upDone=null,confirmRst=false,confirmUp=false,jobToast='',capTip=false;
+var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',upDone=null,confirmRst=false,confirmUp=false,DN=null,confirmDn=false,jobToast='',capTip=false;
 function treeModel(){var by={},bi={},base=[];JOBORDER.forEach(function(sn){var j=JOB[sn];j.par=[1,2].map(function(n){return j['required_job_'+n]}).filter(Boolean);by[sn]=j;if(!j.par.length){bi[sn]=base.length;base.push(sn)}});
   function dep(sn){var j=by[sn];return j.par.length?dep(j.par[0])+1:1}
   var slot={},pos={};JOBORDER.forEach(function(sn){var j=by[sn],d=dep(sn);j.depth=d;if(d===2){if(j.par.length===1){slot[sn]=3*bi[j.par[0]]}else{var a=bi[j.par[0]],b=bi[j.par[1]];if(a>b){var t=a;a=b;b=t}var df=b-a;slot[sn]=df===1?3*a+1:df===4?3*4+1:df===2?3*a+2:3*b+2}}});
@@ -692,11 +696,19 @@ function sheetHTML(k){
     var h8='<button class="x" data-a="close" type="button" aria-label="關閉">✕</button><button class="bk" data-a="card" type="button">‹ 返回</button><h2 class="bold">升級</h2><p class="hint">加減只是暫存，按「確定」才會寫入。</p>';
     h8+='<div class="gcard"><div class="cell"><small>人物等級</small><b>'+lvN+(UP.char?' <i>+'+UP.char+'</i>':'')+'</b></div><div class="cell'+(ntot>=capN?' warn':'')+'"><small>職業總和 / 上限<button class="qm" data-a="captip" type="button" aria-label="說明">?</button></small><b>'+ntot+' / '+capN+'</b><div class="meter"><i style="width:'+wsave+'%"></i><u style="left:'+wsave+'%;width:'+Math.max(0,Math.min(100-wsave,(ntot-jobSum())/capN*100))+'%"></u></div>'+(capTip?'<div class="qtip">各職業等級的總和，不能超過人物等級的兩倍。想繼續升職業，先把人物等級升上去。</div>':'')+'</div><div class="cell full"><small>經驗池（剩餘）</small><b>'+left.toLocaleString('en-US')+(pcst?' <i>−'+pcst.toLocaleString('en-US')+'</i>':'')+'</b></div></div>';
     var cc=expNext(lvN);
-    h8+='<div class="urow"><div class="nm2">人物<small>下一級需 '+cc.toLocaleString('en-US')+' 經驗</small></div><div class="stp2"><button type="button" data-a="ucm" class="'+(UP.char>0&&ntot<=(lvN-1)*2?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+lvN+(UP.char?'<em>+'+UP.char+'</em>':'')+'</span><button type="button" data-a="ucp" class="'+(left>=cc?'':'off')+'" aria-label="增加">＋</button></div></div>';
-    h8+='<div class="sec secrow"><span>職業</span><button class="rb" data-a="urs" type="button">重置</button></div>';
+    h8+='<div class="urow"><div class="nm2">人物<small>下一級需 '+cc.toLocaleString('en-US')+' 經驗</small></div><div class="stp2"><button type="button" data-a="ucm" class="'+(UP.char>0&&ntot<=(lvN-1)*2?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+lvN+(UP.char?'<em>+'+UP.char+'</em>':'')+'</span><button type="button" data-a="ucp" class="'+(left>=cc&&!DN?'':'off')+'" aria-label="增加">＋</button></div></div>';
+    var dirty=UP.char>0||pj>0;
+    if(DN){/* 單一職業降級：選好要降到幾級，退還那幾級花的經驗；其他職業不動 */
+      var dref=dnRefund(),dl=Object.keys(DN.job).length;
+      h8+='<div class="sec secrow"><span>職業降級</span><button class="rb" data-a="dnx" type="button" style="background:#4a2a12">返回升級</button></div><p class="hint" style="margin:4px 0 6px">按「−」選要降到幾級，按「確定降級」才會寫入；退還那幾級花的經驗。</p>';
+      JOBORDER.filter(function(sn){return (S.jobLvs[sn]|0)>0}).forEach(function(sn){var l0=S.jobLvs[sn]|0,d=DN.job[sn]|0,l=l0-d,mn=dnMin(sn);
+        h8+='<div class="urow"><div class="nm2">'+esc(jobName(sn))+star(sn)+(sn===S.jobSn?'<span class="cu">目前職業</span>':'')+'<small>'+(mn[0]>0?'最低 Lv'+mn[0]+'（'+esc(mn[1])+'）':'可以降到 0')+(d?'・退還 '+jobCost(sn,l,l0).toLocaleString('en-US'):'')+'</small></div><div class="stp2"><button type="button" data-a="dnm" data-sn="'+sn+'" class="'+(l>mn[0]?'':'off')+'" aria-label="降一級">−</button><span class="v">Lv.'+l+(d?'<em style="color:#c0392b">−'+d+'</em>':'')+'</span><button type="button" data-a="dnp" data-sn="'+sn+'" class="'+(d>0?'':'off')+'" aria-label="取消降一級">＋</button></div></div>'});
+      h8+='<div class="bar"><span class="t'+(upMsg?' umsg2':'')+'">'+esc(upMsg||(dl?'退還 '+dref.toLocaleString('en-US')+' 經驗':'還沒選要降級的職業'))+'</span><button class="b alt" data-a="dnc" type="button" '+(dl?'':'disabled')+'>取消</button><button class="b go" data-a="dnok" type="button" '+(dl?'':'disabled')+'>確定降級</button></div>';
+      if(confirmDn)h8+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box upd"><p><b class="bold">確定要降級嗎？</b></p><div class="updl"><ul style="margin:0 0 6px;padding-left:18px;font-size:13px;line-height:1.55">'+JOBORDER.filter(function(sn){return DN.job[sn]}).map(function(sn){var l0=S.jobLvs[sn]|0;return '<li>'+esc(jobName(sn))+' Lv'+l0+' → Lv'+(l0-DN.job[sn])+'</li>'}).join('')+'</ul><p class="sub">退還 '+dref.toLocaleString('en-US')+' 經驗。降到 50 級以下的職業精通會失效；因此學不會的技能，技能書裡會變回普通攻擊。</p></div><div class="acts"><button class="b alt" data-a="dnn" type="button">先不要</button><button class="b go" data-a="dngo" type="button">確定降級</button></div><div class="msgline" id="dnmsg"></div></div></div>';
+      return h8}
+    h8+='<div class="sec secrow"><span>職業</span><span style="display:flex;gap:8px"><button class="rb" data-a="udn" type="button" style="background:#4a2a12"'+(dirty||!jobSum()?' disabled':'')+'>降級</button><button class="rb" data-a="urs" type="button">重置</button></span></div>';
     JOBORDER.filter(function(sn){return tierOf(sn)===0||(S.jobLvs[sn]|0)>0||sn===S.jobSn}).forEach(function(sn){var l=(S.jobLvs[sn]|0)+(UP.job[sn]|0),nc=jobNext(sn,l),can=left>=nc&&ntot+1<=capN&&l<JMAX;
       h8+='<div class="urow"><div class="nm2">'+esc(jobName(sn))+star(sn)+(sn===S.jobSn?'<span class="cu">目前職業</span>':'')+'<small>'+(l>=JMAX?'已滿級':'下一級需 '+nc.toLocaleString('en-US')+' 經驗')+'</small></div><div class="stp2"><button type="button" data-a="ujm" data-sn="'+sn+'" class="'+((UP.job[sn]|0)>0?'':'off')+'" aria-label="減少">−</button><span class="v">Lv.'+l+((UP.job[sn]|0)?'<em>+'+UP.job[sn]+'</em>':'')+'</span><button type="button" data-a="ujp" data-sn="'+sn+'" class="'+(can?'':'off')+'" aria-label="增加">＋</button></div></div>'});
-    var dirty=UP.char>0||pj>0;
     h8+='<div class="bar"><span class="t'+(upMsg?' umsg2':'')+'">'+esc(upMsg||(dirty?'尚未確定的升級':'沒有暫存的升級'))+'</span><button class="b alt" data-a="ucancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="uok" type="button" '+(dirty?'':'disabled')+'>確定</button></div>';
     h8+=upDoneHtml();
     if(confirmUp){var cl=[];if(UP.char)cl.push('人物 Lv'+S.lv+' → Lv'+lvN+'（+'+UP.char+'）');JOBORDER.forEach(function(sn){var q=UP.job[sn]|0;if(q)cl.push(jobName(sn)+' Lv'+(S.jobLvs[sn]|0)+' → Lv'+((S.jobLvs[sn]|0)+q)+'（+'+q+'）')});
@@ -733,7 +745,7 @@ window.addEventListener('resize',jag);
 function paintSheetPaper(){if(!window.PaperLit)return;if(cur==='mirror'){sheet.style.backgroundImage='none';sheet.__pw=0;return}var w=sheet.clientWidth,h=sheet.clientHeight;if(w<40||h<40)return;if(sheet.__pw===w&&sheet.__ph===h)return;sheet.__pw=w;sheet.__ph=h;sheet.style.backgroundImage=PaperLit(w,h,9,-40,-30);sheet.style.backgroundSize='100% 100%';sheet.style.imageRendering='pixelated'}
 window.addEventListener('resize',function(){if(cur)paintSheetPaper()});
 function render(){if(!cur)return;var st=sheet.scrollTop;sheet.innerHTML=sheetHTML(cur);pinHead(sheet);var sj=$('skjob');if(sj)sj.onchange=function(){skJob=sj.value;render()};[0,1].forEach(function(q){var sx=$('skextra'+q);if(sx)sx.onchange=function(){var a=[skDraft.extra[0]||'',skDraft.extra[1]||''];a[q]=sx.value;skDraft.extra=a.filter(function(x,i){return x&&a.indexOf(x)===i});skDraft=skValid(skDraft);skMsg='';render()}});sheet.scrollTop=st;paintSheetPaper();jag();if(cur==='mirror'){mirrorFx();updateMirror()}if(cur==='jobs')drawJobPrev()}
-function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';upDone=null;confirmRst=false;confirmUp=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}if(k==='book'){skDraft=null;skPick=null;skFlt='all';skJob=S.jobSn;skMsg=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
+function openSheet(k){cur=k;open={};jobOpen=null;if(k==='up'){UP={char:0,job:{}};upMsg='';upDone=null;confirmRst=false;confirmUp=false;DN=null;confirmDn=false;capTip=false}if(k==='jobs'){jobSel=S.jobSn;jobToast=''}if(k==='book'){skDraft=null;skPick=null;skFlt='all';skJob=S.jobSn;skMsg=''}sheet.className='sheet';back.className='back'+(k==='mirror'?' mir':'');back.hidden=false;render();var x=sheet.querySelector('.x');if(x)x.focus()}
 function closeSheet(){askReset=false;confirmWeapon=null;confirmJob=null;editName=false;confirmName=null;draftName='';if(cur==='mirror'){Object.keys(OPT).forEach(function(g){S.look[g]=S.saved[g]})}if(cur==='paper'){KEYS.forEach(function(k){S.pend[k]=0})}cur=null;back.hidden=true;refresh()}
 function refresh(){var u=unspent(),p=$('pillPaper'),pb=$('btnPaper'),dt=u>0?'<i class="dot"></i>':'';if(p)p.innerHTML='人物誌'+dt;if(pb)pb.innerHTML='屬性'+dt;updateWeaponSprites()}
 function msg(id,t){var m=$(id);if(m)m.textContent=t}
@@ -785,6 +797,7 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='jgo'){var sn=jobSel,idx=parseInt(sn.slice(3),10)-1,f2={job:idx,jobSn:sn},us=usableList(sn),nw=S.weapon,seen2=S.seen.indexOf(sn)>=0?S.seen:S.seen.concat([sn]);if(seen2!==S.seen)f2.jobSeen=seen2;
     if(jobStatus(sn)!=='ok')return;if(us.indexOf(nw)<0){nw=defaultWeaponName(sn)||us[0]||nw;f2.weapon=nw}
     b.disabled=true;persist(f2).then(function(){S.seen=seen2;S.job=idx;S.jobSn=sn;S.weapon=nw;jobToast='已轉職為 '+jobName(sn);render();refresh();pushNavPlayer()},function(er){jobToast=errMsg(er);render()})}
+  else if((a==='ucp'||a==='ucm')&&DN){upMsg='降級模式中不能升人物等級，先按「返回升級」。';render()}
   else if(a==='ucp'){var c=expNext(S.lv+UP.char);if(S.exp-upCost()<c){upMsg='經驗不夠，人物升到下一級需要 '+c.toLocaleString('en-US')+'。'}else{UP.char++;upMsg=''}render()}
   else if(a==='ucm'){if(UP.char>0){if(jobSum()+upJobSum()>(S.lv+UP.char-1)*2)upMsg='降低後上限會小於職業總和，請先減少職業等級。';else{UP.char--;upMsg=''}}render()}
   else if(a==='ujp'){var us2=b.getAttribute('data-sn'),l2=(S.jobLvs[us2]|0)+(UP.job[us2]|0),n2=jobNext(us2,l2);
@@ -802,6 +815,20 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
     /* 規則限制每次只能升一個項目,所以一項一項寫入(人物先、職業後) */
     steps.reduce(function(pr,st){return pr.then(function(){return persist(st.f).then(function(){S.exp=st.f.exp;st.ok()})})},Promise.resolve()).then(function(){UP={char:0,job:{}};upMsg='已升級完成。';upDone=upSummary(snap);render();refresh();pushNavPlayer()},function(er){UP={char:0,job:{}};upDone=upSummary(snap);upMsg=errMsg(er)+'（已完成的部分已儲存）';render();refresh();pushNavPlayer()})}
   else if(a==='urs'){confirmRst=true;render()}
+  else if(a==='udn'){DN={job:{}};upMsg='';render()}
+  else if(a==='dnx'){DN=null;confirmDn=false;upMsg='';render()}
+  else if(a==='dnc'){DN={job:{}};upMsg='';render()}
+  else if(a==='dnm'&&DN){var ds=b.getAttribute('data-sn'),dl0=(S.jobLvs[ds]|0)-(DN.job[ds]|0),dm=dnMin(ds);if(dl0>dm[0]){DN.job[ds]=(DN.job[ds]|0)+1;upMsg=''}else upMsg=dm[0]?jobName(ds)+'最低只能降到 Lv'+dm[0]+'（'+dm[1]+'）':'';render()}
+  else if(a==='dnp'&&DN){var dp=b.getAttribute('data-sn');if(DN.job[dp]>0){DN.job[dp]--;if(!DN.job[dp])delete DN.job[dp]}
+    /* 加回來之後，其他職業的最低等級可能變高（例如把大劍師加回來，戰士又要 Lv20）：超過的部分自動退回 */
+    Object.keys(DN.job).forEach(function(k){var mn=dnMin(k)[0],lv=(S.jobLvs[k]|0)-DN.job[k];if(lv<mn){DN.job[k]=(S.jobLvs[k]|0)-mn;if(DN.job[k]<=0)delete DN.job[k]}});upMsg='';render()}
+  else if(a==='dnok'&&DN){confirmDn=true;render()}
+  else if(a==='dnn'){confirmDn=false;render()}
+  else if(a==='dngo'&&DN){var dsteps=[],de=S.exp;
+    JOBORDER.forEach(function(k){var q=DN.job[k]|0;if(!q)return;var l=S.jobLvs[k]|0,n=l-q;de+=jobCost(k,n,l);var f={exp:de,jobDown:k};f['jobLv.'+k]=n;dsteps.push({f:f,ok:function(){S.jobLvs[k]=n}})});
+    b.disabled=true;
+    /* 規則一次只能降一個職業，一項一項寫入 */
+    dsteps.reduce(function(pr,st){return pr.then(function(){return persist(st.f).then(function(){S.exp=st.f.exp;st.ok()})})},Promise.resolve()).then(function(){DN=null;confirmDn=false;upMsg='已降級完成，退還的經驗已加回經驗池。';render();refresh();pushNavPlayer()},function(er){DN=null;confirmDn=false;upMsg=errMsg(er)+'（已完成的部分已儲存）';render();refresh();pushNavPlayer()})}
   else if(a==='urn'){confirmRst=false;render()}
   else if(a==='ury'){var rf=jobRefund(),ne2=S.exp+rf,f3={exp:ne2,jobLv:{},job:0,jobSn:'job01',jobSeen:[],skills:{combat:['atk','atk','atk','atk'],reaction:'',passive:['','','','']}},nw3=S.weapon,oldLv=S.jobLvs,oldJ=S.job,oldSn=S.jobSn,oldSeen=S.seen;
     S.jobLvs={};S.seen=[];S.job=0;S.jobSn='job01';var us4=usableList('job01');if(us4.indexOf(nw3)<0){nw3=defaultWeaponName('job01')||us4[0]||nw3;f3.weapon=nw3}
