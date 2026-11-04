@@ -382,7 +382,7 @@ var EQUIPPED='weapon01';
 var demo=/[?&]demo=1/.test(location.search);
 var S={stones:0,cur:'weapon01',tab:'up'};
 var ST={};
-var TN=['一','二','三'],REQ=[30,60,90];
+var TN=['一','二','三'],REQ=[30,60,75];
 var STATL={crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害',p_damage_rate:'物理增傷',m_damage_rate:'魔法增傷',hp_rate:'生命',eva_rate:'閃避率',p_reduce_rate:'物理減傷',m_reduce_rate:'魔法減傷'};
 function fixT(s){return String(s||'').replace(/爆擊/g,'暴擊')}
 function pct(s){return parseFloat(String(s||'').replace('%',''))||0}
@@ -479,8 +479,8 @@ function runeCv(id,size,paper){var r=id?RUNE[id]:null,key=(r&&r.img?id:'none')+(
   if(!RCACHE[key])RCACHE[key]=r&&r.img?buildRune(r,paper):buildEmpty();
   var c=cv(RCACHE[key],1);c.style.width=c.style.height=size+'px';c.className=r&&r.img?'rune':'rune none';return c}
 function cost(lv){return Math.round(3*Math.pow(lv,1.3))}
-function stage(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
-var STAGE_AT=[1,30,60,90];
+function stage(lv){return lv>=75?3:lv>=60?2:lv>=30?1:0}
+var STAGE_AT=[1,30,60,75];
 function wname(k,st){return W[k].sname[st]||W[k].n}
 function fmt(n){return String(Math.round(n*10)/10)}
 function num(n){return n.toLocaleString('en-US')}
@@ -509,7 +509,7 @@ function haloMask(k,st,L){var key=k+st+L;if(!HALO[key]){var sil=silhouette(k,st)
     if(d>lo&&d<=hi){var ok=L===1?true:L===2?((xx+y)%2===0):((xx%2===0)&&(y%2===0));if(ok)x.fillRect(xx,y,1,1)}}
   HALO[key]=c}return HALO[key]}
 function haloTint(k,st,L,col){var key=k+st+L+col;if(!TINT[key]){var m=haloMask(k,st,L),c=document.createElement('canvas');c.width=c.height=SZ;var x=c.getContext('2d');x.drawImage(m,0,0);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,SZ,SZ);TINT[key]=c}return TINT[key]}
-function slots(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
+function slots(lv){return lv>=75?3:lv>=60?2:lv>=30?1:0}
 function enchColors(k){var s=ST[k];return [0,1,2].map(function(i){var id=s.ench[i];return id&&RUNE[id]?RUNE[id].color:null})}
 var lastT=0,FX=null;
 function drawStage(ts){var c=SC.ctx;if(!c)return;var dt=Math.min(.1,(ts-lastT)/1000||0);lastT=ts;var st=SC.st,k=SC.k,t=TIER[st];

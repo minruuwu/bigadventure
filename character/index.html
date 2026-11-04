@@ -396,7 +396,7 @@ var RUNEC={},RUNEROWS=[];
 function rLv(id){return window.RuneVals?RuneVals.levelOf(((S&&S.rs)||{})[id]):0}
 function RVc(id,k,d){return window.RuneVals?RuneVals.v(RUNEROWS,id,k,d,rLv(id)):d}
 function RVp(id,k,d){return window.RuneVals?RuneVals.pc(RVc(id,k,d)):Math.round(d*100)+'%'}
-function slotsOf(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
+function slotsOf(lv){return lv>=75?3:lv>=60?2:lv>=30?1:0}
 function haloOf(sn){var w=wInfo(sn);return w.en.filter(function(id){return (S.runeV|0)>=2&&rLv(id)>=1}).slice(0,slotsOf(w.lv)).map(function(id){return RUNEC[id]||null})}/* 符文改版：新版帳號、Lv1 以上才發光 */
 function buildData(R){
   RUNEROWS=R[5]||[];(R[5]||[]).forEach(function(r){if(r.u_sn)RUNEC[r.u_sn]=r.color||'#d0a0ff'});
@@ -545,7 +545,7 @@ function unspent(){return Math.max(0,totalPts()-spent())}
 function pendingSum(){var t=0;KEYS.forEach(function(k){t+=S.pend[k]});return t}
 function jobName(sn){return JOB[sn]?JOB[sn].job_name:'—'}
 function growthOf(sn,k){var g=GROWTH[sn];return g?(parseFloat(g['per_level_'+k])||0):0}
-function rOn(id){var sn=WNAME2K[S.weapon];if(!sn)return false;var w=wInfo(sn),n=w.lv>=90?3:w.lv>=60?2:w.lv>=30?1:0;return (S.runeV|0)>=2&&w.en.filter(function(x){return rLv(x)>=1}).slice(0,n).indexOf(id)>=0&&(!(window.RuneVals&&RuneVals.hasLevels())||rLv(id)>=1)}/* 符文要 Lv1 以上才生效 */
+function rOn(id){var sn=WNAME2K[S.weapon];if(!sn)return false;var w=wInfo(sn),n=w.lv>=75?3:w.lv>=60?2:w.lv>=30?1:0;return (S.runeV|0)>=2&&w.en.filter(function(x){return rLv(x)>=1}).slice(0,n).indexOf(id)>=0&&(!(window.RuneVals&&RuneVals.hasLevels())||rLv(id)>=1)}/* 符文要 Lv1 以上才生效 */
 function A(){var r={};KEYS.forEach(function(k){var j=0,parts=[];JOBORDER.forEach(function(sn){var lv=S.jobLvs[sn]|0;if(lv>0){var g=growthOf(sn,k);if(g){j+=g*lv;parts.push(jobName(sn)+' Lv'+lv+' × '+g+' = +'+g*lv)}}});
   var a=S.alloc[k]+S.pend[k];var bs=10+j+a,rb=rOn('rune08')?Math.round(bs*RVc('rune08',0,0.1)):0;r[k]={job:j,jobParts:parts,alloc:a,rune:rb,total:bs+rb}});return r}
 function wEq(){var sn=WNAME2K[S.weapon],w=sn&&WEAPON[sn];return w?{w:w,lv:wInfo(sn).lv}:null}
@@ -615,7 +615,7 @@ function wframe(t){if(WFR[t])return WFR[t];var c=document.createElement('canvas'
     if(m===1){var n=parseInt(col.slice(1),16);col='rgb('+Math.round((n>>16&255)*.8)+','+Math.round((n>>8&255)*.8)+','+Math.round((n&255)*.8)+')'}
     x.fillStyle=col;x.fillRect(i,j,1,1)}
   return WFR[t]=c.toDataURL()}
-function stageOf(lv){return lv>=90?4:lv>=60?3:lv>=30?2:1}
+function stageOf(lv){return lv>=75?4:lv>=60?3:lv>=30?2:1}
 function wInfo(sn){var d=(S.wpn||{})[sn]||{};return {lv:Math.max(1,d.lv|0||1),st:Math.min(4,Math.max(1,d.stage|0||1,stageOf(Math.max(1,d.lv|0||1)))),en:Array.isArray(d.ench)?d.ench:[],pts:[0,1,2].map(function(q){return Array.isArray(d.pts)?Math.max(0,d.pts[q]|0):0})}}
 function wRunes(en){var h='';for(var i=0;i<3;i++){var r=en[i];h+=(r&&/^rune\d+$/.test(r))?'<img alt="" src="../assets/icons/runes/'+r+'.png?v=1" onerror="this.outerHTML=\'<span></span>\'">':'<span></span>'}return '<div class="rn">'+h+'</div>'}
 function wNum(v){return String(Math.round(v*100)/100)}

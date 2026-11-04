@@ -410,7 +410,7 @@ function openDoc(k){openSheet(function(s){
     s.appendChild(rule('戰報','回血、SP 增加只在角色身上跳數字；驅魔解除狀態、劍心獲得劍氣才會寫進戰報。'));
     var my=(ME&&ME.jobLv)||{};
     D.mst.forEach(function(m){var on=(my[m.sn]|0)>=50;s.appendChild(rule((on?'★ ':'')+m.n+'（'+m.job+'）',m.d))})}
-  else if(k==='rune'){s.appendChild(el('h2',null,'符文'));s.appendChild(el('p','sub','在秘境打贏可以拿到符文碎片，碎片累積到門檻就升級（最高 Lv10）。符文 Lv1 以上才能裝備；武器到 30／60／90 級各開一格，任何武器都能裝任何符文，同一把武器不能重複，三格同時生效。點符文看每一級的數值。'));
+  else if(k==='rune'){s.appendChild(el('h2',null,'符文'));s.appendChild(el('p','sub','在秘境打贏可以拿到符文碎片，碎片累積到門檻就升級（最高 Lv10）。符文 Lv1 以上才能裝備；武器到 30／60／75 級各開一格，任何武器都能裝任何符文，同一把武器不能重複，三格同時生效。點符文看每一級的數值。'));
     var rs=(ME&&ME.rs)||{};
     D.runes.forEach(function(r){var t=el('b','rn');t.textContent=r.rune_name;t.style.color=r.color;var d=el('div','ent rune'),my=window.RuneVals?RuneVals.levelOf(rs[r.u_sn]):0;d.appendChild(icon(BASE+'icons/runes/'+r.u_sn+'.png?v='+V));
       var hd=el('div','rh');hd.appendChild(t);if(ME)hd.appendChild(el('span','rlv',my?'Lv'+my:'未取得'));d.appendChild(hd);d.appendChild(el('p',null,r.rune_desc||''));

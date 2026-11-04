@@ -486,7 +486,7 @@ var USABLE={weapon01:1,weapon02:1,weapon05:1,weapon06:1}; /* 範例:目前職業
 var EQUIPPED='weapon01';
 var S={stones:92000,cur:'weapon01',tab:'up'};
 var ST={};
-var TN=['一','二','三'],REQ=[30,60,90];
+var TN=['一','二','三'],REQ=[30,60,75];
 var STATL={crit_rate:'暴擊率',crit_damage_rate:'暴擊傷害',p_damage_rate:'物理增傷',m_damage_rate:'魔法增傷',hp_rate:'生命',eva_rate:'閃避率',p_reduce_rate:'物理減傷',m_reduce_rate:'魔法減傷'};
 function fixT(s){return String(s||'').replace(/爆擊/g,'暴擊')}
 function pct(s){return parseFloat(String(s||'').replace('%',''))||0}
@@ -581,8 +581,8 @@ function runeCv(id,size,paper){var r=id?RUNE[id]:null,key=(r&&r.img?id:'none')+(
   if(!RCACHE[key])RCACHE[key]=r&&r.img?buildRune(r,paper):buildEmpty();
   var c=cv(RCACHE[key],1);c.style.width=c.style.height=size+'px';c.className=r&&r.img?'rune':'rune none';return c}
 function cost(lv){return Math.round(3*Math.pow(lv,1.3))}
-function stage(lv){return lv>=90?3:lv>=60?2:lv>=30?1:0}
-var STAGE_AT=[1,30,60,90];
+function stage(lv){return lv>=75?3:lv>=60?2:lv>=30?1:0}
+var STAGE_AT=[1,30,60,75];
 function wname(k,st){return W[k].sname[st]||W[k].n}
 function fmt(n){return String(Math.round(n*10)/10)}
 function num(n){return n.toLocaleString('en-US')}
@@ -632,7 +632,7 @@ function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],
     weapon:wd&&(wd.img[s]||wd.img[0])?{img:wd.img[s]||wd.img[0],key:w+'_'+s,cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
     shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:w?haloOf(p,w):[]}}
-function haloOf(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1),n=lv>=90?3:lv>=60?2:lv>=30?1:0;return(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return (p.runeV|0)>=2&&((p.rs||{})[id]|0)>=1}).slice(0,n).map(function(id){return RUNE[id]?RUNE[id].color:null})}/* 符文改版：新版帳號、而且有這個符文的碎片（Lv1 以上）才發光 */
+function haloOf(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1),n=lv>=75?3:lv>=60?2:lv>=30?1:0;return(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return (p.runeV|0)>=2&&((p.rs||{})[id]|0)>=1}).slice(0,n).map(function(id){return RUNE[id]?RUNE[id].color:null})}/* 符文改版：新版帳號、而且有這個符文的碎片（Lv1 以上）才發光 */
 function rnd(a,b){return a+Math.random()*(b-a)}
 /* fixed spots (feet position); people stand still and breathe, facing the fire */
 var FIRE={x:95,y:157}; /* fire centre x, base line y */

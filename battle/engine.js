@@ -76,7 +76,7 @@
   function player(p, D, opt) {
     opt = opt || {};
     var jl = p.jobLv || {}, lv = Math.max(1, p.lv | 0 || 1), sv = p.skills || {}, ws = D.wbyname[p.weapon] || '';
-    var wd = (p.weapons && p.weapons[ws]) || {}, wlv = Math.max(1, wd.lv | 0 || 1), rlv = runeLevels(p), en = (Array.isArray(wd.ench) ? wd.ench : []).filter(function (id) { return !D.RVL || (rlv[id] | 0) >= 1 }).slice(0, wlv >= 90 ? 3 : wlv >= 60 ? 2 : wlv >= 30 ? 1 : 0);
+    var wd = (p.weapons && p.weapons[ws]) || {}, wlv = Math.max(1, wd.lv | 0 || 1), rlv = runeLevels(p), en = (Array.isArray(wd.ench) ? wd.ench : []).filter(function (id) { return !D.RVL || (rlv[id] | 0) >= 1 }).slice(0, wlv >= 75 ? 3 : wlv >= 60 ? 2 : wlv >= 30 ? 1 : 0);
     var pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
     var pas = (Array.isArray(sv.passive) ? sv.passive : []).filter(function (id, q) { var k = D.SK[id]; return k && lv >= PSLOT[q] && learned(p, k) });

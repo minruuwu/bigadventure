@@ -93,7 +93,7 @@
   function combat(p, allies) {
     if (allies == null) allies = p._allies != null ? p._allies : Math.min(3, (p.party || []).length); var apa = skPas(p, 'atk_per_ally') * allies; /* 觀眾熱情：每位隊友 +x% 物攻、魔攻 */
     var D = STAT || { attr: {}, grow: {} }, sn = jobSn(p), K = ['str', 'int', 'agi', 'vit', 'luk'], T = {}, jl = p.jobLv || {}, al = p.alloc || {};
-    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 }, en = (p.runeV | 0) >= 2 && Array.isArray(wd.ench) ? wd.ench.filter(function (id) { return rlv(id) >= 1 }).slice(0, lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0) : [], /* 符文改版：新版帳號、而且符文 Lv1 以上才算 */ pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
+    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 }, en = (p.runeV | 0) >= 2 && Array.isArray(wd.ench) ? wd.ench.filter(function (id) { return rlv(id) >= 1 }).slice(0, lv >= 75 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0) : [], /* 符文改版：新版帳號、而且符文 Lv1 以上才算 */ pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
     /* 符文數值讀 rune_info.csv（common/runevals.js），跟戰鬥引擎同一份 */
     function RV(id, k, d) { return window.RuneVals ? RuneVals.v(D.rune || [], id, k, d, rlv(id)) : d }
@@ -150,12 +150,12 @@
   /* 武器分頁：武器名稱（依外觀階）、等級、裝備中的符文（新版帳號、Lv1 以上、在開放的格數內才算，跟戰鬥一致）與目前等級的數值 */
   function weaponHtml(p) {
     var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, raw = (C.rawWeapons && C.rawWeapons()) || [], row = raw.filter(function (r) { return r.u_sn === ws })[0] || {};
-    var st = Math.min(4, Math.max(wd.stage | 0 || 1, lv >= 90 ? 4 : lv >= 60 ? 3 : lv >= 30 ? 2 : 1)), wn = row['stage_' + st + '_name'] || p.weapon || '武器';
-    var n = lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 };
+    var st = Math.min(4, Math.max(wd.stage | 0 || 1, lv >= 75 ? 4 : lv >= 60 ? 3 : lv >= 30 ? 2 : 1)), wn = row['stage_' + st + '_name'] || p.weapon || '武器';
+    var n = lv >= 75 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 };
     var en = (p.runeV | 0) >= 2 && Array.isArray(wd.ench) ? wd.ench.filter(function (id) { return rlv(id) >= 1 }).slice(0, n) : [];
     var R = {}; ((STAT && STAT.rune) || []).forEach(function (r) { if (r && r.u_sn) R[r.u_sn] = r });
     var h = '<div class="rw"><img alt="" src="' + wicon(p) + '"><span class="tx"><b>' + esc(wn) + '</b><small>' + esc(p.weapon || '') + '</small></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + lv + '</span></div>';
-    [30, 60, 90].forEach(function (need, i) {
+    [30, 60, 75].forEach(function (need, i) {
       if (i >= n) { h += '<div class="rw off"><span class="tx"><b>（武器 Lv' + need + ' 解鎖）</b><small>符文 ' + (i + 1) + '</small></span></div>'; return }
       var id = en[i], r = id && R[id];
       if (!r) { h += '<div class="rw off"><span class="tx"><b>未裝符文</b><small>符文 ' + (i + 1) + '</small></span></div>'; return }
