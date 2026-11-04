@@ -29,9 +29,9 @@ service cloud.firestore {
               && n.pts[0] is int && n.pts[1] is int && n.pts[2] is int
               && n.pts[0] >= 0 && n.pts[1] >= 0 && n.pts[2] >= 0
               && (n.pts[0] + n.pts[1] + n.pts[2]) * 5 <= lv))
-          // 附魔:符文清單,數量不超過欄位數(30/60/90 級各 1 格)
+          // 附魔:符文清單,數量不超過欄位數(30/60/75 級各 1 格；75 級起是傳說級)
           && (!('ench' in ak) || (n.ench is list
-              && n.ench.size() <= (lv >= 90 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)
+              && n.ench.size() <= (lv >= 75 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0)
               // 符文改版:新版帳號才能附魔、同一把武器不能重複、每個符文都要 Lv1 以上
               && resource.data.get('runeV', 0) == 2
               && n.ench.toSet().size() == n.ench.size()
