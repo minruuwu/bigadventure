@@ -328,6 +328,19 @@ service cloud.firestore {
           && resource.data.get('exp', 0) - request.resource.data.exp
           >= jM(request.resource.data.jobUp) * (jR(jNew(request.resource.data.jobUp)) - jR(jOld(request.resource.data.jobUp)))
         )
+        // 工會證單一職業降級(2026-11):只降一個職業(jobDown 寫明是哪一個),等級只能減少、不低於 0;退還的經驗不能超過那幾級的花費
+        || (
+          ak.hasOnly(['exp','jobLv','jobDown'])
+          && request.resource.data.jobDown in ['job01','job02','job03','job04','job05','job06','job07','job08','job09','job10','job11','job12','job13','job14','job15','job16','job17','job18','job19','job20']
+          && request.resource.data.get('jobLv', {}).diff(resource.data.get('jobLv', {})).affectedKeys().hasOnly([request.resource.data.jobDown])
+          && jNew(request.resource.data.jobDown) is int
+          && jNew(request.resource.data.jobDown) >= 0
+          && jNew(request.resource.data.jobDown) < jOld(request.resource.data.jobDown)
+          && request.resource.data.exp is int
+          && request.resource.data.exp >= resource.data.get('exp', 0)
+          && request.resource.data.exp - resource.data.get('exp', 0)
+          <= jM(request.resource.data.jobDown) * (jR(jOld(request.resource.data.jobDown)) - jR(jNew(request.resource.data.jobDown)))
+        )
         // 工會證重置所有職業:職業等級全部歸零、職業轉回戰士,經驗池最多退還已花職業經驗的全部（目前不扣懲罰）
         || (
           ak.hasOnly(['exp','jobLv','job','jobSn','jobSeen','weapon','outfit','skills'])
