@@ -43,7 +43,7 @@ var REACH=50;            /* 可以打的距離（公尺） */
 var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
 var LV=50;
-var GA=0.62;              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
+var GA=0.8;               /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
 /* 地域（試作版只有兩種） */
 var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']}];
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
@@ -138,29 +138,30 @@ function blendEdges(x0,x1,y0,y1){
     var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
     if(zr!==z){/* 右邊交界：左側混一點右邊的地面，右側混一點左邊的 */var t=Math.max(T,-4),bt=Math.min(B,H+4);dissolve(zr,R-BL,t,BL,bt-t,1,1);dissolve(z,R,t,BL,bt-t,1,0)}
     if(zu!==z){/* 上方交界（畫面上方 = 北邊） */var l=Math.max(L,-4),rr=Math.min(R,W+4);dissolve(zu,l,T,rr-l,BL,0,0);dissolve(z,l,T-BL,rr-l,BL,0,1)}}}
-/* ---- 道路：OpenStreetMap（Overpass API）每 0.01 度一塊（約 1 公里）抓一次，存在瀏覽器 ---- */
+/* ---- 道路：OpenStreetMap（Overpass API）每 CH 度一塊（0.005 度約 500 公尺）抓一次，存在瀏覽器 ---- */
+var CH=0.005,CI=200;
 var RD={},RDQ={},RDV=0,RL=document.createElement('canvas'),RX=RL.getContext('2d');
-var RW={motorway:6,trunk:6,primary:5,secondary:5,tertiary:4,unclassified:3,residential:3,living_street:3,pedestrian:3,service:2,footway:1};
+var RW={motorway:6,trunk:6,primary:5,secondary:5,tertiary:4,unclassified:3,residential:3,living_street:3,pedestrian:3};/* 小路、步道、停車場通道先不抓，資料量少很多、比較快 */
 /* 免費的 Overpass 服務有好幾個，一個不通就換下一個；一次只抓一塊，免得被限流 */
 var OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
 var RQ=[],RBUSY=false,RERR='';
 function chunkKey(i,j){return i+'_'+j}
 function loadChunk(i,j){var k=chunkKey(i,j);if(RD[k]||RDQ[k])return;
-  try{var c=localStorage.getItem('real.rd2.'+k);if(c){RD[k]=JSON.parse(c);RDV++;return}}catch(e){}
+  try{var c=localStorage.getItem('real.rd3.'+k);if(c){RD[k]=JSON.parse(c);RDV++;return}}catch(e){}
   RDQ[k]=1;RQ.push([i,j]);pump()}
 function pump(){if(RBUSY||!RQ.length){rdMsg(RQ.length||RBUSY?'道路載入中…':RERR);return}
-  /* 先抓離自己最近的那塊 */var ll=toLL(me.x,me.y);RQ.sort(function(a,b){return Math.hypot(a[0]+.5-ll[1]*100,a[1]+.5-ll[0]*100)-Math.hypot(b[0]+.5-ll[1]*100,b[1]+.5-ll[0]*100)});
+  /* 先抓離自己最近的那塊 */var ll=toLL(me.x,me.y);RQ.sort(function(a,b){return Math.hypot(a[0]+.5-ll[1]*CI,a[1]+.5-ll[0]*CI)-Math.hypot(b[0]+.5-ll[1]*CI,b[1]+.5-ll[0]*CI)});
   var c=RQ.shift(),i=c[0],j=c[1],k=chunkKey(i,j);RBUSY=true;rdMsg('道路載入中…'+(RQ.length?'（還有 '+RQ.length+' 塊）':''));
-  var s=(j*.01).toFixed(2),w=(i*.01).toFixed(2),n=((j+1)*.01).toFixed(2),e=((i+1)*.01).toFixed(2);
+  var s=(j*CH).toFixed(4),w=(i*CH).toFixed(4),n=((j+1)*CH).toFixed(4),e=((i+1)*CH).toFixed(4);
   var q='[out:json][timeout:25];way["highway"~"^('+Object.keys(RW).join('|')+')$"]('+s+','+w+','+n+','+e+');out geom qt;',why=[];
   (function tryAt(u){var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ac)ac.abort()},30000);
     fetch(OVP[u]+'?data='+encodeURIComponent(q),{signal:ac&&ac.signal}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(js){clearTimeout(tm);
       var L=(js.elements||[]).filter(function(x){return x.geometry&&x.geometry.length>1}).map(function(x){return{w:RW[x.tags&&x.tags.highway]||2,p:x.geometry.map(function(g){var m=toM(g.lat,g.lon);return[Math.round(m[0]),Math.round(m[1])]})}});
-      RD[k]=L;RDV++;delete RDQ[k];RERR='';try{localStorage.setItem('real.rd2.'+k,JSON.stringify(L))}catch(e){}RBUSY=false;pump()},
+      RD[k]=L;RDV++;delete RDQ[k];RERR='';try{localStorage.setItem('real.rd3.'+k,JSON.stringify(L))}catch(e){}RBUSY=false;pump()},
     function(err){clearTimeout(tm);why.push((OVP[u].split('/')[2])+'：'+(err&&err.name==='AbortError'?'逾時':(err&&err.message)||'失敗'));
       if(u+1<OVP.length)tryAt(u+1);else{delete RDQ[k];RD[k]=[];RERR='道路載入失敗，1 分鐘後再試（'+why.join('；')+'）';setTimeout(function(){delete RD[k];RDV++},60000);RBUSY=false;pump()}})})(0)}
 function rdMsg(t){var el=$('rdm');if(el){el.textContent=t;el.hidden=!t}}
-function roadsNear(x0,x1,y0,y1){var a=toLL(x0,y0),b=toLL(x1,y1),out=[];for(var i=Math.floor(a[1]*100);i<=Math.floor(b[1]*100);i++)for(var j=Math.floor(a[0]*100);j<=Math.floor(b[0]*100);j++){loadChunk(i,j);var L=RD[chunkKey(i,j)];if(L)out.push(L)}return out}
+function roadsNear(x0,x1,y0,y1){var a=toLL(x0,y0),b=toLL(x1,y1),out=[];for(var i=Math.floor(a[1]*CI);i<=Math.floor(b[1]*CI);i++)for(var j=Math.floor(a[0]*CI);j<=Math.floor(b[0]*CI);j++){loadChunk(i,j);var L=RD[chunkKey(i,j)];if(L)out.push(L)}return out}
 var NRC={},NRV=-1;
 function nearRoad(x,y,r){if(NRV!==RDV){NRC={};NRV=RDV}var ck=x+','+y;if(ck in NRC)return NRC[ck];return NRC[ck]=nearRoad0(x,y,r)}
 function nearRoad0(x,y,r){var hit=false;roadsNear(x-r,x+r,y-r,y+r).forEach(function(L){if(hit)return;L.forEach(function(rd){if(hit)return;for(var n=1;n<rd.p.length;n++){var a=rd.p[n-1],b=rd.p[n];if(Math.max(a[0],b[0])<x-r-20||Math.min(a[0],b[0])>x+r+20||Math.max(a[1],b[1])<y-r-20||Math.min(a[1],b[1])>y+r+20)continue;
