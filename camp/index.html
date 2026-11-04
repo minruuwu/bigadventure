@@ -881,7 +881,7 @@ document.getElementById('plaza').addEventListener('click',function(e){var r=scen
 function initNames(){var cb=document.getElementById('showNames'),v=true;try{v=localStorage.getItem('camp.showNames')!=='0'}catch(e){}
   cb.checked=v;tagsEl.classList.toggle('hn',!v);
   cb.addEventListener('change',function(){tagsEl.classList.toggle('hn',!cb.checked);try{localStorage.setItem('camp.showNames',cb.checked?'1':'0')}catch(e){}})}
-/* ---- 羊皮紙公告（後台發布，board/{id}）：進營地自動跳出最新一則；「不再顯示」預設勾選、關閉時記在瀏覽器；
+/* ---- 羊皮紙公告（後台發布，board/{id}）：進營地自動跳出最新一則；「不再自動顯示公告」預設勾選、關閉時記在瀏覽器（勾了之後所有公告都不自動跳，新公告看鈴鐺小紅點）；
    右上角鈴鐺隨時打開、可以往回翻最近 20 則；最新一則還沒看過時鈴鐺有小紅點 ---- */
 var BD=[],BDI=0,BDCHK=true;
 function bdGet(k){try{var v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
@@ -891,15 +891,17 @@ function bdDate(ms){if(!ms)return '';var d=new Date(ms);return d.getFullYear()+'
 function bdShow(i){var ov=document.getElementById('bdov'),x=BD[i];if(!x)return;BDI=i;bdAdd('camp.board.seen',x.id,true);bdDot();
   ov.innerHTML='<div class="bdbox" role="dialog" aria-modal="true" aria-label="公告"><button type="button" class="x" data-b="close" aria-label="關閉">✕</button><h2>'+esc2(x.title||'公告')+'</h2><div class="dt">'+bdDate(x.at)+'</div><div class="tx">'+esc2(x.text)+'</div>'+
     (BD.length>1?'<div class="nv"><button type="button" data-b="prev"'+(i>=BD.length-1?' disabled':'')+'>‹ 上一則</button><span>第 '+(BD.length-i)+'／'+BD.length+' 則</span><button type="button" data-b="next"'+(i<=0?' disabled':'')+'>下一則 ›</button></div>':'')+
-    '<div class="ft">'+(i===0?'<label class="ck"><input type="checkbox" id="bdChk"'+(BDCHK?' checked':'')+'>不再顯示這則公告</label>':'<span></span>')+'<button type="button" class="ok" data-b="close">關閉</button></div></div>';
+    '<div class="ft"><label class="ck"><input type="checkbox" id="bdChk"'+(BDCHK?' checked':'')+'>不再自動顯示公告</label><button type="button" class="ok" data-b="close">關閉</button></div></div>';
   ov.hidden=false;var tx=ov.querySelector('.tx');if(tx)tx.scrollTop=0}
-function bdClose(){var ov=document.getElementById('bdov');if(ov.hidden)return;if(BD[0])bdAdd('camp.board.hide',BD[0].id,BDCHK);ov.hidden=true;ov.innerHTML=''}
+function bdMuteDef(){try{var v=localStorage.getItem('camp.board.mute');return v==null?true:v==='1'}catch(e){return true}}/* 勾選框的預設：沒設定過就是勾選 */
+function bdMuted(){try{return localStorage.getItem('camp.board.mute')==='1'}catch(e){return false}}
+function bdClose(){var ov=document.getElementById('bdov');if(ov.hidden)return;try{localStorage.setItem('camp.board.mute',BDCHK?'1':'0')}catch(e){}ov.hidden=true;ov.innerHTML=''}
 function loadBoard(){var bell=document.getElementById('bell'),ov=document.getElementById('bdov');
-  if(!bell.dataset.on){bell.dataset.on=1;bell.addEventListener('click',function(){if(!BD.length)return;BDCHK=true;bdShow(0)});
+  if(!bell.dataset.on){bell.dataset.on=1;bell.addEventListener('click',function(){if(!BD.length)return;BDCHK=bdMuteDef();bdShow(0)});
     ov.addEventListener('click',function(e){if(e.target===ov){bdClose();return}var b=e.target.closest('[data-b]');if(!b)return;var a=b.getAttribute('data-b');if(a==='close')bdClose();else if(a==='prev')bdShow(Math.min(BD.length-1,BDI+1));else if(a==='next')bdShow(Math.max(0,BDI-1))});
     ov.addEventListener('change',function(e){if(e.target&&e.target.id==='bdChk')BDCHK=e.target.checked});
     document.addEventListener('keydown',function(e){if(e.key==='Escape')bdClose()})}
-  function put(L){BD=(L||[]).filter(function(x){return x&&x.text});bell.hidden=!BD.length;bdDot();if(BD.length&&bdGet('camp.board.hide').indexOf(BD[0].id)<0){BDCHK=true;bdShow(0)}}
+  function put(L){BD=(L||[]).filter(function(x){return x&&x.text});bell.hidden=!BD.length;bdDot();if(BD.length&&!bdMuted()&&bdGet('camp.board.seen').indexOf(BD[0].id)<0){BDCHK=true;bdShow(0)}}/* 沒勾「不再自動顯示」時，只自動跳還沒看過的最新公告 */
   if(demo){put([{id:'demo2',title:'示範公告：11 月更新',text:'冒險者們好！\n\n本次更新內容：\n・秘境掃蕩可以選次數\n・新增單一職業降級\n・人物等級上限暫定 Lv150\n\n祝大家摸魚愉快！',at:Date.now()},{id:'demo1',title:'示範公告：歡迎來到營地',text:'這是比較舊的一則公告，可以用「上一則／下一則」翻看。',at:Date.now()-86400000*7}]);return}
   withFB(function(FB){if(FB.boardList)FB.boardList(20).then(put,function(){})})}
 /* 營地上方的跑馬燈公告（管理後台設定；取消後就不顯示） */
