@@ -1442,12 +1442,12 @@ function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=
     var v=r.v||0,ic=null;
     if(/_res_rate$/.test(k)&&k!=='hit_taken_rate'){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none'&&v)ic={k:'res_'+el,m:v>0?'up':'down'}}else ic=stIc(k,v);
     if(ic)o.ic.push(ic)});
-  if(nm==='輝煌')o.fx.sun=1;if(nm==='枷鎖')o.fx.chain=1;if(nm==='霜甲')o.fx.fshield=1;if(nm==='元素屏障')o.fx.ebar=1;if(nm==='冰之守護')o.fx.iguard=1;if(nm==='骨牢'){o.fx.cage=1;o.fx.shake=0}if(nm==='瘴氣')o.fx.miasma=1;if(nm==='潛伏')o.fx.stealth=1;if(STCOLD[nm]){o.fx.cold=1;o.ic=[]}/* 冷凍類（霜凍、凍足、冷凝）固定是閃避下降，看冷氣就知道，不另外出腳邊圖示 */return STC[n]=o}
+  if(nm==='輝煌')o.fx.sun=1;if(nm==='劍氣')o.fx.qi=1;if(nm==='枷鎖')o.fx.chain=1;if(nm==='霜甲')o.fx.fshield=1;if(nm==='元素屏障')o.fx.ebar=1;if(nm==='冰之守護')o.fx.iguard=1;if(nm==='骨牢'){o.fx.cage=1;o.fx.shake=0}if(nm==='瘴氣')o.fx.miasma=1;if(nm==='潛伏')o.fx.stealth=1;if(STCOLD[nm]){o.fx.cold=1;o.ic=[]}/* 冷凍類（霜凍、凍足、冷凝）固定是閃避下降，看冷氣就知道，不另外出腳邊圖示 */return STC[n]=o}
 function stOf(list){var fx={},ic=[],seen={};(list||[]).forEach(function(n){var c=stCls(n);Object.keys(c.fx).forEach(function(k){fx[k]=1});c.ic.forEach(function(x){var key=x.k+'|'+x.m;if(!seen[key]){seen[key]=1;ic.push(x)}})});return{fx:fx,ic:ic}}
 function stNowP(k){var q=B&&B.stNow;return stOf(q&&q.p&&q.p[k])}
 function stNowM(i){var q=B&&B.stNow;return stOf(q&&q.m&&q.m[i])}
 function stFilter(fx,fl){if(fx.ban)return 'grayscale(1) sepia(1) hue-rotate(125deg) saturate(3.5) brightness(1.1) drop-shadow(0 0 2px #3ff0d0)';/* 放逐：整隻變成半透明的藍綠色（透明度在外面另外乘），外面再畫時空裂隙漩渦 */if(fl)return 'sepia(1) saturate(5) hue-rotate(-35deg) brightness(.62)';/* 剛中燒灼：暗紅色閃一下 */if(fx.stone)return 'grayscale(1) brightness(1.08) contrast(.85)';if(fx.stealth&&!fx.frozen)return 'brightness(.42) saturate(.6)';/* 潛伏：整隻變暗（透明度在外面另外乘） */
-  if(fx.frozen){var o=Math.max(1,Math.round(U*.6))+'px',c='#8ed8ff';return 'sepia(.5) hue-rotate(165deg) saturate(1.7) brightness(1.18) drop-shadow('+o+' 0 0 '+c+') drop-shadow(-'+o+' 0 0 '+c+') drop-shadow(0 '+o+' 0 '+c+') drop-shadow(0 -'+o+' 0 '+c+')'}return ''}
+  if(fx.frozen){var o=Math.max(1,Math.round(U*.6))+'px',c='#8ed8ff';return 'sepia(.5) hue-rotate(165deg) saturate(1.7) brightness(1.18) drop-shadow('+o+' 0 0 '+c+') drop-shadow(-'+o+' 0 0 '+c+') drop-shadow(0 '+o+' 0 '+c+') drop-shadow(0 -'+o+' 0 '+c+')'}if(fx.qi)return 'drop-shadow(0 0 1px #e8fcff) drop-shadow(0 0 3px rgba(120,220,255,.85))';/* 劍氣：全身一圈青白色的光 */return ''}
 /* 用字元圖畫小圖案：X = 主色 */
 function stPat(px,x0,y0,rows,c,a){rows.forEach(function(r,j){for(var i=0;i<r.length;i++)if(r.charAt(i)==='X')VP(x0+i,y0+j,c,a)})}
 var ARU=['.X.','XXX','.X.','.X.'],ARD=['.X.','.X.','XXX','.X.'],HRT=['.X.X.','XXXXX','.XXX.','..X..'],ZZ=['XXX','..X','.X.','XXX'],STR=['.X.','XXX','.X.'];
@@ -1455,6 +1455,11 @@ function drawStatus(now){if(!B||view!=='battle')return;
   party.forEach(function(p){if(p.sfx&&p.vis)stDraw(p.sfx,p.sx,p.gy,p.top,14,now+p.ph*5,0,1)});
   mons.forEach(function(m){if(!m.sfx||!m.alive)return;var MZ=msz(m.k),lf=m.lift||0;stDraw(m.sfx,m.lx,m.gy,m.gy-lf-MZ[1]*m.sc*(m.k==='dragon'?.8:1),Math.min(30,MZ[0]*m.sc*.6),now+m.ph*7,lf)});pctx.globalAlpha=1}
 function stDraw(sd,x,gy,top,w,t,lf,lt){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math.PI*2;
+  if(f.qi){/* 劍氣：身體周圍一道道青白色的細長劍光往上竄、忽明忽暗（疊加發光） */pctx.globalCompositeOperation='lighter';
+    for(var q8=0;q8<7;q8++){var per8=700+q8*90,u8=((t+q8*211)%per8)/per8,cyc8=Math.floor((t+q8*211)/per8),xo8=(q8%2?1:-1)*(w*.45+((cyc8*7+q8*13)%5)),y8=by-2-u8*(by-top+8),L8=5+(q8%3)*2,a8=Math.sin(u8*Math.PI);/* 只在身體兩側，不擋臉 */
+      for(var k8=0;k8<L8;k8++){VP(x+xo8,y8+k8,k8<2?'#ffffff':'#8fe6ff',a8*(1-k8/L8));if(k8<L8-2)VP(x+xo8+(q8%2?1:-1),y8+k8+1,'#5ac8ff',a8*(1-k8/L8)*.5)}}
+    for(var q9=0;q9<2;q9++){var u9=((t+q9*640)%1280)/1280;if(u9>.25)continue;var a9=Math.sin(u9/.25*Math.PI),gx9=x+(q9?w*.5:-w*.5),gy9=top+6+q9*6;VP(gx9,gy9,'#ffffff',a9);VP(gx9-1,gy9,'#bff0ff',a9*.7);VP(gx9+1,gy9,'#bff0ff',a9*.7);VP(gx9,gy9-1,'#bff0ff',a9*.7);VP(gx9,gy9+1,'#bff0ff',a9*.7)}/* 偶爾閃一下劍光 */
+    pctx.globalCompositeOperation='source-over'}
   if(f.sun){/* 輝煌（太陽之照耀）：人物左上方一顆小太陽，光芒慢慢轉、整顆微微脈動發光 */var sx0=x-10,sy0=top+4,pu=.75+.25*Math.sin(t/420);pctx.globalCompositeOperation='lighter';
     for(var gy0=-5;gy0<=5;gy0++)for(var gx0=-5;gx0<=5;gx0++){var gd=Math.sqrt(gx0*gx0+gy0*gy0);if(gd>5.2||gd<2.2)continue;VP(sx0+gx0,sy0+gy0,'#ffd86a',.16*(1-(gd-2.2)/3)*pu)}pctx.globalCompositeOperation='source-over';
     for(var k7=0;k7<8;k7++){var an7=t/1600+k7/8*T,L7=k7%2?3:4;for(var q7=3;q7<=L7;q7++)VP(sx0+Math.round(Math.cos(an7)*q7),sy0+Math.round(Math.sin(an7)*q7),k7%2?'#ffc23a':'#ffe27a',(q7===L7?.55:.85)*pu)}
