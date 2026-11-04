@@ -35,11 +35,11 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 'use strict';
 var BASE='../assets/',V='5',$=function(i){return document.getElementById(i)};
 /* ---- 設定（之後實際走走看再調） ---- */
-var MPP=1.25;            /* 1 個像素格 = 幾公尺 */
+var MPP=2.5;             /* 1 個像素格 = 幾公尺 */
 var ZONE=500;            /* 地域格 500 公尺 */
 var SUB=100;             /* 怪物、裝飾物的小格 100 公尺 */
-var SPAWN=0.4;           /* 每個小格有一群怪的機率 */
-var REACH=50;            /* 可以打的距離（公尺） */
+var SPAWN=0.25;           /* 每個小格有一群怪的機率 */
+var REACH=150;            /* 可以打的距離（公尺） */
 var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
 var LV=50;
@@ -66,8 +66,8 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],weapon:null,shield:null,halo:[],lv:p.lv?(p.lv|0)+Object.keys(p.jobLv||{}).reduce(function(t,k){return t+((p.jobLv[k])|0)},0):0}}/* 怪物等級的基準：人物等級＋職業等級總和 */
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
-/* 小格裡的裝飾物：每 100 公尺一片，森林 1～3 棵、礦洞 0～2 堆，7 成是主要種類 */
-function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=z.k==='mine'?h32('dn',sx,sy,PER)%3:1+h32('dn',sx,sy,PER)%3,main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
+/* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵、礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
+function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):h32('dn',sx,sy,PER)%3,main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length];L.push({x:(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,y:(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB,im:IM[z.k+'_'+kind]})}return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
 function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
