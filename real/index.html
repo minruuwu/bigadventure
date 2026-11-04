@@ -63,7 +63,7 @@ function parseCSV(t){t=t.replace(/^﻿/,'');var rows=[],row=[],f='',q=false;for(
 function getCSV(n){return fetch(BASE+'data/'+n+'?v='+V+'.'+Math.floor(Date.now()/300000)).then(function(r){return r.arrayBuffer()}).then(function(b){return parseCSV(new TextDecoder('utf-8').decode(b))})}
 /* 自己的外觀：讀這台瀏覽器裡的角色資料（沒有就用預設） */
 function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null');if(c&&c.player)p=c.player}catch(e){}
-  return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],weapon:null,shield:null,halo:[],lv:p.lv|0}}
+  return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],weapon:null,shield:null,halo:[],lv:p.lv?(p.lv|0)+Object.keys(p.jobLv||{}).reduce(function(t,k){return t+((p.jobLv[k])|0)},0):0}}/* 怪物等級的基準：人物等級＋職業等級總和 */
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 /* 小格裡的裝飾物：每 100 公尺一片，森林 1～3 棵、礦洞 0～2 堆，7 成是主要種類 */
