@@ -508,6 +508,22 @@ match /chat/{id} {
         && request.resource.data.text.size() <= 200
         && request.resource.data.on is bool;
     }
+    // 營地羊皮紙公告(2026-11):每則一份文件 board/{id} = {title, text, at};大家都能讀(營地只抓最近 20 則),只有管理者能新增、修改、刪除
+    match /board/{id} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null
+        && request.auth.token.email == 'minruu0215@gmail.com'
+        && request.auth.token.email_verified == true;
+      allow create, update: if request.auth != null
+        && request.auth.token.email == 'minruu0215@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['title','text','at'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.at is timestamp;
+    }
     // 怪物強度倍率:大家都能讀,只有管理者能寫(血量、攻擊倍率都在 0.5~2)
     match /meta/difficulty {
       allow get: if request.auth != null;
