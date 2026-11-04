@@ -125,7 +125,7 @@ button{font:inherit;color:inherit}
 .rfmate{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px;font-size:13px;font-weight:900;color:#4a2a12}
 .rfmate select{font:inherit;font-weight:700;padding:4px 6px;border:2px solid #4a2a12;background:#f3e2bf;color:#2a1808;max-width:60%}
 .rfmate .lvsh{flex-basis:100%;margin-top:0}
-.rfswr{margin-top:8px}.rfswr .go{width:100%}.lvgo2:has(>.go:only-child){grid-template-columns:1fr}.go.alt{background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a,inset 0 -2px 0 #2a170a}
+.rfswr{margin-top:8px}.rfswr .go{width:100%}.rfswn{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:900;color:#4a2a12}.rfswn input{flex:1;accent-color:#c8641e;min-width:0}.rfswn span{flex:none;min-width:9.5em;text-align:right}.swbar{height:8px;background:#2a170a;margin:8px 0 2px;box-shadow:0 0 0 2px #1d1008}.swbar i{display:block;height:100%;background:#5ec8ff}.lvgo2:has(>.go:only-child){grid-template-columns:1fr}.go.alt{background:#4a2a12;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a,inset 0 -2px 0 #2a170a}
 .lvov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:10vh 18px 20px}
 .lvov[hidden]{display:none}.lvbg{position:fixed;inset:0;background:rgba(0,0,0,.62)}
 .lvbox{position:relative;width:100%;max-width:340px;background:#b98a57 var(--kraft,none) 0 0/288px 288px;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
@@ -1733,7 +1733,9 @@ function riftLevels(i){var R=RIFTS[i],best=riftBest(R),left=Math.max(0,RIFTMAX-r
   h+=mates.length?'<div class="rfmate"><label for="rfMate">隊友</label><select id="rfMate"><option value="">不帶（獨狼 ×1.5）</option>'+mates.map(function(p){return '<option value="'+esc(p.uid)+'"'+(p.uid===cm?' selected':'')+'>'+esc(p.name||'隊友')+'（雙人成行 ×1.5）</option>'}).join('')+'</select><span class="lvsh">隊友由電腦操控（手動模式由你操控），沒有獎勵、不扣他的次數</span></div>':'<div class="rfmate"><span class="lvsh">隊伍裡沒有其他成員，只能獨自前往（獨狼 ×1.5）</span></div>';
   if(MANUAL)h+='<div class="lvgo3"><button type="button" class="go" id="rfgo" data-a="rgo" data-m="live" disabled>戰鬥</button><label class="abchk"><input type="checkbox" id="rfAuto"'+(autoPref()?' checked':'')+'>自動戰鬥</label></div>';
   else h+='<div class="lvgo2"><button type="button" class="go" id="rfgo" data-a="rgo" data-m="auto" disabled>自動戰鬥</button></div>';
-  h+='<div class="rfswr"><button type="button" class="go" id="rfsw" data-a="rsw" disabled>掃蕩（已通關的等級，'+SWSEC+' 秒）</button></div>';
+  /* 掃蕩次數：拖曳條 1 ～ 今天剩下的次數（預設全部）；只剩 1 次就不顯示 */
+  if(left>1)h+='<div class="rfswn"><input type="range" id="rfswN" min="1" max="'+left+'" value="'+left+'" aria-label="掃蕩次數"><span id="rfswT">'+swNTxt(left)+'</span></div>';
+  h+='<div class="rfswr"><button type="button" class="go" id="rfsw" data-a="rsw" disabled>掃蕩（已通關的等級）</button></div>';
   h+='<p class="rfleft">今日剩餘 '+left+'／'+RIFTMAX+' 次（三間共用，打輸不扣）</p></div>';
   var o=$('lvov');o.innerHTML=h;o.hidden=false}
 $('portal').addEventListener('click',function(){if(!RIFTS.length){toast('秘境資料還沒讀到');return}if(swGet())riftSweepView();else riftList();
@@ -1745,37 +1747,56 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
   else if(a==='rback')riftList();
   else if(a==='rlv'&&RPICK){var lv=+b.getAttribute('data-l');RPICK.lv=lv;[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var ex=riftExp(lv),base=2+Math.floor(.15*(lv/10-1)),fr=ex-base;
     var left=Math.max(0,RIFTMAX-riftUsed());$('rfinfo').innerHTML='秘境 Lv'+lv+'：每場期望掉落 '+ex.toFixed(2)+' 片<span class="lvsh">必掉 '+base+' 片'+(fr>.001?'，'+Math.round(fr*100)+'% 再掉 1 片':'')+'；每片各自從 '+RIFTS[RPICK.i].runes.length+' 種符文隨機抽</span>'+(left?'':'<span class="lvsh">今天的次數已經用完</span>');$('rfgo').disabled=!left;$('rfsw').disabled=!left||lv>riftBest(RIFTS[RPICK.i])}
-  else if(a==='rsw'){if(swGet()){riftSweepView();return}if(!RPICK||!RPICK.lv)return;if(riftUsed()>=RIFTMAX){toast('今天的次數已經用完');return}if(RPICK.lv>riftBest(RIFTS[RPICK.i])){toast('只能掃蕩已經通關的等級');return}riftSweepStart(RPICK.i,RPICK.lv)}
+  else if(a==='rsw'){if(swGet()){riftSweepView();return}if(!RPICK||!RPICK.lv)return;if(riftUsed()>=RIFTMAX){toast('今天的次數已經用完');return}if(RPICK.lv>riftBest(RIFTS[RPICK.i])){toast('只能掃蕩已經通關的等級');return}var nN=$('rfswN')?Math.max(1,Math.min(+$('rfswN').value||1,RIFTMAX-riftUsed())):1;riftSweepStart(RPICK.i,RPICK.lv,nN)}
   else if(a==='swok')riftSweepClaim();
+  else if(a==='swend'){swSet(null);clearTimeout(SWT);riftList()}
+  else if(a==='swretry'){var so=swGet();if(so){delete so.err;so.next=Math.min(so.next||0,Date.now());swSet(so);swRun();riftSweepView()}}
   else if(a==='swback')riftList();
   else if(a==='rgo'&&RPICK&&RPICK.lv){if(riftUsed()>=RIFTMAX){toast('今天的次數已經用完');return}if(swGet()){toast('有一筆掃蕩還沒領取，先領完再挑戰');riftSweepView();return}var rf={i:RPICK.i,lv:RPICK.lv,mate:($('rfMate')&&$('rfMate').value)||''},live=b.getAttribute('data-m')==='live',au0=!!($('rfAuto')&&$('rfAuto').checked);closeLevels();RF=rf;
     try{if(live){setAutoPref(au0);startLive(-1,0,au0)}else startBattle(-1,0)}finally{RF=null}}});
 $('lvov').addEventListener('change',function(e){if(e.target&&e.target.id==='rfMate')mateSet(e.target.value)});
+$('lvov').addEventListener('input',function(e){if(e.target&&e.target.id==='rfswN'&&$('rfswT'))$('rfswT').textContent=swNTxt(+e.target.value)});
 /* 秘境隊友：記在瀏覽器（每個帳號各自記） */
 function mateGet(){try{return localStorage.getItem('rift.mate.'+((MEMB[0]||{}).uid||''))||''}catch(e){return ''}}
 function mateSet(v){try{localStorage.setItem('rift.mate.'+((MEMB[0]||{}).uid||''),v||'')}catch(e){}}
-/* ---- 秘境掃蕩：已通關的等級，按下後先抽好碎片、記在瀏覽器；倒數 SWSEC 秒（= 規則要求兩次秘境存檔的間隔）後領取。
-   倒數中離開也沒關係，30 分鐘內回來都能領；領取才扣次數、寫入碎片；掃蕩不會推進最高通關等級 ---- */
-var SWK='rift.sweep',SWSEC=10,SWT=null;
-function swGet(){try{var o=JSON.parse(localStorage.getItem(SWK)||'null');if(!o)return null;if(!MEMB[0]||o.uid!==MEMB[0].uid||Date.now()-o.t0>30*60*1000||!RIFTS[o.i]){localStorage.removeItem(SWK);return null}return o}catch(e){return null}}
+/* ---- 秘境掃蕩：已通關的等級，可以選次數（拖曳條 1 ～ 今天剩下的次數）。
+   規則一次存檔只能 +1 次、碎片 +2～5、兩次至少隔 10 秒，所以不改規則：按下後每隔約 10 秒在背景存一場（跟單場掃蕩存的內容一樣），
+   跑完再一次「領取」看合計。中途離開：已跑完的已經存好，30 分鐘內回到秘境會接著跑；某一場存檔失敗就停下來，可以重試 ---- */
+var SWK='rift.sweep',SWSEC=10,SWGAP=10500,SWT=null,SWBUSY=false;
+function swNTxt(n){return '掃蕩 '+n+' 次・約 '+(n*SWSEC)+' 秒'}
+function swGet(){try{var o=JSON.parse(localStorage.getItem(SWK)||'null');if(!o)return null;if(!MEMB[0]||o.uid!==MEMB[0].uid||Date.now()-(o.ta||o.t0)>30*60*1000||!RIFTS[o.i]){localStorage.removeItem(SWK);return null}
+  if(!o.N){o={uid:o.uid,i:o.i,lv:o.lv,t0:o.t0,ta:o.t0,N:1,runs:[],next:o.t0+SWSEC*1000,pre:o.shards||null,day:tpeDay(),n0:riftUsed()}}/* 舊版單場掃蕩的紀錄 */
+  return o}catch(e){return null}}
 function swSet(o){try{if(o)localStorage.setItem(SWK,JSON.stringify(o));else localStorage.removeItem(SWK)}catch(e){}}
-function riftSweepStart(i,lv){var R=RIFTS[i],me=MEMB[0]||{};swSet({uid:me.uid,i:i,lv:lv,t0:Date.now(),shards:riftDrop(R,lv)});riftSweepView()}
-function riftSweepView(){var o=swGet();clearTimeout(SWT);if(!o){riftList();return}var R=RIFTS[o.i],ov=$('lvov'),rem=Math.max(0,Math.ceil((o.t0+SWSEC*1000+500-Date.now())/1000));
+function swSum(o){var t={};o.runs.forEach(function(r){Object.keys(r).forEach(function(k){t[k]=(t[k]|0)+r[k]})});return t}
+function riftSweepStart(i,lv,n){var me=MEMB[0]||{},now=Date.now();swSet({uid:me.uid,i:i,lv:lv,t0:now,ta:now,N:Math.max(1,n|0),runs:[],next:now+SWSEC*1000,day:tpeDay(),n0:riftUsed()});swRun();riftSweepView()}
+/* 背景跑掃蕩：時間到就存下一場 */
+function swRun(){clearTimeout(SWT);var o=swGet();if(!o||o.err||o.runs.length>=o.N||SWBUSY){swUi();return}
+  /* 上一場其實已經存進去（例如存檔途中關掉頁面）：資料庫的次數比紀錄多，就把那場算完成 */
+  if(o.pre&&o.day===tpeDay()&&riftUsed()-(o.n0|0)>o.runs.length){o.runs.push(o.pre);delete o.pre;o.ta=Date.now();swSet(o);swRun();return}
+  if(o.day!==tpeDay()||riftUsed()>=RIFTMAX){o.N=o.runs.length;o.cut=1;swSet(o);swUi();return}/* 次數用完（或換日）：就停在已完成的場數 */
+  var w=o.next-Date.now();if(w>0){SWT=setTimeout(swRun,Math.min(w,1000));swUi();return}
+  var R=RIFTS[o.i],me=MEMB[0]||{},sh=o.pre||riftDrop(R,o.lv);o.pre=sh;swSet(o);SWBUSY=true;
+  var ok=function(){SWBUSY=false;var o2=swGet();if(!o2)return;o2.runs.push(sh);delete o2.pre;o2.ta=Date.now();o2.next=Date.now()+SWGAP;swSet(o2);swRun()};
+  if(demo){me.riftDay=tpeDay();me.riftN=riftUsed()+1;ok();return}
+  withFB(function(FB){FB.riftWin({day:tpeDay(),n:riftUsed()+1,lv:o.lv,shards:sh,room:R.room,best:0,migrate:(me.runeV|0)<2?Object.keys(me.weapons||{}):null,pool:R.runes}).then(function(r2){
+    me.rs=Object.assign({},me.rs||{});Object.keys(sh).forEach(function(k){me.rs[k]=(me.rs[k]|0)+sh[k]});me.riftDay=tpeDay();me.riftN=(r2&&r2.n)||(riftUsed()+1);if(r2&&r2.migrate)me.runeV=2;ok()},
+    function(e){SWBUSY=false;var o2=swGet();if(!o2)return;o2.err='存檔失敗：'+(e&&(e.code||e.message))+(e&&e.why&&e.why.length?'；原因：'+e.why.join('、'):'');o2.ta=Date.now();swSet(o2);swUi()})})}
+function swUi(){if(!$('lvov').hidden&&$('swinfo'))riftSweepView()}
+function riftSweepView(){var o=swGet();if(!o){riftList();return}var R=RIFTS[o.i],ov=$('lvov'),k=o.runs.length,fin=k>=o.N,rem=fin?0:Math.max(0,Math.ceil(((o.next-Date.now())+(o.N-k-1)*SWGAP)/1000));
   var h='<div class="lvbg" data-a="rfx"></div><div class="lvbox" role="dialog" aria-modal="true" aria-label="掃蕩"><button class="x" type="button" data-a="rfx" aria-label="關閉">✕</button><h2>掃蕩・'+esc(R.n)+' Lv'+o.lv+'</h2>';
-  if(rem>0)h+='<div class="lvinfo" id="swinfo">掃蕩中… 還要 <b>'+rem+'</b> 秒<span class="lvsh">可以先離開，30 分鐘內回到秘境都能領取</span></div><div class="lvgo2"><button type="button" class="go" id="swok" data-a="swok" disabled>領取</button></div>';
-  else h+='<div class="lvinfo" id="swinfo">掃蕩完成！可以領取<br>'+shardTxt(o.shards)+'</div><div class="lvgo2"><button type="button" class="go" id="swok" data-a="swok">領取</button></div>';
-  h+='<p class="rfleft" id="swmsg">今日剩餘 '+Math.max(0,RIFTMAX-riftUsed())+'／'+RIFTMAX+' 次（領取時扣 1 次）</p></div>';ov.innerHTML=h;ov.hidden=false;
-  if(rem>0)SWT=setTimeout(function(){if(!$('lvov').hidden&&$('swinfo'))riftSweepView()},1000)}
-function riftSweepClaim(){var o=swGet();if(!o){riftList();return}var b=$('swok'),msg=function(t){var q=$('swmsg');if(q)q.textContent=t};
-  if(Date.now()<o.t0+SWSEC*1000){riftSweepView();return}
-  if(riftUsed()>=RIFTMAX){msg('今天的次數已經用完，明天再領');return}
-  var R=RIFTS[o.i],me=MEMB[0]||{},done=function(n){swSet(null);$('swinfo').innerHTML='已存檔，獲得符文碎片<br>'+shardTxt(o.shards);b.textContent='返回秘境';b.setAttribute('data-a','swback');b.disabled=false;msg('今日剩餘 '+Math.max(0,RIFTMAX-n)+'／'+RIFTMAX+' 次')};
-  b.disabled=true;
-  if(demo){done(riftUsed());return}
-  msg('碎片寫入中…');
-  withFB(function(FB){FB.riftWin({day:tpeDay(),n:riftUsed()+1,lv:o.lv,shards:o.shards,room:R.room,best:0,migrate:(me.runeV|0)<2?Object.keys(me.weapons||{}):null,pool:R.runes}).then(function(r2){
-    me.rs=Object.assign({},me.rs||{});Object.keys(o.shards).forEach(function(k){me.rs[k]=(me.rs[k]|0)+o.shards[k]});me.riftDay=tpeDay();me.riftN=(r2&&r2.n)||(riftUsed()+1);if(r2&&r2.migrate)me.runeV=2;done(me.riftN)},
-    function(e){b.disabled=false;msg('存檔失敗：'+(e&&(e.code||e.message))+(e&&e.why&&e.why.length?'；原因：'+e.why.join('、'):'')+'（掃蕩獎勵還在，可以再按一次領取）')})})}
+  var bar='<div class="swbar"><i style="width:'+(o.N?Math.round(k/o.N*100):100)+'%"></i></div>',got=k?'<br>目前獲得 '+shardTxt(swSum(o)):'';
+  if(o.err)h+='<div class="lvinfo" id="swinfo">已完成 '+k+'／'+o.N+' 次'+bar+'<span class="lvsh">'+esc(o.err)+'（已完成的場次都存好了）</span>'+got+'</div><div class="lvgo2"><button type="button" class="go alt" data-a="swend">結束掃蕩</button><button type="button" class="go" data-a="swretry">重試</button></div>';
+  else if(!fin)h+='<div class="lvinfo" id="swinfo">掃蕩中… <b>'+k+'</b>／'+o.N+' 次，還要約 <b>'+rem+'</b> 秒'+bar+'<span class="lvsh">可以先離開，30 分鐘內回到秘境會接著跑（已完成的場次都存好了）</span></div><div class="lvgo2"><button type="button" class="go" id="swok" data-a="swok" disabled>領取</button></div>';
+  else h+='<div class="lvinfo" id="swinfo">掃蕩完成！共 '+k+' 次'+(o.cut?'（今天的次數用完了）':'')+'<br>'+(k?shardTxt(swSum(o)):'沒有獲得碎片')+'</div><div class="lvgo2"><button type="button" class="go" id="swok" data-a="swok">領取</button></div>';
+  h+='<p class="rfleft" id="swmsg">今日剩餘 '+Math.max(0,RIFTMAX-riftUsed())+'／'+RIFTMAX+' 次</p></div>';ov.innerHTML=h;ov.hidden=false;
+  if(!fin&&!o.err&&!SWBUSY&&!SWT)swRun();
+  clearTimeout(riftSweepView.t);if(!fin&&!o.err)riftSweepView.t=setTimeout(swUi,1000)}
+/* 領取：碎片在每一場跑完時就已經存進去了，這裡只是把合計給玩家看、清掉紀錄 */
+function riftSweepClaim(){var o=swGet();if(!o){riftList();return}if(o.runs.length<o.N||o.err){riftSweepView();return}var sum=swSum(o),k=o.runs.length;swSet(null);
+  $('swinfo').innerHTML='已領取（'+k+' 次）<br>'+(k?shardTxt(sum):'沒有獲得碎片');var b=$('swok');b.textContent='返回秘境';b.setAttribute('data-a','swback');b.disabled=false}
+/* 重新進到冒險頁時：有沒跑完的掃蕩就接著跑 */
+(function(){var n=0,t=setInterval(function(){if(++n>30){clearInterval(t);return}if(MEMB[0]&&RIFTS.length&&ENG){clearInterval(t);if(swGet())swRun()}},2000)})();
 /* 上次選的模式（自動戰鬥／戰棋），記在這台瀏覽器；網址帶 ?tactics=1 時預設戰棋 */
 function advMode(){if(!TACT)return'auto';try{var v=localStorage.getItem('adv.mode');if(v==='tac'||v==='auto')return v}catch(e){}return TACT?'tac':'auto'}
 function setAdvMode(v){try{localStorage.setItem('adv.mode',v)}catch(e){}}
