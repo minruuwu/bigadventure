@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>神話武器預覽</title>
+<style>
+:root{color-scheme:dark;--bg:#17151c;--panel:#26232d;--line:#464150;--tx:#f2e6c8;--dim:#b8ad96;--ac:#e0b84a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "PingFang TC","Noto Sans TC",sans-serif}
+.app{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 2px}
+.sub{color:var(--dim);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+.views{display:grid;gap:14px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0}
+.box h2{font-size:14px;margin:0 0 8px;color:var(--ac)}
+canvas{display:block;image-rendering:pixelated;max-width:100%}
+#big{width:min(100%,464px);height:auto;margin:0 auto;aspect-ratio:1}
+#bat{width:100%;height:auto;aspect-ratio:209/140}
+label{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:8px;margin:7px 0;font-size:13px;color:var(--dim)}
+label.chk{display:flex;color:var(--tx)}
+select,input[type=number],button{font:inherit;color:var(--tx);background:#17151c;border:1px solid var(--line);border-radius:4px;padding:6px 7px;min-height:36px;width:100%}
+input[type=checkbox]{width:18px;height:18px;margin:0}
+button{cursor:pointer}button:hover{border-color:var(--ac)}
+.row{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:4px}
+.row input{text-align:center}.row button{padding:0}
+.file{display:block;text-align:center;padding:8px;border:1px dashed var(--ac);border-radius:4px;color:var(--tx);cursor:pointer;margin-top:8px}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.out{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:#17151c;border-radius:4px;padding:8px;margin:8px 0 0;overflow-wrap:anywhere}
+.warn{color:#ffb38a;font-size:13px;margin:8px 0 0}.warn:empty{display:none}
+#err{color:#ffb38a;margin:0 0 10px}#err:empty{display:none}
+@media(max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>神話武器預覽</h1>
+<p class="sub">美術檢查用，不會寫入任何遊戲資料。上傳的圖只留在這個頁面。</p>
+<p id="err"></p>
+<div class="grid">
+ <div class="views">
+  <div class="box"><h2>放大檢視</h2><canvas id="big" width="58" height="58"></canvas></div>
+  <div class="box"><h2>戰鬥畫面</h2><canvas id="bat" width="209" height="140"></canvas></div>
+ </div>
+ <div style="display:grid;gap:14px;min-width:0">
+  <div class="box"><h2>武器</h2>
+   <label>選擇<select id="wpn"></select></label>
+   <label class="file">上傳新畫的 PNG（建議 50×50）<input id="up" type="file" accept="image/png"></label>
+   <p class="warn" id="warn"></p>
+   <label>X 位移<span class="row"><button data-s="ox,-1" aria-label="X 減一">−</button><input id="ox" type="number" value="0"><button data-s="ox,1" aria-label="X 加一">＋</button></span></label>
+   <label>Y 位移<span class="row"><button data-s="oy,-1" aria-label="Y 減一">−</button><input id="oy" type="number" value="0"><button data-s="oy,1" aria-label="Y 加一">＋</button></span></label>
+   <label class="chk"><input id="ol" type="checkbox">加黑邊</label>
+   <label class="chk" id="shw" hidden><input id="sh" type="checkbox" checked>顯示盾牌（暫用傳說盾）</label>
+   <div class="out" id="out"></div>
+  </div>
+  <div class="box"><h2>符文光暈</h2>
+   <label>第一顆<select id="r0"></select></label>
+   <label>第二顆<select id="r1"></select></label>
+   <label>第三顆<select id="r2"></select></label>
+  </div>
+  <div class="box"><h2>人物</h2>
+   <label>服裝<select id="outfit"></select></label>
+   <label>髮型<select id="style"></select></label>
+   <label>髮色<select id="hair"></select></label>
+   <label>膚色<select id="skin"></select></label>
+   <label>眼睛<select id="eyes"></select></label>
+   <label>放大底色<select id="tone"><option value="#2b2a33">深色</option><option value="#8a8f7a">中間色</option><option value="#e8dcc0">淺色</option></select></label>
+   <label class="chk"><input id="br" type="checkbox" checked>呼吸與光暈動畫</label>
+  </div>
+  <div class="box"><h2>戰鬥畫面</h2>
+   <label>場景<select id="scene"></select></label>
+   <label>人數<select id="n"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label>
+   <label class="chk"><input id="all" type="checkbox" checked>隊友也拿這把</label>
+  </div>
+ </div>
+</div>
+</div>
+<script>
+(function(){'use strict';
+var BASE='../assets/',$=function(i){return document.getElementById(i)};
+var NAMES={weapon01_m1:'天叢雲',weapon01_m2:'終焉魔劍萊瓦汀',weapon01_m3:'艾克斯卡利巴'};
+var SC=[['bg_01','fg_01','魔物森林',93,'#7fb7e8'],['bg_02','fg_02','魔晶礦洞',94,'#15131a'],['bg_03','fg_03','塵嵐古漠',94,'#d98a6a'],['bg_06','fg_06','幽暗墓穴',94,'#15131a'],['bg_05','fg_05','凜冬雪山',94,'#b9d6ea'],['bg_09','fg_09','聖教城領',96,'#15131a'],['bg_04','fg_04','熔岩火原',94,'#15131a'],['bg_07',null,'惡魔王城',94,'#15131a'],['bg_10',null,'秘境',94,'#15131a']];
+var PFORM={1:[[40,20]],2:[[46,27],[30,8]],3:[[48,20],[34,4],[22,33]],4:[[48,22],[38,3],[26,34],[14,14]]};
+var W=[],RUNE=[],SCI={},upN=0;
+
+function loadImg(s){return new Promise(function(r){var i=new Image();i.onload=function(){r(i)};i.onerror=function(){r(null)};i.src=s})}
+function csv(t){var L=t.replace(/^﻿/,'').trim().split(/\r?\n/).map(function(l){var o=[],c='',q=false;for(var i=0;i<l.length;i++){var h=l[i];if(h==='"')q=!q;else if(h===','&&!q){o.push(c);c=''}else c+=h}o.push(c);return o}),H=L[0];return L.slice(1).map(function(r){var o={};H.forEach(function(k,i){o[k]=r[i]});return o})}
+function text(n){return fetch(BASE+'data/'+n).then(function(r){if(!r.ok)throw new Error(n);return r.text()})}
+
+/* 直接讀遊戲的人物程式，只在這一頁套用：放大畫布、支援左下角對齊的 50×50 武器、無黑邊時光暈貼緊武器。遊戲本身不受影響 */
+function loadDoll(){return fetch('../common/doll.js?t='+Math.floor(Date.now()/60000)).then(function(r){return r.text()}).then(function(t){
+ [["var PAD=4,N=48,","var PAD=20,N=78,"],
+  ["function ringOf(img){var c=mk(40,40),x=c.getContext('2d');x.drawImage(img,0,0);var d=x.getImageData(0,0,40,40).data,","function ringOf(img){var W0=img.naturalWidth||img.width,H0=img.naturalHeight||img.height,TOP=H0-40,c=mk(W0,H0),x=c.getContext('2d');x.drawImage(img,0,0);var d=x.getImageData(0,0,W0,H0).data,"],
+  ["for(Y=0;Y<40;Y++)for(X=0;X<40;X++)if(d[(Y*40+X)*4+3]>10)Am[(Y+PAD)*N+X+PAD]=1;","for(Y=0;Y<H0;Y++)for(X=0;X<W0;X++)if(d[(Y*W0+X)*4+3]>10&&Y-TOP+PAD>=0&&X+PAD<N)Am[(Y-TOP+PAD)*N+X+PAD]=1;"],
+  ["return{A:Am,R:R,art:c}}","return{A:Am,R:R,art:c,top:TOP}}"],
+  ["sx.drawImage(g.art,PAD,PAD);","sx.drawImage(g.art,PAD,PAD-g.top);"],
+  ["if(g.A[Y*N+X]||g.R[Y*N+X]){var a=X+dx","if(g.A[Y*N+X]||(!window.MYTH_NOOL&&g.R[Y*N+X])){var a=X+dx"],
+  ["var w=s.weapon,pc=w&&w.img?","window.MYTH_NOOL=!ol;var w=s.weapon,pc=w&&w.img?"],
+  ["var hk=(w?w.key+","var hk=(ol?'o|':'n|')+(w?w.key+"]
+ ].forEach(function(p){if(t.split(p[0]).length!==2)throw new Error('人物程式已更新，預覽頁需要同步：'+p[0].slice(0,30));t=t.replace(p[0],function(){return p[1]})});
+ new Function(t)()})}
+
+function fill(el,rows,val){el.innerHTML='';rows.forEach(function(r){var o=document.createElement('option');o.value=r[0];o.textContent=r[1];el.appendChild(o)});if(val!=null)el.value=val}
+function num(i){return parseInt($(i).value,10)||0}
+function cur(){return W[+$('wpn').value]}
+
+function addWeapon(o){W.push(o);return W.length-1}
+function fillWeapons(sel){fill($('wpn'),W.map(function(w,i){return[i,w.name]}),sel);pick()}
+function pick(){var w=cur();if(!w)return;$('ox').value=w.ox;$('oy').value=w.oy;$('ol').checked=w.ol;$('shw').hidden=!w.shield;
+ $('shw').style.display=w.shield?'':'none';
+ $('warn').textContent=(w.img.naturalWidth===50&&w.img.naturalHeight===50)||(w.img.naturalWidth===40&&w.img.naturalHeight===40)?'':'這張圖是 '+w.img.naturalWidth+'×'+w.img.naturalHeight+'，規格是 50×50，超出的部分可能被切掉。';showOut()}
+function showOut(){var w=cur();if(!w)return;$('out').textContent='offset_x='+num('ox')+'　offset_y='+num('oy')+'　cut='+w.cut+'　'+(($('ol').checked)?'有黑邊':'無黑邊')}
+
+function halo(){return[0,1,2].map(function(i){return $('r'+i).value}).filter(Boolean)}
+function weaponSpec(){var w=cur();return w?{img:w.img,key:w.key,cut:w.cut,ox:num('ox'),oy:num('oy')}:null}
+function shieldSpec(){var w=cur();return w&&w.shield&&$('sh').checked?{img:w.shield,key:'sh'}:null}
+function look(){return{outfit:+$('outfit').value,style:+$('style').value,hair:+$('hair').value,skin:+$('skin').value,eyes:+$('eyes').value,outline:$('ol').checked,breath:$('br').checked}}
+
+var tmp=document.createElement('canvas');tmp.width=tmp.height=78;
+function render(now){var t=$('br').checked?now:1000,L=look();
+ var B=$('big'),x=B.getContext('2d');x.imageSmoothingEnabled=false;x.fillStyle=$('tone').value;x.fillRect(0,0,58,58);
+ Doll.draw(tmp,Object.assign({},L,{weapon:weaponSpec(),shield:shieldSpec(),halo:halo(),closed:false}),t);x.drawImage(tmp,15,6,58,58,0,0,58,58);
+ var C=$('bat'),y=C.getContext('2d'),s=SC[+$('scene').value],g=SCI[s[0]];y.imageSmoothingEnabled=false;y.fillStyle=s[4];y.fillRect(0,0,209,140);
+ if(g&&g.b)for(var k=0;k<209;k+=g.b.width)y.drawImage(g.b,k,0);
+ var n=+$('n').value,P=PFORM[n].map(function(q,i){return{q:q,i:i}}).sort(function(a,b){return a.q[1]-b.q[1]});
+ var same=$('all').checked;
+ P.forEach(function(p){var i=p.i,m=i===0?L:{outfit:(i+1)%5,style:(i+1)%5,hair:(i*2+1)%8,skin:i%3,eyes:(i+4)%8,outline:L.outline,breath:L.breath};
+  Doll.draw(tmp,Object.assign({},m,{weapon:i===0||same?weaponSpec():null,shield:i===0||same?shieldSpec():null,halo:i===0||same?halo():[],closed:false}),t+i*400);
+  y.drawImage(tmp,p.q[0]-40,s[3]+p.q[1]-56)});
+ if(g&&g.f)for(k=0;k<209;k+=g.f.width)y.drawImage(g.f,k,0)}
+var last=0;function loop(now){if(now-last>=90){last=now;try{render(now)}catch(e){$('err').textContent='繪製失敗：'+e.message}}requestAnimationFrame(loop)}
+
+function loadScene(){var s=SC[+$('scene').value];if(SCI[s[0]])return;SCI[s[0]]={};loadImg(BASE+'battle/'+s[0]+'.png').then(function(b){SCI[s[0]].b=b});if(s[1])loadImg(BASE+'battle/'+s[1]+'.png').then(function(f){SCI[s[0]].f=f})}
+
+function start(info,runes){var jobs=[];
+ info.forEach(function(r){if(!r.u_sn)return;var cut=parseFloat(r.cut)||1,ox=parseFloat(r.offset_x)||0,oy=parseFloat(r.offset_y)||0,isS=!!r.offhand;
+  jobs.push(loadImg(BASE+'weapons/'+r.u_sn+'_4.png').then(function(im){return im&&{name:'對照：傳說級'+r.weapon_name,key:r.u_sn+'_4',img:im,cut:cut,ox:ox,oy:oy,ol:true,order:1,sn:r.u_sn,isS:isS}}));
+  [1,2,3].forEach(function(m){var id=r.u_sn+'_m'+m;jobs.push(loadImg(BASE+'weapons/'+id+'.png').then(function(im){return im&&{name:(NAMES[id]||(r.weapon_name+' 型態'+m)),key:id,img:im,cut:cut,ox:0,oy:0,ol:false,order:0,sn:r.u_sn,isS:isS}}))})});
+ return Promise.all(jobs.concat([loadImg(BASE+'weapons/shield_4.png')])).then(function(a){var sh=a.pop();a.filter(Boolean).sort(function(p,q){return p.order-q.order||(p.sn<q.sn?-1:p.sn>q.sn?1:0)}).forEach(function(w){if(w.isS)w.shield=sh;addWeapon(w)});
+  var ro=[['','（無）']].concat(runes.map(function(r){var c=Object.keys(r).map(function(k){return r[k]}).filter(function(v){return /^#[0-9a-f]{6}$/i.test(v)})[0],vals=Object.keys(r).map(function(k){return r[k]});return c?[c,vals[1]]:null}).filter(Boolean));
+  ['r0','r1','r2'].forEach(function(i){fill($(i),ro,'')});
+  fill($('outfit'),Doll.OUTFIT_ORDER.map(function(i){return[i,Doll.JOBN[i]||('服裝 '+(i+1))]}),0);
+  fill($('style'),Doll.STYLE_ORDER.map(function(i){return[i,Doll.STYLEN[i]||('髮型 '+i)]}),0);
+  fill($('hair'),Doll.HAIR.map(function(h,i){return[i,h.n]}),0);
+  fill($('skin'),Doll.SKINN.map(function(n,i){return[i,n]}),0);
+  fill($('eyes'),Doll.assets.eyes.map(function(e,i){return[i,'眼睛 '+(i+1)]}),5);
+  fill($('scene'),SC.map(function(s,i){return[i,s[2]]}),0);
+  fillWeapons(0);loadScene();
+  $('wpn').onchange=pick;$('scene').onchange=loadScene;
+  ['ox','oy','ol'].forEach(function(i){$(i).addEventListener('input',function(){var w=cur();if(w){w.ox=num('ox');w.oy=num('oy');w.ol=$('ol').checked}showOut()})});
+  document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){var p=b.getAttribute('data-s').split(','),e=$(p[0]);e.value=(parseInt(e.value,10)||0)+ +p[1];e.dispatchEvent(new Event('input'))}});
+  $('up').onchange=function(){var f=this.files&&this.files[0];if(!f)return;var u=URL.createObjectURL(f);loadImg(u).then(function(im){if(!im){$('warn').textContent='這個檔案無法讀取，請確認是 PNG。';return}upN++;var base=cur()||{cut:1,isS:false};var i=addWeapon({name:'上傳：'+f.name,key:'up'+upN,img:im,cut:base.cut,ox:0,oy:0,ol:false,shield:base.shield||null});fillWeapons(i)});this.value=''};
+  requestAnimationFrame(loop)})}
+
+Promise.all([loadDoll().then(function(){return Doll.load(BASE,String(Math.floor(Date.now()/300000)))}),text('weapon_info.csv'),text('rune_info.csv')]).then(function(r){return start(csv(r[1]),csv(r[2]))}).catch(function(e){$('err').textContent='載入失敗：'+e.message});
+})();
+</script>
+</body>
+</html>
