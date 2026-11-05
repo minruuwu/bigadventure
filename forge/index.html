@@ -577,7 +577,7 @@ function syncSheet(){var s=ST[SHEET.k],M=slots(s.lv),P=SHEET.pick;
   document.getElementById('sheetX').disabled=sameSet(P,s.ench)}
 function openSheet(k,ti){var s=ST[k],w=W[k],sh=document.getElementById('sheet'),box=document.getElementById('sheetOpts');SHEET.ti=ti;SHEET.k=k;SHEET.pick=s.ench.filter(function(id){return rLv(id)>=1});
   document.getElementById('sheetT').textContent='符文之書';
-  document.getElementById('sheetHint').textContent='Lv1 以上的符文才能選。碎片在秘境取得；點符文看等級、碎片進度與兌換。';
+  document.getElementById('sheetHint').textContent='Lv1 以上的符文才能選。碎片在秘境取得；點符文看等級與碎片進度。';
   box.textContent='';
   ROOMS.forEach(function(rm){box.appendChild(el('div','rowh','秘境・'+rm.n+'（週'+roomDays(rm.ch).join('、')+'）'));
     var grid=el('div','rgrid');
@@ -602,14 +602,7 @@ function openDetail(id){var r=RUNE[id],s=ST[SHEET.k],M=slots(s.lv),P=SHEET.pick,
   if(r.room)b.appendChild(el('p','drule','取得：秘境・'+r.room.n+'（週'+roomDays(r.room.ch).join('、')+'）'));
   var vt=el('div','dvals');[0,1,2,3].forEach(function(q){if(!r.lab[q])return;var cur=lv?rVal(id,lv,q):'',nxt=lv<10?rVal(id,lv+1,q):'';if(!cur&&!nxt)return;var d2=el('div','dv');d2.appendChild(el('span','l',r.lab[q]));d2.appendChild(el('span','v',(cur||'—')+(lv<10&&nxt?' → '+nxt:'')));vt.appendChild(d2)});
   if(vt.children.length){b.appendChild(el('div','dlab',lv<10?'本級 → 下一級':'滿級數值'));b.appendChild(vt)}
-  /* 兌換：任何符文的碎片 10 片換 1 片這個符文 */
-  if(lv<10){var src=Object.keys(RUNE).filter(function(x){return x!==id&&((S.rs||{})[x]|0)>=10});var cw=el('div','dconv');cw.appendChild(el('div','dlab','碎片兌換（10 片換 1 片「'+r.name+'」）'));
-    if(!src.length)cw.appendChild(el('p','drule','還沒有哪一種符文的碎片滿 10 片。'));
-    else{var cg=el('div','cgrid');src.forEach(function(x){var q=RUNE[x],bt=el('button','cbtn');bt.type='button';bt.appendChild(runeStone(x,22,false,false));bt.appendChild(el('span',null,q.name+' ×'+((S.rs||{})[x]|0)));
-      bt.addEventListener('click',function(){var eq=ORDER.some(function(k2){return ST[k2].ench.indexOf(x)>=0}),after=RuneVals.levelOf(((S.rs||{})[x]|0)-10),drop=after<rLv(x);
-        var msg='用 10 片「'+q.name+'」換 1 片「'+r.name+'」？'+(drop?'「'+q.name+'」會從 Lv'+rLv(x)+' 降到 Lv'+after+(after<1&&eq?'，並從武器上卸下':'')+'。':'');
-        if(!confirm(msg))return;convert(x,id)});cg.appendChild(bt)});cw.appendChild(cg)}
-    b.appendChild(cw)}
+  /* 碎片兌換已取消（2026-11）：符文只能靠秘境慢慢收集 */
   if(r.detail){b.appendChild(el('div','dlab','規則細節'));b.appendChild(el('p','drule',r.detail))}
   var btn=document.getElementById('detGo');btn.disabled=false;
   btn.textContent=lv<1?'尚未取得':on?'取消選擇':'選擇這個符文';btn.disabled=lv<1||(!on&&P.length>=M);
