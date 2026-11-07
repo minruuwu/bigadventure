@@ -43,7 +43,8 @@ var REACH=150;            /* 可以打的距離（公尺） */
 var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
 var LV=50;
-var GA=0.2;               /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
+var BASEC='#8c7a58';      /* 地面底色：所有地域共用的土色，地域之間的分界比較不明顯 */
+var GA=0.14;              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
 /* 地域（試作版只有兩種） */
 var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']}];
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
@@ -92,8 +93,8 @@ function draw(now){
     cx.save();cx.beginPath();cx.rect(L,T,R-L,B-T);cx.clip();cx.translate(((ox0+W/2)%256+256)%256,((oy0+H/2)%256+256)%256);cx.fillStyle=p;cx.fillRect(-256,-256,W+512,H+512);cx.restore();
   }
   blendEdges(x0,x1,y0,y1);
-  /* 地面淡一點：每個地域格再蓋一層它的平均色（GA = 地面花紋保留多少），花紋不會那麼搶眼 */
-  for(var zx2=Math.floor(x0/ZONE);zx2<=Math.floor(x1/ZONE);zx2++)for(var zy2=Math.floor(y0/ZONE);zy2<=Math.floor(y1/ZONE);zy2++){var z2=zoneAt(zx2,zy2),a2=scr(zx2*ZONE,(zy2+1)*ZONE),b2=scr((zx2+1)*ZONE,zy2*ZONE);cx.globalAlpha=1-GA;cx.fillStyle=z2.avg||'#808080';cx.fillRect(Math.floor(a2[0]),Math.floor(a2[1]),Math.ceil(b2[0])-Math.floor(a2[0]),Math.ceil(b2[1])-Math.floor(a2[1]));cx.globalAlpha=1}
+  /* 地面淡一點：每個地域格再蓋一層共用的土色（GA = 地面花紋保留多少），花紋不會那麼搶眼、分界也比較不明顯 */
+  for(var zx2=Math.floor(x0/ZONE);zx2<=Math.floor(x1/ZONE);zx2++)for(var zy2=Math.floor(y0/ZONE);zy2<=Math.floor(y1/ZONE);zy2++){var z2=zoneAt(zx2,zy2),a2=scr(zx2*ZONE,(zy2+1)*ZONE),b2=scr((zx2+1)*ZONE,zy2*ZONE);cx.globalAlpha=1-GA;cx.fillStyle=BASEC;cx.fillRect(Math.floor(a2[0]),Math.floor(a2[1]),Math.ceil(b2[0])-Math.floor(a2[0]),Math.ceil(b2[1])-Math.floor(a2[1]));cx.globalAlpha=1}
   /* 道路（OpenStreetMap） */
   drawRoads(x0,x1,y0,y1);
   /* 可以打的範圍 */
