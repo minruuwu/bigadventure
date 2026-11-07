@@ -486,7 +486,7 @@ function greenOf(im,sh){if(!im||!im.naturalWidth)return null;try{var c=document.
     h=(h+sh/360+1)%1;var q=l<.5?l*(1+sa):l+sa-l*sa,p=2*l-q,f=function(t){t=(t+1)%1;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p};d[i]=Math.round(f(h+1/3)*255);d[i+1]=Math.round(f(h)*255);d[i+2]=Math.round(f(h-1/3)*255)}
   x.putImageData(D,0,0);var o=new Image();o.src=c.toDataURL();return o}catch(e){return null}}
 function vimg(L,el){var i=L[ELN[el]||0];return i&&i.naturalWidth?i:(L[0]&&L[0].naturalWidth?L[0]:null)}
-var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'},beam:function(){return 'beam'},pillar:function(){return 'pillar'},notes:function(){return 'notes'},burst:function(){return 'burst'},bonestorm:function(){return 'storm'},sandstorm:function(){return 'sandstorm'},miasma:function(){return 'miasma'},burrow:function(){return 'burrow'},blood:function(){return 'blood'},grasp:function(){return 'grasp'},souls:function(){return 'souls'},storm:function(){return 'storm'},swords:function(){return 'swords'},chains:function(){return 'chains'},darkchains:function(){return 'pchains'},holycross:function(){return 'cross'},icerain:function(){return 'icerain'}},FARK=['icerain','bow','staff','book','throw','beam','pillar','notes','storm','swords','pchains','cross'];
+var VFXK={slash:function(w){return w==='axe'?'axe':'sword'},smash:function(){return 'hammer'},thrust:function(w){return w==='spear'?'spear':'dagger'},arrow:function(){return 'bow'},missile:function(w){return w==='book'?'book':'staff'},throw:function(){return 'throw'},beam:function(){return 'beam'},pillar:function(){return 'pillar'},notes:function(){return 'notes'},burst:function(){return 'burst'},bonestorm:function(){return 'storm'},sandstorm:function(){return 'sandstorm'},miasma:function(){return 'miasma'},burrow:function(){return 'burrow'},blood:function(){return 'blood'},grasp:function(){return 'grasp'},souls:function(){return 'souls'},storm:function(){return 'storm'},swords:function(){return 'swords'},chains:function(){return 'chains'},darkchains:function(){return 'pchains'},lightchains:function(){return 'pchains'},holycross:function(){return 'cross'},icerain:function(){return 'icerain'}},FARK=['icerain','bow','staff','book','throw','beam','pillar','notes','storm','swords','pchains','cross'];
 var WKIND={'劍':'sword','斧':'axe','錘':'hammer','匕':'dagger','槍':'spear','弓':'bow','杖':'staff','書':'book'};
 var ELC={blood:'#e0182e',undead:'#3fe8c0',arcane:'#8a7aff',fire:'#ff7a3a',frost:'#9ad8ff',lightning:'#ffe95a',wind:'#7cf0c4',nature:'#8ed65a',light:'#fff4c4',dark:'#6a1fc0'};
 function vfxColor(wk,s){if(s.el&&ELC[s.el])return ELC[s.el];if(!s.atk)return '#f3d98a';return wk==='staff'||wk==='book'?'#d6b8ff':'#ffffff'}
@@ -863,11 +863,13 @@ function crossFx(d,x,y,sc){if(d<0||d>950)return;var a=d<160?d/160:d>720?Math.max
   pctx.globalCompositeOperation='lighter';var gl=.28*a*(.8+.2*Math.sin(d/60));for(var i=-8*k;i<=8*k;i++)for(var j=-11*k;j<=11*k;j++){var r=Math.sqrt(i*i/(64*k*k)+j*j/(121*k*k));if(r<=1)VP(cx+i,cy+j,'#ffe9a0',gl*(1-r))}pctx.globalCompositeOperation='source-over';
   var V=[cx-k,cy-10*k,3*k,20*k],H=[cx-6*k,cy-5*k,13*k,3*k];[V,H].forEach(function(b){for(var i=0;i<b[2];i++)for(var j=0;j<b[3];j++){var edge=i===0||j===0||i===b[2]-1||j===b[3]-1;VP(b[0]+i,b[1]+j,edge?'#f2b51c':'#fff8dc',a)}});
   if(d>200&&d<700&&Math.floor(d/90)%2===0)VP(cx+Math.round(Math.sin(d/70)*7*k),cy-12*k,'#ffffff',a*.9)}
-function chainsFx(d,px,py){if(d<60||d>1050)return;var u=Math.min(1,(d-60)/420),fade=d>850?1-(d-850)/200:1,cx=Math.round(px),gy=Math.round(py),back=RGrid(),front=RGrid(),tight=d>480?Math.min(1,(d-480)/120):0,R=9-tight*2.5;
+function chainsFx(d,px,py,pal){if(d<60||d>1050)return;pal=pal||CHP.def;var u=Math.min(1,(d-60)/420),fade=d>850?1-(d-850)/200:1,cx=Math.round(px),gy=Math.round(py),back=RGrid(),front=RGrid(),tight=d>480?Math.min(1,(d-480)/120):0,R=9-tight*2.5;
   var N=Math.floor(u*30);for(var k=0;k<N;k++){var f=k/30,an=f*Math.PI*4.6,x=cx+Math.cos(an)*R,y=gy-1-f*24+Math.sin(an)*2.2,G=Math.sin(an)>0?front:back;
     if(k%2){G.put(x,y-1,2);G.put(x,y+1,2);G.put(x-1,y,2);G.put(x+1,y,2)}else{G.put(x-1,y,3);G.put(x,y,3);G.put(x+1,y,3)}}
-  back.draw({2:'#4a4458',3:'#5a5468'},fade*.7,'#1a1622');front.draw({2:'#b8b0cc',3:'#e0dcf0'},fade,'#1a1622');
-  if(d>480&&d<800){var v=(d-480)/320,G2=RGrid();for(var r=0;r<22;r++){var an2=r/22*Math.PI*2;G2.put(cx+Math.cos(an2)*(6+v*10),gy-12+Math.sin(an2)*(6+v*10)*.7,1)}pctx.save();pctx.globalCompositeOperation='lighter';G2.draw({1:'#c080ff'},(1-v)*.9,null);pctx.restore()}}
+  back.draw({2:pal[0],3:pal[1]},fade*.7,pal[4]);front.draw({2:pal[2],3:pal[3]},fade,pal[4]);
+  if(d>480&&d<800){var v=(d-480)/320,G2=RGrid();for(var r=0;r<22;r++){var an2=r/22*Math.PI*2;G2.put(cx+Math.cos(an2)*(6+v*10),gy-12+Math.sin(an2)*(6+v*10)*.7,1)}pctx.save();pctx.globalCompositeOperation='lighter';G2.draw({1:pal[5]},(1-v)*.9,null);pctx.restore()}}
+/* 鎖鏈配色：[後排暗、後排亮、前排暗、前排亮、描邊、收緊時的光圈] */
+var CHP={def:['#4a4458','#5a5468','#b8b0cc','#e0dcf0','#1a1622','#c080ff'],dark:['#24142e','#341c44','#5e2e8a','#8a52c4','#0c0610','#b060ff'],light:['#9a8238','#b89a48','#ffd970','#fff4c8','#5a4410','#fff0a0']};
 /* 光柱：敵陣中間先出現一條細線＋地上光圈 → 往兩邊撐開蓋住整個敵陣（中間白、兩邊屬性色）→ 維持抖動、地面濺射 → 收回淡出；L、R = 左右邊界，gy = 地面 */
 /* 風暴：在目標群中間捲起一團大風暴。好幾道風在斜橢圓軌道上繞圈（下寬上窄、一層層往上），風頭亮、尾巴漸淡，繞到後面那半圈比較淡；
    顏色照技能屬性（沒有屬性 = 白灰）；cx = 中心、gy = 地面、R = 半寬、H = 高度 */
@@ -1094,7 +1096,7 @@ function drawVfx(t){shakeY=0;if(!B)return;
         var sp=(d-370)/200;if(sp>=0&&sp<=1)for(var q=0;q<5;q++){var sx2=pp[0]-8+q*4,H=(q%2?14:20)*Math.sin(sp*Math.PI);/* 地刺：底部 3 格寬、往上收成尖端 */for(var j=0;j<H;j++){var wv=j<H*.35?3:j<H*.7?2:1,x0=sx2-Math.floor(wv/2);for(var w2=0;w2<wv;w2++)VP(x0+w2,pp[1]-1-j,w2===0&&wv>1?'#4a4068':'#1e1830',1)}}});return}/* 目標腳下噴沙＋尾針從地面刺出 */
     /* 制裁之鎖：每個敵人身上纏上黑暗鎖鏈；異端裁決：每個敵人身上浮現光明十字架 */
     if(e.wk==='pchains'||e.wk==='cross'){if(hh)return;if(e.side==='p')(e.tg||[]).forEach(function(ti,n){var mo=mons[ti],mp=monPos(ti);if(!mo||!mp)return;var sc=Math.min(1.6,mo.sc||1);
-        if(e.wk==='pchains'){chainsFx(d-n*40,mp[0],BG[cur].band+mo.dy);pBurst('dark',mp[0],mp[1],d-(e.hit||520)-n*40,14,VS*sc)}
+        if(e.wk==='pchains'){var lt=e.el==='light';chainsFx(d-n*40,mp[0],BG[cur].band+mo.dy,lt?CHP.light:CHP.dark);pBurst(lt?'light':'dark',mp[0],mp[1],d-(e.hit||520)-n*40,14,VS*sc)}
         else{crossFx(d-n*70,mp[0],mp[1],sc);pBurst('light',mp[0],mp[1],d-(e.hit||460)-n*70,16,VS*sc)}});return}
     if(e.wk==='swords'){if(hh)return;var L=1e9,R=-1e9,gy=0,any=false,hitp=[];
       if(e.side==='p')(e.tg||[]).forEach(function(ti){var mo=mons[ti],mp=monPos(ti);if(!mo||!mp)return;var hw=msz(mo.k)[0]*mo.sc/2;L=Math.min(L,mp[0]-hw);R=Math.max(R,mp[0]+hw);gy=Math.max(gy,BG[cur].band+mo.dy);hitp.push([mp[0],mp[1]]);any=true});
@@ -1153,7 +1155,9 @@ function drawVfx(t){shakeY=0;if(!B)return;
     var p=party[e.a];if(!p)return;var pp=posOf(p.i),lu=Math.max(0,Math.min(1,d/420)),lx=(e.rfx==='el'?0:1)*Math.sin(lu*Math.PI)*(e.far?6:18),sx=pp[0]+lx+(wk==='bow'||wk==='staff'||wk==='book'||wk==='beam'||wk==='notes'?18:wk==='throw'?12:6),sy=pp[1]-15-(wk==='throw'?20:0),c=e.vc||'#ffffff',wk=e.wk;
     if(e.ty==='heal'&&e.hl!=null){[].concat(e.hl).forEach(function(hk){healFx(posOf(hk),d,e.el)});return}
     if(e.ty==='buff'){if(PCOL[e.el])pBurst(e.el,pp[0],pp[1]-12,d-60,12,.8*VS);var u2=d/700;if(u2>1)return;var R=6+u2*6;for(var k2=0;k2<28;k2++){var an=k2/28*Math.PI*2;VP(pp[0]+Math.cos(an)*R,pp[1]-1+Math.sin(an)*R*.3,k2%2?'#ffd76a':'#fff4c4',1-u2)}return}
-    (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;hitFx(e,d,wk,c,sx,sy,mp[0],mp[1],BG[cur].band+mons[ti].dy,mons[ti].sc||1)})}
+    /* 近戰連擊（例如連環刺殺）：每一下打在身上不同位置 */
+    var JIT=[[0,0],[-6,-7],[6,5],[-4,8],[7,-6],[-8,2],[3,-9],[5,9]],jm=e.hits>1&&['dagger','spear','sword','axe','hammer'].indexOf(wk)>=0?JIT[hh%JIT.length]:[0,0];
+    (e.tgh?[e.tgh[hh]]:(e.tg||[])).forEach(function(ti){var mp=monPos(ti);if(!mp)return;var js=Math.min(1.6,mons[ti].sc||1);hitFx(e,d,wk,c,sx,sy+jm[1]*js*.5,mp[0]+jm[0]*js,mp[1]+jm[1]*js,BG[cur].band+mons[ti].dy,mons[ti].sc||1)})}
   pctx.globalAlpha=1;frame.style.transform=shakeY?'translateY('+shakeY+'px)':''}
 
 /* ---- 戰棋用的特效橋接：沿用上面同一套特效（箭、魔彈、投擲、刺擊、打擊、斬擊、元素粒子、治療／增益光、爪痕），
@@ -2140,7 +2144,7 @@ function vtFire(t){if(VT.sk){var se=vtSkEv(t);if(se){B.ev=B.ev.filter(function(x
   else if(VT.kind==='mstorm')e={side:'m',a:0,tgt:0,tgts:[0],t:t,wk:'storm',el:VT.el,vc:'#ffffff',hit:520,cast:castCol(VT.el,'damage')};
   else if(VT.kind==='mswords')e={side:'m',a:0,tgt:0,tgts:[0],t:t,wk:'swords',el:VT.el||'light',vc:'#ffffff',hit:470,cast:castCol(VT.el||'light','damage')};
   else if(VT.kind==='pillar')e={side:'p',a:0,t:t,tg:[0],wk:'pillar',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:330};
-  else if(VT.kind==='pchains')e={side:'p',a:0,t:t,tg:[0],wk:'pchains',vc:'#6a1fc0',atk:false,el:'dark',ty:'damage',far:true,hit:520};
+  else if(VT.kind==='pchains')e={side:'p',a:0,t:t,tg:[0],wk:'pchains',vc:'#6a1fc0',atk:false,el:VT.el==='light'?'light':'dark',ty:'damage',far:true,hit:520};
   else if(VT.kind==='cross')e={side:'p',a:0,t:t,tg:[0],wk:'cross',vc:'#fff4c4',atk:false,el:'light',ty:'damage',far:true,hit:460};
   else{e={side:'p',a:0,t:t,tg:[0],wk:wk,vc:vfxColor(wk,s),atk:VT.atk&&!VT.el,el:VT.el,ty:VT.kind,far:FARK.indexOf(wk)>=0,hit:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180};
     if(VT.kind==='heal'){e.tg=[];e.hl=0}if(VT.kind==='buff')e.tg=[]}
