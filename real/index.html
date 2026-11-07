@@ -101,7 +101,7 @@ function draw(now){
   /* 裝飾物、怪物、自己：依畫面上下排序（下面的蓋住上面的） */
   var objs=[];MONS=[];
   for(var sx=Math.floor((x0-30)/SUB);sx<=Math.floor((x1+30)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
-    var mo=monOf(sx,sy);if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
+    var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
     decoOf(sx,sy).forEach(function(d){if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14)return;if(nearRoad(d.x,d.y,9))return;objs.push({t:'d',o:d,y:d.y})})}
   objs.push({t:'p',y:me.y});
   objs.sort(function(a,b){return b.y-a.y});
@@ -138,7 +138,7 @@ function blendEdges(x0,x1,y0,y1){
     var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
     if(zr!==z){/* 右邊交界：左側混一點右邊的地面，右側混一點左邊的 */var t=Math.max(T,-4),bt=Math.min(B,H+4);dissolve(zr,R-BL,t,BL,bt-t,1,1);dissolve(z,R,t,BL,bt-t,1,0)}
     if(zu!==z){/* 上方交界（畫面上方 = 北邊） */var l=Math.max(L,-4),rr=Math.min(R,W+4);dissolve(zu,l,T,rr-l,BL,0,0);dissolve(z,l,T-BL,rr-l,BL,0,1)}}}
-/* ---- 道路：OpenStreetMap（Overpass API）每 CH 度一塊（0.005 度約 500 公尺）抓一次，存在瀏覽器 ---- */
+/* ---- 備用道路：台灣以外用 OpenStreetMap（Overpass API）即時抓，每 CH 度一塊（0.005 度約 500 公尺），存在瀏覽器 ---- */
 var CH=0.005,CI=200;
 var RD={},RDQ={},RDV=0,RL=document.createElement('canvas'),RX=RL.getContext('2d');
 var RW={motorway:6,trunk:6,primary:5,secondary:5,tertiary:4,unclassified:3,residential:3,living_street:3,pedestrian:3};/* 小路、步道、停車場通道先不抓，資料量少很多、比較快 */
@@ -161,16 +161,46 @@ function pump(){if(RBUSY||!RQ.length){rdMsg(RQ.length||RBUSY?'道路載入中…
     function(err){clearTimeout(tm);why.push((OVP[u].split('/')[2])+'：'+(err&&err.name==='AbortError'?'逾時':(err&&err.message)||'失敗'));
       if(u+1<OVP.length)tryAt(u+1);else{delete RDQ[k];RD[k]=[];RERR='道路載入失敗，1 分鐘後再試（'+why.join('；')+'）';setTimeout(function(){delete RD[k];RDV++},60000);RBUSY=false;pump()}})})(0)}
 function rdMsg(t){var el=$('rdm');if(el){el.textContent=t;el.hidden=!t}}
-function roadsNear(x0,x1,y0,y1){var a=toLL(x0,y0),b=toLL(x1,y1),out=[];for(var i=Math.floor(a[1]*CI);i<=Math.floor(b[1]*CI);i++)for(var j=Math.floor(a[0]*CI);j<=Math.floor(b[0]*CI);j++){loadChunk(i,j);var L=RD[chunkKey(i,j)];if(L)out.push(L)}return out}
-var NRC={},NRV=-1;
-function nearRoad(x,y,r){if(NRV!==RDV){NRC={};NRV=RDV}var ck=x+','+y;if(ck in NRC)return NRC[ck];return NRC[ck]=nearRoad0(x,y,r)}
-function nearRoad0(x,y,r){var hit=false;roadsNear(x-r,x+r,y-r,y+r).forEach(function(L){if(hit)return;L.forEach(function(rd){if(hit)return;for(var n=1;n<rd.p.length;n++){var a=rd.p[n-1],b=rd.p[n];if(Math.max(a[0],b[0])<x-r-20||Math.min(a[0],b[0])>x+r+20||Math.max(a[1],b[1])<y-r-20||Math.min(a[1],b[1])>y+r+20)continue;
-  var dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx-x,qy=a[1]+t*dy-y;if(qx*qx+qy*qy<(r+rd.w*MPP)*(r+rd.w*MPP)){hit=true;return}}})});return hit}
-/* 先在另一張畫布上畫，再把半透明的邊緣去掉，讓道路也是一格一格的像素 */
+/* ---- 地圖資料：優先讀放在 GitHub 的台灣地圖（assets/map，每 0.05 度一塊，含道路、橋、河流、水域）；
+   台灣以外（或還沒產生地圖資料時）才用上面的 Overpass 即時抓道路 ---- */
+var MIDX=null,MC={},MCQ=0;
+fetch(BASE+'map/index.json?v='+Math.floor(Date.now()/3600e3)).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.k){MIDX=j;MIDX.set={};j.k.forEach(function(k){MIDX.set[k]=1});RDV++}}).catch(function(){});
+function dec(a){var o=[],x=0,y=0;for(var n=0;n<a.length;n+=2){x+=a[n];y+=a[n+1];o.push([x,y])}return o}
+function loadBig(i,j){var k=i+'_'+j;if(MC[k])return;MC[k]='…';MCQ++;rdMsg('地圖載入中…');
+  fetch(BASE+'map/c/'+k+'.json?v='+(MIDX.v||'')).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(d){
+    MC[k]={r:(d.r||[]).map(function(x){return{w:x[0],b:x[1],p:dec(x[2])}}),l:(d.l||[]).map(function(x){return{w:x[0],p:dec(x[1])}}),a:(d.a||[]).map(function(rs){return rs.map(dec)})};RDV++;if(!--MCQ)rdMsg('')},
+    function(e){MC[k]={r:[],l:[],a:[]};if(!--MCQ)rdMsg('地圖載入失敗：'+(e&&e.message||e));setTimeout(function(){delete MC[k]},60000)})}
+/* 範圍內的地圖資料：回傳 [{r:道路, l:河流線, a:水域面}, ...] */
+function roadsNear(x0,x1,y0,y1){var a=toLL(x0,y0),b=toLL(x1,y1),out=[],BC=0.05;
+  for(var i=Math.floor(a[1]/BC);i<=Math.floor(b[1]/BC);i++)for(var j=Math.floor(a[0]/BC);j<=Math.floor(b[0]/BC);j++){var k=i+'_'+j;
+    if(MIDX&&MIDX.set[k]){loadBig(i,j);if(MC[k]&&MC[k]!=='…')out.push(MC[k]);continue}
+    if(MIDX&&MIDX.bbox&&i>=MIDX.bbox[0]&&i<=MIDX.bbox[2]&&j>=MIDX.bbox[1]&&j<=MIDX.bbox[3])continue;/* 台灣範圍內沒有資料的格子（海上）：什麼都不畫 */
+    /* 台灣範圍外：用 Overpass 抓這一格和畫面重疊的部分 */
+    var li0=Math.max(Math.floor(a[1]*CI),Math.round(i*BC*CI)),li1=Math.min(Math.floor(b[1]*CI),Math.round((i+1)*BC*CI)-1),lj0=Math.max(Math.floor(a[0]*CI),Math.round(j*BC*CI)),lj1=Math.min(Math.floor(b[0]*CI),Math.round((j+1)*BC*CI)-1);
+    for(var i2=li0;i2<=li1;i2++)for(var j2=lj0;j2<=lj1;j2++){loadChunk(i2,j2);var L=RD[chunkKey(i2,j2)];if(L)out.push({r:L,l:[],a:[]})}}
+  return out}
+var NRC={},NRV=-1,WTC={};
+function nearRoad(x,y,r){if(NRV!==RDV){NRC={};WTC={};NRV=RDV}var ck=x+','+y;if(ck in NRC)return NRC[ck];return NRC[ck]=nearRoad0(x,y,r)||inWater(x,y)}
+function segNear(p,x,y,rr){for(var n=1;n<p.length;n++){var a=p[n-1],b=p[n];if(Math.max(a[0],b[0])<x-rr||Math.min(a[0],b[0])>x+rr||Math.max(a[1],b[1])<y-rr||Math.min(a[1],b[1])>y+rr)continue;
+  var dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx-x,qy=a[1]+t*dy-y;if(qx*qx+qy*qy<rr*rr)return true}return false}
+function nearRoad0(x,y,r){return roadsNear(x-r,x+r,y-r,y+r).some(function(G){return G.r.some(function(rd){return segNear(rd.p,x,y,r+rd.w*MPP)})})}
+/* 在不在水裡（水域面：奇偶規則，河中島不算水；河流線：照寬度） */
+function inWater(x,y){if(NRV!==RDV){NRC={};WTC={};NRV=RDV}var ck=x+','+y;if(ck in WTC)return WTC[ck];
+  return WTC[ck]=roadsNear(x-10,x+10,y-10,y+10).some(function(G){return G.l.some(function(l){return segNear(l.p,x,y,l.w*MPP+6)})||G.a.some(function(rs){var c=false;rs.forEach(function(p){for(var n=0,m=p.length-1;n<p.length;m=n++){var a=p[n],b=p[m];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1]||1e-9)+a[0])c=!c}});return c})})}
+/* 先在另一張畫布上畫水域、河流、道路、橋，再把半透明的邊緣去掉，整張都是一格一格的像素；水面上撒一點會閃的水光 */
 function drawRoads(x0,x1,y0,y1){var groups=roadsNear(x0-50,x1+50,y0-50,y1+50);if(!groups.length)return;
   if(RL.width!==W||RL.height!==H){RL.width=W;RL.height=H}RX.clearRect(0,0,W,H);RX.lineCap='round';RX.lineJoin='round';
-  [0,1].forEach(function(pass){groups.forEach(function(L){L.forEach(function(rd){RX.strokeStyle=pass?'#dcc79a':'#7a5c34';RX.lineWidth=rd.w+(pass?0:2);RX.beginPath();rd.p.forEach(function(q,n){var s=scr(q[0],q[1]);if(n)RX.lineTo(s[0],s[1]);else RX.moveTo(s[0],s[1])});RX.stroke()})})});
-  var d=RX.getImageData(0,0,W,H),a=d.data;for(var i=3;i<a.length;i+=4)a[i]=a[i]>=110?255:0;RX.putImageData(d,0,0);cx.drawImage(RL,0,0)}
+  function path(p){p.forEach(function(q,n){var s=scr(q[0],q[1]);if(n)RX.lineTo(s[0],s[1]);else RX.moveTo(s[0],s[1])})}
+  RX.fillStyle='#3d78b4';groups.forEach(function(G){G.a.forEach(function(rs){RX.beginPath();rs.forEach(function(p){path(p);RX.closePath()});RX.fill('evenodd')})});
+  RX.strokeStyle='#3d78b4';groups.forEach(function(G){G.l.forEach(function(l){RX.lineWidth=l.w+1;RX.beginPath();path(l.p);RX.stroke()})});
+  [0,1].forEach(function(pass){groups.forEach(function(G){G.r.forEach(function(rd){if(rd.b)return;RX.strokeStyle=pass?'#dcc79a':'#7a5c34';RX.lineWidth=rd.w+(pass?0:2);RX.beginPath();path(rd.p);RX.stroke()})})});
+  /* 橋：深灰欄杆＋石色橋面，蓋在河面上 */
+  [0,1,2].forEach(function(pass){groups.forEach(function(G){G.r.forEach(function(rd){if(!rd.b)return;RX.lineCap=pass?'round':'butt';RX.strokeStyle=['#2e2a26','#8d8678','#c4bba8'][pass];RX.lineWidth=rd.w+[5,3,1][pass];RX.beginPath();path(rd.p);RX.stroke()})})});RX.lineCap='round';
+  var d=RX.getImageData(0,0,W,H),a=d.data,wx0=Math.round(me.x/MPP)-Math.floor(W/2),wy0=-Math.round(me.y/MPP)-Math.floor(H/2),ph=Math.floor(Date.now()/700);
+  for(var y=0,o=3;y<H;y++)for(var x=0;x<W;x++,o+=4){if(a[o]<110){a[o]=0;continue}a[o]=255;
+    if(a[o-1]>a[o-3]+50&&a[o-1]>a[o-2]){/* 水：深淺兩種藍，加上會閃的水光 */var hx=Math.imul((wx0+x)|0,374761393)^Math.imul((wy0+y)|0,668265263);hx=Math.imul(hx^(hx>>>13),1274126177)>>>0;
+      if(hx%23===0){a[o-3]=78;a[o-2]=138;a[o-1]=196}if(hx%997===ph%997||hx%1301===(ph*7)%1301){a[o-3]=196;a[o-2]=230;a[o-1]=250}}}
+  RX.putImageData(d,0,0);cx.drawImage(RL,0,0)}
 var IMC={};function imgFor(src){var i=IMC[src];if(!i){i=new Image();i.src=src;IMC[src]=i;var ks=Object.keys(IMC);if(ks.length>400)ks.slice(0,200).forEach(function(k){delete IMC[k]})}return i}
 /* ---- HUD ---- */
 function hud(now){var z=zoneAt(Math.floor(me.x/ZONE),Math.floor(me.y/ZONE));$('zn').textContent=z.n;$('zc').style.background=z.c;
