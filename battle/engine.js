@@ -269,6 +269,8 @@
       if (swl && (tgt.side !== 'p' || P.some(function (x) { return !x.dead && x.st.some(function (q) { return q.swal && q.src === src }) }))) return false;
       var ctl = def.rows.some(function (r) { return CONTROL[r.k] }), nob = def.rows.some(function (r) { return NOBOSS[r.k] });
       if (tgt.boss && nob) return false;
+      /* 秘術護罩（debuff_block）：持續期間擋下敵人施加的新負面狀態 */
+      if (def.pol === 'debuff' && src && src.side !== tgt.side && tgt.st.some(function (x) { return !x.paused && x.rows.some(function (r) { return r.k === 'debuff_block' }) })) { if (e) e.txt += '，' + tgt.name + ' 的護罩抵擋了「' + name + '」'; return false }
       var ch = chance == null || chance === '' ? 1 : num(chance);
       if (src && src.mst && src.mst.debuff_chance && def.pol === 'debuff' && src.side !== tgt.side) ch = Math.min(1, ch + src.mst.debuff_chance.v); /* 咒術精通 */
       if (tgt.boss && ctl) ch /= 2;
@@ -359,7 +361,7 @@
       /* 扣血（先扣護盾）；回傳實際扣掉的生命與是否倒下 */
       var left = amt; if (src && amt > 0 && src !== d) d._lh = src; /* 記下最後打到牠的人（擊殺 +1 SP） */
       d.st.forEach(function (s) { if (left > 0 && s.shield > 0) { var x = Math.min(s.shield, left); s.shield -= x; left -= x } });
-      d.st = d.st.filter(function (s) { return !(s.rows.some(function (r) { return r.k === 'shield' }) && s.shield <= 0) });
+      d.st = d.st.filter(function (s) { return !(s.rows.some(function (r) { return r.k === 'shield' }) && s.shield <= 0 && !s.rows.some(function (r) { return r.k === 'debuff_block' })) }); /* 秘術護罩：盾破了也留著，繼續抵擋負面狀態到回合結束 */
       d.hp -= left; numHit(d, amt, left);
       if (left > 0 && !dot) d.st = d.st.filter(function (s) { return !s.rows.some(function (r) { return r.k === 'sleep' }) });
       return left;

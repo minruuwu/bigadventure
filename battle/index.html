@@ -1455,7 +1455,7 @@ function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=
     var v=r.v||0,ic=null;
     if(/_res_rate$/.test(k)&&k!=='hit_taken_rate'){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none'&&v)ic={k:'res_'+el,m:v>0?'up':'down'}}else ic=stIc(k,v);
     if(ic)o.ic.push(ic)});
-  if(nm==='輝煌')o.fx.sun=1;if(nm==='劍氣')o.fx.qi=1;if(nm==='枷鎖')o.fx.chain=1;if(nm==='霜甲')o.fx.fshield=1;if(nm==='元素屏障')o.fx.ebar=1;if(nm==='冰之守護')o.fx.iguard=1;if(nm==='骨牢'){o.fx.cage=1;o.fx.shake=0}if(nm==='瘴氣')o.fx.miasma=1;if(nm==='潛伏')o.fx.stealth=1;if(STCOLD[nm]){o.fx.cold=1;o.ic=[]}/* 冷凍類（霜凍、凍足、冷凝）固定是閃避下降，看冷氣就知道，不另外出腳邊圖示 */return STC[n]=o}
+  if(nm==='輝煌')o.fx.sun=1;if(nm==='劍氣')o.fx.qi=1;if(nm==='枷鎖')o.fx.chain=1;if(nm==='霜甲')o.fx.fshield=1;if(nm==='秘術護罩')o.fx.aorb=1;if(nm==='元素屏障')o.fx.ebar=1;if(nm==='冰之守護')o.fx.iguard=1;if(nm==='骨牢'){o.fx.cage=1;o.fx.shake=0}if(nm==='瘴氣')o.fx.miasma=1;if(nm==='潛伏')o.fx.stealth=1;if(STCOLD[nm]){o.fx.cold=1;o.ic=[]}/* 冷凍類（霜凍、凍足、冷凝）固定是閃避下降，看冷氣就知道，不另外出腳邊圖示 */return STC[n]=o}
 function stOf(list){var fx={},ic=[],seen={};(list||[]).forEach(function(n){var c=stCls(n);Object.keys(c.fx).forEach(function(k){fx[k]=1});c.ic.forEach(function(x){var key=x.k+'|'+x.m;if(!seen[key]){seen[key]=1;ic.push(x)}})});return{fx:fx,ic:ic}}
 function stNowP(k){var q=B&&B.stNow;return stOf(q&&q.p&&q.p[k])}
 function stNowM(i){var q=B&&B.stNow;return stOf(q&&q.m&&q.m[i])}
@@ -1489,6 +1489,10 @@ function stDraw(sd,x,gy,top,w,t,lf,lt){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math
   if(f.ebar){/* 元素屏障：比霜甲大一圈的光罩，顏色沿著圓周像彩虹一樣循環流動 */var R2=Math.max(14,(by-top)*.72),cy3=bc-1;
     for(var yy=-R2;yy<=R2;yy++){var hw2=Math.sqrt(Math.max(0,R2*R2-yy*yy))*.82;for(var xx=-hw2;xx<=hw2;xx++){var rr2=Math.sqrt(xx*xx/(.67)+yy*yy)/R2;if(rr2>1||rr2<.84)continue;var hue=Math.round(((Math.atan2(yy,xx)/Math.PI*180+360)+t/6)%360);VP(x+xx,cy3+yy,'hsl('+hue+',95%,70%)',rr2>.93?.55:.28)}}
     for(var k3=0;k3<10;k3++){var an3=-t/1100+k3/10*T,hue3=Math.round((k3*36+t/6)%360);VP(x+Math.cos(an3)*R2*.82,cy3+Math.sin(an3)*R2,'hsl('+hue3+',100%,82%)',.9)}}
+  if(f.aorb){/* 秘術護罩：一顆秘法紫光球橫向繞著身體轉（橢圓軌道；轉到後面那半圈比較暗、比較小），後面拖一小段光尾 */var OR=Math.max(10,(by-top)*.55),ocy=bc-2;
+    pctx.globalCompositeOperation='lighter';for(var q=6;q>=0;q--){var oa=t/420-q*.16,ox=x+Math.cos(oa)*OR,oy=ocy+Math.sin(oa)*OR*.28,bk=Math.sin(oa)<0,al=(q?(1-q/7)*.55:1)*(bk?.45:1),rr=q?1:(bk?1.6:2.4);
+      for(var ii=-3;ii<=3;ii++)for(var jj=-3;jj<=3;jj++){var dd=Math.sqrt(ii*ii+jj*jj);if(dd>rr+.5)continue;VP(Math.round(ox)+ii,Math.round(oy)+jj,dd<rr*.5?'#f4ecff':dd<rr*.9?'#b48cff':'#7a4ad8',al*(1-dd/(rr+1.5)))}}
+    pctx.globalCompositeOperation='source-over'}
   if(f.fshield){/* 霜甲：一圈藍色半透明圓形光罩，邊緣雪晶繞著轉 */var R=Math.max(12,(by-top)*.62),cy2=bc-1,pu=.85+.15*Math.sin(t/500);
     for(var yy=-R;yy<=R;yy++){var hw=Math.sqrt(Math.max(0,R*R-yy*yy))*.82;for(var xx=-hw;xx<=hw;xx++){var rr=Math.sqrt(xx*xx/(.67)+yy*yy)/R;if(rr>1)continue;VP(x+xx,cy2+yy,rr>.86?'#bfeaff':'#6cbcff',(rr>.86?.38:.1)*pu)}}
     for(var k=0;k<8;k++){var an=t/900+k/8*T,sx2=x+Math.cos(an)*R*.82,sy2=cy2+Math.sin(an)*R,a2=.55+.45*Math.sin(an);VP(sx2,sy2,'#ffffff',a2);VP(sx2-1,sy2,'#dff4ff',a2*.7);VP(sx2+1,sy2,'#dff4ff',a2*.7);VP(sx2,sy2-1,'#dff4ff',a2*.7);VP(sx2,sy2+1,'#dff4ff',a2*.7)}}
@@ -2093,7 +2097,7 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 /* ---- data / start ---- */
 /* ================= 特效測試模式：battle/?vfx=1 ================= */
 var VT={w:'劍',el:'',atk:true,kind:'damage',mon:'sk',lastT:-99999,st:{},au:{},auAlly:false};
-var VTS=[['霜甲','霜甲'],['骨牢','骨牢'],['束縛','束縛'],['放逐','放逐'],['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破'],['英雄之歌','英雄之歌'],['枷鎖','枷鎖'],['待罪之身','待罪之身']];
+var VTS=[['霜甲','霜甲'],['秘術護罩','秘術護罩'],['骨牢','骨牢'],['束縛','束縛'],['放逐','放逐'],['封禁','封禁'],['麻痺','麻痺'],['暈眩','暈眩'],['凍結','凍結'],['睡眠','睡眠'],['石化','石化'],['魅惑','魅惑'],['混亂','混亂'],['猛毒','中毒'],['霜凍','冷氣'],['灼燒','燒灼'],['出血','出血'],['強化','攻擊↑'],['弱魔','魔防↓'],['纏繞','閃避↓'],['元素詛咒|fire','火抗↓'],['易傷','易傷'],['乏力','物攻↓'],['目盲','目盲'],['弱點標記','易暴擊'],['識破','識破'],['英雄之歌','英雄之歌'],['枷鎖','枷鎖'],['待罪之身','待罪之身']];
 var VTW=[['劍','sword'],['斧','axe'],['錘','hammer'],['匕','dagger'],['槍','spear'],['弓','bow'],['杖','staff'],['書','book'],['拋擲','throw']];
 var VTE=[['','00 無屬性'],['fire','01 火焰'],['frost','02 冰霜'],['lightning','03 雷電'],['wind','04 疾風'],['nature','05 自然'],['light','06 光明'],['dark','07 黑暗'],['undead','08 亡靈'],['arcane','09 秘法'],['blood','10 血']];
 /* 技能下拉：選一招就每 1.3 秒重播那招的真實特效（跟冒險頁同一套）；怪物技能會自動換成會那招的怪，範圍招會放 4 個測試角色 */
