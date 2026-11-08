@@ -215,7 +215,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=7"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=53"></script>
+<script src="engine.js?v=54"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=18"></script>
 <script>
@@ -1498,9 +1498,9 @@ function drawStatus(now){if(!B||view!=='battle')return;
   party.forEach(function(p){if(p.sfx&&p.vis)stDraw(p.sfx,p.sx,p.gy,p.top,14,now+p.ph*5,0,1)});
   mons.forEach(function(m){if(!m.sfx||!m.alive)return;var MZ=msz(m.k),lf=m.lift||0;stDraw(m.sfx,m.lx,m.gy,m.gy-lf-MZ[1]*m.sc*(m.k==='dragon'?.8:1),Math.min(30,MZ[0]*m.sc*.6),now+m.ph*7,lf)});pctx.globalAlpha=1}
 function stDraw(sd,x,gy,top,w,t,lf,lt){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math.PI*2;
-  if(f.fear){/* 恐懼：身體周圍一段一段、不相連的紫色短線，不停發抖 */var fs8=Math.floor(t/70);
-    for(var q4=0;q4<10;q4++){var an4=q4/10*T+.3,rx4=w*.62+3,ry4=(by-top)*.5+2,cxq=x+Math.cos(an4)*rx4+(hsh(fs8*3+q4,911)-.5)*2,cyq=bc+Math.sin(an4)*ry4+(hsh(fs8*5+q4,913)-.5)*2,dx4=-Math.sin(an4),dy4=Math.cos(an4)*.6;
-      for(var k4=-2;k4<=2;k4++)VP(cxq+dx4*k4+(k4?(hsh(fs8+q4*7+k4,917)-.5)*1.4:0),cyq+dy4*k4,Math.abs(k4)>1?'#7a3ab8':k4?'#a868e8':'#d8a8ff',.9)}}
+  if(f.fear){/* 恐懼：漫畫式發抖——身體兩側各三條淡灰白短弧線跟著抖，頭旁邊不時滴下藍白冷汗 */var jt=Math.floor(t/60)%2?1:-1,hw=w*.5+4;
+    for(var sd=-1;sd<=1;sd+=2)for(var q4=0;q4<3;q4++){var ax=x+sd*(hw+q4*2)+jt*(q4%2?1:-1)*.6,ay=top+8+q4*6;for(var k4=-2;k4<=2;k4++)VP(ax-sd*Math.abs(k4)*.6,ay+k4,'#eef2f8',.8-Math.abs(k4)*.12)}
+    var sw=(t+400)%1500;if(sw<900){var sy=top+3+(sw<300?0:(sw-300)/600*10),sx=x+w*.35+3,sa=sw>700?(900-sw)/200:1;VP(sx,sy-1,'#e8f6ff',sa);VP(sx,sy,'#9ed4ff',sa);VP(sx-1,sy+1,'#6ab4f0',sa);VP(sx,sy+1,'#9ed4ff',sa);VP(sx+1,sy+1,'#6ab4f0',sa*.8);VP(sx,sy+2,'#4a94d8',sa)}}
   if(f.qi){/* 劍氣：身體周圍一道道青白色的細長劍光往上竄、忽明忽暗（疊加發光） */pctx.globalCompositeOperation='lighter';
     for(var q8=0;q8<7;q8++){var per8=700+q8*90,u8=((t+q8*211)%per8)/per8,cyc8=Math.floor((t+q8*211)/per8),xo8=(q8%2?1:-1)*(w*.45+((cyc8*7+q8*13)%5)),y8=by-2-u8*(by-top+8),L8=5+(q8%3)*2,a8=Math.sin(u8*Math.PI);/* 只在身體兩側，不擋臉 */
       for(var k8=0;k8<L8;k8++){VP(x+xo8,y8+k8,k8<2?'#ffffff':'#8fe6ff',a8*(1-k8/L8));if(k8<L8-2)VP(x+xo8+(q8%2?1:-1),y8+k8+1,'#5ac8ff',a8*(1-k8/L8)*.5)}}
