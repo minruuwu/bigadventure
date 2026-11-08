@@ -378,3 +378,6 @@ skill386,冰暴踏擊,status,凍足,enemy_single,2,1,,,,,,,,
 skill387,冰之守護,status,冰之守護,ally_all,3,1,,,,,,,,
 skill387,冰之守護,cleanse,,ally_all,,,debuff,2,,,,,,
 skill388,永冬誓言,passive,,,,,summon_hp,0.5,,,,hp_below,1,mon66
+skill389,麻痺電流,status,麻痺,enemy_single,2,0.3,,,,,,,,
+skill390,興奮,status,興奮,self,3,1,,,,,,,,
+skill391,電光一閃,status,雷滯,enemy_single,3,0.4,,,,,,,,

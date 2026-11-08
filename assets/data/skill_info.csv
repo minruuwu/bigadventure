@@ -387,3 +387,6 @@ skill385,寒霜撕裂,monster,0,combat,enemy_single,random,damage,,,p,frost,1.6,
 skill386,冰暴踏擊,monster,0,combat,enemy_single,random,damage,,,p,frost,1.4,,,,怪物技能（單體冰霜物理傷害 ×1.4，附加凍足 2 回合）,icetrail,,,3,single,,2,,
 skill387,冰之守護,monster,0,combat,ally_all,,buff,,,,,,,,,怪物技能（我方全體附加冰之守護 3 回合：物理、魔法減傷各 +20%；同時每人驅除 2 個異常狀態）,,,,,,,,,
 skill388,永冬誓言,monster,0,passive,,,passive,,,,,,,,,怪物被動（生命第一次低於 50% 時，召喚永凍柩園之母‧克里奧絲塔上場；每場一次）,,,,,,,,,
+skill389,麻痺電流,monster,0,combat,enemy_single,random,damage,,,p,lightning,1.3,,,,怪物技能（單體雷屬性物理傷害 ×1.3，30% 機率麻痺 2 回合）,missile,,,4,single,,2,,雷電
+skill390,興奮,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身閃避率、暴擊率 +30%，3 回合）,,,,0,single,,4,,
+skill391,電光一閃,monster,0,combat,enemy_single,random,damage,,,m,lightning,1.6,,,,怪物技能（單體雷屬性魔法傷害 ×1.6，40% 機率附加雷滯 3 回合；整隻纏著電光衝向目標）,zapdash,,,4,single,,3,,雷電
