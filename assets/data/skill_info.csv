@@ -395,6 +395,6 @@ skill393,颶風術,monster,0,combat,enemy_single,random,damage,,,m,wind,1.6,,,,�
 skill394,惡魔之矢,monster,0,combat,enemy_single,random,damage,,,m,dark,1.3,,,,怪物技能（單體暗屬性魔法傷害 ×1.3，30% 機率目盲 3 回合）,arrow,,,4,single,,2,,黑暗
 skill395,黑火焰,monster,0,combat,enemy_single,random,damage,,,m,dark,1.4,,,,怪物技能（單體暗屬性魔法傷害 ×1.4，30% 機率魂灼 3 回合）,missile,,,4,single,,3,,黑暗
 skill396,恐懼術,monster,0,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,怪物技能（單體 50% 機率恐懼 3 回合：受到傷害 +10%、行動時 50% 機率不動）,fearring,,,4,single,,3,,黑暗
-skill397,堅守,monster,0,combat,self,,buff,,,,,,,,,怪物技能（2 回合內替隊友承受單體攻擊，自身物理減傷 +30%）,whiteflash,,,0,single,,4,,
+skill397,護衛,monster,0,combat,self,,buff,,,,,,,,,怪物技能（2 回合內替隊友承受單體攻擊，自身物理減傷 +30%）,whiteflash,,,0,single,,4,,
 skill398,三連刺擊,monster,0,combat,enemy_single,random,damage,,,p,,0.5,,,,怪物技能（單體物理傷害 ×0.5 共 3 段，40% 機率破甲 3 回合）,thrust,3,,1,single,,3,,
 skill399,槍陣,monster,0,passive,,,passive,,,,,,,,,怪物被動（被物理攻擊打中時，以自身物攻 30% 的真實傷害反彈給攻擊者；同一招只反彈一次）,,,,,,,,,
