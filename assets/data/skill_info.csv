@@ -402,3 +402,4 @@ skill400,火箭,monster,0,combat,enemy_single,random,damage,,,p,fire,1.3,,,,怪�
 skill401,群射,monster,0,combat,enemy_all,,damage,,,p,,0.7,,,,怪物技能（全體物理傷害 ×0.7，朝每個人各射一箭）,arrow,,,3,diamond,5,3,,
 skill402,狙足,monster,0,combat,enemy_single,random,damage,,,p,,1.1,,,,怪物技能（單體物理傷害 ×1.1，附加亂步 2 回合）,arrow,,,3,single,,3,,
 skill403,弓術,monster,0,passive,,,passive,,,,,,,,,怪物被動（命中率 +20%，算完閃避後直接加上去）,,,,,,,,,
+skill404,群體治療,monster,0,combat,ally_all,,heal,,,m,,0.8,,,,怪物技能（有同伴生命低於 70% 才施放：全體同伴回復魔攻 ×0.8 的生命）,,,,3,diamond,5,3,,
