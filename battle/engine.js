@@ -146,7 +146,7 @@
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k) * MUL(D, 'hp')), patk: Math.round(num(r.p_atk) * (1 + ag * k) * MUL(D, 'atk')), matk: Math.round(num(r.m_atk) * (1 + ag * k) * MUL(D, 'atk')), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
-      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: monAura(r, D), special: monPassive(r, D), runes: [] };
+      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: monAura(r, D), special: monPassive(r, D), mst: monMst(r, D), runes: [] };
   }
   /* 怪物靈氣：passive 欄裡 target = ally_all 的被動（例如審判靈氣），活著時套用到全體怪物（含自己） */
   function monAura(r, D) {
@@ -161,6 +161,14 @@
   function morphUnit(u, mid, D) {
     var nu = monster(D.mon[mid], u.stg || 1, D); u.name = nu.name; u.mid = nu.mid; u.sprite = nu.sprite; u.b = nu.b; u.b.mhp = Math.round(u.b.mhp * (u.hs || 1));
     if (u.as) { u.b.patk = Math.round(u.b.patk * u.as); u.b.matk = Math.round(u.b.matk * u.as) } u.hp = u.b.mhp; u.st = []; u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
+  }
+  /* 怪物用的職業精通效果（被動 effect = mastery_cleanse → 跟牧師精通「驅魔」一樣：每回合開始隨機解除一名同伴的一個負面狀態） */
+  function monMst(r, D) {
+    var o = null;
+    String(r.passive || '').split(';').map(function (x) { return x.trim() }).filter(Boolean).forEach(function (id) {
+      (D.EFF[id] || []).forEach(function (e) { if (e.effect_kind === 'passive' && e.effect === 'mastery_cleanse') { o = o || {}; o.cleanse = { n: (D.SK[id] || {}).n || '驅魔', v: 1 } } });
+    });
+    return o;
   }
   function monPassive(r, D) {
     var out = [];
