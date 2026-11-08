@@ -170,6 +170,7 @@
         var v = num(e.value);
         if (e.trigger || e.effect === 'apply_status') out.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type });
         else if (e.target === 'ally_all' && e.effect === 'lifesteal') return; /* 全隊吸血走靈氣（monAura），自己不重複算 */
+        else if (e.effect === 'hit_rate') out.push({ id: id, k: 'hit_rate', v: v }); /* 命中率加成（弓術）：算命中時直接加上去 */
         else if (['lifesteal', 'extra_dmg', 'auto_cleanse', 'regen'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* regen = 每次輪到牠行動時恢復最大生命 v */
       });
     });
@@ -236,7 +237,7 @@
         case 'crit': return b.crit + sv(u, 'crit_rate') + auraVal(u, 'crit_rate');
         case 'cdmg': return b.cdmg + sv(u, 'crit_damage_rate');
         case 'speed': return b.speed + sv(u, 'speed');
-        case 'hit': return sv(u, 'hit_rate');
+        case 'hit': return sv(u, 'hit_rate') + (u.special ? u.special.reduce(function (t, p) { return p.k === 'hit_rate' && !p.tr ? t + p.v : t }, 0) : 0);
       }
       return 0;
     }
