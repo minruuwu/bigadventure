@@ -554,6 +554,9 @@
       if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e) || u.undead) { flushRel(e); e.hp = hpSnap(); return false }/* 持續傷害打倒骨兵 → 變成骨堆，這回合不再行動 */ e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
       /* 無法行動 */
       if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return false }
+      /* 恐懼：每次輪到行動時有 value 機率（預設 50%）被嚇得不動 */
+      var fr0 = 0; u.st.forEach(function (s) { if (!s.paused) s.rows.forEach(function (r) { if (r.k === 'fear') fr0 = Math.max(fr0, r.v || 0.5) }) });
+      if (fr0 && RND() < fr0) { e.txt = u.name + ' 被嚇得無法行動'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return false }
       u._e = e;
       return true;
     }

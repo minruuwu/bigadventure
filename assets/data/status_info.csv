@@ -112,7 +112,8 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 被吞噬,debuff,swallow,0.05,,,,被吞進肚子裡：從畫面上消失，不能行動、不會被攻擊或治療，身上其他狀態暫停；吞噬者每次行動結束消化最大生命 5%；吞噬者倒下就回來；戰鬥結束時還在肚子裡算陣亡
 怨恨,debuff,p_atk_rate,-0.15,,,,物理攻擊力 −15%、魔法攻擊力 −15%
 怨恨,debuff,m_atk_rate,-0.15,,,,
-恐懼,debuff,stun,,,,,被嚇得動彈不得，跳過行動
+恐懼,debuff,fear,0.5,,,,受到的傷害 +10%；每次行動有 50% 機率被嚇得不動
+恐懼,debuff,dmg_taken_rate,0.1,,,,
 猛毒,debuff,dot,0.3,m_atk,nature,m,每回合造成施加者魔法攻擊力 30% 的自然魔法傷害
 強效再生,buff,hot,0.8,m_atk,,,每回合恢復施加者魔法攻擊力 80% 的生命
 暴怒,buff,p_atk_rate,0.8,,,,物理攻擊力 +80%、物理減傷 −30%
