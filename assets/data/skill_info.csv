@@ -390,3 +390,5 @@ skill388,永冬誓言,monster,0,passive,,,passive,,,,,,,,,怪物被動（生命�
 skill389,麻痺電流,monster,0,combat,enemy_single,random,damage,,,p,lightning,1.3,,,,怪物技能（單體雷屬性物理傷害 ×1.3，30% 機率麻痺 2 回合）,missile,,,4,single,,2,,雷電
 skill390,興奮,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身閃避率、暴擊率 +30%，3 回合）,,,,0,single,,4,,
 skill391,電光一閃,monster,0,combat,enemy_single,random,damage,,,m,lightning,1.6,,,,怪物技能（單體雷屬性魔法傷害 ×1.6，40% 機率附加雷滯 3 回合；整隻纏著電光衝向目標）,zapdash,,,4,single,,3,,雷電
+skill392,風之矢,monster,0,combat,enemy_single,random,damage,,,m,wind,1.3,,,,怪物技能（單體風屬性魔法傷害 ×1.3，30% 機率風化 3 回合）,arrow,,,4,single,,2,,疾風
+skill393,颶風術,monster,0,combat,enemy_single,random,damage,,,m,wind,1.6,,,,怪物技能（單體風屬性魔法傷害 ×1.6，30% 機率暈眩 1 回合；龍捲風把目標捲上半空再摔下來）,tornado,,,4,single,,3,,疾風

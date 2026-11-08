@@ -381,3 +381,5 @@ skill388,永冬誓言,passive,,,,,summon_hp,0.5,,,,hp_below,1,mon66
 skill389,麻痺電流,status,麻痺,enemy_single,2,0.3,,,,,,,,
 skill390,興奮,status,興奮,self,3,1,,,,,,,,
 skill391,電光一閃,status,雷滯,enemy_single,3,0.4,,,,,,,,
+skill392,風之矢,status,風化,enemy_single,3,0.3,,,,,,,,
+skill393,颶風術,status,暈眩,enemy_single,1,0.3,,,,,,,,
