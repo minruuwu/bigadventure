@@ -186,3 +186,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 冰之守護,buff,m_reduce_rate,0.2,,,,
 興奮,buff,eva_rate,0.3,,,,閃避率 +30%、暴擊率 +30%（電光史萊姆）
 興奮,buff,crit_rate,0.3,,,,
+堅守護衛,buff,protect,,,,,替隊友承受單體攻擊（全體攻擊不擋），物理減傷 +30%
+堅守護衛,buff,p_reduce_rate,0.3,,,,
