@@ -142,7 +142,7 @@
   function monster(r, stg, D) {
     var hg = num(r.hp_growth), ag = num(r.atk_growth), k = stg - 1, res = {};
     ELS.forEach(function (e) { res[e] = num(r[e + '_res_rate']) }); res.none = num(r.none_res_rate);
-    var cyc = [r.skill_1, r.skill_2, r.skill_3, r.skill_4].map(function (x) { x = String(x || '').trim(); return x && (x === 'atk' || D.SK[x]) ? x : 'atk' });
+    var cyc = [r.skill_1, r.skill_2, r.skill_3, r.skill_4].map(function (x) { x = String(x || '').trim(); return x === '-' ? '-' : x && (x === 'atk' || D.SK[x]) ? x : 'atk' }).filter(function (x) { return x !== '-' }); /* 「-」＝這格不用（獅鷲只循環三招） */ if (!cyc.length) cyc = ['atk'];
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k) * MUL(D, 'hp')), patk: Math.round(num(r.p_atk) * (1 + ag * k) * MUL(D, 'atk')), matk: Math.round(num(r.m_atk) * (1 + ag * k) * MUL(D, 'atk')), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
@@ -295,7 +295,7 @@
         return o;
       });
       var s = { n: name, src: src, turns: t, rows: rows, pol: def.pol, fresh: tgt === nowAct };
-      rows.forEach(function (r) { if (r.k === 'hit_block') s.hb = r.v | 0; /* 聖堂守勢：可擋幾次傷害 */ if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
+      rows.forEach(function (r) { if (r.k === 'airborne') { s.air = true; var dvL = targetable(tgt.side === 'p' ? M.filter(function (x) { return !x.dead }) : P.filter(function (x) { return !x.dead }), D.SK.atk); tgt.dive = { t: dvL.length ? pickOne(dvL) : null, sk: 'skill' + (r.v | 0) } } /* 高空（獅鷲鷹揚）：施放當下就選好俯衝目標 */ if (r.k === 'hit_block') s.hb = r.v | 0; /* 聖堂守勢：可擋幾次傷害 */ if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
       if (old) { var i = tgt.st.indexOf(old); tgt.st[i] = s } else tgt.st.push(s);
       if (rows.some(function (r) { return r.k === 'banish' })) { s.banish = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }) }
       if (swl) { s.swal = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }); if (e) (e.swal = e.swal || []).push(tgt.i) }
@@ -305,7 +305,8 @@
     function removeStatus(u, s) { var i = u.st.indexOf(s); if (i >= 0) u.st.splice(i, 1) }
     function debuffs(u) { return u.st.filter(function (s) { return s.pol === 'debuff' && !s.paused }) }
     function hasHot(u) { return u.st.some(function (s) { return s.rows.some(function (r) { return r.k === 'hot' }) }) }
-    function banished(u) { return u.st.some(function (s) { return s.banish || s.swal }) }
+    function banished(u) { return u.st.some(function (s) { return s.banish || s.swal || s.air }) }
+    function airborne(u) { return u.st.some(function (s) { return s.air && !s.paused }) } /* 高空：任何攻擊、技能都打不到 */
     function swallowed(u) { return u.st.some(function (s) { return s.swal }) }
     function ctrl(u, k) { return u.st.some(function (s) { return !s.paused && s.rows.some(function (r) { return r.k === k }) }) }
 
@@ -316,7 +317,7 @@
     function s0bn(t, def) { return banishedOnly(t) && !def.rows.some(function (r) { return r.k === 'banish' }) }
     function banishedOnly(u) { return u.st.some(function (s) { return s.banish }) }
     function hasMag(sk) { return !!(sk && sk.parts && sk.parts.some(function (x) { return x.d === 'm' })) }
-    function targetable(list, sk) { var mg = hasMag(sk), ok = list.filter(function (x) { return !swallowed(x) && !(banishedOnly(x) && !mg) }); return ok.length ? ok : list.filter(function (x) { return !swallowed(x) }).length ? list.filter(function (x) { return !swallowed(x) }) : list }
+    function targetable(list, sk) { list = list.filter(function (x) { return !airborne(x) }); var mg = hasMag(sk), ok = list.filter(function (x) { return !swallowed(x) && !(banishedOnly(x) && !mg) }); return ok.length ? ok : list.filter(function (x) { return !swallowed(x) }).length ? list.filter(function (x) { return !swallowed(x) }) : list }
     function pickTargets(u, sk, charmed, confused) {
       var t = sk.t, F = charmed ? friends(u) : foes(u), A = charmed ? foes(u) : friends(u);
       if (charmed) F = F.filter(function (x) { return x !== u });
@@ -562,6 +563,14 @@
         });
       });
       if (tick.length) { e.txt = u.name + ' ' + tick.join('、'); e.tick = 1; if (checkDeath(u, e) || u.undead) { flushRel(e); e.hp = hpSnap(); return false }/* 持續傷害打倒骨兵 → 變成骨堆，這回合不再行動 */ e.hp = hpSnap(); e = line({ side: u.side, a: u.i, txt: '' }) }
+      /* 高空（獅鷲鷹揚）：輪到自己時先從天上俯衝打施放時選好的目標（目標倒下就撲空），落地後這回合照常行動 */
+      var air = u.st.filter(function (s) { return s.air })[0];
+      if (air) {
+        u.st = u.st.filter(function (s) { return s !== air }); var dv = u.dive || {}, dt0 = dv.t, dsk = D.SK[dv.sk]; delete u.dive;
+        if (!dsk || !dt0 || dt0.dead || swallowed(dt0) || airborne(dt0)) { e.txt = u.name + ' 從高空俯衝而下，撲空了'; if (dsk) { e.sk = dsk.id; e.ty = 'damage' } e.dive = 1; e.hp = hpSnap() }
+        else { e.sk = dsk.id; e.ty = dsk.ty; e.dive = 1; e.txt = u.name + ' 從高空「' + dsk.n + '」而下'; doSkill(u, dsk, [dt0], e); flushSt(e); afterSkill(u, dsk, [dt0], e, false); flushRel(e); if (!e.hp) e.hp = hpSnap(); if (u.dead || u.undead) return false }
+        e = line({ side: u.side, a: u.i, txt: '' });
+      }
       /* 無法行動 */
       if (ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { e.txt = u.name + ' 無法行動'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return false }
       /* 恐懼：每次輪到行動時有 value 機率（預設 50%）被嚇得不動 */
@@ -577,7 +586,7 @@
       if (forced) {
         sk = D.SK[ctrl(u, 'seal') ? 'atk' : forced.sk] || D.SK.atk;
         if (SPM && u.side === 'p' && sk.id !== 'atk' && !canUse(u, sk)) { sk = D.SK.atk; forced = { sk: 'atk', tg: pickTargets(u, sk, charmed, confused) } }
-        tg = (forced.tg || []).filter(function (x) { return x && !x.dead });
+        tg = (forced.tg || []).filter(function (x) { return x && !x.dead && !(x.side !== u.side && airborne(x)) });
         if (!tg.length && sk.t !== 'self') sk = null; else if (sk.t === 'self') tg = [u];
       }
       /* 選技能：封禁只能普攻；沒有可用目標就換下一招。
@@ -597,7 +606,7 @@
         if (t0.length) { sk = k; tg = t0; break }
       }
       if (!sk && SPM && u.side === 'p' && !forced) { var ta = pickTargets(u, D.SK.atk, charmed, confused); if (ta.length) { sk = D.SK.atk; tg = ta } } /* 四招都在冷卻：普攻 */
-      if (!sk) { e.txt = u.name + ' 沒有可以行動的目標'; e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
+      if (!sk) { e.txt = u.name + (foes(u).some(airborne) ? ' 的目標飛到高空，攻擊落空' : ' 沒有可以行動的目標'); e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
       if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）';
         /* 職業精通：巧手回收（自己 SP +1）、餘韻（隨機一名同伴 SP +1），只算消耗 SP 的技能 */

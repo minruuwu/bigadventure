@@ -199,3 +199,4 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 暴走,buff,nature_res_rate,-0.2,,,,
 暴走,buff,light_res_rate,-0.2,,,,
 暴走,buff,dark_res_rate,-0.2,,,,
+高空,buff,airborne,417,,,,飛在高空：任何攻擊與技能都打不到（身上的持續傷害照扣）；下次行動時先俯衝攻擊施放鷹揚時選好的目標

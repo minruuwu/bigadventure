@@ -403,3 +403,7 @@ skill410,暴走,status,暴走,self,3,1,,,,,,,,
 skill411,血魔爪,bonus,,,,,lifesteal,0.1,,,,,,
 skill412,血光暴擊,status,易傷,enemy_single,3,1,,,,,,,,
 skill413,腐化,passive,,self,,,transform,,,blood,,death,1,mon81
+skill414,飛禽襲擊,status,暈眩,enemy_single,1,0.3,,,,,,,,
+skill415,猛爪,status,撕裂傷,enemy_single,3,1,,,,,,,,
+skill416,鷹揚,status,高空,self,9,1,,,,,,,,
+skill418,動態視力,passive,,,,,hit_rate,0.2,,,,,,

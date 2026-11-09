@@ -164,7 +164,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="../common/aura.js?v=7"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="../common/monsters.js?v=51"></script>
+<script src="../common/monsters.js?v=52"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -374,7 +374,7 @@ function openMon(id){var m=D.mon[id];openSheet(function(s){
   ELS.forEach(function(e){var v=num(m[e[0]+'_res_rate']),n=Math.min(5,Math.ceil(Math.abs(v)/0.15-1e-9)),r=el('div','pr');r.appendChild(icon(BASE+'icons/stats/res_'+e[0]+'.png'));r.appendChild(el('span','lb',e[1]));
     r.appendChild(pips(n,v<0,v>0?'抗':v<0?'弱':''));s.appendChild(r)});
   s.appendChild(el('div','k2','技能'));var seenSk={};
-  ['skill_1','skill_2','skill_3','skill_4'].forEach(function(k){var sid=m[k];if(!sid||seenSk[sid])return;seenSk[sid]=1;s.appendChild(skRow(sid,'招式'))});
+  ['skill_1','skill_2','skill_3','skill_4'].forEach(function(k){var sid=m[k];if(!sid||sid==='-'||seenSk[sid])return;seenSk[sid]=1;s.appendChild(skRow(sid,'招式'))});
   if(m.reaction)s.appendChild(skRow(m.reaction,'反應'));if(m.passive)s.appendChild(skRow(m.passive,'被動'));
 })}
 function skRow(sid,kind){var d=el('div','sk'),r=D.sk[sid],nm=sid==='atk'?'普通攻擊':r?r.skill_name:sid,txt='';

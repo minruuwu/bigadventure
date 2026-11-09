@@ -412,3 +412,8 @@ skill410,暴走,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身暴走 
 skill411,血魔爪,monster,0,combat,enemy_single,random,damage,,,p,,0.3,,,,怪物技能（單體物理傷害 ×0.3 共 6 段，吸取傷害的 10% 回血）,bloodclaw,6,,1,single,,3,,
 skill412,血光暴擊,monster,0,combat,enemy_single,random,damage,,,p,dark,2,,,,怪物技能（單體黑暗物理傷害 ×2.0，附加易傷 3 回合）,smash,,,1,single,,3,,血
 skill413,腐化,monster,0,passive,,,passive,,,,,,,,,怪物被動（第一次倒下時不會消散：腳下浮現血法陣，化為「腐化的鐵腕‧尤里烏斯」以全滿生命暴走）,,,,,,,,,
+skill414,飛禽襲擊,monster,0,combat,enemy_single,random,damage,,,p,,1.3,,,,怪物技能（飛過去把目標抓上半空再摔下：單體物理傷害 ×1.3，30% 機率暈眩 1 回合）,grab,,,1,single,,3,,
+skill415,猛爪,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技能（單體物理傷害 ×1.0，附加撕裂傷 3 回合）,bigclaw,,,1,single,,3,,
+skill416,鷹揚,monster,0,combat,self,,buff,,,,,,,,,怪物技能（飛上高空，打不到；同時隨機選好目標，下次輪到自己時先俯衝打他（單體物理傷害 ×1.2），落地後照常行動；目標已倒下就撲空）,soar,,,0,single,,3,,
+skill417,俯衝,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（鷹揚的後半招：從高空俯衝到目標面前抓下去，單體物理傷害 ×1.2）,dive,,,1,single,,3,,
+skill418,動態視力,monster,0,passive,,,passive,,,,,,,,,怪物被動（命中率 +20%，算完閃避後直接加上去）,,,,,,,,,
