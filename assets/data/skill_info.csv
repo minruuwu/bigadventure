@@ -417,3 +417,8 @@ skill415,猛爪,monster,0,combat,enemy_single,random,damage,,,p,,1,,,,怪物技�
 skill416,鷹揚,monster,0,combat,self,,buff,,,,,,,,,怪物技能（飛上高空，打不到；同時隨機選好目標，下次輪到自己時先俯衝打他（單體物理傷害 ×1.2），落地後照常行動；目標已倒下就撲空）,soar,,,0,single,,3,,
 skill417,俯衝,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（鷹揚的後半招：從高空俯衝到目標面前抓下去，單體物理傷害 ×1.2）,dive,,,1,single,,3,,
 skill418,動態視力,monster,0,passive,,,passive,,,,,,,,,怪物被動（命中率 +20%，算完閃避後直接加上去）,,,,,,,,,
+skill419,碎骨錘,monster,0,combat,enemy_single,random,damage,,,p,,1.5,,,,怪物技能（流星錘砸下：單體物理傷害 ×1.5，附加破甲 3 回合）,smash,,,1,single,,3,,
+skill420,鐵鍊纏縛,monster,0,combat,enemy_single,random,damage,,,p,,0.8,,,,怪物技能（甩出鐵鍊纏住一名敵人：單體物理傷害 ×0.8，附加鐵鍊纏身 2 回合）,chains,,,2,single,,3,,
+skill421,腐化覺醒,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身腐化覺醒 3 回合：物理攻擊力 +25%，但受到的傷害 +10%）,corrupt,,,0,single,,3,,
+skill422,腐化鐵甲,monster,0,passive,,,passive,,,,,,,,,怪物被動（被物理攻擊打中時，25% 機率讓攻擊者中腐蝕 2 回合：物理減傷 −10%）,,,,,,,,,
+skill423,魔肢再生,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開始恢復最大生命的 10%）,,,,,,,,,

@@ -200,3 +200,8 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 暴走,buff,light_res_rate,-0.2,,,,
 暴走,buff,dark_res_rate,-0.2,,,,
 高空,buff,airborne,417,,,,飛在高空：任何攻擊與技能都打不到（身上的持續傷害照扣）；下次行動時先俯衝攻擊施放鷹揚時選好的目標
+鐵鍊纏身,debuff,speed,-5,,,,被鐵鍊纏住：速度 −5、閃避率 −20%
+鐵鍊纏身,debuff,eva_rate,-0.2,,,,
+腐化覺醒,buff,p_atk_rate,0.25,,,,物理攻擊力 +25%，但受到的傷害 +10%
+腐化覺醒,buff,dmg_taken_rate,0.1,,,,
+腐蝕,debuff,p_reduce_rate,-0.1,,,,鎧甲被腐蝕：物理減傷 −10%
