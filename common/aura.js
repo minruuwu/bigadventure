@@ -25,7 +25,8 @@
   }
   /* 現在輪到哪一種、透明度（切換時淡入淡出 0.3 秒） */
   function pick(list, t) {
-    if (!list || !list.length) return null;
+    list = (list || []).filter(function (id) { return DEF[id] }); /* 沒有定義光環樣式的靈氣（例如教皇的聖域守護）就不畫，避免整個畫面卡住 */
+    if (!list.length) return null;
     var P = 2500, k = Math.floor(t / P) % list.length, u = t % P, a = list.length > 1 ? Math.min(1, u / 300, (P - u) / 300) : 1;
     return { d: DEF[list[k]], a: Math.max(0, a) };
   }
