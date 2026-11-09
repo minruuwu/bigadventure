@@ -1509,15 +1509,21 @@ function staffOrb(m,now){var L=LAY[m.k];if(!L.bb)return;var MZ=msz(m.k),sc=m.sc|
   for(var q=0;q<3;q++){var per=1500+q*370,u=((now+m.ph*997+q*541)%per)/per;VP(Math.round(ox+Math.sin(u*6+q*2)*3*sc),Math.round(oy-u*14*sc),q%2?'#ffe9a0':'#ffffff',Math.sin(u*Math.PI)*.9)}/* 小光點往上飄 */
   pctx.globalCompositeOperation='source-over'}
 /* ===== 腐化聖堂笞刑官 ===== */
-function whipFx(e,d,hh){/* 長鞭：細細的鞭身從手上橫著甩出去，鞭子折成一個躺著、開口朝自己的扁 U（前頭圓的）往前滾；滾到鞭梢時整條拉直、啪一聲，再折成 U 滾回手上 */var tk=(e.tgh?e.tgh[hh]:(e.tgts||[])[0]);if(tk==null||d<0||d>560)return;var mp=monPos(e.a),mo=mons[e.a];if(!mp||!mo)return;var pp=posOf(tk),J=[[0,-6],[-4,6],[5,-12],[-3,2],[4,9]][hh%5];
-  var sx=mp[0]-msz(mo.k)[0]*mo.sc*.3,sy=mp[1]+2,ex=pp[0]+4+J[0],ey=pp[1]-16+J[1],dx=ex-sx,dy=ey-sy,L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux,fl=(hh%2?-1:1),C1='#3a1c14',C2='#9a5a34';
-  function seg(x1,y1,x2,y2,a){var n=Math.max(1,Math.ceil(Math.hypot(x2-x1,y2-y1)));for(var q=0;q<=n;q++){var x=x1+(x2-x1)*q/n,y=y1+(y2-y1)*q/n;VP(x,y,C1,a);if(q%3===0)VP(x,y-.5,C2,a*.6)}}
-  function loop(u,a){/* 折點在離手 F 的地方：上段直線到折點，前頭一個小半圓（圓頭的 U），下段往回拖、微微張開 */var F=L*u,R=L-F,r=Math.min(3,1+R*.04),p1x=sx+ux*(F-r),p1y=sy+uy*(F-r),cx=p1x+nx*fl*r,cy=p1y+ny*fl*r;seg(sx,sy,p1x,p1y,a);
-    var px=p1x,py=p1y;for(var q=1;q<=10;q++){var t=q/10*Math.PI,x=cx+ux*r*Math.sin(t)-nx*fl*r*Math.cos(t),y=cy+uy*r*Math.sin(t)-ny*fl*r*Math.cos(t);seg(px,py,x,y,a);px=x;py=y}
-    var bl=Math.max(0,R-r),op=Math.tan(.1)*bl;seg(px,py,px-ux*bl+nx*fl*op,py-uy*bl+ny*fl*op,a)}
-  if(d<230){loop(ease(d/230),1);return}/* 甩出去 */
-  var dc=d-230;if(dc<110){seg(sx,sy,ex,ey,1);if(dc<90){var g=1-dc/90;for(var q=0;q<6;q++){var an=q*1.05,rr=2+dc/90*6;VP(ex+Math.cos(an)*rr,ey+Math.sin(an)*rr,q%2?'#ffffff':'#ff5a5a',g)}pBurst('blood',ex,ey,dc,4,VS*.7)}return}/* 拉直：鞭梢啪一下 */
-  var dr=dc-110;if(dr<220){fl=-fl;loop(1-ease(dr/220),dr<150?1:1-(dr-150)/70)}}/* 折成 U 滾回手上 */
+function whipFx(e,d,hh){/* 血鞭：鞭身是一道暗紅帶鮮紅亮邊的血流，甩出去時折成圓頭的扁 U 往前滾、後面拖著幾道淡淡的殘影；一路甩落血珠；
+  滾到鞭梢拉直時「啪」：鞭梢爆開一團血花、兩道白色的撕裂氣流；再折成 U 滾回手上 */var tk=(e.tgh?e.tgh[hh]:(e.tgts||[])[0]);if(tk==null||d<0||d>700)return;var mp=monPos(e.a),mo=mons[e.a];if(!mp||!mo)return;var pp=posOf(tk),J=[[0,-6],[-4,6],[5,-12],[-3,2],[4,9]][hh%5];
+  var sx=mp[0]-msz(mo.k)[0]*mo.sc*.3,sy=mp[1]+2,ex=pp[0]+4+J[0],ey=pp[1]-16+J[1],dx=ex-sx,dy=ey-sy,L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux,fl0=(hh%2?-1:1),fl=fl0;
+  var ACC=0;function seg(x1,y1,x2,y2,a,th){var n=Math.max(1,Math.ceil(Math.hypot(x2-x1,y2-y1)));for(var q=0;q<=n;q++){var x=x1+(x2-x1)*q/n,y=y1+(y2-y1)*q/n,k=Math.min(1,(ACC+q)/L);/* k = 從手到鞭梢的位置：靠手粗、越往梢越細，血流微微起伏 */y+=Math.sin((ACC+q)/5-d/35)*k*.9;
+    if(th){if(k<.45){VP(x,y+1,'#3a0008',a*.8);VP(x,y,'#8a0a18',a);VP(x,y-1,'#e0182e',a)}else if(k<.8){VP(x,y,'#a01020',a);VP(x,y-1,'#ff3a3a',a*.9)}else VP(x,y,'#ff4a4a',a);if((q+Math.floor(d/30))%6===0)VP(x,y-1,'#ffc0b0',a*.9)}else VP(x,y,'#c8102a',a*.45)}ACC+=n}
+  function loop(u,a,th){ACC=0;var F=L*u,R=L-F,r=Math.min(3,1+R*.04),p1x=sx+ux*(F-r),p1y=sy+uy*(F-r),cx=p1x+nx*fl*r,cy=p1y+ny*fl*r;seg(sx,sy,p1x,p1y,a,th);
+    var px=p1x,py=p1y;for(var q=1;q<=10;q++){var t=q/10*Math.PI,x=cx+ux*r*Math.sin(t)-nx*fl*r*Math.cos(t),y=cy+uy*r*Math.sin(t)-ny*fl*r*Math.cos(t);seg(px,py,x,y,a,th);px=x;py=y}
+    var bl=Math.max(0,R-r),op=Math.tan(.1)*bl;seg(px,py,px-ux*bl+nx*fl*op,py-uy*bl+ny*fl*op,a,th)}
+  function drips(t0){/* 甩落的血珠：從鞭身上灑下來、往下掉 */for(var k=0;k<14;k++){var bt=t0+hsh(k+hh*7,3)*260,dd=d-bt;if(dd<0||dd>380)continue;var fr=hsh(k+hh*7,5),u2=dd/380,bx=sx+dx*fr+(hsh(k,9)-.5)*6,by=sy+dy*fr+(hsh(k,11)-.5)*4;var px2=bx+(hsh(k,13)-.5)*u2*14,py2=by+u2*u2*26-u2*6,c2=k%3?'#c8102a':'#ff4a4a';VP(px2,py2,c2,1-u2);if(k%2)VP(px2,py2+1,'#8a0a18',(1-u2)*.8)}}
+  var a1=1;if(d<230){var u=ease(d/230);[.16,.08].forEach(function(o,n){if(u-o>0){loop(Math.max(0,u-o),n?.32:.18,false)}});loop(u,1,true)}/* 甩出去（後面兩道殘影） */
+  else if(d<340){var dc=d-230;ACC=0;seg(sx,sy,ex,ey,1,true);
+    if(dc<160){var g=1-dc/160;pBurst('blood',ex,ey,dc,22,VS*1.3);for(var q=0;q<14;q++){var an=q*.45+hh,rr=2+dc/160*(8+hsh(q,3)*8),bx2=ex+Math.cos(an)*rr,by2=ey+Math.sin(an)*rr*.8+Math.pow(dc/160,2)*8,cc=q%3?'#ff3a3a':'#8a0a18';VP(bx2,by2,cc,g);if(q%2)VP(bx2+1,by2,cc,g);if(q%4===0)VP(bx2,by2+1,cc,g)}
+      for(var w=0;w<2;w++)for(var q2=0;q2<12;q2++){var tt=q2/11,ax=ex-ux*(4+tt*16)+nx*(w?1:-1)*(3+Math.sin(tt*Math.PI)*5),ay=ey-uy*(4+tt*16)+ny*(w?1:-1)*(3+Math.sin(tt*Math.PI)*5);VP(ax,ay,'#ffffff',g*(1-tt)*.9)}}}/* 啪：血花＋兩道撕裂氣流 */
+  else{var dr=d-340;if(dr<240){fl=-fl0;var ur=1-ease(dr/240),ar=dr<170?1:1-(dr-170)/70;[.1].forEach(function(o){loop(Math.min(1,ur+o),ar*.25,false)});loop(ur,ar,true)}}/* 折成 U 滾回來 */
+  drips(60)}
 function darkPillar(d,i){/* 黑暗祈禱：黑金色光柱從天而降落在同伴身上（中間金、外圍黑紫），地上閃一圈金光，再收細淡出 */var m=mons[i];if(!m||m.lx==null||d<0||d>950)return;var x=m.lx,gy=m.gy,top=gy-170,W=d<220?ease(d/220)*9:d<560?9:9*(1-ease((d-560)/390)),a=d<560?1:1-(d-560)/390,ext=d<220?ease(d/220):1;
   for(var yy=Math.round(top+(gy-top)*(1-ext));yy<=gy;yy++){var wv=W*(1+.12*Math.sin(yy/5+d/90));for(var xx=-Math.ceil(wv);xx<=Math.ceil(wv);xx++){var q=Math.abs(xx)/Math.max(1,wv);if(q>1)continue;VP(x+xx,yy,q<.25?'#fff4c4':q<.5?'#ffd36a':q<.8?'#7a2ad0':'#2a0f42',a*(q<.5?.85:.6))}}
   var rd=d-200;if(rd>=0&&rd<500){var u=rd/500,RR=4+u*24,N=Math.round(24+RR*1.6);for(var n=0;n<N;n++){var an=n/N*Math.PI*2;VP(x+Math.cos(an)*RR,gy+Math.sin(an)*RR*.3,n%2?'#ffd36a':'#7a2ad0',(1-u))}}}
