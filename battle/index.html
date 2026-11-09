@@ -1748,6 +1748,7 @@ var ATKV=null;function monAtkV(k){if(!ATKV){ATKV={};if(ENG&&ENG.mon)Object.keys(
 function lastArea(){try{var v=parseInt(localStorage.getItem('adv.lastArea'),10);return v>=0&&v<AREA.length?v:0}catch(e){return 0}}
 function setLastArea(i){try{localStorage.setItem('adv.lastArea',String(i))}catch(e){}}
 var NST=20;/* 每章節關數 */
+function stMax(i){var a=AREAID[i],n=0;(ENG&&ENG.stage||[]).forEach(function(r){if(r.area_id===a)n=Math.max(n,parseInt(r.stage,10)||0)});return n||NST}/* 這章目前做好幾關（stage_info 有的）：還沒做的關卡鎖住，先上半章也不會打到空關 */
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
 function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
@@ -1760,7 +1761,7 @@ function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
     var zn=el('span','zn',a.n);if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}b.appendChild(zn);if(i===la||OPENED(i)){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
     b.addEventListener('click',function(){if(OPENED(i))openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2>'+(ALORE[i]?'<p class="lore">'+esc(ALORE[i])+'</p>':'<p class="lvh"></p>')+'<div class="lvg">';
-  var cl=cleared(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1?' disabled':'')+'>'+(bs?'Boss':l)+(l<=cl?' ✓':'')+'</button>'}
+  var cl=cleared(i),sm=stMax(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1||l>sm?' disabled':'')+(l>sm?' title="尚未開放" style="opacity:.35"':'')+'>'+(l>sm?'🔒':bs?'Boss':l)+(l<=cl&&l<=sm?' ✓':'')+'</button>'}
   var md=advMode();if(MANUAL){h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo3"><button type="button" class="go" data-a="lvgo" data-m="live" disabled>戰鬥</button><label class="abchk"><input type="checkbox" id="autoChk"'+(autoPref()?' checked':'')+'>自動戰鬥</label></div></div>';var o0=$('lvov');o0.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o0.hidden=false;return}
   h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
@@ -1936,7 +1937,7 @@ function startTactics(a,l){setLastArea(a);var allies=Math.min(3,MEMB.length-1),P
     reward:function(o){var b={res:'win',a:a,l:l,mons:o.mons,lead:o.lead},req=makeReq(b),mail=req.share||[];
       return{req:req,html:'獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+lvTxt(req.lvi)+
         (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
-        (req.clear&&l<NST?'<br>解鎖第 '+(l+1)+' 關':req.clear?'<br>'+AREA[a].n+'全部通關！':'')+'<br><small id="trsave">獎勵寫入中…</small>'}},
+        (req.clear&&l<NST&&l>=stMax(a)?'<br>後續關卡尚未開放，敬請期待':req.clear&&l<NST?'<br>解鎖第 '+(l+1)+' 關':req.clear?'<br>'+AREA[a].n+'全部通關！':'')+'<br><small id="trsave">獎勵寫入中…</small>'}},
     save:function(req,ui){saveWin({saved:false},req,ui)},P:P,M:M,D:ENG,look:look,msrc:msrc,msz:msz,msc:mscale,fx:tacFx,fxInfo:tacFxInfo,jobs:JOBI,lv:l,tune:/[?&]tune=1/.test(location.search),bg:BG[AREA[a].bg],onExit:function(){showView('map')}})}
 
 /* ---- 正式戰鬥：用 battle/engine.js 算完整場，再把每一行排上時間、加上動畫用的欄位 ---- */
@@ -2145,7 +2146,7 @@ function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失�
   var req=B.req||(B.req=makeReq(B)),me=MEMB[0],mail=req.share||[];
   var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+lvTxt(req.lvi)+
     (mail.length?'<br>隊友各得 經驗 <b>'+mail[0].exp+'</b>、鍛造石 <b>'+mail[0].stones+'</b>（每天早上 6 點後到營地「組隊獎勵」領取）':'')+
-    (req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>'+AREA[B.a].n+'全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
+    (req.clear&&B.l<NST&&B.l>=stMax(B.a)?'<br>後續關卡尚未開放，敬請期待':req.clear&&B.l<NST?'<br>解鎖第 '+(B.l+1)+' 關':req.clear?'<br>'+AREA[B.a].n+'全部通關！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
   $('rtxt').innerHTML=h;$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});
   saveWin(B,req,{msg:function(t){var q=$('rsave');if(q)q.textContent=t},lock:function(v){$('rok').disabled=v}})}
 
