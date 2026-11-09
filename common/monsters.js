@@ -16,10 +16,10 @@ var FLY={pope:{n:'墮落教皇',f:['monster_66'],seq:16,per:2300,hov:8,amp:3,bpe
 /* 教皇的畫格：身體固定、背後的十字光環（半透明）用另一個頻率上下飄，合成 seq 張；red = 惡魔化後光環改成血紅色 */
 function pentaHalo(x,cx,cy,R){/* 在光環中心畫一個紅色五芒星法陣：暗紅底圓、亮紅外圈、一筆畫的五芒星 */var px=function(X,Y,c){x.fillStyle=c;x.fillRect(Math.round(X),Math.round(Y),1,1)};
   for(var yy=-R;yy<=R;yy++)for(var xx=-R;xx<=R;xx++){var r=Math.hypot(xx,yy);if(r<=R+.5)px(cx+xx,cy+yy,r>R-1.2?'#ff5a5a':r>R-2.4?'#ff1a2a':r>R-3.4?'#3a0008':'#14000a')}
-  var P=[];for(var k=0;k<5;k++){var an=-Math.PI/2+k*Math.PI*2/5;P.push([cx+Math.cos(an)*(R-2.5),cy+Math.sin(an)*(R-2.5)])}
+  var P=[];for(var k=0;k<5;k++){var an=Math.PI/2+k*Math.PI*2/5;P.push([cx+Math.cos(an)*(R-2.5),cy+Math.sin(an)*(R-2.5)])/* 逆五芒星：一個尖端朝下 */}
   for(var k2=0;k2<5;k2++){var a=P[k2],b=P[(k2+2)%5],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1]));for(var j=0;j<=n;j++){var X=a[0]+(b[0]-a[0])*j/n,Y=a[1]+(b[1]-a[1])*j/n;px(X,Y,'#ff6060');px(X+1,Y,'#ff2a2a');px(X,Y+1,'#c8102a')}}P.forEach(function(q){px(q[0],q[1],'#ffd0d0');px(q[0]+1,q[1],'#ffa0a0')})}
 function popeFrames(body,halo,red){var N=16,W=96,H=104,out=[],hc=document.createElement('canvas');hc.width=W;hc.height=96;var hx=hc.getContext('2d');hx.drawImage(halo,0,0);
-  if(red){var d=hx.getImageData(0,0,W,96),p=d.data;for(var i=0;i<p.length;i+=4){if(!p[i+3])continue;var L=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/255,c=L>.75?[255,200,200]:L>.5?[255,58,58]:L>.28?[170,10,24]:[50,0,8];p[i]=c[0];p[i+1]=c[1];p[i+2]=c[2]}hx.putImageData(d,0,0);pentaHalo(hx,59,32,17)}/* 惡魔化：光環中間多一個紅色五芒星法陣 */
+  if(red){var d=hx.getImageData(0,0,W,96),p=d.data;for(var i=0;i<p.length;i+=4){if(!p[i+3])continue;var L=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/255,c=L>.75?[255,200,200]:L>.5?[255,58,58]:L>.28?[170,10,24]:[50,0,8];p[i]=c[0];p[i+1]=c[1];p[i+2]=c[2]}hx.putImageData(d,0,0);pentaHalo(hx,55,32,17)}/* 惡魔化：光環中間多一個紅色五芒星法陣 */
   for(var k=0;k<N;k++){var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.globalAlpha=red?.8:.72;x.drawImage(hc,0,4+Math.round(-3*Math.sin(k/N*Math.PI*2)));x.globalAlpha=1;x.drawImage(body,0,6);var im=new Image();im.src=c.toDataURL();out.push(im)}return out}
 function flyFr(k,now,ph){var F=FLY[k];if(F.seq)return Math.floor(((now+(ph||0))%F.per)/F.per*F.seq)%F.seq;/* 教皇：預先合成好的一圈畫格（背後光環錯開頻率上下飄） */if(F.bl&&F.f.length>3)return Math.floor((now+(ph||0))/F.flap)%2+(((now+(ph||0)*4)%F.bl)<160?2:0);/* 4 張：扇翅（收／展）× 眨眼 */if(F.bl)return((now+(ph||0)*4)%F.bl)<160?1:0;return Math.floor((now+(ph||0))/F.flap)%2}
 /* 漂浮的怪（不是飛行圖組）：整隻離地 hov 格，上下浮動 amp 格，per 毫秒一個來回 */

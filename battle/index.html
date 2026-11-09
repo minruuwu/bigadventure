@@ -374,10 +374,10 @@ var FLY={pope:{n:'墮落教皇',f:['monster_66'],seq:16,per:2300,hov:8,amp:3,bpe
 /* 教皇的畫格：身體固定、背後的十字光環（半透明）用另一個頻率上下飄，合成 seq 張；red = 惡魔化後光環改成血紅色 */
 function pentaHalo(x,cx,cy,R){/* 在光環中心畫一個紅色五芒星法陣：暗紅底圓、亮紅外圈、一筆畫的五芒星 */var px=function(X,Y,c){x.fillStyle=c;x.fillRect(Math.round(X),Math.round(Y),1,1)};
   for(var yy=-R;yy<=R;yy++)for(var xx=-R;xx<=R;xx++){var r=Math.hypot(xx,yy);if(r<=R+.5)px(cx+xx,cy+yy,r>R-1.2?'#ff5a5a':r>R-2.4?'#ff1a2a':r>R-3.4?'#3a0008':'#14000a')}
-  var P=[];for(var k=0;k<5;k++){var an=-Math.PI/2+k*Math.PI*2/5;P.push([cx+Math.cos(an)*(R-2.5),cy+Math.sin(an)*(R-2.5)])}
+  var P=[];for(var k=0;k<5;k++){var an=Math.PI/2+k*Math.PI*2/5;P.push([cx+Math.cos(an)*(R-2.5),cy+Math.sin(an)*(R-2.5)])/* 逆五芒星：一個尖端朝下 */}
   for(var k2=0;k2<5;k2++){var a=P[k2],b=P[(k2+2)%5],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1]));for(var j=0;j<=n;j++){var X=a[0]+(b[0]-a[0])*j/n,Y=a[1]+(b[1]-a[1])*j/n;px(X,Y,'#ff6060');px(X+1,Y,'#ff2a2a');px(X,Y+1,'#c8102a')}}P.forEach(function(q){px(q[0],q[1],'#ffd0d0');px(q[0]+1,q[1],'#ffa0a0')})}
 function popeFrames(body,halo,red){var N=16,W=96,H=104,out=[],hc=document.createElement('canvas');hc.width=W;hc.height=96;var hx=hc.getContext('2d');hx.drawImage(halo,0,0);
-  if(red){var d=hx.getImageData(0,0,W,96),p=d.data;for(var i=0;i<p.length;i+=4){if(!p[i+3])continue;var L=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/255,c=L>.75?[255,200,200]:L>.5?[255,58,58]:L>.28?[170,10,24]:[50,0,8];p[i]=c[0];p[i+1]=c[1];p[i+2]=c[2]}hx.putImageData(d,0,0);pentaHalo(hx,59,32,17)}/* 惡魔化：光環中間多一個紅色五芒星法陣 */
+  if(red){var d=hx.getImageData(0,0,W,96),p=d.data;for(var i=0;i<p.length;i+=4){if(!p[i+3])continue;var L=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)/255,c=L>.75?[255,200,200]:L>.5?[255,58,58]:L>.28?[170,10,24]:[50,0,8];p[i]=c[0];p[i+1]=c[1];p[i+2]=c[2]}hx.putImageData(d,0,0);pentaHalo(hx,55,32,17)}/* 惡魔化：光環中間多一個紅色五芒星法陣 */
   for(var k=0;k<N;k++){var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.globalAlpha=red?.8:.72;x.drawImage(hc,0,4+Math.round(-3*Math.sin(k/N*Math.PI*2)));x.globalAlpha=1;x.drawImage(body,0,6);var im=new Image();im.src=c.toDataURL();out.push(im)}return out}
 function flyFr(k,now,ph){var F=FLY[k];if(F.seq)return Math.floor(((now+(ph||0))%F.per)/F.per*F.seq)%F.seq;/* 教皇：預先合成好的一圈畫格（背後光環錯開頻率上下飄） */if(F.bl&&F.f.length>3)return Math.floor((now+(ph||0))/F.flap)%2+(((now+(ph||0)*4)%F.bl)<160?2:0);/* 4 張：扇翅（收／展）× 眨眼 */if(F.bl)return((now+(ph||0)*4)%F.bl)<160?1:0;return Math.floor((now+(ph||0))/F.flap)%2}
 /* 漂浮的怪（不是飛行圖組）：整隻離地 hov 格，上下浮動 amp 格，per 毫秒一個來回 */
@@ -1546,12 +1546,27 @@ function ldashFx(e,d){var P=dashPts(e),N=P.length-1;if(N<1)return;var end=120+N*
     if(hd>40)for(var b=0;b<3;b++){var bt=.25+b*.25,bx=x1+(x2-x1)*bt,by=y1+(y2-y1)*bt,ba=hsh(b,k3+Math.floor(hd/60))*Math.PI*2;zz(bx,by,bx+Math.cos(ba)*12,by+Math.sin(ba)*12,3,3,b+k3*5+Math.floor(hd/60),'#7ad8ff',null,al*.9)}
     if(hd<120){var fl2=1-hd/120;for(var q=-4;q<=4;q++){VP(mx+q,my,'#ffffff',fl2*(1-Math.abs(q)/5));VP(mx,my+q,'#ffffff',fl2*(1-Math.abs(q)/5))}}pBurst('lightning',mx,my,hd,10,VS)}}
 /* ===== 墮落教皇／褻瀆之光 ===== */
+var BGLY=['X.X|.X.|X.X','XXX|X..|XX.','.X.|XXX|.X.','X..|XXX|..X','XX.|.X.|.XX','X.X|XXX|..X','.XX|X.X|XX.','XXX|.X.|X.X','X..|X.X|XXX','.X.|X.X|X.X'];/* 血色咒文的字形（3×3） */
+function bloodCircle(gx,gy,now){/* 惡魔化教皇腳下的血色法陣：蠕動的血邊、兩圈咒文環（反向轉）、刻度環、逆五芒星、中心暗紅漩渦 */var Q=.32,pul=.75+.25*Math.sin(now/500);
+  var ell=function(R,n,c,a,ph){for(var k=0;k<n;k++){var an=k/n*Math.PI*2+(ph||0);VP(gx+Math.cos(an)*R,gy+Math.sin(an)*R*Q,c,a)}};
+  /* 最外圈：血氣蠕動的邊，偶爾往外滴 */var R0=38;for(var n=0;n<260;n++){var an=n/260*Math.PI*2,wob=Math.sin(an*7+now/260)*1.8+Math.sin(an*3-now/410)*1.2,rr=R0+wob;VP(gx+Math.cos(an)*rr,gy+Math.sin(an)*rr*Q,wob>1.2?'#ff3a3a':'#a8102a',.85);VP(gx+Math.cos(an)*(rr+1),gy+Math.sin(an)*(rr+1)*Q,'#3a0008',.6);if(n%20===0){var du=((now/1400+hsh(n,3))%1);VP(gx+Math.cos(an)*(rr+1+du*4),gy+Math.sin(an)*(rr+1+du*4)*Q,'#c8102a',(1-du)*.8)}}
+  ell(34.5,240,'#ff4a4a',.75*pul);ell(33.5,240,'#5a0010',.6);
+  /* 咒文環：一圈血色符文慢慢轉，有一道亮光沿著環跑 */var rot=now/7000,NG=16,hl=(now/2600)%1;for(var g=0;g<NG;g++){var ag=g/NG*Math.PI*2+rot,cx=gx+Math.cos(ag)*30,cy=gy+Math.sin(ag)*30*Q,gl=BGLY[g%BGLY.length].split('|'),dh=Math.abs(((g/NG-hl)%1+1)%1-.5),lit=dh>.42?1:0;
+    for(var yy=0;yy<3;yy++)for(var xx=0;xx<3;xx++)if(gl[yy].charAt(xx)==='X'){VP(cx-1+xx,cy-1+yy*.67,lit?'#ffd0d0':'#e0182e',lit?1:.85*pul);VP(cx-1+xx,cy-.3+yy*.67,'#2a0006',.5)}}
+  ell(26,190,'#ff3a3a',.8*pul);ell(25,190,'#5a0010',.6);
+  /* 內圈刻度環（反向轉） */for(var t2=0;t2<36;t2++){var at=t2/36*Math.PI*2-now/9000,L=t2%3?1:2.2;for(var q=0;q<=L;q+=.5)VP(gx+Math.cos(at)*(24-q),gy+Math.sin(at)*(24-q)*Q,t2%3?'#a8102a':'#ff5a5a',.8)}
+  /* 第二圈小咒文（反向轉、比較淡） */for(var g2=0;g2<10;g2++){var a3=g2/10*Math.PI*2-now/5000,gl2=BGLY[(g2*3+1)%BGLY.length].split('|'),c3x=gx+Math.cos(a3)*19.5,c3y=gy+Math.sin(a3)*19.5*Q;for(var y2=0;y2<3;y2++)for(var x2=0;x2<3;x2++)if(gl2[y2].charAt(x2)==='X')VP(c3x-1+x2,c3y-1+y2*.6,'#c8102a',.6*pul)}
+  ell(16.5,130,'#ff3a3a',.85);
+  /* 逆五芒星：一個尖端固定朝畫面下方（朝前），不跟著轉 */var P=[],sr=16,r0=0;for(var k=0;k<5;k++){var ak=Math.PI/2+k*Math.PI*2/5+r0;P.push([gx+Math.cos(ak)*sr,gy+Math.sin(ak)*sr*Q])}
+  for(var k2=0;k2<5;k2++){var A=P[k2],Bp=P[(k2+2)%5],nn=Math.ceil(Math.hypot(Bp[0]-A[0],Bp[1]-A[1])*1.5);for(var j=0;j<=nn;j++){var X=A[0]+(Bp[0]-A[0])*j/nn,Y=A[1]+(Bp[1]-A[1])*j/nn;VP(X,Y,'#ff4a4a',.9*pul);VP(X,Y+.5,'#7a0818',.6)}}P.forEach(function(p){VP(p[0],p[1],'#ffd0d0',1)});
+  /* 中心：暗紅漩渦 */for(var v=0;v<24;v++){var av=v/24*Math.PI*2+now/700,rv=2+(v%4)*1.4;VP(gx+Math.cos(av)*rv,gy+Math.sin(av)*rv*Q,v%2?'#8a0a18':'#2a0006',.85)}
+  /* 從法陣往上冒的血氣 */for(var m=0;m<14;m++){var u2=((now+hsh(m,3)*2400)%1700)/1700,a2=hsh(m,5)*Math.PI*2,rr2=8+hsh(m,7)*28;VP(gx+Math.cos(a2)*rr2+Math.sin(u2*6+m)*1.2,gy+Math.sin(a2)*rr2*Q-u2*16,m%3?'#c8102a':'#ff5a5a',Math.sin(u2*Math.PI)*.75)}}
 function popeIdx(){for(var i=0;i<mons.length;i++){var m=mons[i];if(m&&m.alive&&(m.k==='pope'||m.k==='pope2'))return i}return -1}
 function wline(x1,y1,x2,y2,c1,c2,a,amp,t,w){/* 兩點之間一條微微波動的線（w = 粗細 1/2） */var L=Math.hypot(x2-x1,y2-y1),n=Math.max(2,Math.ceil(L)),nx=-(y2-y1)/L,ny=(x2-x1)/L;for(var q=0;q<=n;q++){var k=q/n,o=Math.sin(k*Math.PI)*Math.sin(k*9-t/180)*amp,x=x1+(x2-x1)*k+nx*o,y=y1+(y2-y1)*k+ny*o;VP(x,y,c1,a);if(w>1)VP(x,y+1,c2,a*.6)}}
 function popeTick(now){var pi=popeIdx();if(pi<0)return;var P0=mons[pi],pm=monPos(pi);if(!pm)return;
   if(P0.k==='pope'){/* 聖域守護：白金色透明光罩一直罩著怪物方 */sanctDome(now);
     /* 不滅供奉：每隻活著的小兵身上一條微微波動的白線連到教皇，光點往教皇流 */mons.forEach(function(m,i){if(i===pi||!m.alive||m.lx==null)return;var mp=monPos(i);if(!mp)return;wline(mp[0],mp[1],pm[0],pm[1]+6,'#ffffff','#e8e0ff',.55,2.2,now+i*300,1);var u=((now+i*400)%1100)/1100;VP(mp[0]+(pm[0]-mp[0])*u,mp[1]+(pm[1]+6-mp[1])*u,'#fff4c4',.95)})}
-  else{/* 褻瀆光環：腳下一圈紅色靈氣，邊緣血氣蠕動 */var gx=P0.lx,gy=P0.gy,R=30;for(var n=0;n<72;n++){var an=n/72*Math.PI*2,wob=Math.sin(an*7+now/260)*2.2+Math.sin(an*3-now/410)*1.5,rr=R+wob;VP(gx+Math.cos(an)*rr,gy+Math.sin(an)*rr*.3,wob>1.5?'#ff3a3a':'#8a0a18',.8);if(n%3===0)VP(gx+Math.cos(an)*(rr+1.5),gy+Math.sin(an)*(rr+1.5)*.3-Math.max(0,wob)*.6,'#5a0010',.6)}for(var k=0;k<10;k++){var u2=((now+hsh(k,3)*2000)%1600)/1600,a2=hsh(k,5)*Math.PI*2;VP(gx+Math.cos(a2)*R*.8,gy+Math.sin(a2)*R*.24-u2*14,'#c8102a',Math.sin(u2*Math.PI)*.7)}}
+  else bloodCircle(P0.lx,P0.gy,now);/* 褻瀆光環：腳下複雜的血色法陣 */
   /* 牧羊權柄：一條紅線從教皇傳到羔羊身上 */var SN=B&&B.stNow;if(SN&&SN.m)mons.forEach(function(m,i){if(i===pi||!m.alive||!(SN.m[i]||[]).some(function(n){return String(n).split('|')[0]==='羔羊'}))return;var mp=monPos(i);if(!mp)return;wline(pm[0],pm[1]+2,mp[0],mp[1]+2,'#e0182e','#7a0818',.85,1.2,now,2);for(var j=0;j<3;j++){var u3=((now/700+j/3)%1);VP(pm[0]+(mp[0]-pm[0])*u3,pm[1]+2+(mp[1]-pm[1])*u3,'#ff8080',1)}})}
 function sanctDome(now){var L=1e9,R=-1e9,T=1e9,Bm=-1e9;mons.forEach(function(m){if(!m.alive||m.lx==null)return;var MZ=msz(m.k),w=MZ[0]*m.sc/2;L=Math.min(L,m.lx-w);R=Math.max(R,m.lx+w);T=Math.min(T,m.gy-(m.lift||0)-MZ[1]*m.sc);Bm=Math.max(Bm,m.gy)});if(L>1e8)return;
   var cx=(L+R)/2,base=Bm+3,rx=(R-L)/2+12,ry=Bm-T+12,a=.28+.1*Math.sin(now/700),N=Math.round(rx*3.4);for(var n=0;n<=N;n++){var an=n/N*Math.PI;VP(cx+Math.cos(an)*rx,base-Math.sin(an)*ry,'#ffd86a',a);VP(cx+Math.cos(an)*rx,base-Math.sin(an)*ry+1,'#fff4c4',a*.5)}
