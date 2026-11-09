@@ -276,7 +276,9 @@ function build(c){
   var A={};c.stage_info.forEach(function(r){if(!r.area_id)return;var a=A[r.area_id];if(!a){a=A[r.area_id]={id:r.area_id,n:r.area_name,first:{},open:false};D.areas.push(a)}
     if(r.open==='1')a.open=true;var st=parseInt(r.stage,10)||1;
     [r.monster_pool,r.fixed_monsters,r.fixed_small].join(';').split(';').forEach(function(id){id=id.trim();if(!id||!D.mon[id])return;if(a.first[id]==null||st<a.first[id])a.first[id]=st})});
-  D.areas.forEach(function(a){Object.keys(a.first).forEach(function(id){summonsOf(id).forEach(function(s){if(a.first[s]==null||a.first[id]<a.first[s])a.first[s]=a.first[id]})})});
+  /* 主線王變身後的形態、出場時召喚的小兵（例如褻瀆之光、墮落天界使徒）：跟本體同一關，排在本體後面 */
+  var formsOf=function(id){var m=D.mon[id],o=[];if(!m)return o;String(m.passive||'').split(';').forEach(function(pid){(D.eff[pid.trim()]||[]).forEach(function(r){if((r.effect==='transform'||r.effect==='enter_summon')&&D.mon[r.condition])o.push(r.condition)})});return o};
+  D.areas.forEach(function(a){var q=Object.keys(a.first);while(q.length){var id=q.shift();summonsOf(id).concat(formsOf(id)).forEach(function(s){if(a.first[s]==null||a.first[id]<a.first[s]){a.first[s]=a.first[id];q.push(s)}})}});
   /* 同名同圖的怪（關卡用的複本，例如兩種綠幼龍）只留一隻 */
   var keyOf=function(id){var m=D.mon[id];return m.monster_name+'|'+m.sprite},have={};
   D.areas.forEach(function(a){Object.keys(a.first).sort(function(x,y){return a.first[x]-a.first[y]||(x<y?-1:1)}).forEach(function(id){var k=keyOf(id);if(have[k]){var o=have[k];if(o.a===a&&a.first[id]<a.first[o.id])a.first[o.id]=a.first[id];delete a.first[id]}else have[k]={a:a,id:id}})});

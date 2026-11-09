@@ -822,7 +822,7 @@ function drawNote(x,y,k,c,a){var P=k%2?NOTE2:NOTE1,w=P[0].length;stPat(0,x-w/2+.
 var auc=$('auc'),aux=auc.getContext('2d');
 function VTAU(){return Object.keys(VT.au||{}).filter(function(k){return VT.au[k]})}
 /* 靈氣：持有者腳下完整光環（光點在 drawSongs 畫在前面），其他活著的隊友腳下淡光環；持有者倒下就消失 */
-function drawAura(t,now){var W=frame.clientWidth,H=frame.clientHeight;if(auc.width!==W||auc.height!==H){auc.width=W;auc.height=H}else aux.clearRect(0,0,W,H);B&&(B._auH=[]);if(!B||!window.Aura||view!=='battle')return;
+function drawAura(t,now){var W=frame.clientWidth,H=frame.clientHeight;if(auc.width!==W||auc.height!==H){auc.width=W;auc.height=H}else aux.clearRect(0,0,W,H);B&&(B._auH=[]);if(!B||view!=='battle')return;var pi2=popeIdx();if(pi2>=0&&mons[pi2].k==='pope2'&&mons[pi2].lx!=null){var spc=pctx;pctx=aux;try{bloodCircle(mons[pi2].lx,mons[pi2].gy,now)}finally{pctx=spc}}/* 褻瀆光環：腳下血色法陣畫在角色後面 */if(!window.Aura)return;
   var un=[];party.forEach(function(p,k){var ids=VFXT?(k===0&&!VT.auAlly?VTAU():[]):p.au||[];if(!ids.length||!p.auOk)return;B._auH.push([k,ids]);ids.forEach(function(id){if(un.indexOf(id)<0)un.push(id)})});
   if(VFXT&&VT.auAlly)un=VTAU();
   party.forEach(function(p,k){if(p.sx==null||!p.auOk)return;var h=B._auH.filter(function(q){return q[0]===k})[0],ids=h?h[1]:un;if(!ids.length)return;Aura.ring(aux,p.sx,p.gy-.5,U,now+p.ph,ids,!h)});
@@ -1566,7 +1566,7 @@ function wline(x1,y1,x2,y2,c1,c2,a,amp,t,w){/* 兩點之間一條微微波動的
 function popeTick(now){var pi=popeIdx();if(pi<0)return;var P0=mons[pi],pm=monPos(pi);if(!pm)return;
   if(P0.k==='pope'){/* 聖域守護：白金色透明光罩一直罩著怪物方 */sanctDome(now);
     /* 不滅供奉：每隻活著的小兵身上一條微微波動的白線連到教皇，光點往教皇流 */mons.forEach(function(m,i){if(i===pi||!m.alive||m.lx==null)return;var mp=monPos(i);if(!mp)return;wline(mp[0],mp[1],pm[0],pm[1]+6,'#ffffff','#c8c0ff',.9,2.2,now+i*300,2);for(var fd=0;fd<2;fd++){var u=((now+i*400+fd*550)%1100)/1100,fx=mp[0]+(pm[0]-mp[0])*u,fy=mp[1]+(pm[1]+6-mp[1])*u;VP(fx,fy,'#fff4c4',1);VP(fx+1,fy,'#ffd86a',.8);VP(fx,fy-1,'#ffffff',.7)}})}
-  else bloodCircle(P0.lx,P0.gy,now);/* 褻瀆光環：腳下複雜的血色法陣 */
+  /* 褻瀆光環的腳下法陣畫在靈氣圖層（drawAura），在角色後面 */
   /* 牧羊權柄：一條紅線從教皇傳到羔羊身上 */var SN=B&&B.stNow,vtL=VFXT&&VT.sk==='skill437';if((SN&&SN.m)||vtL)mons.forEach(function(m,i){if(i===pi||!m.alive||!(vtL?i===1:(SN.m[i]||[]).some(function(n){return String(n).split('|')[0]==='羔羊'})))return;var mp=monPos(i);if(!mp)return;wline(pm[0],pm[1]+2,mp[0],mp[1]+2,'#e0182e','#7a0818',.85,1.2,now,2);for(var j=0;j<3;j++){var u3=((now/700+j/3)%1);VP(pm[0]+(mp[0]-pm[0])*u3,pm[1]+2+(mp[1]-pm[1])*u3,'#ff8080',1)}})}
 function sanctDome(now){var L=1e9,R=-1e9,T=1e9,Bm=-1e9;mons.forEach(function(m){if(!m.alive||m.lx==null)return;var MZ=msz(m.k),w=MZ[0]*m.sc/2;L=Math.min(L,m.lx-w);R=Math.max(R,m.lx+w);T=Math.min(T,m.gy-(m.lift||0)-MZ[1]*m.sc);Bm=Math.max(Bm,m.gy)});if(L>1e8)return;
   var cx=(L+R)/2,base=Bm+3,rx=(R-L)/2+12,ry=Bm-T+12,a=.28+.1*Math.sin(now/700),N=Math.round(rx*3.4);for(var n=0;n<=N;n++){var an=n/N*Math.PI;VP(cx+Math.cos(an)*rx,base-Math.sin(an)*ry,'#ffd86a',a);VP(cx+Math.cos(an)*rx,base-Math.sin(an)*ry+1,'#fff4c4',a*.5)}
