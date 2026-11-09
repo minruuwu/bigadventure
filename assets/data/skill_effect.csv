@@ -412,3 +412,8 @@ skill420,鐵鍊纏縛,status,鐵鍊纏身,enemy_single,2,1,,,,,,,,
 skill421,腐化覺醒,status,腐化覺醒,self,3,1,,,,,,,,
 skill422,腐化鐵甲,passive,腐蝕,attacker,2,,apply_status,,,,p,hit_taken,0.25,
 skill423,魔肢再生,passive,,,,,regen,0.1,,,,,,
+skill424,懺悔之鞭,status,出血,enemy_single,3,1,,,,,,,,
+skill425,連鞭,status,破甲,enemy_single,3,0.4,,,,,,,,
+skill426,黑暗祈禱,status,黑暗守護,ally_single,2,1,,,,,,,,
+skill427,審問,status,罪咎,enemy_all,2,1,,,,,,,,
+skill428,苦修,passive,,,,,hurt_stack,0.05,,,,hit_taken,1,5

@@ -235,7 +235,7 @@
     function stat(u, k) {
       var b = u.b;
       switch (k) {
-        case 'patk': return (b.patk + apaAdj(u, 'pB')) * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
+        case 'patk': return (b.patk + apaAdj(u, 'pB')) * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.hstk ? u.hstk * u.hstkV : 0) /* 苦修 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'matk': return (b.matk + apaAdj(u, 'mB')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'pdmg': return b.pdmg + sv(u, 'p_damage_rate') + auraVal(u, 'p_damage_rate');
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
@@ -783,6 +783,7 @@
             /* 震撼（怪物被動 thorns）：被物理攻擊打中時，以自己物攻 value 倍的真實傷害反彈；同一招只反彈一次（整招結束後才反彈） */
             if (t.special && real > 0 && !u.dead && t.side !== u.side && sk.parts.some(function (q) { return q.d === 'p' })) t.special.forEach(function (sp) { if (sp.k === 'thorns') { var tnm = D.SK[sp.id] ? D.SK[sp.id].n : '震撼'; e._th = e._th || []; if (!e._th.some(function (z) { return z.d === t && z.a === u && z.nm === tnm })) e._th.push({ d: t, a: u, amt: Math.round(stat(t, 'patk') * sp.v), nm: tnm }) } });
             /* 被打中時觸發的被動（輝煌龍的神恩寵兒：機率讓攻擊者陷入魅惑） */
+            if (t.special && real > 0 && !t.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'hurt_stack' && sp.tr === 'hit_taken') { var mx0 = parseInt(sp.cond, 10) || 5; if ((t.hstk | 0) < mx0) { t.hstk = (t.hstk | 0) + 1; t.hstkV = sp.v; (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '苦修') + '」' + t.hstk + ' 層') } } }); /* 苦修：每受一次傷害物攻 +v，最多 condition 層 */
             if (t.special && real > 0 && !u.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'apply_status' && sp.tr === 'hit_taken' && !u.dead && (!sp.dt || (sp.dt === 'm') === hasMag(sk)) /* dmg_type = p：只有物理攻擊會觸發（腐化鐵甲） */ && RND() < sp.ch && applyStatus(t, u, sp.st, sp.turns, 1, null)) { (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '被動') + '」讓 ' + u.name + ' 陷入「' + sp.st + '」'); (e.dringA = e.dringA || []).push([u.side, u.i]) } });
             if (t.runes && t.runes.indexOf('rune23') >= 0 && real > 0 && !u.dead && RND() < RV(D, 'rune23', 0, 0.2, t)) (function (t, u) { rq(e, 'rune23', function (r) { if (t.dead || u.dead || !applyStatus(t, u, '石化', RV(D, 'rune23', 1, 5, t), 1, null)) return false; r.txt = t.name + ' 的「石之正義」：' + u.name + ' 被石化 ' + RV(D, 'rune23', 1, 5, t) + ' 回合'; fxOn(r, 'stone', t, [u]) }) })(t, u);
             if (u.runes.indexOf('rune13') >= 0 && real > 0 && RND() < RV(D, 'rune13', 0, 0.3, u)) { var dbs = Object.keys(D.STS).filter(function (n) { return D.STS[n].pol === 'debuff' && !D.STS[n].rows.some(function (r) { return r.k === 'banish' || r.k === 'charm' || r.k === 'petrify' || r.k === 'swallow' }) }); var dn = pickOne(dbs); (function (t) { rq(e, 'rune13', function (r) { if (t.dead || !applyStatus(u, t, dn, RV(D, 'rune13', 1, 3, u), 1, null)) return false; r.txt = u.name + ' 的「夢靨之預兆」：' + t.name + ' 陷入「' + dn + '」' + RV(D, 'rune13', 1, 3, u) + ' 回合'; fxOn(r, 'nm', u, [t]) }) })(t) }

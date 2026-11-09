@@ -422,3 +422,8 @@ skill420,鐵鍊纏縛,monster,0,combat,enemy_single,random,damage,,,p,,0.8,,,,�
 skill421,腐化覺醒,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身腐化覺醒 3 回合：物理攻擊力 +25%，但受到的傷害 +10%）,corrupt,,,0,single,,3,,
 skill422,腐化鐵甲,monster,0,passive,,,passive,,,,,,,,,怪物被動（被物理攻擊打中時，25% 機率讓攻擊者中腐蝕 2 回合：物理減傷 −10%）,,,,,,,,,
 skill423,魔肢再生,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開始恢復最大生命的 10%）,,,,,,,,,
+skill424,懺悔之鞭,monster,0,combat,enemy_single,random,damage,,,p,,1.2,,,,怪物技能（長鞭甩過去：單體物理傷害 ×1.2，附加出血 3 回合）,whip,,,2,single,,3,,
+skill425,連鞭,monster,0,combat,enemy_single,random,damage,,,p,,0.4,,,,怪物技能（一下一下抽在不同位置：單體物理傷害 ×0.4 共 4 段，40% 機率破甲 3 回合）,whip,4,,2,single,,3,,
+skill426,黑暗祈禱,monster,0,combat,ally_single,lowest_hp,heal,,,m,,1.5,,,,怪物技能（黑金色光柱落在一名同伴身上：回復魔攻 ×1.5 的生命，並附加黑暗守護 2 回合）,darkpillar,,,3,single,,3,,
+skill427,審問,monster,0,combat,enemy_all,,debuff,,,,,,,,,怪物技能（敵方全體附加罪咎 2 回合：受到的傷害 +15%）,inquisit,,,0,diamond,5,3,,
+skill428,苦修,monster,0,passive,,,passive,,,,,,,,,怪物被動（自己每受到一次傷害，物理攻擊力 +5%，最多疊 5 層）,,,,,,,,,

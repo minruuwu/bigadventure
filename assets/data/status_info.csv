@@ -205,3 +205,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 腐化覺醒,buff,p_atk_rate,0.25,,,,物理攻擊力 +25%，但受到的傷害 +10%
 腐化覺醒,buff,dmg_taken_rate,0.1,,,,
 腐蝕,debuff,p_reduce_rate,-0.1,,,,鎧甲被腐蝕：物理減傷 −10%
+罪咎,debuff,dmg_taken_rate,0.15,,,,受到的傷害 +15%
+黑暗守護,buff,dmg_taken_rate,-0.2,,,,受到的傷害 −20%
