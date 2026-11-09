@@ -215,7 +215,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=7"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=58"></script>
+<script src="engine.js?v=59"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=18"></script>
 <script>
@@ -1988,7 +1988,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       if(e.kind!=='round')t+=e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
       (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
       (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
-      if(e.tf&&e.tf[3]){var BM0=ms[e.tf[0]];if(BM0)(BM0.tfs=BM0.tfs||[]).push({t0:o.t,t:o.t+(e.tf[3]==='bone'?BONESW:e.tf[3]==='blood'?BLDSW:RISESW),k:e.tf[1],n:e.tf[2],sty:e.tf[3],au:[]});o.tfB=[e.tf[0],e.tf[3]]}/* 骨兵：散成骨堆／重組回骨兵（可以重複很多次） */
+      if(e.tf&&e.tf[3]){var BM0=ms[e.tf[0]];if(BM0)(BM0.tfs=BM0.tfs||[]).push({t0:o.t,t:o.t+(e.tf[3]==='bone'?BONESW:e.tf[3]==='blood'?BLDSW:RISESW),k:e.tf[1],n:e.tf[2],sty:e.tf[3],au:e.tf[3]==='blood'?(e.tf[4]||[]):[]});o.tfB=[e.tf[0],e.tf[3]]}/* 骨兵：散成骨堆／重組回骨兵（可以重複很多次） */
       else if(e.tf){if(ms[e.tf[0]]){ms[e.tf[0]].tf={t0:o.t,t:o.t+TFSW,k:e.tf[1],n:e.tf[2],au:ms[e.tf[0]].au||[]};ms[e.tf[0]].au=[]}/* 靈氣（噬血光環）等變身後才出現 */o.tfA=e.tf[0]}
       if(e.cd&&ms[e.cd[0]])(ms[e.cd[0]].cds=ms[e.cd[0]].cds||[]).push({t:o.t+(e.tf?BONESW:0),n:e.cd[1]});/* 骨堆頭上的倒數 *//* 變身（亡骸化）：先消散 → 地上浮現熒綠光陣 → 光柱往上衝 → 亡骸從光陣裡往上升起 */
       (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+(o.kod||260),d:true})});

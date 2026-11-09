@@ -415,7 +415,7 @@
         u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
         u.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = u });
         if (e) e.txt += '；' + old + ' 倒下了';
-        var tr = line({ side: 'm', a: u.i, txt: old + (tfx.el === 'blood' ? ' 化為「' + u.name + '」暴走了！' : ' 化為「' + u.name + '」復活了！'), tf: tfx.el === 'blood' ? [u.i, u.sprite, u.name, 'blood'] : [u.i, u.sprite, u.name] } /* blood = 尤里烏斯：不消散，腳下血法陣一閃就變身 */); tr.hp = hpSnap();
+        var tr = line({ side: 'm', a: u.i, txt: old + (tfx.el === 'blood' ? ' 化為「' + u.name + '」暴走了！' : ' 化為「' + u.name + '」復活了！'), tf: tfx.el === 'blood' ? [u.i, u.sprite, u.name, 'blood', u.aura.map(function (a) { return a.id }).filter(function (x, i, a) { return a.indexOf(x) === i })] : [u.i, u.sprite, u.name] } /* blood = 尤里烏斯：不消散，腳下血法陣一閃就變身 */); tr.hp = hpSnap();
         return false;
       }
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
