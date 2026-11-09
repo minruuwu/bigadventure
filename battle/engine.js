@@ -180,7 +180,7 @@
         else if (e.target === 'ally_all' && e.effect === 'lifesteal') return; /* 全隊吸血走靈氣（monAura），自己不重複算 */
         else if (e.effect === 'hit_rate') out.push({ id: id, k: 'hit_rate', v: v }); /* 命中率加成（弓術）：算命中時直接加上去 */
         else if (e.effect === 'fall_stack') out.push({ id: id, k: e.effect, v: v, ch: parseFloat(e.trigger_chance) || 0, cond: e.condition }); /* 墮天：每回合開始機率疊一層攻擊加成 */
-        else if (['undying', 'enter_summon', 'curse_wave'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, st: e.status_name, turns: e.turns, cond: e.condition }); /* 教皇：不滅供奉、惡魔化召喚、褻瀆光環 */
+        else if (['offering', 'enter_summon', 'curse_wave'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, st: e.status_name, turns: e.turns, cond: e.condition }); /* 教皇：不滅供奉、惡魔化召喚、褻瀆光環 */
         else if (['lifesteal', 'extra_dmg', 'auto_cleanse', 'regen'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* regen = 每次輪到牠行動時恢復最大生命 v */
       });
     });
@@ -374,7 +374,7 @@
     function hurt(d, amt, src, dot) {
       /* 扣血（先扣護盾）；回傳實際扣掉的生命與是否倒下 */
       /* 不滅供奉：自己以外還有同伴活著時，不受持續傷害、最少留 1 滴血 */
-      var undy = d.special && d.special.some(function (x) { return x.k === 'undying' }) && (d.side === 'm' ? M : P).some(function (x) { return x !== d && !x.dead });
+      var undy = d.special && d.special.some(function (x) { return x.k === 'offering' }) /* 不滅供奉（不要跟骨兵的 undying 搞混） */ && (d.side === 'm' ? M : P).some(function (x) { return x !== d && !x.dead });
       if (undy && dot) return 0;
       /* 牧羊權柄：被指定為羔羊的同伴替施放者扛一半傷害 */
       if (amt > 1 && !dot) { var lamb = (d.side === 'm' ? M : P).filter(function (x) { return x !== d && !x.dead && x.st.some(function (q) { return q.lamb && q.src === d }) })[0];
