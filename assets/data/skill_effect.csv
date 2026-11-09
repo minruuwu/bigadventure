@@ -436,4 +436,8 @@ skill442,聖域守護,passive,,ally_all,,,m_reduce_rate,0.25,,,,,,
 skill443,不滅供奉,passive,,,,,undying,1,,,,,,
 skill444,惡魔真身,passive,,self,,,transform,,,demon,,death,1,mon87
 skill445,褻瀆光環,passive,,,2,,curse_wave,0.1,,,,,,破甲;弱魔;虛弱;目盲;遲鈍;識破;乏力;失神;弱點標記
-skill446,惡魔召喚,passive,,,,,enter_summon,2,,,,,,mon85
+skill446,惡魔召喚,passive,,,,,enter_summon,2,,,,,,mon88
+skill448,黑暗聖歌,status,虛弱,enemy_all,2,0.3,,,,,,,,
+skill449,血羽庇護,status,血羽庇護,ally_all,2,1,,,,,,,,
+skill450,墮天,passive,,,,,fall_stack,0.1,,,,round_start,0.2,5
+skill451,魔性血脈,passive,,,,,regen,0.1,,,,,,

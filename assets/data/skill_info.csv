@@ -445,3 +445,8 @@ skill443,不滅供奉,monster,0,passive,,,passive,,,,,,,,,怪物被動（只要�
 skill444,惡魔真身,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下時現出惡魔真身：化為「褻瀆之光‧格里高利十四世」，並從惡魔法陣召喚兩隻同伴）,,,,,,,,,
 skill445,褻瀆光環,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開始一圈紅色氣浪掃過全場，每個敵人 10% 機率中一個隨機負面狀態 2 回合）,,,,,,,,,
 skill446,惡魔召喚,monster,0,passive,,,passive,,,,,,,,,怪物被動（現身時從惡魔法陣召喚兩隻同伴）,,,,,,,,,
+skill447,魔光斬,monster,0,combat,enemy_all,,damage,,,p,dark,0.9,,,,怪物技能（紅黑色的巨大月牙橫掃全隊：全體黑暗物理傷害 ×0.9）,redsweep,,,0,diamond,3,3,,
+skill448,黑暗聖歌,monster,0,combat,enemy_all,,damage,,,m,dark,0.8,,,,怪物技能（血色的扭曲聖歌：全體黑暗魔法傷害 ×0.8，30% 機率虛弱 2 回合）,notes,,,0,diamond,5,3,,血
+skill449,血羽庇護,monster,0,combat,ally_all,,buff,,,,,,,,,怪物技能（血紅的羽翼：我方全體獲得血羽庇護 2 回合，吸收施放者魔攻 ×1.5 的傷害，擋下的傷害一半轉成回血）,bfeathers,,,0,diamond,5,3,,
+skill450,墮天,monster,0,passive,,,passive,,,,,,,,,怪物被動（每回合開始 20% 機率墮落更深：物理、魔法攻擊 +10%，可疊加，最多 5 層）,,,,,,,,,
+skill451,魔性血脈,monster,0,passive,,,passive,,,,,,,,,怪物被動（每次輪到牠行動時恢復最大生命 10%）,,,,,,,,,

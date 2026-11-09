@@ -179,6 +179,7 @@
         if (e.trigger || e.effect === 'apply_status') out.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type });
         else if (e.target === 'ally_all' && e.effect === 'lifesteal') return; /* 全隊吸血走靈氣（monAura），自己不重複算 */
         else if (e.effect === 'hit_rate') out.push({ id: id, k: 'hit_rate', v: v }); /* 命中率加成（弓術）：算命中時直接加上去 */
+        else if (e.effect === 'fall_stack') out.push({ id: id, k: e.effect, v: v, ch: parseFloat(e.trigger_chance) || 0, cond: e.condition }); /* 墮天：每回合開始機率疊一層攻擊加成 */
         else if (['undying', 'enter_summon', 'curse_wave'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, st: e.status_name, turns: e.turns, cond: e.condition }); /* 教皇：不滅供奉、惡魔化召喚、褻瀆光環 */
         else if (['lifesteal', 'extra_dmg', 'auto_cleanse', 'regen'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* regen = 每次輪到牠行動時恢復最大生命 v */
       });
@@ -236,8 +237,8 @@
     function stat(u, k) {
       var b = u.b;
       switch (k) {
-        case 'patk': return (b.patk + apaAdj(u, 'pB')) * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.hstk ? u.hstk * u.hstkV : 0) /* 苦修 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
-        case 'matk': return (b.matk + apaAdj(u, 'mB')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
+        case 'patk': return (b.patk + apaAdj(u, 'pB')) * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.hstk ? u.hstk * u.hstkV : 0) /* 苦修 */ + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
+        case 'matk': return (b.matk + apaAdj(u, 'mB')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'pdmg': return b.pdmg + sv(u, 'p_damage_rate') + auraVal(u, 'p_damage_rate');
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
         case 'pred': return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate');
@@ -380,9 +381,10 @@
         if (lamb) { var half = Math.floor(amt / 2); amt -= half; var lt = hurt(lamb, half, src, true); var le = ev[ev.length - 1]; if (le) { (le.lamb = le.lamb || []).push([d.i, lamb.i]); if (lt) (le._x = le._x || []).push(lamb.name + ' 替 ' + d.name + ' 承受 ' + lt + ' 傷害') } if (lamb.hp <= 0 && !lamb.dead) checkDeath(lamb, le) } }
       if (undy && amt >= d.hp) { amt = Math.max(0, Math.ceil(d.hp) - 1); var ue = ev[ev.length - 1]; if (ue && !ue._undy) { ue._undy = 1; (ue._x = ue._x || []).push(d.name + ' 的「不滅供奉」護住了最後一口氣') } }
       var left = amt; if (src && amt > 0 && src !== d) d._lh = src; /* 記下最後打到牠的人（擊殺 +1 SP） */
-      d.st.forEach(function (s) { if (left > 0 && s.shield > 0) { var x = Math.min(s.shield, left); s.shield -= x; left -= x } });
+      var shg = 0; d.st.forEach(function (s) { if (left > 0 && s.shield > 0) { var x = Math.min(s.shield, left); s.shield -= x; left -= x; s.rows.forEach(function (r) { if (r.k === 'shield_heal') shg += x * (r.v || 0) }) } }); /* 血羽庇護：擋下的傷害一部分轉成回血 */
       d.st = d.st.filter(function (s) { return !(s.rows.some(function (r) { return r.k === 'shield' }) && s.shield <= 0 && !s.rows.some(function (r) { return r.k === 'debuff_block' })) }); /* 秘術護罩：盾破了也留著，繼續抵擋負面狀態到回合結束 */
       d.hp -= left; numHit(d, amt, left);
+      if (shg > 0 && d.hp > 0) { var sg = heal(d, d, shg, null, true); var se = ev[ev.length - 1]; if (sg && se) { (se._x = se._x || []).push(d.name + ' 的「血羽庇護」轉化恢復 ' + sg); (se.bfh = se.bfh || []).push([d.side, d.i]) } }
       if (left > 0 && !dot) d.st = d.st.filter(function (s) { return !s.rows.some(function (r) { return r.k === 'sleep' }) });
       return left;
     }
@@ -944,6 +946,9 @@
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'curse_wave') return; var L = String(sp.cond || '').split(';').map(function (x) { return x.trim() }).filter(function (x) { return D.STS[x] }), hit = [];
         foes(src).forEach(function (q) { if (q.dead || banished(q) || !L.length) return; if (RND() < sp.v) { var sn = pickOne(L); if (applyStatus(src, q, sn, sp.turns || 2, 1, null)) hit.push(q.name + ' 陷入「' + sn + '」') } });
         var wz = line({ side: 'm', a: src.i, idle: 1, cwave: 1, txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '光環') + '」掃過全場' + (hit.length ? '：' + hit.join('、') : '') }); wz.hp = hpSnap() }) });
+      /* 墮天（被動 fall_stack）：每回合開始 ch 機率疊一層，物攻魔攻各 +v，最多 cond 層 */
+      M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'fall_stack') return; var mx = parseInt(sp.cond, 10) || 5; if ((src.fstk | 0) >= mx || RND() >= sp.ch) return; src.fstk = (src.fstk | 0) + 1; src.fstkV = sp.v;
+        var fz = line({ side: 'm', a: src.i, idle: 1, fallen: 1, txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '墮天') + '」加深了，傷害提升（' + src.fstk + ' 層）' }); fz.hp = hpSnap() }) });
       if (rounds > 1) U.forEach(function (u) { if (u.runes.indexOf('rune18') >= 0) u.dragon = Math.max(RV(D, 'rune18', 2, 0.2, u), u.dragon - RV(D, 'rune18', 1, 0.05, u)) });
       return U.filter(function (u) { return !u.dead && !u.undead }).map(function (u) { return { u: u, s: stat(u, 'speed') + RND() * 3 } })/* 骨堆不行動 */.sort(function (a, b) { return b.s - a.s }).map(function (x) { return x.u });
     }
