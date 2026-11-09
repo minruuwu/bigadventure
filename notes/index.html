@@ -64,6 +64,8 @@ section[hidden]{display:none}
 .area>button{width:100%;display:flex;justify-content:space-between;align-items:center;font:inherit;font-weight:900;font-size:14px;color:var(--pink);background:none;border:0;border-bottom:1px solid rgba(58,38,22,.25);padding:4px 2px;cursor:pointer;text-align:left}
 .area>button i{font-style:normal;font-size:12px;font-weight:700;color:var(--pink2)}
 .area.lock>button{color:var(--pink2)}
+.race{margin:2px 0 6px}.rtg{display:inline-flex;gap:6px;align-items:center;font:inherit;font-weight:900;font-size:13px;color:var(--pink);background:rgba(255,255,255,.35);border:1px solid rgba(58,38,22,.35);border-radius:14px;padding:3px 12px;cursor:pointer}.rtg i{font-style:normal;font-size:11px}
+.rch[hidden]{display:none}.rch{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 2px}.rch button{display:inline-flex;gap:5px;align-items:baseline;font:inherit;font-size:13px;font-weight:700;color:#3a2616;background:rgba(255,255,255,.4);border:1px solid rgba(58,38,22,.3);border-radius:12px;padding:3px 10px;cursor:pointer}.rch button i{font-style:normal;font-size:11px;color:var(--pink2)}.rch button.on{background:var(--pink);color:#fff;border-color:var(--pink)}.rch button.on i{color:#fff}
 .grid[hidden]{display:none}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 0 4px}
 .mt{position:relative;background:rgba(255,240,205,.28);border:2px solid rgba(58,38,22,.35);padding:4px 2px 3px;cursor:pointer;display:flex;flex-direction:column;align-items:center;min-width:0;font:inherit;color:var(--pink)}
 .mt:active{transform:translateY(2px)}
@@ -327,10 +329,17 @@ function renderAcct(){var a=$('acct');a.textContent='';var av=el('div','av');
   var b=el('button','b','登出');b.type='button';if(demo)b.disabled=true;b.addEventListener('click',function(){ask('確定要登出嗎？登出後會回到登入頁面。',function(){withFB(function(FB){FB.signOut().then(function(){location.href='../index.html'},function(){toast('登出失敗，請再試一次')})})})});a.appendChild(b)}
 
 var OPENA={};
-function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;
+/* 種族分類（monster_info 的 race 欄）：平常收起來，點「分類」才展開；選過的記在這台裝置 */
+var RACES=['魔獸','龍族','亡靈','元素生物','構裝生物','人類','亞人','史萊姆','異怪','墮落神祇'],RACE='',RACEOPEN=false;try{RACE=localStorage.getItem('notes.dex.race')||''}catch(e){}
+function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;if(RACE&&RACES.indexOf(RACE)<0)RACE='';
+  var cnt={'':[0,0]};RACES.forEach(function(k){cnt[k]=[0,0]});D.entries.forEach(function(E){var k=D.mon[E.id].race||'',ok=seenE(E)?1:0;cnt[''][1]++;cnt[''][0]+=ok;if(cnt[k]){cnt[k][1]++;cnt[k][0]+=ok}});
+  var rb=el('div','race'),tg=el('button','rtg');tg.type='button';tg.appendChild(el('span',null,'分類：'+(RACE||'全部')));tg.appendChild(el('i',null,RACEOPEN?'▴':'▾'));rb.appendChild(tg);
+  var ch=el('div','rch');ch.hidden=!RACEOPEN;[''].concat(RACES).forEach(function(k){if(k&&!cnt[k][1])return;var b=el('button',k===RACE?'on':null);b.type='button';b.appendChild(el('span',null,k||'全部'));b.appendChild(el('i',null,cnt[k][0]+'/'+cnt[k][1]));b.addEventListener('click',function(){RACE=k;RACEOPEN=false;try{localStorage.setItem('notes.dex.race',k)}catch(e){}renderDex()});ch.appendChild(b)});
+  tg.addEventListener('click',function(){RACEOPEN=!RACEOPEN;renderDex()});rb.appendChild(ch);box.appendChild(rb);
+  var inR=function(E){return !RACE||D.mon[E.id].race===RACE};
   /* 不分地區，分一般、首領兩區；秘境七龍排最前面，其餘照圖鑑順序（主線先後） */
   [['n','一般',function(m){return m.boss!=='1'}],['b','首領',function(m){return m.boss==='1'}]].forEach(function(G){
-    var L=D.entries.filter(function(E){return G[2](D.mon[E.id])}),n=0;if(!L.length)return;
+    var L=D.entries.filter(function(E){return G[2](D.mon[E.id])&&inR(E)}),n=0;if(!L.length)return;
     /* 秘境七龍排最前面：風 火 水 自然 雷 暗（暗 2）光，其餘照原本順序 */
     var TOP=G[0]==='n'?['mon36','mon34','mon38','mon10','mon40','mon46','mon45']:['mon35','mon33','mon37','mon07','mon39','mon41','mon42','mon44'],rk=function(E,i){var k=TOP.indexOf(E.id);return k<0?TOP.length+i:k};
     L=L.map(function(E,i){return{E:E,r:rk(E,i)}}).sort(function(x,y){return x.r-y.r}).map(function(x){return x.E});
@@ -342,7 +351,7 @@ function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;
       var st=el('div','st');t.appendChild(st);sprite(m.sprite,st,50,64);t.appendChild(el('div','nm',ok?m.monster_name:'？？？'));
       if(ok)t.addEventListener('click',function(){openMon(id)});g.appendChild(t)});
     w.appendChild(g);box.appendChild(w)});
-  $('found').textContent='已記錄 '+got+' / '+tot;$('foundM').textContent='已記錄 '+got+' / '+tot+' 種魔物'}
+  $('found').textContent='已記錄 '+cnt[''][0]+' / '+cnt[''][1];$('foundM').textContent='已記錄 '+cnt[''][0]+' / '+cnt[''][1]+' 種魔物'}
 
 /* ---- 彈出頁 ---- */
 function openSheet(build){var s=$('sheet');s.textContent='';var x=el('button','x','✕');x.type='button';x.setAttribute('aria-label','關閉');x.addEventListener('click',closeSheet);var hd=el('div','sth');hd.appendChild(x);s.appendChild(hd);build(s);var h2=s.querySelector(':scope > h2');if(h2)hd.appendChild(h2);/* ✕ 和標題放在固定在頂端的列，捲下去也點得到 */$('back').hidden=false;s.scrollTop=0}
@@ -355,7 +364,7 @@ function icon(src){var i=el('img','px');i.alt='';i.src=src;i.onerror=function(){
 
 function openMon(id){var m=D.mon[id];openSheet(function(s){
   var h=el('h2',null,m.monster_name);if(m.boss==='1')h.appendChild(el('span','tag','首領'));s.appendChild(h);
-  var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});if(m.rift&&RIFT.indexOf(m.rift)>=0)where.push('秘境・'+m.rift+'曜之間（週'+riftDays(m.rift).join('、')+'）');var tf=D.tfFrom&&D.mon[D.tfFrom[id]];if(tf)where.push(tf.monster_name+' 倒下後復活'+(tf.rift?'（秘境・'+tf.rift+'曜之間）':''));s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));
+  var where=D.areas.filter(function(a){return a.first[id]!=null}).map(function(a){return a.n+' 第 '+a.first[id]+' 關起'});if(m.rift&&RIFT.indexOf(m.rift)>=0)where.push('秘境・'+m.rift+'曜之間（週'+riftDays(m.rift).join('、')+'）');var tf=D.tfFrom&&D.mon[D.tfFrom[id]];if(tf)where.push(tf.monster_name+' 倒下後復活'+(tf.rift?'（秘境・'+tf.rift+'曜之間）':''));s.appendChild(el('p','sub','出沒：'+(where.join('、')||'—')));if(m.race)s.appendChild(el('p','sub','種族：'+m.race));
   var stg=el('div','stage'),sz=Monsters.size(m.sprite),o,sh=el('div','shd');stg.style.height=STG_H+'px';stg.appendChild(sh);o=bigSprite(m.sprite,stg,String(m.passive||'').split(';').map(function(x){return x.trim()}).filter(function(x){return window.Aura&&Aura.DEF[x]}));
   sh.style.width=Math.round(sz[0]*o.sc*.7)+'px';sh.style.marginLeft=-Math.round(sz[0]*o.sc*.35)+'px';sh.style.bottom=(STG_G-3)+'px';s.appendChild(stg);
   if(m.monster_desc)s.appendChild(el('p','desc',m.monster_desc));
