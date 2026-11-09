@@ -305,7 +305,8 @@ function seenE(E){var m=D.mon[E.id];if(m&&m.rift)return true;if(E.from){var f=D.
 
 /* ================= 畫面 ================= */
 var SPR=[];/* 會動的怪物圖：{img, k, ph, sc, base} */
-function sprite(k,box,maxH,maxW){var sz=Monsters.size(k),w=sz[0],h=sz[1],sc=Math.min(maxW/w,maxH/h);sc=sc>=1?Math.max(1,Math.floor(sc*4)/4):sc;
+var SLIMES={slime:1,pslime:1,islime:1,eslime:1,wslime:1,dslime:1,aslime:1};/* 史萊姆家族在圖鑑裡用同一個倍率（以最寬的小惡魔／天使史萊姆放得進格子為準），身體大小才一致 */
+function sprite(k,box,maxH,maxW){var sz=Monsters.size(k),w=sz[0],h=sz[1],sc=Math.min(maxW/w,maxH/h);sc=sc>=1?Math.max(1,Math.floor(sc*4)/4):sc;if(SLIMES[k]){var fs=Math.min(maxW/35,maxH/26);sc=fs>=1?Math.max(1,Math.floor(fs*4)/4):fs}
   var im=el('img','px');im.alt='';im.draggable=false;im.style.width=(w*sc)+'px';im.style.height=(h*sc)+'px';box.appendChild(im);var o={img:im,k:k,ph:Math.random()*2000,sc:sc,src:''};SPR.push(o);return o}
 /* 明細頁：所有怪用同一個倍率（照戰鬥裡的大小比例），最大隻的（含飛起來的高度）剛好放得進展示區 */
 var DU=null,STG_H=210,STG_G=14;
