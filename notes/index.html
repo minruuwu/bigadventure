@@ -164,7 +164,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="../common/aura.js?v=7"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="../common/monsters.js?v=56"></script>
+<script src="../common/monsters.js?v=58"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -331,7 +331,7 @@ function renderAcct(){var a=$('acct');a.textContent='';var av=el('div','av');
 
 var OPENA={};
 /* 種族分類（monster_info 的 race 欄）：平常收起來，點「分類」才展開；選過的記在這台裝置 */
-var RACES=['魔獸','龍族','亡靈','元素生物','構裝生物','人類','亞人','史萊姆','異怪','墮落神祇'],RACE='',RACEOPEN=false;try{RACE=localStorage.getItem('notes.dex.race')||''}catch(e){}
+var RACES=['魔獸','龍族','亡靈','元素生物','構裝生物','人類','亞人','天界生物','史萊姆','異怪','墮落神祇'],RACE='',RACEOPEN=false;try{RACE=localStorage.getItem('notes.dex.race')||''}catch(e){}
 function renderDex(){var box=$('dex');box.textContent='';var tot=0,got=0;if(RACE&&RACES.indexOf(RACE)<0)RACE='';
   var cnt={'':[0,0]};RACES.forEach(function(k){cnt[k]=[0,0]});D.entries.forEach(function(E){var k=D.mon[E.id].race||'',ok=seenE(E)?1:0;cnt[''][1]++;cnt[''][0]+=ok;if(cnt[k]){cnt[k][1]++;cnt[k][0]+=ok}});
   var rb=el('div','race'),tg=el('button','rtg');tg.type='button';tg.appendChild(el('span',null,'分類：'+(RACE||'全部')));tg.appendChild(el('i',null,RACEOPEN?'▴':'▾'));rb.appendChild(tg);

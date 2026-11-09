@@ -207,3 +207,4 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 腐蝕,debuff,p_reduce_rate,-0.1,,,,鎧甲被腐蝕：物理減傷 −10%
 罪咎,debuff,dmg_taken_rate,0.15,,,,受到的傷害 +15%
 黑暗守護,buff,dmg_taken_rate,-0.2,,,,受到的傷害 −20%
+羽翼庇護,buff,shield,1.5,m_atk,,,吸收施放者魔法攻擊力 150% 的物理與魔法傷害

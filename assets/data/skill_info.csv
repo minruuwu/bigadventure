@@ -427,3 +427,8 @@ skill425,連鞭,monster,0,combat,enemy_single,random,damage,,,p,,0.4,,,,怪物�
 skill426,黑暗祈禱,monster,0,combat,ally_single,lowest_hp,heal,,,m,,1.5,,,,怪物技能（黑金色光柱落在一名同伴身上：回復魔攻 ×1.5 的生命，並附加黑暗守護 2 回合）,darkpillar,,,3,single,,3,,
 skill427,審問,monster,0,combat,enemy_all,,debuff,,,,,,,,,怪物技能（敵方全體附加罪咎 2 回合：受到的傷害 +15%）,inquisit,,,0,diamond,5,3,,
 skill428,苦修,monster,0,passive,,,passive,,,,,,,,,怪物被動（自己每受到一次傷害，物理攻擊力 +5%，最多疊 5 層）,,,,,,,,,
+skill429,墮光斬,monster,0,combat,enemy_single,random,damage,,,p,light,1.4,,,,怪物技能（飛到目標面前一劍斬下：單體光明物理傷害 ×1.4，30% 機率致盲 2 回合）,fslash,,,1,single,,3,,
+skill430,腐化聖歌,monster,0,combat,enemy_all,,damage,,,m,dark,0.8,,,,怪物技能（扭曲的聖歌：全體黑暗魔法傷害 ×0.8，30% 機率封禁 2 回合）,notes,,,0,diamond,5,3,,黑暗
+skill431,羽翼庇護,monster,0,combat,ally_all,,buff,,,,,,,,,怪物技能（展開雙翼：我方全體獲得羽翼庇護 2 回合，吸收施放者魔攻 ×1.5 的傷害）,feathers,,,0,diamond,5,3,,
+skill432,墮天裁決,monster,0,combat,enemy_single,lowest_hp,damage,,,m,dark,1.8,,,,怪物技能（黑白交錯的光柱從天而降：單體黑暗魔法傷害 ×1.8；目標生命低於 30% 時傷害再 ×1.5）,verdict,,,3,single,,3,,
+skill433,殘存神性,monster,0,passive,,,passive,,,,,,,,,怪物被動（第一次生命降到 30% 以下時，立刻恢復最大生命的 25%；每場一次）,,,,,,,,,

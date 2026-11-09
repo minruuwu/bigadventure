@@ -417,3 +417,8 @@ skill425,連鞭,status,破甲,enemy_single,3,0.4,,,,,,,,
 skill426,黑暗祈禱,status,黑暗守護,ally_single,2,1,,,,,,,,
 skill427,審問,status,罪咎,enemy_all,2,1,,,,,,,,
 skill428,苦修,passive,,,,,hurt_stack,0.05,,,,hit_taken,1,5
+skill429,墮光斬,status,目盲,enemy_single,2,0.3,,,,,,,,
+skill430,腐化聖歌,status,封禁,enemy_all,2,0.3,,,,,,,,
+skill431,羽翼庇護,status,羽翼庇護,ally_all,2,1,,,,,,,,
+skill432,墮天裁決,bonus,,,,,dmg_if_low_hp,0.5,,,,,,0.3
+skill433,殘存神性,passive,,,,,low_heal,0.25,,,,hp_below,1,0.3

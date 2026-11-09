@@ -390,6 +390,8 @@
     function morph(u, mid) { morphUnit(u, mid, D); if (u.cycle && u.cycle.length) u.cy = Math.floor(RND() * u.cycle.length) /* 重生後從隨機一招開始 */ }
     /* 永冬誓言（被動 summon_hp）：生命第一次掉到 value 比例以下時，召喚 condition 那隻怪上場（每場一次） */
     function summonHp(u, e) {
+      /* 殘存神性（被動 low_heal）：生命第一次掉到 condition 比例以下時，立刻恢復最大生命的 value（每場一次） */
+      if (!u.dead && u.special && !u.flags.lowh) { var lh = u.special.filter(function (x) { return x.k === 'low_heal' })[0]; if (lh && u.hp / Math.max(1, u.b.mhp) < (num(lh.cond) || 0.3)) { u.flags.lowh = 1; var amt0 = Math.round(u.b.mhp * lh.v), got0 = Math.min(amt0, u.b.mhp - u.hp); u.hp += got0; var ll = line({ side: u.side, a: u.i, idle: 1, txt: u.name + ' 的「' + (D.SK[lh.id] ? D.SK[lh.id].n : '殘存神性') + '」發動，恢復 ' + got0 }); ll.hp = hpSnap(); ll.lowh = 1 } }
       if (u.side !== 'm' || u.flags.sumhp || !u.special) return; var sp = u.special.filter(function (x) { return x.k === 'summon_hp' && D.mon[x.cond] })[0]; if (!sp || u.hp / Math.max(1, u.b.mhp) >= sp.v) return;
       u.flags.sumhp = 1; var nu = monster(D.mon[sp.cond], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs; if (u.as) { nu.b.patk = Math.round(nu.b.patk * u.as); nu.b.matk = Math.round(nu.b.matk * u.as); nu.as = u.as }
       nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0; nu.summoned = true; M.push(nu); U.push(nu);
