@@ -188,3 +188,14 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 興奮,buff,crit_rate,0.3,,,,
 護衛,buff,protect,,,,,替隊友承受單體攻擊（全體攻擊不擋），物理減傷 +30%
 護衛,buff,p_reduce_rate,0.3,,,,
+聖堂守勢,buff,hit_block,3,,,,身旁三面小盾牌：每受到一次傷害碎一面並完全擋下（多段技能每段都算）；盾還在時不會被施加新的負面狀態，已經在身上的持續傷害照扣
+聖堂守勢,buff,debuff_block,,,,,
+暴走,buff,p_atk_rate,0.3,,,,物理攻擊力 +30%、速度 +3、全部屬性抗性 −20%
+暴走,buff,speed,3,,,,
+暴走,buff,fire_res_rate,-0.2,,,,
+暴走,buff,frost_res_rate,-0.2,,,,
+暴走,buff,lightning_res_rate,-0.2,,,,
+暴走,buff,wind_res_rate,-0.2,,,,
+暴走,buff,nature_res_rate,-0.2,,,,
+暴走,buff,light_res_rate,-0.2,,,,
+暴走,buff,dark_res_rate,-0.2,,,,

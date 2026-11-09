@@ -404,3 +404,11 @@ skill402,狙足,monster,0,combat,enemy_single,random,damage,,,p,,1.1,,,,怪物�
 skill403,弓術,monster,0,passive,,,passive,,,,,,,,,怪物被動（命中率 +20%，算完閃避後直接加上去）,,,,,,,,,
 skill404,群體治療,monster,0,combat,ally_all,,heal,,,m,,0.8,,,,怪物技能（有同伴生命低於 70% 才施放：全體同伴回復魔攻 ×0.8 的生命）,,,,3,diamond,5,3,,
 skill405,驅魔,monster,0,passive,,,passive,,,,,,,,,怪物被動（跟牧師精通「驅魔」一樣：每回合開始，隨機解除一名同伴（含自己）的一個負面狀態）,,,,,,,,,
+skill406,聖堂守勢,monster,0,combat,ally_all,,buff,,,,,,,,,怪物技能（我方全體獲得聖堂守勢 3 回合：身旁三面小盾牌，每受到一次傷害碎一面並完全擋下；盾還在時不會被施加新的負面狀態）,sanctum,,,0,diamond,5,3,,
+skill407,光之審判,monster,0,combat,enemy_all,,damage,,,p,light,1,,,,怪物技能（巨大的光之鐵鎚從天而降：全體光明物理傷害 ×1.0，附加懲戒 2 回合）,judgehammer,,,0,diamond,5,3,,
+skill408,明光暴擊,monster,0,combat,enemy_single,random,damage,,,p,light,2,,,,怪物技能（單體光明物理傷害 ×2.0，40% 破甲 3 回合、30% 目盲 2 回合）,smash,,,1,single,,3,,
+skill409,血色審判,monster,0,combat,enemy_all,,damage,,,p,dark,1.1,,,,怪物技能（血色的巨錘從天而降：全體黑暗物理傷害 ×1.1，附加懲戒 2 回合）,judgehammer,,,0,diamond,5,3,,血
+skill410,暴走,monster,0,combat,self,,buff,,,,,,,,,怪物技能（自身暴走 3 回合：物攻 +30%、速度 +3、全部屬性抗性 −20%）,rage,,,0,single,,3,,
+skill411,血魔爪,monster,0,combat,enemy_single,random,damage,,,p,,0.3,,,,怪物技能（單體物理傷害 ×0.3 共 6 段，吸取傷害的 10% 回血）,bloodclaw,6,,1,single,,3,,
+skill412,血光暴擊,monster,0,combat,enemy_single,random,damage,,,p,dark,2,,,,怪物技能（單體黑暗物理傷害 ×2.0，附加易傷 3 回合）,smash,,,1,single,,3,,血
+skill413,腐化,monster,0,passive,,,passive,,,,,,,,,怪物被動（第一次倒下時不會消散：腳下浮現血法陣，化為「腐化的鐵腕‧尤里烏斯」以全滿生命暴走）,,,,,,,,,

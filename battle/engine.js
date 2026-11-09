@@ -264,7 +264,8 @@
       if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h, bx: NC && !c.tr && banishedOnly(d) ? 1 : 0 }) }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n }) }
-    function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null } }
+    function hpSnap() { return { p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null, hbp: P.map(hbN), hbm: M.map(hbN) } }
+    function hbN(u) { return u.dead ? 0 : u.st.reduce(function (a, s) { return a + (!s.paused && s.hb > 0 ? s.hb : 0) }, 0) } /* 聖堂守勢剩幾面盾（畫面用） */
     function addStat(e, u, kind, v, sk) { if (u.side !== 'p' || !v) return; (e.st = e.st || []).push([u.i, kind, Math.round(v), sk]) }
 
     /* --- 狀態 --- */
@@ -294,7 +295,7 @@
         return o;
       });
       var s = { n: name, src: src, turns: t, rows: rows, pol: def.pol, fresh: tgt === nowAct };
-      rows.forEach(function (r) { if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
+      rows.forEach(function (r) { if (r.k === 'hit_block') s.hb = r.v | 0; /* 聖堂守勢：可擋幾次傷害 */ if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
       if (old) { var i = tgt.st.indexOf(old); tgt.st[i] = s } else tgt.st.push(s);
       if (rows.some(function (r) { return r.k === 'banish' })) { s.banish = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }) }
       if (swl) { s.swal = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }); if (e) (e.swal = e.swal || []).push(tgt.i) }
@@ -414,7 +415,7 @@
         u.cycle = nu.cycle; u.cy = 0; u.reaction = nu.reaction; u.special = nu.special; u.aura = nu.aura;
         u.aura.forEach(function (a) { var key = a.id + '|' + a.k; if (!auraSeenM[key]) auraSeenM[key] = u });
         if (e) e.txt += '；' + old + ' 倒下了';
-        var tr = line({ side: 'm', a: u.i, txt: old + ' 化為「' + u.name + '」復活了！', tf: [u.i, u.sprite, u.name] }); tr.hp = hpSnap();
+        var tr = line({ side: 'm', a: u.i, txt: old + (tfx.el === 'blood' ? ' 化為「' + u.name + '」暴走了！' : ' 化為「' + u.name + '」復活了！'), tf: tfx.el === 'blood' ? [u.i, u.sprite, u.name, 'blood'] : [u.i, u.sprite, u.name] } /* blood = 尤里烏斯：不消散，腳下血法陣一閃就變身 */); tr.hp = hpSnap();
         return false;
       }
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
@@ -733,6 +734,9 @@
             if (x.void) { rec.hs.push('無效'); numAdd(t, 0, 'void', { h: h }); return }
             if (x.miss) { rec.hs.push('閃開'); numAdd(t, 0, 'miss', { h: h }); return }
             if (x.blocked) { rec.hs.push('擋下'); numAdd(t, 0, 'block', { h: h }); reactPost(t, u, x.re, e); return }
+            /* 聖堂守勢（hit_block）：每一段傷害碎一面盾、整下擋掉；盾碎完狀態就結束（持續傷害不走這裡，照扣） */
+            var hbS = x.amt > 0 ? t.st.filter(function (q) { return !q.paused && q.hb > 0 })[0] : null;
+            if (hbS) { hbS.hb--; rec.hs.push('擋下'); numAdd(t, 0, 'block', { h: h }); (e.hbk = e.hbk || []).push([t.side, t.i, h || 0]); if (hbS.hb <= 0) t.st = t.st.filter(function (q) { return q !== hbS }); return }
             rec.ok = true;
             /* 跳字：主屬性 = 倍率最高的那一段（混合傷害只跳一個總數） */
             var mp0 = sk.parts.reduce(function (a, b) { return b.r > a.r ? b : a }, sk.parts[0] || { d: 'p', e: '' });
