@@ -102,7 +102,7 @@ skill100,閃電雷雲,job07,5,combat,enemy_all,,damage,,,m,lightning,0.95,,,,,mi
 skill101,龍捲塵沙嵐,job07,8,combat,enemy_all,,damage,,,m,wind,0.85,,,,20%機率目盲2回合,duststorm,,,4,diamond,2,3,,
 skill102,元素屏障,job07,12,combat,self,,buff,,,,,,,,,火焰、冰霜、雷電、疾風抗性各+40%，持續3回合,,,,0,single,,3,,
 skill103,魔力紊亂,job07,15,combat,enemy_single,random,debuff,,,,,,,,,對敵方隨機一名施加封禁3回合（對Boss機率減半）,,,,4,single,,3,,
-skill104,狂龍怒焰,job07,20,combat,enemy_single,random,damage,,,m,fire,2.5,,,,,pillar,,,5,line,,2,3,
+skill104,狂龍怒焰,job07,20,combat,enemy_single,random,damage,,,m,fire,2.5,,,,,firedragon,,,5,line,,2,3,
 skill105,魔力增幅,job07,3,passive,,,passive,,,,,,,,,魔法增傷+10%,,,,,,,,,
 skill106,杖專精,job07,10,passive,,,passive,,,,,,,,,裝備杖時魔法攻擊力+8%,,,,,,,,,
 skill107,元素護體,job07,25,passive,,,passive,,,,,,,,,火焰、冰霜、雷電、疾風抗性各+10%,,,,,,,,,
