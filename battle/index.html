@@ -1710,10 +1710,17 @@ function firePlumeFx(e,d){/* 焰羽術：身邊飄出一圈火焰羽毛，繞著
   var g=d<300?d/300:d<900?1:Math.max(0,1-(d-900)/400);for(var n=0;n<36;n++){var a2=n/36*Math.PI*2;VP(cx+Math.cos(a2)*16,gy+Math.sin(a2)*4.5,n%2?'#ffd23a':'#ff8a2a',.7*g)}
   pctx.globalCompositeOperation='lighter';for(var a=-7;a<=7;a++)for(var b=-9;b<=9;b++){var q=(a*a)/49+(b*b)/81;if(q>1)continue;VP(cx+a,gy-h*.45+b,'#ff9a3a',(1-q)*.22*g)}pctx.globalCompositeOperation='source-over';FXA=fa}
 function boomFx(d,i){/* 烈焰殉爆：倒下的位置炸開一團大火，再一圈火焰往外擴散掃過全場 */var m=mons[i];if(!m||d<0||d>1300)return;var cx=m.lx!=null?m.lx:m.x,gy=m.gy;if(cx==null||gy==null)return;var fa=FXA;FXA=1;var fr=Math.floor(d/70);
-  var im=IMG.fireburst;if(im&&im.naturalWidth&&d<500){var g=ease(Math.min(1,d/150)),sz=(20+g*44)*VS,al=d<220?1:1-(d-220)/280;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalCompositeOperation='lighter';pctx.globalAlpha=al*.4;pctx.drawImage(im,(cx-sz*.7)*U,(gy-22-sz*.7)*U,sz*1.4*U,sz*1.4*U);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=al;pctx.drawImage(im,(cx-sz/2)*U,(gy-22-sz/2)*U,sz*U,sz*U);pctx.restore();pctx.globalAlpha=1}
+  boomGlow(cx,gy,d);var im=IMG.fireburst;if(im&&im.naturalWidth&&d<560){var g=ease(Math.min(1,d/150)),sz=(28+g*60)*VS,al=d<220?1:1-(d-220)/280;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalCompositeOperation='lighter';pctx.globalAlpha=al*.4;pctx.drawImage(im,(cx-sz*.7)*U,(gy-22-sz*.7)*U,sz*1.4*U,sz*1.4*U);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=al;pctx.drawImage(im,(cx-sz/2)*U,(gy-22-sz/2)*U,sz*U,sz*U);pctx.restore();pctx.globalAlpha=1}
   if(d<300)shakeY=Math.round(Math.sin(d/14)*3*U*(1-d/300));
   var u=Math.min(1,Math.max(0,(d-120)/700)),RR=10+ease(u)*270,A=d<820?1:Math.max(0,1-(d-820)/400);if(d>120){var N=Math.round(14+RR/7);for(var n=0;n<N;n++){var an=n/N*Math.PI*2+hsh(n,3)*.2,x=cx+Math.cos(an)*RR,y=gy+Math.sin(an)*RR*.28,fr2=fr+n*3;fxFlame(x,y,(Math.sin(an)>0?14:10)*(.8+.4*hsh(n,5)),fr2,A*(Math.sin(an)>0?1:.7),n%2)}}
   (party||[]).forEach(function(p,k){var pp=posOf(k);if(!pp)return;var th=120+Math.max(0,(Math.hypot(cx-pp[0],(gy-pp[1])/.28)-10)/270)*700;pBurst('fire',pp[0],pp[1]-12,d-th,12,VS)});FXA=fa}
+/* 烈焰殉爆的火光：爆心先一團白黃強光，接著一圈發亮的火光衝擊波貼著地面往外擴散（橢圓，越遠越淡） */
+function boomGlow(cx,gy,d){if(d<0||d>1000)return;var cy=gy-10;pctx.save();pctx.globalCompositeOperation='lighter';
+  if(d<380){var fl=d<90?d/90:1-(d-90)/290,R=(30+d*.12)*U,g=pctx.createRadialGradient(cx*U,cy*U,0,cx*U,cy*U,R);g.addColorStop(0,'rgba(255,250,215,'+(.95*fl)+')');g.addColorStop(.35,'rgba(255,200,90,'+(.6*fl)+')');g.addColorStop(1,'rgba(255,90,20,0)');pctx.fillStyle=g;pctx.fillRect(cx*U-R,cy*U-R,R*2,R*2)}
+  var u=Math.max(0,(d-60)/760);if(u>0&&u<1){var rr=12+ease(u)*240,A=u<.15?u/.15:1-(u-.15)/.85,ry=.24;
+    [[9,'255,80,20',.35],[5,'255,150,40',.6],[2.2,'255,235,160',.9]].forEach(function(L){pctx.strokeStyle='rgba('+L[1]+','+(L[2]*A)+')';pctx.lineWidth=L[0]*U*(1-u*.5);pctx.beginPath();pctx.ellipse(cx*U,gy*U,rr*U,rr*ry*U,0,0,Math.PI*2);pctx.stroke()});
+    /* 衝擊波上的火星：沿著圈飛散的亮點 */for(var n=0;n<40;n++){var an=n/40*Math.PI*2+hsh(n,9)*.15,r2=rr*(.96+.08*hsh(n,4)),x=cx+Math.cos(an)*r2,y=gy+Math.sin(an)*r2*ry-hsh(n,6)*6*u;VP(x,y,hsh(n,2)>.5?'#fff2a8':'#ffb040',A*.9)}}
+  pctx.restore()}
 /* ===== 硫磺魔犬 ===== */
 function sulfurFx(e,d){/* 硫磺毒氣：張口噴出一大片黃綠色毒霧，往我方整排漫過去，罩住每個人一陣再散 */var s=monPt(e.a,'mouth'),T=(e.tgts||[]).map(function(tk){return posOf(tk)});if(!s||!T.length||d<0||d>1500)return;var fa=FXA;FXA=1;
   var xs=T.map(function(p){return p[0]}),ys=T.map(function(p){return p[1]}),L=Math.min.apply(null,xs)-18,yT=Math.min.apply(null,ys)-22,yB=Math.max.apply(null,ys)-2,A=d<1050?1:Math.max(0,1-(d-1050)/450);
