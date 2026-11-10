@@ -223,3 +223,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 焰甲,buff,p_reduce_rate,0.15,,,,
 焰甲,buff,fire_thorn,0.2,,,,
 焦土,debuff,scorch,0.05,,,,腳下被燒成焦土：每層火焰抗性 −5%（最多 6 層，戰鬥中不會消失）
+硫磺毒,debuff,dot,0.2,p_atk,,p,每回合造成施加者物理攻擊力 20% 的物理傷害；中毒期間受到的火焰傷害 ×2
+硫磺毒,debuff,fire_taken,1,,,,
