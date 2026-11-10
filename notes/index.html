@@ -378,7 +378,7 @@ function openMon(id){var m=D.mon[id];openSheet(function(s){
     r.appendChild(pips(n,v<0,v>0?'抗':v<0?'弱':''));s.appendChild(r)});
   s.appendChild(el('div','k2','技能'));var seenSk={};
   ['skill_1','skill_2','skill_3','skill_4'].forEach(function(k){var sid=m[k];if(!sid||sid==='-'||seenSk[sid])return;seenSk[sid]=1;s.appendChild(skRow(sid,'招式'))});
-  if(m.reaction)s.appendChild(skRow(m.reaction,'反應'));if(m.passive)s.appendChild(skRow(m.passive,'被動'));
+  if(m.reaction)s.appendChild(skRow(m.reaction,'反應'));if(m.passive)String(m.passive).split(';').map(function(x){return x.trim()}).filter(Boolean).forEach(function(pid){s.appendChild(skRow(pid,'被動'))});/* 被動可以有好幾個（skillA;skillB），要拆開各列一行 */
 })}
 function skRow(sid,kind){var d=el('div','sk'),r=D.sk[sid],nm=sid==='atk'?'普通攻擊':r?r.skill_name:sid,txt='';
   try{if(sid==='atk')txt='對敵方單體造成 100% 物理傷害。';else if(r){var o=SkillDesc.fromRow(r),e=SkillDesc.fromEff(D.eff[sid]);txt=SkillDesc.text(o,e.st,e.hl,function(n){return D.stsBy[n]&&D.stsBy[n].status_desc});if(!txt||txt==='。')txt=r.skill_desc||''}}catch(err){txt=r&&r.skill_desc||''}
