@@ -247,7 +247,7 @@
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
         case 'pred': return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate');
         case 'mred': return b.mred + sv(u, 'm_reduce_rate') + auraVal(u, 'm_reduce_rate');
-        case 'eva': return b.eva + sv(u, 'eva_rate');
+        case 'eva': return sv(u, 'no_eva') ? 0 : b.eva + sv(u, 'eva_rate'); /* 妖火：閃避率直接變 0 */
         case 'crit': return b.crit + sv(u, 'crit_rate') + auraVal(u, 'crit_rate');
         case 'cdmg': return b.cdmg + sv(u, 'crit_damage_rate');
         case 'speed': return b.speed + sv(u, 'speed');

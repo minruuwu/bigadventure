@@ -479,3 +479,6 @@ skill477,焚身火焰,monster,0,passive,,,passive,,,,,,,,,怪物被動（每次�
 skill478,烈焰殉爆,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下時炸出一圈烈焰，對敵方全體造成魔攻 ×0.8 的火焰魔法傷害；我方因此全滅就算同歸於盡、戰鬥失敗）,,,,,,,,,
 skill479,硫磺毒氣,monster,0,combat,enemy_all,,damage,,,p,,0.6,,,,怪物技能（張口噴出一大片黃綠色的硫磺毒霧：全體無屬性物理傷害 ×0.6，必定硫磺毒 3 回合：每回合扣血、受到的火焰傷害 ×2）,sulfur,,,0,diamond,3,3,,
 skill480,狼爪,monster,0,combat,enemy_single,random,damage,,,p,,1.4,,,,怪物技能（撲上去用利爪撕抓：單體物理傷害 ×1.4，40% 機率撕裂傷 3 回合）,claw,,,1,single,,2,,
+skill481,炎翼衝鋒,monster,0,combat,enemy_single,random,damage,,,p,fire,1.5,,,,怪物技能（斜斜往上飛，再拖著火焰往前俯衝撞上目標：單體火焰物理傷害 ×1.5）,fcharge,,,4,single,,2,,
+skill482,妖火術,monster,0,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,怪物技能（一團粉色鬼火飄到目標頭上燒著：必定妖火 2 回合，閃避率變為 0、受到的傷害 +10%）,wisp,,,4,single,,2,,
+skill483,殞火術,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（召來一顆火流星砸向目標：單體火焰魔法傷害 ×1.4，50% 機率灼燒 3 回合）,meteor1,,,4,single,,3,,
