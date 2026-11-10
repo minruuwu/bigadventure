@@ -461,3 +461,5 @@ skill459,龍鱗,monster,0,passive,,,passive,,,,,,,,,怪物被動（受到的最�
 skill460,焰拳,monster,0,combat,enemy_single,random,damage,,,p,fire,1.4,,,,怪物技能（走到目標面前用燃燒的拳頭重擊：單體火焰物理傷害 ×1.4，30% 機率破甲 2 回合）,smash,,,1,single,,2,,
 skill461,火焰波動,monster,0,combat,enemy_all,,damage,,,p,fire,0.8,,,,怪物技能（腳下擴散出一圈燃燒的火焰：全體火焰物理傷害 ×0.8，每個目標 30% 機率火焰詛咒 2 回合）,flamewave,,,0,diamond,3,3,,
 skill462,焰甲,monster,0,combat,ally_single,prefer_without_status,buff,,,,,,,,,怪物技能（我方單體獲得焰甲 4 回合：火焰抗性 +30%、物理減傷 +15%，被攻擊時對攻擊者造成施放者物理攻擊力 20% 的火焰物理傷害）,,,,3,single,,2,,
+skill463,惡魔爪,monster,0,combat,enemy_single,random,damage,,,p,,1.5,,,,怪物技能（用銳利的惡魔爪撕裂目標：單體物理傷害 ×1.5）,claw,,,1,single,,2,,血
+skill464,惡魔巢群,monster,0,passive,,,passive,,,,,,,,,怪物被動（隊友用普攻或單體技能打人時，跟著對同一個目標補一次普攻 ×0.5；追擊不觸發反擊等反應，也不會連鎖）,,,,,,,,,
