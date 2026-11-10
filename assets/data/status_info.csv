@@ -215,3 +215,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 血羽庇護,buff,shield,1.5,m_atk,,,吸收施放者魔法攻擊力 150% 的物理與魔法傷害；擋下的傷害有一半轉成自己的生命
 血羽庇護,buff,shield_heal,0.5,,,,
 燒傷,debuff,dot,0.2,p_atk,fire,p,每回合造成施加者物理攻擊力 20% 的火焰物理傷害
+熔甲,debuff,p_reduce_rate,-0.1,,,,物理、魔法減傷各 −10%，火焰抗性 −20%
+熔甲,debuff,m_reduce_rate,-0.1,,,,
+熔甲,debuff,fire_res_rate,-0.2,,,,
