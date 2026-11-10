@@ -357,7 +357,7 @@ var BFORM={1:[[130,20]],2:[[138,20],[115,14]],3:[[139,20],[116,33],[112,6]],4:[[
 function vForm(ms){if(!ms.some(function(m){return m.k==='valhalla'}))return null;var sm=0;return ms.map(function(m){return m.k==='valhalla'?[104,4]:m.k==='fsamurai'?(sm++?[130,36]:[92,36]):m.k==='cqueen'?[136,22]:[110,20]})}
 function mslots(ms){var vf=vForm(ms);if(vf)return vf;var n=Math.max(1,Math.min(5,ms.length)),bi=-1;ms.forEach(function(m,i){if(m.boss&&bi<0)bi=i});
   if(bi<0)return ms.map(function(m,i){return MFORM[n][Math.min(i,n-1)]});var F=BIGD[ms[bi].k]?DFORM:BFORM,q=1;return ms.map(function(m,i){return i===bi?(BDX[m.k]?[F[n][0][0]+BDX[m.k],F[n][0][1]]:F[n][0]):F[n][Math.min(q++,n-1)]})}
-var BDX={balrog:-10};/* 個別大型王的站位往左右挪（炎魔往左一點） */
+var BDX={balrog:-10,judge1:-14,judge2:-14};/* 個別大型王的站位往左右挪（炎魔往左一點） */
 /* 龍這種大隻的王：王往後站一點，小怪站在牠前面的上下兩側，盡量不擋住龍頭 */
 var DFORM={1:[[134,18]],2:[[140,16],[104,34]],3:[[140,14],[98,33],[124,34]],4:[[140,14],[94,33],[118,34],[106,24]],5:[[140,14],[92,33],[116,34],[104,24],[128,28]]};
 function img(src){var i=new Image();i.src=src;i.className='sp';i.draggable=false;return i}
