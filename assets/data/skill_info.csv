@@ -472,3 +472,8 @@ skill470,獄火劍,monster,0,combat,enemy_single,random,damage,,,p,fire,1.8,,,,�
 skill471,惡魔火咒,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（目標頭上浮現黑紅火焰符文然後爆開：單體火焰魔法傷害 ×1.4，必定火焰詛咒、虛弱 2 回合）,demonrune,,,5,single,,3,,
 skill472,殞星爆,monster,0,combat,enemy_all,,damage,,,m,fire,1.1,,,,怪物技能（召來一陣火流星砸向敵陣：全體火焰魔法傷害 ×1.1，必定魂灼 3 回合）,meteor,,,0,diamond,5,4,,
 skill473,焦土,monster,0,passive,,,passive,,,,,,,,,怪物被動（腳下一直燒著一大片火焰；每次輪到他行動時，對敵方全體造成魔攻 ×0.2 的火焰魔法傷害，並疊一層焦土：火焰抗性 −5%，最多 6 層）,,,,,,,,,
+skill474,炎浪,monster,0,combat,enemy_all,,damage,,,m,fire,0.9,,,,怪物技能（腳下竄起一整排火焰，連成火牆往前推過敵陣：全體火焰魔法傷害 ×0.9，每個目標 40% 機率灼燒 3 回合）,flamewall,,,0,diamond,3,3,,
+skill475,火焰巨手,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（目標腳下伸出一隻火焰巨手把人握住：單體火焰魔法傷害 ×1.4，必定魂灼 3 回合）,firehand,,,4,single,,3,,
+skill476,焰羽術,monster,0,combat,self,,heal,,,m,,0,,,,怪物技能（身邊飄出火焰羽毛：恢復自身最大生命 25%；生命高於 80% 時改用普攻）,fireplume,,,0,single,,2,,
+skill477,焚身火焰,monster,0,passive,,,passive,,,,,,,,,怪物被動（每次單體攻擊命中，其他敵人各受到這一下傷害 30% 的火焰魔法濺射傷害）,,,,,,,,,
+skill478,烈焰殉爆,monster,0,passive,,,passive,,,,,,,,,怪物被動（倒下時炸出一圈烈焰，對敵方全體造成魔攻 ×0.8 的火焰魔法傷害；我方因此全滅就算同歸於盡、戰鬥失敗）,,,,,,,,,
