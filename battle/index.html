@@ -1547,7 +1547,7 @@ var SWING=null;function supWingImg(){if(SWING)return SWING;var L=IMG.supwing_l,R
   var g=document.createElement('canvas');g.width=60;g.height=60;var gx=g.getContext('2d');gx.drawImage(c,0,0);gx.globalCompositeOperation='source-atop';gx.fillStyle='#ffd76a';gx.fillRect(0,0,60,60);return SWING=[c,g]}/* [光翼本體, 金色光暈用的剪影] */
 function supBodyH(e){if(e.side==='p')return 34;var m=mons[e.a];return m?msz(m.k)[1]*(m.sc||1)*.8:34}
 function supWings(e,d){/* 光翼（半透明、帶金光），跟著人物移動；怪物左右顛倒 */var W=supWingImg();if(!W||d<0||d>1750)return;var P=supAt(e,Math.min(d,1599));if(!P)return;var Hh=supBodyH(e),sc=Hh/34*.9,g=d<250?ease(d/250):1,al=d<1450?1:Math.max(0,1-(d-1450)/300);if(al<=0)return;
-  var flap=1-.14*Math.max(0,Math.sin(d/85))*(d>250&&d<1250?1:.4),face=P[2]?-1:1,ax=P[0]-face*2*sc,ay=P[1]-Hh*.62,sz=60*sc*(.35+.65*g);
+  var flap=1-.14*Math.max(0,Math.sin(d/85))*(d>250&&d<1250?1:.4),face=P[2]?-1:1,ax=P[0]-face*2*sc,ay=P[1]-Hh*.62+(e.side==='p'?3:0)/* 我方的翅膀往下 3 格 */,sz=60*sc*(.35+.65*g);
   pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(ax*U,ay*U);pctx.scale(face,flap);var ox=-28/60*sz*U,oy=-38/60*sz*U;
   pctx.globalCompositeOperation='lighter';[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(o){pctx.globalAlpha=al*(.28+.1*Math.sin(d/70));pctx.drawImage(W[1],ox+o[0]*1.2*U,oy+o[1]*1.2*U,sz*U,sz*U)});
   pctx.globalCompositeOperation='source-over';pctx.globalAlpha=al*.72;pctx.drawImage(W[0],ox,oy,sz*U,sz*U);pctx.restore();pctx.globalAlpha=1}
