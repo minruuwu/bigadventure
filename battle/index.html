@@ -215,7 +215,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=77"></script>
+<script src="engine.js?v=78"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=18"></script>
 <script>
@@ -1787,7 +1787,19 @@ function soulOrb(x,y,t,k,a){/* 一顆魂火：淡白芯、橘紅外焰，往上�
 function soulFx(t){/* 常駐：提豐身邊繞著的魂火；攫取時魂火從倒下的同伴飄過來；重燃時一顆魂火飛進胸口 */mons.forEach(function(m,i){if(m.k!=='typhon'||m.lx==null)return;var c=m.alive?soulCount(i,t):0,mp=monPos(i);if(!mp)return;var R=30*(m.sc||1);
     for(var k=0;k<c;k++){var an=t/900+k*Math.PI*2/Math.max(1,c),x=mp[0]+Math.cos(an)*R,y=mp[1]-6+Math.sin(an)*R*.35+Math.sin(t/300+k)*2;soulOrb(x,y,t,k,Math.sin(an)<0?.65:1)}
     B.ev.forEach(function(e){var d=t-e.t;if(e.soul&&e.soul[0]===i&&d>=0&&d<650){var vp=monPos(e.soul[1])||mp,u=ease(Math.min(1,d/600)),an2=t/900+(e.soul[2]-1)*Math.PI*2/e.soul[2],tx=mp[0]+Math.cos(an2)*R,ty=mp[1]-6+Math.sin(an2)*R*.35;soulOrb(vp[0]+(tx-vp[0])*u,vp[1]+(ty-vp[1])*u-Math.sin(u*Math.PI)*20,t,9,1);for(var j=1;j<7;j++){var uj=ease(Math.max(0,(d-j*30)/600));VP(vp[0]+(tx-vp[0])*uj,vp[1]+(ty-vp[1])*uj-Math.sin(uj*Math.PI)*20,'#ffb070',(1-j/7)*.7)}}
-      if(e.soulEat&&e.soulEat.some(function(q){return q[0]===i})){var dd=d-(e.hit||300);if(dd>=0&&dd<700){if(dd<350){var u3=ease(dd/350);soulOrb(mp[0]+R*(1-u3),mp[1]-6-R*.2*(1-u3),t,7,1)}else pBurst('fire',mp[0],mp[1],dd-350,26,VS*1.4);if(dd>350&&dd<650){var rr=(dd-350)/300*40;for(var n=0;n<30;n++){var a3=n/30*Math.PI*2;VP(mp[0]+Math.cos(a3)*rr,mp[1]+Math.sin(a3)*rr*.7,n%2?'#ffd23a':'#ff6a1a',1-(dd-350)/300)}}}}})})}
+      if(e.soulR&&e.soulR[0]===i)soulRevFx(m,i,mp,R,d,t)})})}
+/* 提豐重燃（約 1.5 秒）：0–200 身上冒灰燼黑煙 → 120–700 一隻火焰巨手從胸前伸出、抓住一顆魂火拉回來（魂火越拉越大）→ 650–1150 魂火塞進胸口、腳下竄起火焰漩渦把全身包住 → 1150 起閃白、一圈火光炸開，下一行才回血 */
+function soulRevFx(m,i,mp,R,d,t){if(d<0||d>1600)return;var fa=FXA;FXA=1;var cx=mp[0],cy=mp[1],gy=m.gy,MZ=msz(m.k),H=MZ[1]*(m.sc||1);
+  /* 畫面先暗下來，焦點放在提豐身上 */var dk=d<200?d/200:d<1150?1:Math.max(0,1-(d-1150)/300);pctx.save();pctx.globalAlpha=dk*.38;pctx.fillStyle='#1a0604';pctx.fillRect(0,0,pctx.canvas.width,pctx.canvas.height);pctx.restore();pctx.globalAlpha=1;
+  /* 灰燼黑煙：從全身往上飄 */if(d<900)for(var k=0;k<26;k++){var u=((d+k*47)%700)/700,x=cx+(hsh(k,3)-.5)*MZ[0]*(m.sc||1)*.7+Math.sin(u*5+k)*3,y=gy-hsh(k,5)*H*.8-u*30,al=(1-u)*(d<700?1:1-(d-700)/200)*.75;for(var q=0;q<3;q++)VP(x+q-1,y,k%3?'#2a1a18':'#5a3a30',al);if(k%4===0)VP(x,y-2,'#ff7a30',al)}
+  /* 魂火被抓過來：從身旁一側繞一圈拉進胸口，越拉越大 */if(d>=120&&d<760){var u2=ease(Math.min(1,(d-120)/560)),an=-Math.PI*.15+u2*Math.PI*1.3,rr=R*1.6*(1-u2),ox=cx+Math.cos(an)*rr,oy=cy-6+Math.sin(an)*rr*.45-Math.sin(u2*Math.PI)*14,sc=1.6+u2*1.6;pctx.save();pctx.globalCompositeOperation='lighter';var og=pctx.createRadialGradient(ox*U,oy*U,0,ox*U,oy*U,(10+u2*10)*U);og.addColorStop(0,'rgba(255,230,160,.85)');og.addColorStop(1,'rgba(255,90,20,0)');pctx.fillStyle=og;pctx.fillRect((ox-20)*U,(oy-20)*U,40*U,40*U);pctx.restore();
+    for(var j=1;j<9;j++){var uj=ease(Math.max(0,Math.min(1,(d-120-j*28)/560))),aj=-Math.PI*.15+uj*Math.PI*1.3,rj=R*1.6*(1-uj);VP(cx+Math.cos(aj)*rj,cy-6+Math.sin(aj)*rj*.45-Math.sin(uj*Math.PI)*14,j<4?'#ffd890':'#ff7a30',(1-j/9)*.85)}
+    for(var yy=-11;yy<=11;yy++)for(var xx=-11;xx<=11;xx++){var r=Math.sqrt(xx*xx+yy*yy)/sc;if(r>3.2)continue;VP(ox+xx,oy+yy,r<1.2?'#ffffff':r<2.2?'#ffd28a':'#ff5a20',r>2.6?.6:.95)}
+    /* 抓魂火的火焰手指 */if(u2<.85){var fx0=cx-4,fy0=cy-4;for(var f=0;f<4;f++){var fa2=(f-1.5)*.35,L=Math.hypot(ox-fx0,oy-fy0),dx=(ox-fx0)/L,dy=(oy-fy0)/L;for(var s2=0;s2<L;s2+=1.5){var px2=fx0+dx*s2-dy*Math.sin(fa2)*s2*.15,py2=fy0+dy*s2+dx*Math.sin(fa2)*s2*.15;for(var w2=-1;w2<=1;w2++)VP(px2+w2*.5,py2+w2*.5,s2>L*.8?'#fff0b0':w2?'#c83010':'#ff9a40',.8*(1-u2*.6))}}}}
+  /* 火焰漩渦：腳下竄起，螺旋往上包住全身 */if(d>=620&&d<1350){var v=(d-620)/730,A2=v<.15?v/.15:v>.8?1-(v-.8)/.2:1,HH=H*Math.min(1,v*2.2);pctx.save();pctx.globalCompositeOperation='lighter';var cg=pctx.createLinearGradient(0,gy*U,0,(gy-HH)*U);cg.addColorStop(0,'rgba(255,160,40,'+(.55*A2)+')');cg.addColorStop(1,'rgba(255,60,10,0)');pctx.fillStyle=cg;var cw=MZ[0]*(m.sc||1)*.42;pctx.beginPath();pctx.ellipse(cx*U,(gy-HH/2)*U,cw*U,HH/2*U,0,0,Math.PI*2);pctx.fill();pctx.restore();for(var n=0;n<76;n++){var h=(n/76)*HH,an3=t/90+n*.55,rw=(MZ[0]*(m.sc||1)*.45)*(1-h/H*.35),x3=cx+Math.cos(an3)*rw,y3=gy-h+Math.sin(an3)*rw*.22,front=Math.sin(an3)>0;fxFlame(x3,y3,front?10:6,Math.floor(t/70)+n,A2*(front?.95:.5),n%2)}}
+  /* 吞下魂火的瞬間胸口一亮 */if(d>=700&&d<1000){var w=1-(d-700)/300;pctx.save();pctx.globalCompositeOperation='lighter';var g=pctx.createRadialGradient(cx*U,cy*U,0,cx*U,cy*U,26*U);g.addColorStop(0,'rgba(255,245,200,'+(.9*w)+')');g.addColorStop(1,'rgba(255,120,30,0)');pctx.fillStyle=g;pctx.fillRect((cx-26)*U,(cy-26)*U,52*U,52*U);pctx.restore()}
+  /* 重燃：閃白＋一圈火光炸開 */if(d>=1150){var z=d-1150;if(z<220)shakeY=Math.round(Math.sin(z/14)*2*U*(1-z/220));pBurst('fire',cx,cy,z,30,VS*1.6);boomGlow(cx,gy,z*1.4)}
+  FXA=fa}
 function ragnarokFx(e,d){/* 諸神之暮：天空轉暗紅、火流斜斜砸滿我方、地上一片火海；提豐身旁裂開火焰裂口 */var T=(e.tgts||[]).map(function(tk){return posOf(tk)});if(d<0||d>2000)return;var fa=FXA;FXA=1;var sky=d<300?d/300:d<1500?1:1-(d-1500)/500;
   pctx.save();pctx.globalAlpha=sky*.28;pctx.fillStyle='#5a0808';pctx.fillRect(0,0,pctx.canvas.width,pctx.canvas.height);pctx.restore();pctx.globalAlpha=1;
   if(T.length){var xs=T.map(function(p){return p[0]}),ys=T.map(function(p){return p[1]}),L=Math.min.apply(null,xs)-24,Rr=Math.max.apply(null,xs)+24,yT=Math.min.apply(null,ys)-6,yB=Math.max.apply(null,ys)+4;
@@ -2440,7 +2452,7 @@ function sumSlots(ms,mko){if(!ms.some(function(m){return m.at!=null}))return;var
 function monEntry(m){var au=[];(m.aura||[]).forEach(function(a){if(au.indexOf(a.id)<0)au.push(a.id)});return{k:m.sprite,n:m.name,boss:m.boss,au:au}}
 function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={ev:ev,pkl:pkl,psw:psw,mko:mko,t:WALK+400,sum:false};
   mp.add=function(e){var t=mp.t;
-    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,hz:e.hz||null,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null,sumR:e.sk&&!e.idle&&(ENG.EFF[e.sk]||[]).some(function(r){return r.effect_kind==='summon'})?((SKN[e.sk]||{}).el||''):null,ls:e.ls||0,drain:e.drain||null,dside:e.side,da:e.a,hbk:e.hbk||null,cwave:e.cwave||0,scorch:e.scorch||0,sburn:e.sburn||0,sunN:e.sunN||null,sunB:e.sunB||null,soul:e.soul||null,soulEat:e.soulEat||null,boom:e.boom||0,bspl:e.bspl?e.bspl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]}):null,fallen:e.fallen||0,bfh:e.bfh||null};/* ls = 這招有吸血；drain = 持續扣血被吸回去 [陣營, 編號] */
+    var o={txt:e.txt,kind:e.kind,st:e.st,hp:e.hp,hz:e.hz||null,dead:e.dead,pko:e.pko,t:t,thr:e.thr||null,sumR:e.sk&&!e.idle&&(ENG.EFF[e.sk]||[]).some(function(r){return r.effect_kind==='summon'})?((SKN[e.sk]||{}).el||''):null,ls:e.ls||0,drain:e.drain||null,dside:e.side,da:e.a,hbk:e.hbk||null,cwave:e.cwave||0,scorch:e.scorch||0,sburn:e.sburn||0,sunN:e.sunN||null,sunB:e.sunB||null,soul:e.soul||null,soulEat:e.soulEat||null,soulR:e.soulR||null,boom:e.boom||0,bspl:e.bspl?e.bspl.filter(function(q){return q[0]==='p'}).map(function(q){return q[1]}):null,fallen:e.fallen||0,bfh:e.bfh||null};/* ls = 這招有吸血；drain = 持續扣血被吸回去 [陣營, 編號] */
       if(e.sumFx==='frostgate'&&e.summon&&e.summon.length){o.fgate=e.summon[0]}
       if(e.dread&&e.dread.length){o.side='m';o.a=e.a;o.dread=e.dread;o.dst=e.dst||'';o.cast=e.dst==='凍結'?'#9ae6ff':'#5af0c8';o.castLen=800}/* 死靈威壓：每回合開始的暈眩 */
       if(e.sk==='skill147'&&!e.idle&&!e.tick)o.hsh=1;/* 聖光盾衛：身上浮現白金光盾 */if(e.sk&&e.sk!=='atk'&&!e.idle&&!e.tick){var ck=SKN[e.sk]||{};o.cast=castCol(ck.el,e.ty||ck.ty)}/* 放技能：施放者身上發光（屬性色） *//* thr = 被荊棘反彈／熊之力量濺射打到的單位 [陣營, 編號]，畫面上閃一下 */
@@ -2468,7 +2480,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       if(e.spd)o.spd=e.spd;
       if(e.nums&&e.nums.length)o.nums=e.nums;/* 跳字 *//* 被奪走 SP 的我方角色 */
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
-      if(e.kind!=='round')t+=e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
+      if(e.kind!=='round')t+=e.soulR?1500:e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
       (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
       (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
       if(e.tf&&e.tf[3]){var BM0=ms[e.tf[0]];if(BM0)(BM0.tfs=BM0.tfs||[]).push({t0:o.t,t:o.t+(e.tf[3]==='bone'?BONESW:(e.tf[3]==='blood'||e.tf[3]==='demon')?BLDSW:RISESW),k:e.tf[1],n:e.tf[2],sty:e.tf[3],au:(e.tf[3]==='blood'||e.tf[3]==='demon')?(e.tf[4]||[]):[]});o.tfB=[e.tf[0],e.tf[3]]}/* 骨兵：散成骨堆／重組回骨兵（可以重複很多次） */

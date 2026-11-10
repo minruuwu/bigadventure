@@ -454,7 +454,7 @@
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
       if (u.runes.indexOf('rune17') >= 0 && (u.flags.r17 | 0) < RV(D, 'rune17', 1, 1, u)) { u.flags.r17 = (u.flags.r17 | 0) + 1; /* 先祖之鄉：Lv10 每場可以復活 2 次 */ revive(u, RV(D, 'rune17', 0, 0.5, u), '先祖之鄉', e); return false }
       var sf = u.side === 'm' ? (u.special || []).filter(function (x) { return x.k === 'soul_feast' })[0] : null;
-      if (sf && (u.souls || []).length) { var sv0 = u.souls.shift(); u.hp = Math.max(1, Math.round(u.b.mhp * sf.v)); if (e) { (e._rel = e._rel || []).push(u.name + ' 吞噬了 ' + sv0 + ' 的魂火，從灰燼中重燃！恢復 ' + u.hp + ' 生命（剩 ' + u.souls.length + ' 顆）'); (e.rev = e.rev || []).push([u.side, u.i]); (e.soulEat = e.soulEat || []).push([u.i, u.souls.length]) } return false } /* 火焰獻祭：吞一顆魂火復活，狀態保留 */
+      if (sf && (u.souls || []).length) { var sv0 = u.souls.shift(); u.hp = Math.max(1, Math.round(u.b.mhp * sf.v)); if (e) (e.hz = e.hz || []).push(u.i); /* 打倒他的那一招：血條先歸零 */ reQ.push([u, sv0, u.souls.length, u.hp]); return false } /* 火焰獻祭：吞一顆魂火復活，狀態保留 */
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
@@ -679,8 +679,11 @@
     }
     /* 技能結算後才判定的符文：墓之土、啟示之書、鷹之勇氣、命運之輪（追加的那次不再觸發後兩者） */
     /* 烈焰殉爆：倒下的怪炸出一圈火焰，對敵方全體造成（自己的）魔攻 ×v 的屬性傷害；可以打倒人，我方全滅就算輸 */
-    var booms = [], soulQ = [];
+    var booms = [], soulQ = [], reQ = []; /* reQ：提豐吞魂火重燃，招式結束後獨立兩行（先攫取魂火的特效，再回血） */
     function flushSoul() {
+      while (reQ.length) { var rq = reQ.shift(), ru = rq[0]; if (ru.dead) continue;
+        var r1 = line({ side: 'm', a: ru.i, idle: 1, soulR: [ru.i, rq[2]], soulEat: [[ru.i, rq[2]]], hit: 120, hz: [ru.i], txt: ru.name + ' 從灰燼中伸手攫取 ' + rq[1] + ' 的魂火……' }); r1.hp = hpSnap();
+        var r2 = line({ side: 'm', a: ru.i, idle: 1, rev: [[ru.side, ru.i]], txt: ru.name + ' 從灰燼中重燃！恢復 ' + rq[3] + ' 生命（剩 ' + rq[2] + ' 顆魂火）' }); r2.hp = hpSnap() }
       while (soulQ.length) { var q = soulQ.shift(), o = q[0], v = q[1]; if (o.dead) continue; var sp = o.special.filter(function (x) { return x.k === 'soul_feast' })[0], mx = parseInt(sp.cond, 10) || 4; o.souls = o.souls || []; if (o.souls.length >= mx) continue; o.souls.push(v.name);
         var r = line({ side: 'm', a: o.i, idle: 1, soul: [o.i, v.i, o.souls.length], txt: o.name + ' 攫取了 ' + v.name + ' 的靈魂，魂火在他身旁燃起（' + o.souls.length + ' 顆）' }); r.hp = hpSnap() }
     }
