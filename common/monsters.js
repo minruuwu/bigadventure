@@ -100,8 +100,15 @@ function acidbIdle(m,now){/* 赤焰蝕骨怪：嘴邊一直滴黃綠色口水，
     if(u<.35){var g=u/.35;for(var j=0;j<=Math.round(g*3);j++)VP(x,my+j,j===Math.round(g*3)?'#e8f070':'#b8d030',.95)}
     else if(u<.7){var v=(u-.35)/.35,y=my+3+(gy-my-3)*v*v;VP(x,y,'#e8f070',1);VP(x,y-1,'#b8d030',.8)}
     else{var q=(u-.7)/.3;for(var s=-2;s<=2;s++)VP(x+s*(1+q*1.5),gy-(Math.abs(s)<2&&q<.4?1:0),q<.5?'#d8e850':'#8aa020',1-q*.85)}}}
+function edgePts(k){/* 怪物圖的外輪廓（上方、左右邊緣的格子），算一次存起來 */var L=LAY[k];if(!L||!L.base||!L.base.naturalWidth)return null;if(L.edge)return L.edge;var b=L.base,W=b.naturalWidth,H=b.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.drawImage(b,0,0);var p=x.getImageData(0,0,W,H).data,A=function(i,j){return i>=0&&j>=0&&i<W&&j<H&&p[(j*W+i)*4+3]>0},out=[];
+  var bot=0;for(var j0=0;j0<H;j0++)for(var i0=0;i0<W;i0++)if(A(i0,j0))bot=j0;var cut=bot-Math.round((bot-(L.bb?L.bb[1]:0))*.3);/* 只取外輪廓：每一欄最上面那格＋每一排最左、最右那格；腳那一段（下面 30%）不燒 */
+  for(var i=0;i<W;i++)for(var j=0;j<H;j++)if(A(i,j)){if(j<cut)out.push([i,j,1]);break}
+  for(var j2=0;j2<cut;j2++){var l=-1,r=-1;for(var i2=0;i2<W;i2++)if(A(i2,j2)){if(l<0)l=i2;r=i2}if(l>=0){out.push([l,j2,0]);if(r!==l)out.push([r,j2,0])}}return L.edge=out}
+function edgeFlames(m,now,amp){/* 身體輪廓邊緣冒出一圈小火苗（自燃）：每個邊緣格子往上竄 1–5 格，忽高忽低 */var E=edgePts(m.k),L=LAY[m.k];if(!E)return;var MZ=msz(m.k),sc=m.sc||1,bb=L.bb||[0,0],left=m.lx-MZ[0]*sc/2,top=m.gy-(m.lift||0)-MZ[1]*sc,fr=Math.floor(now/90),A=amp||1;
+  for(var n=0;n<E.length;n++){var q=E[n];if(!q[2]&&n%2)continue;var h=Math.round((1+hsh(n,fr)*4)*A*(q[2]?1:.6));if(h<1)continue;var x=left+(q[0]-bb[0])*sc,y=top+(q[1]-bb[1])*sc,sw=Math.round(Math.sin(now/120+n)*.6);
+    for(var j=0;j<h;j++){var f=j/h;VP(x+(j>1?sw:0),y-j,f<.3?'#fff0a0':f<.6?'#ffb030':'#e8401a',(1-f*.5)*.9)}}}
 function idleOne(m,now){(function(){
-  if(m.alive&&m.k==='fapostle')fapAura(m,now);if(m.alive&&m.k==='fslime')fslimeFlames(m,now);if(m.alive&&m.k==='lavag')lavagIdle(m,now);if(m.alive&&m.k==='fwizard')fwizGlow(m,now);if(m.alive&&m.k==='balrog'){balrogFront(m,now);balrogIdle(m,now)}if(m.alive&&m.k==='felem')felemIdle(m,now);if(m.alive&&m.k==='shound')shoundIdle(m,now);if(m.alive&&m.k==='fwyvern')fwyIdle(m,now);if(m.alive&&m.k==='acidb')acidbIdle(m,now);/* 熔岩火原、墮落天界使徒的身上特效（戰鬥和圖鑑共用） */
+  if(m.alive&&m.k==='fapostle')fapAura(m,now);if(m.alive&&m.k==='fslime')fslimeFlames(m,now);if(m.alive&&m.k==='lavag')lavagIdle(m,now);if(m.alive&&m.k==='fwizard')fwizGlow(m,now);if(m.alive&&m.k==='balrog'){balrogFront(m,now);balrogIdle(m,now)}if(m.alive&&m.k==='felem')felemIdle(m,now);if(m.alive&&m.k==='shound')shoundIdle(m,now);if(m.alive&&m.k==='fwyvern')fwyIdle(m,now);if(m.alive&&m.k==='acidb')acidbIdle(m,now);if(m.alive&&m.sfx&&m.sfx.fx&&m.sfx.fx.sburn)edgeFlames(m,now,1);/* 自燃：身體邊緣冒火 *//* 熔岩火原、墮落天界使徒的身上特效（戰鬥和圖鑑共用） */
   /* 電光史萊姆：身邊不時迸出小電花 */
   if(m.k==='eslime'&&m.alive){var ez=msz('eslime'),es=m.sc,ec=Math.floor((now+m.ph*5)/140);if(ec%4===0){var ea=hsh(ec,901)*Math.PI*2,ex=m.lx+Math.cos(ea)*ez[0]*es*.55,ey=m.gy-ez[1]*es*.45+Math.sin(ea)*ez[1]*es*.35;pctx.globalCompositeOperation='lighter';VP(ex,ey,'#fff6a0',.95);VP(ex+1,ey-1,'#ffd23a',.8);VP(ex-1,ey+1,'#ffd23a',.6);VP(ex+2,ey-1,'#fff6a0',.5);pctx.globalCompositeOperation='source-over'}}
   /* 猛毒史萊姆：身上一直冒毒泡，鼓起來再破掉 */

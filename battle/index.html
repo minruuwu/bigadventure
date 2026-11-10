@@ -1282,8 +1282,15 @@ function acidbIdle(m,now){/* 赤焰蝕骨怪：嘴邊一直滴黃綠色口水，
     if(u<.35){var g=u/.35;for(var j=0;j<=Math.round(g*3);j++)VP(x,my+j,j===Math.round(g*3)?'#e8f070':'#b8d030',.95)}
     else if(u<.7){var v=(u-.35)/.35,y=my+3+(gy-my-3)*v*v;VP(x,y,'#e8f070',1);VP(x,y-1,'#b8d030',.8)}
     else{var q=(u-.7)/.3;for(var s=-2;s<=2;s++)VP(x+s*(1+q*1.5),gy-(Math.abs(s)<2&&q<.4?1:0),q<.5?'#d8e850':'#8aa020',1-q*.85)}}}
+function edgePts(k){/* 怪物圖的外輪廓（上方、左右邊緣的格子），算一次存起來 */var L=LAY[k];if(!L||!L.base||!L.base.naturalWidth)return null;if(L.edge)return L.edge;var b=L.base,W=b.naturalWidth,H=b.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');x.drawImage(b,0,0);var p=x.getImageData(0,0,W,H).data,A=function(i,j){return i>=0&&j>=0&&i<W&&j<H&&p[(j*W+i)*4+3]>0},out=[];
+  var bot=0;for(var j0=0;j0<H;j0++)for(var i0=0;i0<W;i0++)if(A(i0,j0))bot=j0;var cut=bot-Math.round((bot-(L.bb?L.bb[1]:0))*.3);/* 只取外輪廓：每一欄最上面那格＋每一排最左、最右那格；腳那一段（下面 30%）不燒 */
+  for(var i=0;i<W;i++)for(var j=0;j<H;j++)if(A(i,j)){if(j<cut)out.push([i,j,1]);break}
+  for(var j2=0;j2<cut;j2++){var l=-1,r=-1;for(var i2=0;i2<W;i2++)if(A(i2,j2)){if(l<0)l=i2;r=i2}if(l>=0){out.push([l,j2,0]);if(r!==l)out.push([r,j2,0])}}return L.edge=out}
+function edgeFlames(m,now,amp){/* 身體輪廓邊緣冒出一圈小火苗（自燃）：每個邊緣格子往上竄 1–5 格，忽高忽低 */var E=edgePts(m.k),L=LAY[m.k];if(!E)return;var MZ=msz(m.k),sc=m.sc||1,bb=L.bb||[0,0],left=m.lx-MZ[0]*sc/2,top=m.gy-(m.lift||0)-MZ[1]*sc,fr=Math.floor(now/90),A=amp||1;
+  for(var n=0;n<E.length;n++){var q=E[n];if(!q[2]&&n%2)continue;var h=Math.round((1+hsh(n,fr)*4)*A*(q[2]?1:.6));if(h<1)continue;var x=left+(q[0]-bb[0])*sc,y=top+(q[1]-bb[1])*sc,sw=Math.round(Math.sin(now/120+n)*.6);
+    for(var j=0;j<h;j++){var f=j/h;VP(x+(j>1?sw:0),y-j,f<.3?'#fff0a0':f<.6?'#ffb030':'#e8401a',(1-f*.5)*.9)}}}
 function idleOne(m,now){(function(){
-  if(m.alive&&m.k==='fapostle')fapAura(m,now);if(m.alive&&m.k==='fslime')fslimeFlames(m,now);if(m.alive&&m.k==='lavag')lavagIdle(m,now);if(m.alive&&m.k==='fwizard')fwizGlow(m,now);if(m.alive&&m.k==='balrog'){balrogFront(m,now);balrogIdle(m,now)}if(m.alive&&m.k==='felem')felemIdle(m,now);if(m.alive&&m.k==='shound')shoundIdle(m,now);if(m.alive&&m.k==='fwyvern')fwyIdle(m,now);if(m.alive&&m.k==='acidb')acidbIdle(m,now);/* 熔岩火原、墮落天界使徒的身上特效（戰鬥和圖鑑共用） */
+  if(m.alive&&m.k==='fapostle')fapAura(m,now);if(m.alive&&m.k==='fslime')fslimeFlames(m,now);if(m.alive&&m.k==='lavag')lavagIdle(m,now);if(m.alive&&m.k==='fwizard')fwizGlow(m,now);if(m.alive&&m.k==='balrog'){balrogFront(m,now);balrogIdle(m,now)}if(m.alive&&m.k==='felem')felemIdle(m,now);if(m.alive&&m.k==='shound')shoundIdle(m,now);if(m.alive&&m.k==='fwyvern')fwyIdle(m,now);if(m.alive&&m.k==='acidb')acidbIdle(m,now);if(m.alive&&m.sfx&&m.sfx.fx&&m.sfx.fx.sburn)edgeFlames(m,now,1);/* 自燃：身體邊緣冒火 *//* 熔岩火原、墮落天界使徒的身上特效（戰鬥和圖鑑共用） */
   /* 電光史萊姆：身邊不時迸出小電花 */
   if(m.k==='eslime'&&m.alive){var ez=msz('eslime'),es=m.sc,ec=Math.floor((now+m.ph*5)/140);if(ec%4===0){var ea=hsh(ec,901)*Math.PI*2,ex=m.lx+Math.cos(ea)*ez[0]*es*.55,ey=m.gy-ez[1]*es*.45+Math.sin(ea)*ez[1]*es*.35;pctx.globalCompositeOperation='lighter';VP(ex,ey,'#fff6a0',.95);VP(ex+1,ey-1,'#ffd23a',.8);VP(ex-1,ey+1,'#ffd23a',.6);VP(ex+2,ey-1,'#fff6a0',.5);pctx.globalCompositeOperation='source-over'}}
   /* 猛毒史萊姆：身上一直冒毒泡，鼓起來再破掉 */
@@ -1729,8 +1736,7 @@ function acidSpitFx(e,d){/* 酸血噴吐：張口噴出一大片黃綠色酸血�
     var hd=d-(e.hit||560)-n*20;if(hd>=0&&hd<800){var A=hd<500?1:1-(hd-500)/300;for(var b=0;b<9;b++){var bp=420+hsh(b,n)*300,bu=(hd%bp)/bp,bx=p[0]+(hsh(b,n+5)-.5)*16,by=p[1]-4-hsh(b,n+7)*24-bu*6,r=bu<.7?1+bu*1.5:2.2;VP(bx,by,'#e8f070',A*(1-bu)*.9);if(r>1.5){VP(bx-1,by,'#b8d030',A*(1-bu)*.7);VP(bx+1,by,'#b8d030',A*(1-bu)*.7);VP(bx,by-1,'#d8e850',A*(1-bu)*.7)}}
       for(var dr=0;dr<6;dr++){var du=((hd+dr*90)%420)/420;VP(p[0]+(hsh(dr,n+11)-.5)*14,p[1]-18+hsh(dr,n+13)*12+du*14,'#b8d030',A*(1-du))}}});
   if(d<520)for(var q=0;q<5;q++)VP(s[0]-q,s[1]+(hsh(q,Math.floor(d/50))-.5)*3,'#e8f070',.9);FXA=fa}
-function selfBurnFx(e,d){/* 自燃（施放）：全身一下子竄起一圈大火 */var mo=mons[e.a];if(!mo||mo.lx==null||d<0||d>1000)return;var fa=FXA;FXA=1;var MZ=msz(mo.k),w=MZ[0]*mo.sc,h=MZ[1]*mo.sc,g=d<250?d/250:d<700?1:1-(d-700)/300;for(var k=0;k<12;k++){var x=mo.lx-w*.45+w*.9*k/11,base=mo.gy-hsh(k,3)*h*.25;pxFlame(x,base,(10+hsh(k,5)*14)*g,d+k*97,k+300,g)}pBurst('fire',mo.lx,mo.gy-h*.5,d-80,16,VS);FXA=fa}
-var FANGS=null;function fangImgs(){if(FANGS)return FANGS;var u=IMG.fangs_u,l=IMG.fangs_l;if(!u||!l||!u.naturalWidth)return null;return FANGS=[u,l]}
+function selfBurnFx(e,d){/* 自燃（施放）：身體輪廓整圈一下子竄起火，再縮回平常的大小 */var mo=mons[e.a];if(!mo||mo.lx==null||d<0||d>900)return;var fa=FXA;FXA=1;var g=d<200?d/200:d<500?1:1-(d-500)/400;edgeFlames(mo,d+(mo.ph||0),1+g*1.6);var MZ=msz(mo.k);pBurst('fire',mo.lx,mo.gy-MZ[1]*mo.sc*.5,d-60,14,VS);FXA=fa}
 function biteFx(e,d){/* 啃噬：上下兩排利齒在目標身上張開，猛地一合咬住，噴血 */var tk=(e.tgts||[])[0],F=fangImgs();if(tk==null||d<0||d>1000)return;var pp=posOf(tk);if(!pp)return;var fa=FXA;FXA=1;var cx=pp[0]+1,cy=pp[1]-18,S=.72;
   if(F&&d>200&&d<760){var op=d<380?1-ease((d-200)/180)*.0:0,gap=d<380?11-ease((d-200)/180)*2:d<440?9*(1-ease((d-380)/60)):0,sh=d>440&&d<620?Math.round(Math.sin(d/16)):0,A=d<260?(d-200)/60:d<680?1:1-(d-680)/80;
     pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.max(0,A);var uw=F[0].naturalWidth*S,uh=F[0].naturalHeight*S,lw=F[1].naturalWidth*S,lh=F[1].naturalHeight*S;
@@ -1995,7 +2001,7 @@ function stDraw(sd,x,gy,top,w,t,lf,lt){var f=sd.fx,by=gy-lf,bc=(top+by)/2,T=Math
   if(f.guilt)guiltSigil(x,top-5,700,.75+.25*Math.sin(t/300));/* 罪咎：頭上一個紫色印記 */
   if(f.hshield){/* 聖盾：身上一面白金光盾，若隱若現地呼吸閃爍 */var pu=.5+.5*Math.sin(t/420),pu2=.5+.5*Math.sin(t/170+1);holyShield(x,bc,Math.max(16,(by-top)*.62),.3+.55*pu*(.8+.2*pu2),t)}
   if(f.acid){/* 酸蝕：身上一直往下滴黃綠色酸液、冒小泡 */for(var ak=0;ak<5;ak++){var apd=900+hsh(ak,3)*500,au=((t+hsh(ak,5)*2000)%apd)/apd,ax=x+(hsh(ak,Math.floor((t+hsh(ak,5)*2000)/apd))-.5)*w*1.4;acidDrop(ax,top+(by-top)*(.35+au*.6),Math.sin(au*Math.PI)*.9,ak)}}
-  if(f.sburn){/* 自燃：全身竄火 */for(var bk2=0;bk2<6;bk2++)pxFlame(x-w*.8+w*1.6*bk2/5,by-(by-top)*(.1+.25*hsh(bk2,3)),8+hsh(bk2,5)*8,t+bk2*131,bk2+400,.85)}
+  /* 自燃：改在 idleOne 沿著身體輪廓畫火（edgeFlames） */
   if(f.wisp)pinkFlame(x,top-2,11,t,.95);/* 妖火：頭上一朵粉色小火 */
   if(f.sulfur){/* 硫磺毒：身上一直冒出黃綠色的硫磺氣 */for(var sk9=0;sk9<6;sk9++){var sp9=1300+hsh(sk9,3)*700,su9=((t+hsh(sk9,5)*3000)%sp9)/sp9,sc9=Math.floor((t+hsh(sk9,5)*3000)/sp9);sulfPuff(x+(hsh(sk9,sc9)-.5)*w*1.4+Math.sin(su9*5+sk9)*1.5,by-4-su9*(by-top)*1.05,1+su9*2.6,Math.sin(su9*Math.PI)*.85,sk9+sc9)}}
   if(f.flarm){/* 焰甲：跟霜甲一樣的光罩但是火焰色，腳下邊緣一圈小火在燒 */var Rf=Math.max(12,(by-top)*.62),cyf=bc-1,puf=.85+.15*Math.sin(t/400);for(var yf=-Rf;yf<=Rf;yf++){var hwf=Math.sqrt(Math.max(0,Rf*Rf-yf*yf))*.82;for(var xf=-hwf;xf<=hwf;xf++){var rf=Math.sqrt(xf*xf/(.67)+yf*yf)/Rf;if(rf>1)continue;VP(x+xf,cyf+yf,rf>.86?'#ffc23a':'#ff6a1a',(rf>.86?.4:.1)*puf)}}
