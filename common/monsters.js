@@ -53,6 +53,16 @@ function VP(x,y,c,a){if(a<=0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyl
 function hsh(a,b){var x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x)}
 var BHE=[[21,1,4,4,23.0,2.5],[14,2,4,4,16.0,4.5],[5,5,4,4,7.0,6.5],[28,9,4,4,29.5,11.0],[1,13,4,4,3.5,15.0],[27,17,4,4,29.0,18.5],[0,22,6,4,2.0,24.5],[29,22,4,4,31.5,24.0],[19,25,4,4,21.0,26.5],[11,27,4,4,13.5,29.0]];/* 眼魔觸手眼的位置 */
 function idleOne(m,now){(function(){
+  /* 電光史萊姆：身邊不時迸出小電花 */
+  if(m.k==='eslime'&&m.alive){var ez=msz('eslime'),es=m.sc,ec=Math.floor((now+m.ph*5)/140);if(ec%4===0){var ea=hsh(ec,901)*Math.PI*2,ex=m.lx+Math.cos(ea)*ez[0]*es*.55,ey=m.gy-ez[1]*es*.45+Math.sin(ea)*ez[1]*es*.35;pctx.globalCompositeOperation='lighter';VP(ex,ey,'#fff6a0',.95);VP(ex+1,ey-1,'#ffd23a',.8);VP(ex-1,ey+1,'#ffd23a',.6);VP(ex+2,ey-1,'#fff6a0',.5);pctx.globalCompositeOperation='source-over'}}
+  /* 猛毒史萊姆：身上一直冒毒泡，鼓起來再破掉 */
+  if(m.k==='pslime'&&m.alive){var pz=msz('pslime'),ps=m.sc||1,pw=pz[0]*ps,ph2=pz[1]*ps,pcx=m.lx,ptop=m.gy-(m.lift||0)-ph2;for(var pk=0;pk<5;pk++){var pper=1300+hsh(pk,3)*900,pu=((now+(m.ph||0)*700+hsh(pk,5)*3000)%pper)/pper,pbx=pcx+(hsh(pk,7)-.5)*pw*.8,pby=ptop+ph2*.25-pu*10,pr=pu<.8?.6+pu*2:2.2;
+    if(pu>.88){var pg=(pu-.88)/.12;for(var pq=0;pq<6;pq++){var pa=pq*1.05;VP(pbx+Math.cos(pa)*(2+pg*2),pby+Math.sin(pa)*(2+pg*2),'#c8ff6a',1-pg)}continue}var pn=Math.max(6,Math.round(pr*6));for(var pq2=0;pq2<pn;pq2++){var pa2=pq2/pn*Math.PI*2;VP(pbx+Math.cos(pa2)*pr,pby+Math.sin(pa2)*pr,pq2%3?'#7ae83a':'#b060e0',.85)}VP(pbx-pr*.4,pby-pr*.4,'#e8ffc0',.9)}}
+  /* 寒冰史萊姆：身上飄出往下沉的冷氣，偶爾閃一下冰晶 */
+  if(m.k==='islime'&&m.alive){var iz=msz('islime'),isc=m.sc||1,iw=iz[0]*isc,ih=iz[1]*isc,itop=m.gy-(m.lift||0)-ih;for(var ik=0;ik<9;ik++){var iper=1500+hsh(ik,3)*1100,iu=((now+(m.ph||0)*500+hsh(ik,5)*3000)%iper)/iper,ix=m.lx+(hsh(ik,7)-.5)*iw*1.1+Math.sin(iu*4+ik)*2*iu,iy=itop+ih*(.35+.5*hsh(ik,9))+iu*ih*.55,ir=.8+iu*2.2,ia=Math.sin(iu*Math.PI)*.45;
+    for(var iyy=-ir;iyy<=ir;iyy++)for(var ixx=-ir;ixx<=ir;ixx++)if(ixx*ixx+iyy*iyy<=ir*ir)VP(ix+ixx,iy+iyy,(ixx+iyy)%2?'#d8f2ff':'#a8dcff',ia)}
+    for(var im2=0;im2<10;im2++){var ian=im2/10*Math.PI*2+now/2400;VP(m.lx+Math.cos(ian)*iw*.6,m.gy+Math.sin(ian)*iw*.15,'#cfeeff',.35)}/* 腳下一圈冷霧 */
+    var ic=Math.floor((now+(m.ph||0)*3)/220);if(ic%5===0){var icx=m.lx+(hsh(ic,13)-.5)*iw,icy=itop+hsh(ic,17)*ih*.7;VP(icx,icy,'#ffffff',.95);VP(icx-1,icy,'#bfe6ff',.7);VP(icx+1,icy,'#bfe6ff',.7);VP(icx,icy-1,'#bfe6ff',.7);VP(icx,icy+1,'#bfe6ff',.7)}}
   /* 哥布林巫師：法杖頂端的寶珠發出藍色光暈（跟著身體上下） */
   if(m.k==='gobw'&&m.alive){var GZ=msz('gobw'),gs=m.sc,gdy=Math.sin(now/330)>0?1:0,gx=m.lx-GZ[0]*gs/2+2*gs,gy2=m.gy-GZ[1]*gs+(1.5+gdy)*gs,gp=.7+.3*Math.sin((now+m.ph*3)/300);
     pctx.globalCompositeOperation='lighter';for(var gi=-5;gi<=5;gi++)for(var gj=-5;gj<=5;gj++){var gr=Math.sqrt(gi*gi+gj*gj);if(gr>5.3)continue;VP(gx+gi,gy2+gj,gr<2.5?'#7ec4ff':'#3d8bff',gp*(gr<2.5?.95:.75)*(1-gr/6.5))}pctx.globalCompositeOperation='source-over';
