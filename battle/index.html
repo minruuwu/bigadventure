@@ -1270,7 +1270,7 @@ function balrogFront(m,now){balFl(m,now,true)}
 function felemIdle(m,now){/* 火焰元素：身上一直往上飄火星，身體中心微微的熱光 */var MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,L=m.lx-w/2,T=m.gy-(m.lift||0)-h,t=now+(m.ph||0)*3;
   for(var s=0;s<9;s++){var ps=1200+hsh(s,3)*900,us=((t+hsh(s,5)*3000)%ps)/ps,cy=Math.floor((t+hsh(s,5)*3000)/ps),x=L+w*(.2+.65*hsh(s,cy))+Math.sin(us*6+s)*2.5,y=T+h*(.15+.6*hsh(cy,s+7))-us*20;VP(x,y,us<.35?'#fff0a0':us<.7?'#ffb030':'#e8401a',Math.sin(us*Math.PI)*.95)}
   pctx.globalCompositeOperation='lighter';var g=.5+.5*Math.sin(t/260),cx=L+w*.48,cy2=T+h*.42;for(var a=-5;a<=5;a++)for(var b=-5;b<=5;b++){var r=Math.sqrt(a*a+b*b);if(r>5.2)continue;VP(cx+a,cy2+b,'#ff8a2a',(1-r/5.2)*.18*g)}pctx.globalCompositeOperation='source-over'}
-function sulfPuff(x,y,r,a,k){/* 一團硫磺氣：外圈暗黃綠、中間亮黃綠 */if(a<=0)return;var R=Math.ceil(r);for(var yy=-R;yy<=R;yy++)for(var xx=-R;xx<=R;xx++){var q=(xx*xx+yy*yy)/(r*r);if(q>1)continue;if(q>.6&&hsh(xx*5+yy+k,k)<.35)continue;VP(x+xx,y+yy,q<.3?'#e6ee7a':q<.65?'#c2d045':'#8a9a2a',a*(q<.3?.7:q<.65?.55:.4))}}
+function sulfPuff(x,y,r,a,k){/* 一團硫磺氣：硫磺黃綠（偏黃，跟自然系的綠毒分開） */if(a<=0)return;var R=Math.ceil(r);for(var yy=-R;yy<=R;yy++)for(var xx=-R;xx<=R;xx++){var q=(xx*xx+yy*yy)/(r*r);if(q>1)continue;if(q>.6&&hsh(xx*5+yy+k,k)<.35)continue;VP(x+xx,y+yy,q<.3?'#fff38a':q<.65?'#e2dc34':'#b4b81c',a*(q<.3?.7:q<.65?.55:.4))}}
 function shoundIdle(m,now){/* 硫磺魔犬：背上、身上不停冒出黃綠色硫磺氣，往上飄、變大、變淡 */var MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,L=m.lx-w/2,T=m.gy-(m.lift||0)-h,t=now+(m.ph||0)*3;
   for(var s=0;s<7;s++){var ps=1700+hsh(s,3)*1100,us=((t+hsh(s,5)*4000)%ps)/ps,cy=Math.floor((t+hsh(s,5)*4000)/ps),x=L+w*(.15+.7*hsh(s,cy))+Math.sin(us*4+s)*2+us*4,y=T+h*(.3+.35*hsh(cy,s+7))-us*18;sulfPuff(x,y,1.2+us*3.2,Math.sin(us*Math.PI)*.9,s+cy)}}
 var FWYT=[[[46,43],[40,49],[33,53],[49,37]],[[50,34],[46,40],[43,44]]];/* 火焰雙足飛龍：兩張圖各自尾巴上火焰的位置 */
@@ -1560,7 +1560,7 @@ function stCls(n){if(STC[n])return STC[n];var q=String(n).split('|'),nm=q[0],re=
   (def?def.rows:[]).forEach(function(r){var k=r.k;
     if(k==='seal')o.fx.seal=1;else if(k==='stun'){if(nm==='暈眩')o.fx.swirl=1;else if(nm==='凍結'||nm==='結晶')o.fx.frozen=1;else o.fx.shake=1}
     else if(k==='sleep')o.fx.sleep=1;else if(k==='petrify')o.fx.stone=1;else if(k==='banish')o.fx.ban=1;else if(k==='charm')o.fx.heart=1;else if(k==='confuse')o.fx.star=1;
-    else if(k==='dot'){if(r.el==='fire')o.fx.fire=1;else if(r.el==='nature'||/毒/.test(nm))o.fx.poison=1;else if(/血|撕裂/.test(nm))o.fx.blood=1}
+    else if(k==='dot'){if(r.el==='fire')o.fx.fire=1;else if(nm!=='硫磺毒'&&(r.el==='nature'||/毒/.test(nm)))o.fx.poison=1;/* 硫磺毒有自己的黃綠硫磺氣，不冒綠色毒泡 */else if(/血|撕裂/.test(nm))o.fx.blood=1}
     var v=r.v||0,ic=null;
     if(/_res_rate$/.test(k)&&k!=='hit_taken_rate'){var el=k==='rand_res_rate'?re:k.replace('_res_rate','');if(el&&el!=='none'&&v)ic={k:'res_'+el,m:v>0?'up':'down'}}else ic=stIc(k,v);
     if(ic)o.ic.push(ic)});
@@ -1701,7 +1701,7 @@ function sulfurFx(e,d){/* 硫磺毒氣：張口噴出一大片黃綠色毒霧，
   var xs=T.map(function(p){return p[0]}),ys=T.map(function(p){return p[1]}),L=Math.min.apply(null,xs)-18,yT=Math.min.apply(null,ys)-22,yB=Math.max.apply(null,ys)-2,A=d<1050?1:Math.max(0,1-(d-1050)/450);
   /* 從嘴巴一路噴出去的毒霧團：越遠越大 */for(var k=0;k<44;k++){var tb=k*14,u=(d-tb)/620;if(u<0||u>1.4)continue;var uu=Math.min(1,u),tx=L+(hsh(k,3))*(s[0]-L)*.45,ty=yT+(yB-yT)*hsh(k,5),x=s[0]+(tx-s[0])*ease(uu)+Math.sin(u*6+k)*2,y=s[1]+(ty-s[1])*ease(uu)-u*3,r=1.5+ease(uu)*6.5*(.7+.5*hsh(k,7));sulfPuff(x,y,r,(u<1?.95:1-(u-1)/.4*.6)*A,k)}
   /* 罩在我方身上的毒霧：慢慢翻滾 */if(d>400)T.forEach(function(p,n){for(var j=0;j<5;j++){var an=d/400+j*1.25+n,x=p[0]+Math.cos(an)*9,y=p[1]-14+Math.sin(an*1.3)*7;sulfPuff(x,y,4+hsh(j,n)*2,.75*Math.min(1,(d-400)/200)*A,j+n*5)}});
-  if(d<600)for(var q=0;q<6;q++)VP(s[0]-q*1.5,s[1]+(hsh(q,Math.floor(d/60))-.5)*3,'#e6ee7a',.8);FXA=fa}
+  if(d<600)for(var q=0;q<6;q++)VP(s[0]-q*1.5,s[1]+(hsh(q,Math.floor(d/60))-.5)*3,'#fff38a',.8);FXA=fa}
 /* ===== 火焰雙足飛龍 ===== */
 function fchgAt(e,d,m,gy){/* 炎翼衝鋒：0–320 斜斜往上飛 → 320–540 拖著火焰俯衝撞上目標 → 540–700 撞上停一下 → 700–1080 飛回 */if(d<0||d>1080)return null;var tp=grifTgt(e);if(!tp)return null;var tx=tp[0]+14,L0=gy-tp[1]+4,hx=m.x+14,hy=48;
   if(d<320){var k=ease(d/320);return[lerp(m.x,hx,k),hy*k,1]}if(d<540){var k2=Math.pow((d-320)/220,1.6);return[lerp(hx,tx,k2),lerp(hy,L0,k2),1]}if(d<700)return[tx+Math.sin((d-540)/30)*1,L0,1];var k3=ease((d-700)/380);return[lerp(tx,m.x,k3),lerp(L0,0,k3)+Math.sin(k3*Math.PI)*22,1]}
