@@ -146,7 +146,7 @@
     return { side: 'm', name: r.monster_name, mid: r.monster_id, sprite: r.sprite, boss: r.boss === '1',
       b: { mhp: Math.round(num(r.hp) * (1 + hg * k) * MUL(D, 'hp')), patk: Math.round(num(r.p_atk) * (1 + ag * k) * MUL(D, 'atk')), matk: Math.round(num(r.m_atk) * (1 + ag * k) * MUL(D, 'atk')), pdmg: 0, mdmg: 0,
         eva: num(r.eva_rate), crit: num(r.crit_rate), cdmg: num(r.crit_damage_rate) || 0.5, pred: num(r.p_reduce_rate), mred: num(r.m_reduce_rate), res: res, heal: 0, speed: num(r.speed) || 10, hit: 0 },
-      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: monAura(r, D), special: monPassive(r, D), mst: monMst(r, D), runes: [] };
+      cycle: cyc, reaction: (r.reaction && D.SK[String(r.reaction).trim()]) ? String(r.reaction).trim() : '', aura: monAura(r, D), special: monPassive(r, D), mst: monMst(r, D), runes: [], atkM: String(r.atk_dmg || '').trim() === 'm' /* 普攻照魔攻算（沉淪魔巫師的魔法飛彈） */ };
   }
   /* 怪物靈氣：passive 欄裡 target = ally_all 的被動（例如審判靈氣），活著時套用到全體怪物（含自己） */
   function monAura(r, D) {
@@ -755,6 +755,7 @@
     }
 
     function doSkill(u, sk, tg, e) {
+      if (sk.id === 'atk' && u.atkM) { var mk2 = {}; Object.keys(sk).forEach(function (k) { mk2[k] = sk[k] }); mk2.parts = sk.parts.map(function (q) { return { d: 'm', e: q.e, r: q.r } }); sk = mk2 }
       var effs = D.EFF[sk.id] || [], parts = [];
       var charmed = ctrl(u, 'charm');
       var bonus = {}; effs.forEach(function (r) { if (r.effect_kind === 'bonus') bonus[r.effect] = r });

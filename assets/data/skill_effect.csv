@@ -451,3 +451,7 @@ skill460,焰拳,status,破甲,enemy_single,2,0.3,,,,,,,,
 skill461,火焰波動,status,火焰詛咒,enemy_all,2,0.3,,,,,,,,
 skill462,焰甲,status,焰甲,ally_single,4,1,,,,,,,,
 skill464,惡魔巢群,passive,,,,,swarm,0.5,,,,,,
+skill466,召喚沉淪魔,summon,,,,,mon92,5,,,,,,all_monsters
+skill466,召喚沉淪魔,use_if,,,,,not_full,5,,,,,,
+skill467,惡魔之聲,status,混亂,enemy_all,1,0.3,,,,,,,,
+skill468,魔力竊取,sp_drain,,enemy_single,,0.5,,1,,,,,,

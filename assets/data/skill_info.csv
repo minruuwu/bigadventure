@@ -463,3 +463,7 @@ skill461,火焰波動,monster,0,combat,enemy_all,,damage,,,p,fire,0.8,,,,怪物�
 skill462,焰甲,monster,0,combat,ally_single,prefer_without_status,buff,,,,,,,,,怪物技能（我方單體獲得焰甲 4 回合：火焰抗性 +30%、物理減傷 +15%，被攻擊時對攻擊者造成施放者物理攻擊力 20% 的火焰物理傷害）,,,,3,single,,2,,
 skill463,惡魔爪,monster,0,combat,enemy_single,random,damage,,,p,,1.5,,,,怪物技能（用銳利的惡魔爪撕裂目標：單體物理傷害 ×1.5）,claw,,,1,single,,2,,血
 skill464,惡魔巢群,monster,0,passive,,,passive,,,,,,,,,怪物被動（隊友用普攻或單體技能打人時，跟著對同一個目標補一次普攻 ×0.5；追擊不觸發反擊等反應，也不會連鎖）,,,,,,,,,
+skill465,多重火球,monster,0,combat,enemy_single,random_each,damage,,,m,fire,0.3,,,,怪物技能（連射 6 顆火球，每顆隨機挑一個敵人：火焰魔法傷害 ×0.3）,missile,6,,4,single,,3,,
+skill466,召喚沉淪魔,monster,0,combat,self,,buff,,,,,,,,,怪物技能（場上的怪不到 5 隻時召喚一隻沉淪魔；滿了改用普攻）,,,,0,single,,2,,
+skill467,惡魔之聲,monster,0,combat,enemy_all,,debuff,,,,,,,,,怪物技能（飄出低沉的紅色音符：全體敵人各 30% 機率混亂 1 回合）,notes,,,0,diamond,3,2,,血
+skill468,魔力竊取,monster,0,combat,enemy_single,random,damage,,,m,,1.2,,,,怪物技能（一道藍色射線從目標身上把魔力抽回來：單體魔法傷害 ×1.2，50% 機率讓目標失去 1 SP）,manasteal,,,4,single,,2,,
