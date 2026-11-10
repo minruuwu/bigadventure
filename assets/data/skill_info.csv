@@ -147,7 +147,7 @@ skill145,槍專精,job13,3,passive,,,passive,,,,,,,,,裝備槍時物理攻擊力
 skill146,守護誓言,job13,5,combat,self,,buff,,,,,,,,,,,,,0,single,,3,0,
 skill147,聖光盾衛,job13,8,combat,self,,buff,,,,,,,,,,,,,0,single,,3,1,
 skill148,虔誠靈氣,job13,10,passive,,,passive,,,,,,,,,全體隊友（含自己）物理減傷 +5%、魔法減傷 +5%（靈氣：同種不疊加，聖騎士倒下時消失）,,,,,,,,,
-skill149,祝福之錘,job13,12,combat,enemy_all,,damage,,,p,,0.8,,,,,smash,,,5,diamond,1,3,1,
+skill149,祝福之錘,job13,12,combat,enemy_all,,damage,,,p,,0.8,,,,,rosehammer,,,5,diamond,1,3,1,
 skill150,神聖衝擊,job13,15,combat,enemy_all,,damage,,,p,lightning,0.95,,,,,,,,3,diamond,2,3,,
 skill151,至高打擊,job13,20,combat,enemy_single,random,damage,,,p,light,2.2,,,,自身恢復物理攻擊力 50% 的生命,smash,,,1,single,,2,3,
 skill152,抵抗靈氣,job13,25,passive,,,passive,,,,,,,,,全體隊友（含自己）七種抗性各 +15%（靈氣：同種不疊加，聖騎士倒下時消失）,,,,,,,,,
