@@ -1737,11 +1737,13 @@ function acidSpitFx(e,d){/* 酸血噴吐：張口噴出一大片黃綠色酸血�
       for(var dr=0;dr<6;dr++){var du=((hd+dr*90)%420)/420;VP(p[0]+(hsh(dr,n+11)-.5)*14,p[1]-18+hsh(dr,n+13)*12+du*14,'#b8d030',A*(1-du))}}});
   if(d<520)for(var q=0;q<5;q++)VP(s[0]-q,s[1]+(hsh(q,Math.floor(d/50))-.5)*3,'#e8f070',.9);FXA=fa}
 function selfBurnFx(e,d){/* 自燃（施放）：身體輪廓整圈一下子竄起火，再縮回平常的大小 */var mo=mons[e.a];if(!mo||mo.lx==null||d<0||d>900)return;var fa=FXA;FXA=1;var g=d<200?d/200:d<500?1:1-(d-500)/400;edgeFlames(mo,d+(mo.ph||0),1+g*1.6);var MZ=msz(mo.k);pBurst('fire',mo.lx,mo.gy-MZ[1]*mo.sc*.5,d-60,14,VS);FXA=fa}
-function biteFx(e,d){/* 啃噬：上下兩排利齒在目標身上張開，猛地一合咬住，噴血 */var tk=(e.tgts||[])[0],F=fangImgs();if(tk==null||d<0||d>1000)return;var pp=posOf(tk);if(!pp)return;var fa=FXA;FXA=1;var cx=pp[0]+1,cy=pp[1]-18,S=.72;
-  if(F&&d>200&&d<760){var op=d<380?1-ease((d-200)/180)*.0:0,gap=d<380?11-ease((d-200)/180)*2:d<440?9*(1-ease((d-380)/60)):0,sh=d>440&&d<620?Math.round(Math.sin(d/16)):0,A=d<260?(d-200)/60:d<680?1:1-(d-680)/80;
-    pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.max(0,A);var uw=F[0].naturalWidth*S,uh=F[0].naturalHeight*S,lw=F[1].naturalWidth*S,lh=F[1].naturalHeight*S;
-    pctx.drawImage(F[0],(cx-uw/2+sh)*U,(cy-uh-gap+uh*.45)*U,uw*U,uh*U);pctx.drawImage(F[1],(cx-lw/2-sh)*U,(cy+gap-lh*.35)*U,lw*U,lh*U);pctx.restore();pctx.globalAlpha=1}
-  var hd=d-440;if(hd>=0&&hd<500){pBurst('blood',cx,cy,hd,14,VS);if(hd<160)shakeY=Math.round(Math.sin(hd/12)*2*U*(1-hd/160))}FXA=fa}
+var FANGS=null;function fangImgs(){if(FANGS)return FANGS;var u=IMG.fangs_u,l=IMG.fangs_l;if(!u||!l||!u.naturalWidth)return null;return FANGS=[u,l]}
+function biteFx(e,d){/* 啃噬：利齒在目標身上張大嘴（越張越開）→ 猛地咬合 → 咬著甩兩下 → 再張開補咬一口 → 噴血、淡出 */var tk=(e.tgts||[])[0],F=fangImgs();if(tk==null||d<0||d>1000)return;var pp=posOf(tk);if(!pp)return;var fa=FXA;FXA=1;var cx=pp[0]+1,cy=pp[1]-18;
+  if(F&&d>180&&d<860){var gap,sc2=1,sh=0;
+    if(d<300){var u=ease((d-180)/120);gap=6+u*10;sc2=.6+.4*u}else if(d<400)gap=16+ease((d-300)/100)*4;else if(d<450)gap=20*(1-Math.pow((d-400)/50,2));else if(d<600){gap=0;sh=Math.round(Math.sin((d-450)/22)*1.5)}else if(d<660)gap=ease((d-600)/60)*8;else if(d<700)gap=8*(1-Math.pow((d-660)/40,2));else gap=0;
+    var A=d<230?(d-180)/50:d<780?1:1-(d-780)/80,S=.72*sc2;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.max(0,Math.min(1,A));var uw=F[0].naturalWidth*S,uh=F[0].naturalHeight*S,lw=F[1].naturalWidth*S,lh=F[1].naturalHeight*S;
+    pctx.drawImage(F[0],(cx-uw/2+sh)*U,(cy-uh*.55-gap)*U,uw*U,uh*U);pctx.drawImage(F[1],(cx-lw/2-sh)*U,(cy-lh*.35+gap)*U,lw*U,lh*U);pctx.restore();pctx.globalAlpha=1}
+  [450,700].forEach(function(t0,n){var hd=d-t0;if(hd>=0&&hd<450){pBurst('blood',cx,cy,hd,n?10:14,VS);if(hd<150)shakeY=Math.round(Math.sin(hd/12)*2*U*(1-hd/150))}});FXA=fa}
 function acidSplat(x,y,d){/* 異形酸血濺到攻擊者身上 */if(d<0||d>600)return;for(var k=0;k<12;k++){var an=-Math.PI/2+(hsh(k,3)-.5)*2.4,sp=(8+hsh(k,5)*10)*Math.min(1,d/250),gr=Math.max(0,d-150)/450,px=x+Math.cos(an)*sp,py=y+Math.sin(an)*sp+gr*gr*14;acidDrop(px,py,1-d/600,k)}}
 function scorchFx(d,i){/* 焦土發動：一圈火浪從炎魔腳下掃出去，我方每個人身上被火燒一下 */var m=mons[i];if(!m||m.lx==null||d<0||d>1000)return;var u=Math.min(1,d/600),RR=20+u*240,a=(1-u)*.7;for(var n=0;n<Math.round(60+RR);n++){var an=n/(60+RR)*Math.PI*2;VP(m.lx+Math.cos(an)*RR,m.gy+Math.sin(an)*RR*.28,n%2?'#ff6a1a':'#a8200a',a)}
   (party||[]).forEach(function(p,k){var pp=posOf(k);if(!pp)return;var dd=d-250-k*40;if(dd<0||dd>650)return;var H=dd<200?dd/200*16:16*(1-(dd-200)/450);pxFlame(pp[0]-4,pp[1],H,d+k*97,k+120,1);pxFlame(pp[0]+5,pp[1],H*.75,d+k*131,k+140,1)})}
