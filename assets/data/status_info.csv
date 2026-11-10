@@ -230,3 +230,5 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 酸蝕,debuff,acid,0.1,,,,被異形酸血腐蝕：每層物理減傷 −10%（最多 3 層，再中一次就疊一層並刷新回合）
 自燃,buff,frost_res_rate,0.3,,,,全身燃燒：冰霜抗性 +30%，每次輪到自己行動時燒敵方全體一次
 自燃,buff,self_burn,0.4,,,,
+汽化,debuff,zero_red,1,,,,被超新星的高熱汽化：物理、魔法減傷歸零，受到的傷害 +20%
+汽化,debuff,dmg_taken_rate,0.2,,,,

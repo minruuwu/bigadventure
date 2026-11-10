@@ -476,3 +476,11 @@ skill485,自燃,status,自燃,self,3,1,,,,,,,,
 skill485,自燃,use_if,自燃,,,,lacks_status,,,,,,,
 skill486,啃噬,bonus,,,,,lifesteal,0.5,,,,,,
 skill487,異形酸血,passive,酸蝕,,3,,acid_blood,0.2,,nature,p,,,
+skill488,魔日映照,sun,,enemy_all,3,,,0.3,m_atk,fire,m,,,
+skill488,魔日映照,use_if,,,,,hp_above,0.5,,,,,,
+skill488,魔日映照,use_else,,,,,skill489,,,,,,,
+skill489,超新星殉爆,status,汽化,enemy_all,2,1,,,,,,,,
+skill489,超新星殉爆,use_if,,,,,hp_below,0.5,,,,,,
+skill490,諸神之暮,summon,,,,,mon96;mon97;mon95;mon98,5,,,,,,all_monsters
+skill491,火焰龍捲,status,熔甲,enemy_single,2,0.4,,,,,,,,
+skill493,火焰獻祭,passive,,,,,soul_feast,0.35,,,,,,4

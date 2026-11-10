@@ -181,6 +181,7 @@
         else if (e.effect === 'hit_rate') out.push({ id: id, k: 'hit_rate', v: v });
         else if (e.effect === 'm_taken') out.push({ id: id, k: 'm_taken', v: v });
         else if (e.effect === 'swarm') out.push({ id: id, k: 'swarm', v: v });
+        else if (e.effect === 'soul_feast') out.push({ id: id, k: e.effect, v: v, cond: e.condition }); /* 火焰獻祭：隊友倒下化成魂火，自己歸零時吞一顆復活 */
         else if (e.effect === 'acid_blood') out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type, st: e.status_name, turns: e.turns }); /* 異形酸血：被打就對攻擊者濺酸血＋酸蝕 */
         else if (e.effect === 'burn_splash' || e.effect === 'death_boom') out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* 焚身火焰：單體攻擊濺射其他敵人；烈焰殉爆：倒下時炸全體 */
         else if (e.effect === 'scorch') out.push({ id: id, k: 'scorch', v: v, st: e.status_name, cond: e.condition }); /* 焦土：輪到他行動時燒全體、疊火抗 −5% */ /* 惡魔巢群：隊友單體攻擊時跟著補一下普攻 ×v */ /* 龍鱗：最終受到的魔法傷害 ×(1+v) */ /* 命中率加成（弓術）：算命中時直接加上去 */
@@ -246,8 +247,8 @@
         case 'matk': return (b.matk + apaAdj(u, 'mB')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'pdmg': return b.pdmg + sv(u, 'p_damage_rate') + auraVal(u, 'p_damage_rate');
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
-        case 'pred': return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate') - acidRed(u);
-        case 'mred': return b.mred + sv(u, 'm_reduce_rate') + auraVal(u, 'm_reduce_rate');
+        case 'pred': if (sv(u, 'zero_red')) return 0; /* 汽化：減傷歸零 */ return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate') - acidRed(u);
+        case 'mred': if (sv(u, 'zero_red')) return 0; return b.mred + sv(u, 'm_reduce_rate') + auraVal(u, 'm_reduce_rate');
         case 'eva': return sv(u, 'no_eva') ? 0 : b.eva + sv(u, 'eva_rate'); /* 妖火：閃避率直接變 0 */
         case 'crit': return b.crit + sv(u, 'crit_rate') + auraVal(u, 'crit_rate');
         case 'cdmg': return b.cdmg + sv(u, 'crit_damage_rate');
@@ -452,10 +453,13 @@
       }
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
       if (u.runes.indexOf('rune17') >= 0 && (u.flags.r17 | 0) < RV(D, 'rune17', 1, 1, u)) { u.flags.r17 = (u.flags.r17 | 0) + 1; /* 先祖之鄉：Lv10 每場可以復活 2 次 */ revive(u, RV(D, 'rune17', 0, 0.5, u), '先祖之鄉', e); return false }
+      var sf = u.side === 'm' ? (u.special || []).filter(function (x) { return x.k === 'soul_feast' })[0] : null;
+      if (sf && (u.souls || []).length) { var sv0 = u.souls.shift(); u.hp = Math.max(1, Math.round(u.b.mhp * sf.v)); if (e) { (e._rel = e._rel || []).push(u.name + ' 吞噬了 ' + sv0 + ' 的魂火，從灰燼中重燃！恢復 ' + u.hp + ' 生命（剩 ' + u.souls.length + ' 顆）'); (e.rev = e.rev || []).push([u.side, u.i]); (e.soulEat = e.soulEat || []).push([u.i, u.souls.length]) } return false } /* 火焰獻祭：吞一顆魂火復活，狀態保留 */
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
       u.dead = true; u.st = [];
-      if (u.side === 'm' && (u.special || []).some(function (x) { return x.k === 'death_boom' })) booms.push(u); /* 烈焰殉爆：等這一招結算完再炸 */
+      if (u.side === 'm' && (u.special || []).some(function (x) { return x.k === 'death_boom' })) booms.push(u);
+      if (u.side === 'm') { u.sun = null; M.forEach(function (o) { if (o !== u && !o.dead && (o.special || []).some(function (x) { return x.k === 'soul_feast' })) soulQ.push([o, u]) }) } /* 火焰獻祭：等這一招結算完才變成魂火 */ /* 烈焰殉爆：等這一招結算完再炸 */
       if (SPM && u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) { var k0 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k0 + 1); if (u._lh.sp > k0) numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); if (u._lh.mst && u._lh.mst.sp_on_kill && RND() < u._lh.mst.sp_on_kill.ch) { var k1 = u._lh.sp | 0; u._lh.sp = Math.min(SPMAX, k1 + 1); if (u._lh.sp > k1) { numAdd(u._lh, 1, 'sp', { h: NC && NC.h }); var wk1 = u._lh.mst.sp_on_kill.n } } /* 意志迴流 */ if (e) { (e.spk = e.spk || []).push(u._lh.i); (e._spk = e._spk || []).push(u._lh.name + ' 擊倒 ' + u.name + (u._lh.sp > k0 ? '，恢復 1 SP' : '（SP 已滿）') + (wk1 ? '，「' + wk1 + '」再 +1 SP' : '')) } }
       /* 吞噬者倒下：肚子裡的人回來（血量維持、狀態恢復計時） */
       if (u.side === 'm') P.forEach(function (x) { var q = x.st.filter(function (s) { return s.swal && s.src === u })[0]; if (!q || x.dead) return; removeStatus(x, q); x.st.forEach(function (s) { s.paused = false }); if (e) { (e._rel = e._rel || []).push(x.name + ' 從 ' + u.name + ' 的肚子裡逃出來了'); (e.rel = e.rel || []).push(x.i) } });
@@ -635,7 +639,8 @@
           if ((u.sp | 0) < D.SK[id].sp) { id = 'atk' } else u.cy++;
         } else u.cy++;
         if (ctrl(u, 'seal')) id = 'atk';
-        if (id !== 'atk' && !useOk(u, id)) id = 'atk'; /* 使用條件不符（例如冥想石化：生命低於 30% 才放）→ 普攻 */
+        if (id !== 'atk' && !useOk(u, id)) { var alt9 = (D.EFF[id] || []).filter(function (r) { return r.effect_kind === 'use_else' })[0]; id = alt9 && D.SK[alt9.effect] && useOk(u, alt9.effect) ? alt9.effect : 'atk' } /* use_else：條件不符時改放另一招（提豐：魔日映照 ↔ 超新星殉爆） */
+        /* 使用條件不符（例如冥想石化：生命低於 30% 才放）→ 普攻 */
         var k = D.SK[id] || D.SK.atk;
         var t0 = pickTargets(u, k, charmed, confused);
         if (k.t === 'ally_others' && !t0.length) continue;
@@ -674,8 +679,13 @@
     }
     /* 技能結算後才判定的符文：墓之土、啟示之書、鷹之勇氣、命運之輪（追加的那次不再觸發後兩者） */
     /* 烈焰殉爆：倒下的怪炸出一圈火焰，對敵方全體造成（自己的）魔攻 ×v 的屬性傷害；可以打倒人，我方全滅就算輸 */
-    var booms = [];
+    var booms = [], soulQ = [];
+    function flushSoul() {
+      while (soulQ.length) { var q = soulQ.shift(), o = q[0], v = q[1]; if (o.dead) continue; var sp = o.special.filter(function (x) { return x.k === 'soul_feast' })[0], mx = parseInt(sp.cond, 10) || 4; o.souls = o.souls || []; if (o.souls.length >= mx) continue; o.souls.push(v.name);
+        var r = line({ side: 'm', a: o.i, idle: 1, soul: [o.i, v.i, o.souls.length], txt: o.name + ' 攫取了 ' + v.name + ' 的靈魂，魂火在他身旁燃起（' + o.souls.length + ' 顆）' }); r.hp = hpSnap() }
+    }
     function flushBoom() {
+      flushSoul();
       while (booms.length) { var u = booms.shift(), sp = u.special.filter(function (x) { return x.k === 'death_boom' })[0], nm = D.SK[sp.id] ? D.SK[sp.id].n : '烈焰殉爆', out = [], bM = (sp.dt || 'm') === 'm';
         var tgs = foes(u).filter(function (q) { return !q.dead && !banished(q) }); if (!tgs.length) continue;
         var r = line({ side: u.side, a: u.i, boom: 1, txt: '' });
@@ -952,15 +962,16 @@
         if (al.length < (num(r.value) || 4)) { var nu = spawnMon(u, r.effect); e.summon = (e.summon || []).concat(nu.i); e.redeem = [nu.i]; e.txt += '，召喚了 ' + nu.name; if (r.status_name && applyStatus(u, nu, r.status_name, r.turns || 3, 1, null)) e.txt += '，' + nu.name + ' 獲得「' + r.status_name + '」' }
         else { var lw = al.reduce(function (a, b) { return b.hp / b.b.mhp < a.hp / a.b.mhp ? b : a }); e.redeem = [lw.i]; if (r.status_name && applyStatus(u, lw, r.status_name, r.turns || 3, 1, null)) e.txt += '，' + lw.name + ' 獲得「' + r.status_name + '」'; var g = heal(u, lw, lw.b.mhp * (num(r.condition) || 0.2), null, true); if (g) e.txt += '，恢復 ' + g }
       });
+      if (u.side === 'm') effs.forEach(function (r) { if (r.effect_kind !== 'sun') return; u.sun = { n: parseInt(r.turns, 10) || 3, v: num(r.value) || 0.3, nm: sk.n }; e.sunN = [u.i, u.sun.n]; e.txt += '，一顆魔日在敵陣上空燃起（' + u.sun.n + ' 回合）' }); /* 魔日映照：每回合開始燒敵方全體 */
       if (u.side === 'm') effs.forEach(function (r) {
-        if (r.effect_kind !== 'summon' || !D.mon[r.effect]) return;
+        if (r.effect_kind !== 'summon') return; var smid = String(r.effect || '').indexOf(';') >= 0 ? pickOne(String(r.effect).split(';').map(function (x) { return x.trim() }).filter(function (x) { return D.mon[x] })) : r.effect; if (!smid || !D.mon[smid]) return; /* effect 可以填好幾隻（a;b;c）= 隨機叫其中一隻（諸神之暮） */
         var allM = String(r.condition || '').trim() === 'all_monsters';
-        var aliveN = M.filter(function (m) { return !m.dead && (allM || m.mid === r.effect) }).length;
+        var aliveN = M.filter(function (m) { return !m.dead && (allM || m.mid === smid) }).length;
         if (aliveN >= (num(r.value) || 1)) { if (allM) e.txt += '，但場上已經滿了'; return }
         var ch = String(r.apply_chance || '').trim() === '' ? 1 : num(r.apply_chance);
         if (RND() >= ch) { e.txt += '，但沒有同伴回應'; return }
-        var nu = monster(D.mon[r.effect], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs; if (u.as) { nu.b.patk = Math.round(nu.b.patk * u.as); nu.b.matk = Math.round(nu.b.matk * u.as); nu.as = u.as } /* 召喚物跟召喚者同樣的秘境倍率 */
-        var same = M.filter(function (m) { return m.mid === r.effect }).length; nu.name += ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.min(25, same)];
+        var nu = monster(D.mon[smid], u.stg || 1, D); nu.b.mhp = Math.round(nu.b.mhp * (u.hs || 1)); nu.stg = u.stg; nu.hs = u.hs; if (u.as) { nu.b.patk = Math.round(nu.b.patk * u.as); nu.b.matk = Math.round(nu.b.matk * u.as); nu.as = u.as } /* 召喚物跟召喚者同樣的秘境倍率 */
+        var same = M.filter(function (m) { return m.mid === smid }).length; nu.name += ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.min(25, same)];
         nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0; nu.summoned = true;
         M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
       });
@@ -1020,6 +1031,10 @@
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'curse_wave') return; var L = String(sp.cond || '').split(';').map(function (x) { return x.trim() }).filter(function (x) { return D.STS[x] }), hit = [];
         foes(src).forEach(function (q) { if (q.dead || banished(q) || !L.length) return; if (RND() < sp.v) { var sn = pickOne(L); if (applyStatus(src, q, sn, sp.turns || 2, 1, null)) hit.push(q.name + ' 陷入「' + sn + '」') } });
         var wz = line({ side: 'm', a: src.i, idle: 1, cwave: 1, txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '光環') + '」掃過全場' + (hit.length ? '：' + hit.join('、') : '') }); wz.hp = hpSnap() }) });
+      /* 魔日映照：每回合開始，魔日燒敵方全體一次（施放者魔攻 ×v 的火焰魔法傷害），燒完回合數 −1 */
+      M.forEach(function (src) { if (src.dead || !src.sun || src.sun.n <= 0) return; var tg = P.filter(function (q) { return !q.dead && !banished(q) }); if (!tg.length) return; var out = [], sr = line({ side: 'm', a: src.i, idle: 1, txt: '' });
+        tg.forEach(function (q) { var amt = Math.max(1, Math.round(stat(src, 'matk') * src.sun.v * (1 + stat(src, 'mdmg')) * (1 - Math.min(stat(q, 'mred'), 0.9)) * (1 - Math.min(resOf(q, 'fire'), 0.9)))); NC = { el: 'fire', dt: 'm' }; var d = hurt(q, amt, src); addStat(sr, src, 'dmg', d, src.sun.nm); addStat(sr, q, 'taken', d, src.name + ' ' + src.sun.nm); out.push(q.name + ' ' + d); checkDeath(q, sr) });
+        src.sun.n--; sr.sunB = [src.i, src.sun.n]; sr.txt = '魔日灼燒全隊：' + out.join('、') + ' 火焰傷害' + (src.sun.n > 0 ? '（還剩 ' + src.sun.n + ' 回合）' : '，魔日燃盡了'); flushRel(sr); sr.hp = hpSnap(); if (src.sun.n <= 0) src.sun = null });
       /* 墮天（被動 fall_stack）：每回合開始 ch 機率疊一層，物攻魔攻各 +v，最多 cond 層 */
       M.forEach(function (src) { if (src.dead || src.undead) return; (src.special || []).forEach(function (sp) { if (sp.k !== 'fall_stack') return; var mx = parseInt(sp.cond, 10) || 5; if ((src.fstk | 0) >= mx || RND() >= sp.ch) return; src.fstk = (src.fstk | 0) + 1; src.fstkV = sp.v;
         var fz = line({ side: 'm', a: src.i, idle: 1, fallen: 1, txt: src.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '墮天') + '」加深了，傷害提升（' + src.fstk + ' 層）' }); fz.hp = hpSnap() }) });
