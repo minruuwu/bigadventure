@@ -774,6 +774,7 @@
             var mp0 = sk.parts.reduce(function (a, b) { return b.r > a.r ? b : a }, sk.parts[0] || { d: 'p', e: '' });
             NC = { el: mp0.e || '', dt: mp0.d, c: x.crit, h: h };
             var real = x.amt ? hurt(t, x.amt, u) : 0; totalDmg += real; if (x.crit) anyCrit = true;
+            if (real > 0 && !t.dead) u.special.forEach(function (s) { if (s.k === 'apply_status' && s.tr === 'hit_dealt' && RND() < s.ch) applyStatus(u, t, s.st, s.turns, 1, e) }); /* 焰軀：每次打出傷害，對那個目標各自擲機率 */
             /* 武器淬毒：該次傷害的一定比例，額外的屬性傷害 */
             /* 職業精通：光明（追加主傷害一定比例的光明傷害）、獵人印記（機率讓目標識破） */
             if (u.mst && u.mst.light_add && real > 0 && !t.dead) { var lx = Math.round(real * u.mst.light_add.v * (1 - Math.min(resOf(t, 'light'), 0.9))); if (lx > 0) { NC = { el: 'light', dt: 'm', h: h }; var lr = hurt(t, lx, u); real += lr; totalDmg += lr } }
