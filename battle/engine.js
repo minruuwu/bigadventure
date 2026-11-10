@@ -181,6 +181,7 @@
         else if (e.effect === 'hit_rate') out.push({ id: id, k: 'hit_rate', v: v });
         else if (e.effect === 'm_taken') out.push({ id: id, k: 'm_taken', v: v });
         else if (e.effect === 'swarm') out.push({ id: id, k: 'swarm', v: v });
+        else if (e.effect === 'acid_blood') out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type, st: e.status_name, turns: e.turns }); /* 異形酸血：被打就對攻擊者濺酸血＋酸蝕 */
         else if (e.effect === 'burn_splash' || e.effect === 'death_boom') out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* 焚身火焰：單體攻擊濺射其他敵人；烈焰殉爆：倒下時炸全體 */
         else if (e.effect === 'scorch') out.push({ id: id, k: 'scorch', v: v, st: e.status_name, cond: e.condition }); /* 焦土：輪到他行動時燒全體、疊火抗 −5% */ /* 惡魔巢群：隊友單體攻擊時跟著補一下普攻 ×v */ /* 龍鱗：最終受到的魔法傷害 ×(1+v) */ /* 命中率加成（弓術）：算命中時直接加上去 */
         else if (e.effect === 'fall_stack') out.push({ id: id, k: e.effect, v: v, ch: parseFloat(e.trigger_chance) || 0, cond: e.condition }); /* 墮天：每回合開始機率疊一層攻擊加成 */
@@ -245,7 +246,7 @@
         case 'matk': return (b.matk + apaAdj(u, 'mB')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'pdmg': return b.pdmg + sv(u, 'p_damage_rate') + auraVal(u, 'p_damage_rate');
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
-        case 'pred': return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate');
+        case 'pred': return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate') - acidRed(u);
         case 'mred': return b.mred + sv(u, 'm_reduce_rate') + auraVal(u, 'm_reduce_rate');
         case 'eva': return sv(u, 'no_eva') ? 0 : b.eva + sv(u, 'eva_rate'); /* 妖火：閃避率直接變 0 */
         case 'crit': return b.crit + sv(u, 'crit_rate') + auraVal(u, 'crit_rate');
@@ -255,6 +256,9 @@
       }
       return 0;
     }
+    /* 酸蝕：可疊層的狀態，每層物理減傷 −v（不管誰上的都疊在同一個狀態上，最多 ACIDMAX 層） */
+    var ACIDMAX = 3;
+    function acidRed(u) { var t = 0; u.st.forEach(function (s) { if (!s.paused && s.stk) s.rows.forEach(function (r) { if (r.k === 'acid') t += r.v * s.stk }) }); return t }
     /* 觀眾熱情：開戰時已照隊友人數算進攻擊力；隊友倒下（或復活）時即時調整 */
     function apaAdj(u, k) { if (!u.apa) return 0; var n = Math.min(3, P.filter(function (x) { return x !== u && !x.dead }).length); return u[k] * u.apa * (n - u.apaN) }
     function resOf(u, el) { if (!el) return u.b.res.none || 0; /* 無屬性：只有怪物有隱藏的無屬性抗性（monster_info 的 none_res_rate），玩家為 0；真實傷害不經過這裡 */ var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV; if (el === 'fire') s.rows.forEach(function (q) { if (q.k === 'scorch') r -= q.v * (u.scorch || 1) }) /* 焦土：每層火抗 −v */ }); return r }
@@ -293,6 +297,7 @@
       if (RND() >= ch) return false;
       var t = turns === 'attack' ? 'attack' : (parseInt(turns, 10) || 1);
       if (tgt.boss && def.rows.some(function (r) { return r.k === 'banish' }) && t !== 'attack') t = Math.min(t, 1);
+      if (def.rows.some(function (r) { return r.k === 'acid' })) { var ac = tgt.st.filter(function (q) { return q.n === name })[0]; if (ac) { ac.stk = Math.min(ACIDMAX, (ac.stk || 1) + 1); if (typeof t === 'number') ac.turns = Math.max(ac.turns, t); if (e) { e._st = e._st || {}; (e._st[name + ' ' + ac.stk + ' 層'] = e._st[name + ' ' + ac.stk + ' 層'] || []).push(tgt.name) } return true } } /* 已經有酸蝕：疊一層、刷新回合 */
       var old = null; tgt.st.forEach(function (s) { if (s.n === name && s.src === src) old = s });
       var rows = def.rows.map(function (r) {
         var o = { k: r.k, v: r.v, el: r.el, dt: r.dt };
@@ -300,7 +305,7 @@
         if (r.k === 'shield') o.amt = r.base === 'm_atk' ? r.v * stat(src, 'matk') : r.base === 'p_atk' ? r.v * stat(src, 'patk') : r.v;
         return o;
       });
-      var s = { n: name, src: src, turns: t, rows: rows, pol: def.pol, fresh: tgt === nowAct };
+      var s = { n: name, src: src, turns: t, rows: rows, pol: def.pol, fresh: tgt === nowAct }; if (rows.some(function (r) { return r.k === 'acid' })) s.stk = 1;
       rows.forEach(function (r) { if (r.k === 'lamb') s.lamb = true; if (r.k === 'deathcurse') s.dcurse = true; if (r.k === 'airborne') { s.air = true; var dvL = targetable(tgt.side === 'p' ? M.filter(function (x) { return !x.dead }) : P.filter(function (x) { return !x.dead }), D.SK.atk); tgt.dive = { t: dvL.length ? pickOne(dvL) : null, sk: 'skill' + (r.v | 0) } } /* 高空（獅鷲鷹揚）：施放當下就選好俯衝目標 */ if (r.k === 'hit_block') s.hb = r.v | 0; /* 聖堂守勢：可擋幾次傷害 */ if (r.k === 'shield') s.shield = r.amt; if (r.k === 'rand_res_rate') { s.randEl = pickOne(ELS); s.randV = r.v } });
       if (old) { var i = tgt.st.indexOf(old); tgt.st[i] = s } else tgt.st.push(s);
       if (rows.some(function (r) { return r.k === 'banish' })) { s.banish = true; tgt.st.forEach(function (x) { if (x !== s) x.paused = true }) }
@@ -402,7 +407,7 @@
       t.hp += real; if (real > 0) numAdd(t, real, 'h', { ls: NC && NC.ls, h: NC && NC.h }); if (real > 0 && src !== t && t.hp >= t.b.mhp * 0.8 && t.st.some(function (s) { return s.dcurse })) t.st = t.st.filter(function (s) { return !s.dcurse }); /* 死之詛咒：被別人補血、補到 80% 以上才解除（自己身上的回復被動不算） */ return real;
     }
     /* 技能使用條件（skill_effect 的 use_if）：hp_below = 生命比例低於 value 才能用、hp_above = 高於 value 才能用、not_full = 場上活著的怪少於 value 隻才能用（呼喚同伴滿了改普攻） */
-    function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'has_other' ? friends(u).some(function (x) { return x !== u && !x.dead }) : r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : r.effect === 'ally_below' ? (u.side === 'm' ? M : P).some(function (m) { return !m.dead && m.hp / Math.max(1, m.b.mhp) < v }) /* 有同伴（含自己）生命低於 v 才放（天使史萊姆的群體治療） */ : true }) }
+    function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'has_other' ? friends(u).some(function (x) { return x !== u && !x.dead }) : r.effect === 'lacks_status' ? !u.st.some(function (q) { return q.n === r.status_name }) /* 身上已經有這個狀態就不放（自燃） */ : r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : r.effect === 'ally_below' ? (u.side === 'm' ? M : P).some(function (m) { return !m.dead && m.hp / Math.max(1, m.b.mhp) < v }) /* 有同伴（含自己）生命低於 v 才放（天使史萊姆的群體治療） */ : true }) }
     function morph(u, mid) { morphUnit(u, mid, D); if (u.cycle && u.cycle.length) u.cy = Math.floor(RND() * u.cycle.length) /* 重生後從隨機一招開始 */ }
     /* 永冬誓言（被動 summon_hp）：生命第一次掉到 value 比例以下時，召喚 condition 那隻怪上場（每場一次） */
     /* 叫一隻怪上場（跟召喚者同樣的生命／攻擊倍率），回傳新的怪 */
@@ -519,7 +524,7 @@
       var q = e._rq || [], th = e._th || [], items = [], tm = {}; delete e._rq; delete e._th;
       q.forEach(function (x) { items.push({ k: 'r', d: x.d, a: x.a, re: x.re }) });
       /* 荊棘之皇冠：同一個人被多段打到，合併成一次反彈 */
-      th.forEach(function (x) { var key = x.d.side + x.d.i + '>' + x.a.side + x.a.i + (x.fr || '') + (x.nm || ''); if (!tm[key]) { tm[key] = { k: 't', d: x.d, a: x.a, amt: 0, fr: x.fr, nm: x.nm, fire: x.fire }; items.push(tm[key]) } tm[key].amt += x.amt });
+      th.forEach(function (x) { var key = x.d.side + x.d.i + '>' + x.a.side + x.a.i + (x.fr || '') + (x.nm || ''); if (!tm[key]) { tm[key] = { k: 't', d: x.d, a: x.a, amt: 0, fr: x.fr, nm: x.nm, fire: x.fire, el: x.el, st: x.st, turns: x.turns, acid: x.acid }; items.push(tm[key]) } tm[key].amt += x.amt });
       if (!items.length) return;
       /* 速度高的先反應（同速維持觸發順序） */
       items = items.map(function (x, n) { return { x: x, n: n, s: stat(x.d, 'speed') } }).sort(function (p, q) { return q.s - p.s || p.n - q.n }).map(function (p) { return p.x });
@@ -527,8 +532,8 @@
     }
     function thornLine(x) {
       var d = x.d, a = x.a; if (a.dead || x.amt <= 0) return;
-      var r = line({ side: d.side, a: d.i, rk: 'thorn', rn: x.fr || x.nm ? '' : 'rune11', frost: x.fr && !x.fire ? 1 : 0, fire: x.fire ? 1 : 0, rt: [a.side, a.i], txt: '' });
-      var th = hurt(a, x.amt, d), nm = x.fr || x.nm || '荊棘之皇冠'; r.txt = d.name + ' 的「' + nm + '」反彈 ' + th + (x.fire ? ' 火焰傷害給 ' : x.fr ? ' 冰霜傷害給 ' : ' 真實傷害給 ') + a.name;
+      var r = line({ side: d.side, a: d.i, rk: 'thorn', rn: x.fr || x.nm ? '' : 'rune11', frost: x.fr && !x.fire ? 1 : 0, fire: x.fire ? 1 : 0, acid: x.acid ? 1 : 0, rt: [a.side, a.i], txt: '' }); if (x.el) NC = { el: x.el, dt: 'p' };
+      var th = hurt(a, x.amt, d), nm = x.fr || x.nm || '荊棘之皇冠'; r.txt = d.name + ' 的「' + nm + '」反彈 ' + th + (x.fire ? ' 火焰傷害給 ' : x.fr ? ' 冰霜傷害給 ' : x.el ? ' ' + (ELN[x.el] || '') + '傷害給 ' : ' 真實傷害給 ') + a.name; if (x.st && !a.dead) applyStatus(d, a, x.st, x.turns || 3, 1, r); flushSt(r);
       addStat(r, d, 'dmg', th, nm); addStat(r, a, 'taken', th, d.name + ' ' + nm); checkDeath(a, r); flushRel(r); r.hp = hpSnap();
     }
     function reactLine(d, a, re) {
@@ -558,6 +563,7 @@
       flushBoom(); /* 保險：別的地方打倒、還沒炸的先炸 */
       nowAct = u;
       if (!u.dead && !u.undead && u.special && u.special.some(function (x) { return x.k === 'scorch' })) scorchTick(u);
+      if (!u.dead && !u.undead) selfBurn(u);
       var e = line({ side: u.side, a: u.i, txt: '' });
       /* 行動開始：聖潔驅散 → 放逐回歸 → 持續傷害／回復 */
       var sw = u.st.filter(function (s) { return s.swal })[0];
@@ -699,6 +705,14 @@
         checkDeath(t, e);
       });
       var sn = tg.reduce(function (m, t) { return t.dead ? m : Math.max(m, t.scorch || 0) }, 0); e.txt = u.name + ' 腳下的「焦土」燒向全隊：' + (out.join('、') || '沒有目標') + (sn ? '（焦土 ' + sn + ' 層，火抗 −' + (sn * 5) + '%）' : ''); flushSt(e); e.hp = hpSnap();
+    }
+    /* 自燃（狀態 self_burn）：身上有這個狀態時，每次輪到自己行動，先燒敵方全體一次（自身魔攻 ×v 的火焰魔法傷害） */
+    function selfBurn(u) {
+      var sb = null; u.st.forEach(function (s) { if (!s.paused) s.rows.forEach(function (r) { if (r.k === 'self_burn') sb = { s: s, v: r.v } }) }); if (!sb) return;
+      var tg = foes(u).filter(function (t) { return !banished(t) }); if (!tg.length) return; var e = line({ side: u.side, a: u.i, sburn: 1, txt: '' }), out = [];
+      tg.forEach(function (t) { var amt = Math.max(1, Math.round(stat(u, 'matk') * sb.v * (1 + stat(u, 'mdmg')) * (1 - Math.min(stat(t, 'mred'), 0.9)) * (1 - Math.min(resOf(t, 'fire'), 0.9))));
+        NC = { el: 'fire', dt: 'm' }; var d = hurt(t, amt, u); addStat(e, u, 'dmg', d, sb.s.n); addStat(e, t, 'taken', d, u.name + ' ' + sb.s.n); out.push(t.name + ' ' + d); checkDeath(t, e) });
+      e.txt = u.name + ' 的「' + sb.s.n + '」燒向全隊：' + out.join('、') + ' 火焰傷害'; flushRel(e); e.hp = hpSnap();
     }
     /* 惡魔巢群（沉淪魔）：隊友用普攻或單體技能打人，每隻有這個被動的同伴都跟著對同一個目標補一下普攻 ×v；
        追擊不算攻擊：不觸發反擊、荊棘這類反應，也不會再帶出別人的追擊；被控制住或倒下就不跟 */
@@ -861,6 +875,9 @@
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * RV(D, 'rune11', 0, 0.5, t)) });
             /* 震撼（怪物被動 thorns）：被物理攻擊打中時，以自己物攻 value 倍的真實傷害反彈；同一招只反彈一次（整招結束後才反彈） */
             if (t.special && real > 0 && !u.dead && t.side !== u.side && sk.parts.some(function (q) { return q.d === 'p' })) t.special.forEach(function (sp) { if (sp.k === 'thorns') { var tnm = D.SK[sp.id] ? D.SK[sp.id].n : '震撼'; e._th = e._th || []; if (!e._th.some(function (z) { return z.d === t && z.a === u && z.nm === tnm })) e._th.push({ d: t, a: u, amt: Math.round(stat(t, 'patk') * sp.v), nm: tnm }) } });
+            /* 異形酸血：被任何攻擊打中（每一招只濺一次），對攻擊者濺出自身物攻 ×v 的屬性物理傷害，並疊一層酸蝕；整招結束後才結算 */
+            if (t.special && real > 0 && !u.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k !== 'acid_blood') return; var anm = D.SK[sp.id] ? D.SK[sp.id].n : '異形酸血'; e._th = e._th || []; if (e._th.some(function (z) { return z.d === t && z.a === u && z.nm === anm })) return;
+              var aM = sp.dt === 'm', aa = Math.max(1, Math.round(stat(t, aM ? 'matk' : 'patk') * sp.v * (1 - Math.min(stat(u, aM ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(u, sp.el || ''), 0.9)))); e._th.push({ d: t, a: u, amt: aa, nm: anm, el: sp.el, st: sp.st, turns: sp.turns, acid: 1 }) });
             /* 被打中時觸發的被動（輝煌龍的神恩寵兒：機率讓攻擊者陷入魅惑） */
             if (t.special && real > 0 && !t.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'hurt_stack' && sp.tr === 'hit_taken') { var mx0 = parseInt(sp.cond, 10) || 5; if ((t.hstk | 0) < mx0) { t.hstk = (t.hstk | 0) + 1; t.hstkV = sp.v; (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '苦修') + '」' + t.hstk + ' 層') } } }); /* 苦修：每受一次傷害物攻 +v，最多 condition 層 */
             if (t.special && real > 0 && !u.dead && t.side !== u.side) t.special.forEach(function (sp) { if (sp.k === 'apply_status' && sp.tr === 'hit_taken' && !u.dead && (!sp.dt || (sp.dt === 'm') === hasMag(sk)) /* dmg_type = p：只有物理攻擊會觸發（腐化鐵甲） */ && RND() < sp.ch && applyStatus(t, u, sp.st, sp.turns, 1, null)) { (e._x = e._x || []).push(t.name + ' 的「' + (D.SK[sp.id] ? D.SK[sp.id].n : '被動') + '」讓 ' + u.name + ' 陷入「' + sp.st + '」'); (e.dringA = e.dringA || []).push([u.side, u.i]) } });

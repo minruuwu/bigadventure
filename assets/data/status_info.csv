@@ -227,3 +227,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 硫磺毒,debuff,fire_taken,1,,,,
 妖火,debuff,no_eva,1,,,,頭上燒著粉色的妖火：閃避率變為 0、受到的傷害 +10%
 妖火,debuff,dmg_taken_rate,0.1,,,,
+酸蝕,debuff,acid,0.1,,,,被異形酸血腐蝕：每層物理減傷 −10%（最多 3 層，再中一次就疊一層並刷新回合）
+自燃,buff,frost_res_rate,0.3,,,,全身燃燒：冰霜抗性 +30%，每次輪到自己行動時燒敵方全體一次
+自燃,buff,self_burn,0.4,,,,

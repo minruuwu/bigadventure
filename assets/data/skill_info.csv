@@ -482,3 +482,7 @@ skill480,狼爪,monster,0,combat,enemy_single,random,damage,,,p,,1.4,,,,怪物�
 skill481,炎翼衝鋒,monster,0,combat,enemy_single,random,damage,,,p,fire,1.5,,,,怪物技能（斜斜往上飛，再拖著火焰往前俯衝撞上目標：單體火焰物理傷害 ×1.5）,fcharge,,,4,single,,2,,
 skill482,妖火術,monster,0,combat,enemy_single,prefer_without_status,debuff,,,,,,,,,怪物技能（一團粉色鬼火飄到目標頭上燒著：必定妖火 2 回合，閃避率變為 0、受到的傷害 +10%）,wisp,,,4,single,,2,,
 skill483,殞火術,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（召來一顆火流星砸向目標：單體火焰魔法傷害 ×1.4，50% 機率灼燒 3 回合）,meteor1,,,4,single,,3,,
+skill484,酸血噴吐,monster,0,combat,enemy_all,,damage,,,p,nature,0.7,,,,怪物技能（張口噴出一大片黃綠色的異形酸血：全體自然物理傷害 ×0.7，必定疊一層酸蝕：每層物理減傷 −10%，最多 3 層）,acidspit,,,0,diamond,3,3,,
+skill485,自燃,monster,0,combat,self,,buff,,,,,,,,,怪物技能（全身燃起火焰：自燃 3 回合，冰霜抗性 +30%，每次輪到自己行動時先對敵方全體造成魔攻 ×0.4 的火焰魔法傷害；已經在自燃時改用普攻）,selfburn,,,0,single,,2,,
+skill486,啃噬,monster,0,combat,enemy_single,random,damage,,,p,,1.3,,,,怪物技能（衝到目標面前一口咬下：單體物理傷害 ×1.3，恢復造成傷害的 50%）,bite,,,1,single,,2,,
+skill487,異形酸血,monster,0,passive,,,passive,,,,,,,,,怪物被動（被攻擊時濺出酸血：每一招對攻擊者造成自身物攻 ×0.2 的自然物理傷害，並疊一層酸蝕）,,,,,,,,,
