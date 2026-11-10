@@ -467,3 +467,8 @@ skill465,多重火球,monster,0,combat,enemy_single,random_each,damage,,,m,fire,
 skill466,召喚沉淪魔,monster,0,combat,self,,buff,,,,,,,,,怪物技能（場上的怪不到 5 隻時召喚一隻沉淪魔；滿了改用普攻）,,,,0,single,,2,,
 skill467,惡魔之聲,monster,0,combat,enemy_all,,debuff,,,,,,,,,怪物技能（飄出低沉的紅色音符：全體敵人各 30% 機率混亂 1 回合）,notes,,,0,diamond,3,2,,血
 skill468,魔力竊取,monster,0,combat,enemy_single,random,damage,,,m,,1.2,,,,怪物技能（一道藍色射線從目標身上把魔力抽回來：單體魔法傷害 ×1.2，50% 機率讓目標失去 1 SP）,manasteal,,,4,single,,2,,
+skill469,地獄火,monster,0,combat,enemy_all,,damage,,,m,fire,0.9,,,,怪物技能（腳下分出好幾道火舌一路燒過去，把敵方全體罩在火海裡：全體火焰魔法傷害 ×0.9，每個目標 30% 機率熔甲 2 回合）,hellfire,,,0,diamond,5,3,,
+skill470,獄火劍,monster,0,combat,enemy_single,random,damage,,,p,fire,1.8,,,,怪物技能（一把巨大的火焰大劍從天斬下：單體火焰物理傷害 ×1.8，必定燒傷 2 回合）,hellsword,,,5,single,,3,,
+skill471,惡魔火咒,monster,0,combat,enemy_single,random,damage,,,m,fire,1.4,,,,怪物技能（目標頭上浮現黑紅火焰符文然後爆開：單體火焰魔法傷害 ×1.4，必定火焰詛咒、虛弱 2 回合）,demonrune,,,5,single,,3,,
+skill472,殞星爆,monster,0,combat,enemy_all,,damage,,,m,fire,1.1,,,,怪物技能（召來一陣火流星砸向敵陣：全體火焰魔法傷害 ×1.1，必定魂灼 3 回合）,meteor,,,0,diamond,5,4,,
+skill473,焦土,monster,0,passive,,,passive,,,,,,,,,怪物被動（腳下一直燒著一大片火焰；每次輪到他行動時，對敵方全體造成魔攻 ×0.2 的火焰魔法傷害，並疊一層焦土：火焰抗性 −5%，最多 6 層）,,,,,,,,,

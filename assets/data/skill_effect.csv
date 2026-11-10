@@ -455,3 +455,9 @@ skill466,召喚沉淪魔,summon,,,,,mon92,5,,,,,,all_monsters
 skill466,召喚沉淪魔,use_if,,,,,not_full,5,,,,,,
 skill467,惡魔之聲,status,混亂,enemy_all,1,0.3,,,,,,,,
 skill468,魔力竊取,sp_drain,,enemy_single,,0.5,,1,,,,,,
+skill469,地獄火,status,熔甲,enemy_all,2,0.3,,,,,,,,
+skill470,獄火劍,status,燒傷,enemy_single,2,1,,,,,,,,
+skill471,惡魔火咒,status,火焰詛咒,enemy_single,2,1,,,,,,,,
+skill471,惡魔火咒,status,虛弱,enemy_single,2,1,,,,,,,,
+skill472,殞星爆,status,魂灼,enemy_all,3,1,,,,,,,,
+skill473,焦土,passive,焦土,,,,scorch,0.2,,,,,,6

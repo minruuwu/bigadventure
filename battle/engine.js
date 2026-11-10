@@ -180,7 +180,8 @@
         else if (e.target === 'ally_all' && e.effect === 'lifesteal') return; /* 全隊吸血走靈氣（monAura），自己不重複算 */
         else if (e.effect === 'hit_rate') out.push({ id: id, k: 'hit_rate', v: v });
         else if (e.effect === 'm_taken') out.push({ id: id, k: 'm_taken', v: v });
-        else if (e.effect === 'swarm') out.push({ id: id, k: 'swarm', v: v }); /* 惡魔巢群：隊友單體攻擊時跟著補一下普攻 ×v */ /* 龍鱗：最終受到的魔法傷害 ×(1+v) */ /* 命中率加成（弓術）：算命中時直接加上去 */
+        else if (e.effect === 'swarm') out.push({ id: id, k: 'swarm', v: v });
+        else if (e.effect === 'scorch') out.push({ id: id, k: 'scorch', v: v, st: e.status_name, cond: e.condition }); /* 焦土：輪到他行動時燒全體、疊火抗 −5% */ /* 惡魔巢群：隊友單體攻擊時跟著補一下普攻 ×v */ /* 龍鱗：最終受到的魔法傷害 ×(1+v) */ /* 命中率加成（弓術）：算命中時直接加上去 */
         else if (e.effect === 'fall_stack') out.push({ id: id, k: e.effect, v: v, ch: parseFloat(e.trigger_chance) || 0, cond: e.condition }); /* 墮天：每回合開始機率疊一層攻擊加成 */
         else if (['offering', 'enter_summon', 'curse_wave'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, st: e.status_name, turns: e.turns, cond: e.condition }); /* 教皇：不滅供奉、惡魔化召喚、褻瀆光環 */
         else if (['lifesteal', 'extra_dmg', 'auto_cleanse', 'regen'].indexOf(e.effect) >= 0) out.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type }); /* regen = 每次輪到牠行動時恢復最大生命 v */
@@ -255,7 +256,7 @@
     }
     /* 觀眾熱情：開戰時已照隊友人數算進攻擊力；隊友倒下（或復活）時即時調整 */
     function apaAdj(u, k) { if (!u.apa) return 0; var n = Math.min(3, P.filter(function (x) { return x !== u && !x.dead }).length); return u[k] * u.apa * (n - u.apaN) }
-    function resOf(u, el) { if (!el) return u.b.res.none || 0; /* 無屬性：只有怪物有隱藏的無屬性抗性（monster_info 的 none_res_rate），玩家為 0；真實傷害不經過這裡 */ var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV }); return r }
+    function resOf(u, el) { if (!el) return u.b.res.none || 0; /* 無屬性：只有怪物有隱藏的無屬性抗性（monster_info 的 none_res_rate），玩家為 0；真實傷害不經過這裡 */ var r = (u.b.res[el] || 0) + sv(u, el + '_res_rate') + auraVal(u, el + '_res_rate'); u.st.forEach(function (s) { if (s.randEl === el) r += s.randV; if (el === 'fire') s.rows.forEach(function (q) { if (q.k === 'scorch') r -= q.v * (u.scorch || 1) }) /* 焦土：每層火抗 −v */ }); return r }
 
     /* --- 戰報 --- */
     function line(o) { ev.push(o); NC = null; return o }
@@ -552,6 +553,7 @@
     /* 行動開始的結算；回傳 false = 這次不能行動（放逐中、被持續傷害打倒、昏迷／睡眠／石化），已經記完戰報 */
     function begin(u) {
       nowAct = u;
+      if (!u.dead && !u.undead && u.special && u.special.some(function (x) { return x.k === 'scorch' })) scorchTick(u);
       var e = line({ side: u.side, a: u.i, txt: '' });
       /* 行動開始：聖潔驅散 → 放逐回歸 → 持續傷害／回復 */
       var sw = u.st.filter(function (s) { return s.swal })[0];
@@ -669,6 +671,18 @@
       flushReact(e);
       if (!isExtra) swarmFollow(u, sk, tg);
       if (!isExtra && !u.dead) afterExtra(u, sk, tg, e);
+    }
+    /* 焦土（炎魔）：輪到他行動時，腳下的大火燒過敵方全體（魔攻 ×v 的火焰魔法傷害），每人疊一層焦土（火抗 −5%，最多 cond 層，戰鬥中不會自然消失） */
+    function scorchTick(u) {
+      var sp = u.special.filter(function (x) { return x.k === 'scorch' })[0], mx = parseInt(sp.cond, 10) || 6, out = [];
+      var e = line({ side: u.side, a: u.i, scorch: 1, txt: '' }), tg = foes(u).filter(function (t) { return !banished(t) });
+      tg.forEach(function (t) {
+        var amt = Math.max(1, Math.round(stat(u, 'matk') * sp.v * (1 - Math.min(stat(t, 'mred'), 0.9)) * (1 - Math.min(resOf(t, 'fire'), 0.9))));
+        NC = { el: 'fire', dt: 'm' }; var d = hurt(t, amt, u); addStat(e, u, 'dmg', d, '焦土'); addStat(e, t, 'taken', d, u.name + ' 焦土'); out.push(t.name + ' ' + d);
+        if (!t.dead) { var had = t.st.some(function (q) { return q.n === (sp.st || '焦土') }); t.scorch = had ? Math.min(mx, (t.scorch || 0) + 1) : 1; if (!had) applyStatus(u, t, sp.st || '焦土', 99, 1, e) }
+        checkDeath(t, e);
+      });
+      var sn = tg.reduce(function (m, t) { return t.dead ? m : Math.max(m, t.scorch || 0) }, 0); e.txt = u.name + ' 腳下的「焦土」燒向全隊：' + (out.join('、') || '沒有目標') + (sn ? '（焦土 ' + sn + ' 層，火抗 −' + (sn * 5) + '%）' : ''); flushSt(e); e.hp = hpSnap();
     }
     /* 惡魔巢群（沉淪魔）：隊友用普攻或單體技能打人，每隻有這個被動的同伴都跟著對同一個目標補一下普攻 ×v；
        追擊不算攻擊：不觸發反擊、荊棘這類反應，也不會再帶出別人的追擊；被控制住或倒下就不跟 */
