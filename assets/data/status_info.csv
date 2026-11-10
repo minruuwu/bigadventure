@@ -218,3 +218,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 熔甲,debuff,p_reduce_rate,-0.1,,,,物理、魔法減傷各 −10%，火焰抗性 −20%
 熔甲,debuff,m_reduce_rate,-0.1,,,,
 熔甲,debuff,fire_res_rate,-0.2,,,,
+火焰詛咒,debuff,fire_res_rate,-0.3,,,,火焰抗性 −30%
+焰甲,buff,fire_res_rate,0.3,,,,火焰抗性 +30%、物理減傷 +15%；被攻擊時對攻擊者造成施加者物理攻擊力 20% 的火焰物理傷害
+焰甲,buff,p_reduce_rate,0.15,,,,
+焰甲,buff,fire_thorn,0.2,,,,

@@ -514,7 +514,7 @@
       var q = e._rq || [], th = e._th || [], items = [], tm = {}; delete e._rq; delete e._th;
       q.forEach(function (x) { items.push({ k: 'r', d: x.d, a: x.a, re: x.re }) });
       /* 荊棘之皇冠：同一個人被多段打到，合併成一次反彈 */
-      th.forEach(function (x) { var key = x.d.side + x.d.i + '>' + x.a.side + x.a.i + (x.fr || '') + (x.nm || ''); if (!tm[key]) { tm[key] = { k: 't', d: x.d, a: x.a, amt: 0, fr: x.fr, nm: x.nm }; items.push(tm[key]) } tm[key].amt += x.amt });
+      th.forEach(function (x) { var key = x.d.side + x.d.i + '>' + x.a.side + x.a.i + (x.fr || '') + (x.nm || ''); if (!tm[key]) { tm[key] = { k: 't', d: x.d, a: x.a, amt: 0, fr: x.fr, nm: x.nm, fire: x.fire }; items.push(tm[key]) } tm[key].amt += x.amt });
       if (!items.length) return;
       /* 速度高的先反應（同速維持觸發順序） */
       items = items.map(function (x, n) { return { x: x, n: n, s: stat(x.d, 'speed') } }).sort(function (p, q) { return q.s - p.s || p.n - q.n }).map(function (p) { return p.x });
@@ -522,8 +522,8 @@
     }
     function thornLine(x) {
       var d = x.d, a = x.a; if (a.dead || x.amt <= 0) return;
-      var r = line({ side: d.side, a: d.i, rk: 'thorn', rn: x.fr || x.nm ? '' : 'rune11', frost: x.fr ? 1 : 0, rt: [a.side, a.i], txt: '' });
-      var th = hurt(a, x.amt, d), nm = x.fr || x.nm || '荊棘之皇冠'; r.txt = d.name + ' 的「' + nm + '」反彈 ' + th + (x.fr ? ' 冰霜傷害給 ' : ' 真實傷害給 ') + a.name;
+      var r = line({ side: d.side, a: d.i, rk: 'thorn', rn: x.fr || x.nm ? '' : 'rune11', frost: x.fr && !x.fire ? 1 : 0, fire: x.fire ? 1 : 0, rt: [a.side, a.i], txt: '' });
+      var th = hurt(a, x.amt, d), nm = x.fr || x.nm || '荊棘之皇冠'; r.txt = d.name + ' 的「' + nm + '」反彈 ' + th + (x.fire ? ' 火焰傷害給 ' : x.fr ? ' 冰霜傷害給 ' : ' 真實傷害給 ') + a.name;
       addStat(r, d, 'dmg', th, nm); addStat(r, a, 'taken', th, d.name + ' ' + nm); checkDeath(a, r); flushRel(r); r.hp = hpSnap();
     }
     function reactLine(d, a, re) {
@@ -803,7 +803,7 @@
             }
             /* 荊棘之皇冠：排進反應佇列，敵人整招結束後才反彈（腳下荊棘光環） */
             /* 霜甲：被打就用施加者的魔攻反擊冰霜魔法傷害（吃攻擊者的魔法減傷、冰霜抗性；施加者倒下就不反擊） */
-            t.st.forEach(function (s) { if (s.paused || !s.src || s.src.dead || s.src.undead || !real || u.dead) return; s.rows.forEach(function (r) { if (r.k !== 'frost_thorn') return; var fa = Math.round(stat(s.src, 'matk') * r.v * (1 - Math.min(stat(u, 'mred'), 0.9)) * (1 - Math.min(resOf(u, 'frost'), 0.9))); if (fa > 0) (e._th = e._th || []).push({ d: t, a: u, amt: fa, fr: s.n }) }) });
+            t.st.forEach(function (s) { if (s.paused || !s.src || s.src.dead || s.src.undead || !real || u.dead) return; s.rows.forEach(function (r) { if (r.k !== 'frost_thorn' && r.k !== 'fire_thorn') return; var fT = r.k === 'fire_thorn' /* 焰甲：照施放者物攻算、火焰物理 */, fa = Math.round(stat(s.src, fT ? 'patk' : 'matk') * r.v * (1 - Math.min(stat(u, fT ? 'pred' : 'mred'), 0.9)) * (1 - Math.min(resOf(u, fT ? 'fire' : 'frost'), 0.9))); if (fa > 0) (e._th = e._th || []).push({ d: t, a: u, amt: fa, fr: s.n, fire: fT }) }) });
             if (t.runes && t.runes.indexOf('rune11') >= 0 && real > 0 && !u.dead) (e._th = e._th || []).push({ d: t, a: u, amt: Math.round(real * RV(D, 'rune11', 0, 0.5, t)) });
             /* 震撼（怪物被動 thorns）：被物理攻擊打中時，以自己物攻 value 倍的真實傷害反彈；同一招只反彈一次（整招結束後才反彈） */
             if (t.special && real > 0 && !u.dead && t.side !== u.side && sk.parts.some(function (q) { return q.d === 'p' })) t.special.forEach(function (sp) { if (sp.k === 'thorns') { var tnm = D.SK[sp.id] ? D.SK[sp.id].n : '震撼'; e._th = e._th || []; if (!e._th.some(function (z) { return z.d === t && z.a === u && z.nm === tnm })) e._th.push({ d: t, a: u, amt: Math.round(stat(t, 'patk') * sp.v), nm: tnm }) } });
