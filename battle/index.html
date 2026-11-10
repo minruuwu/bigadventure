@@ -1234,7 +1234,31 @@ function tacFxInfo(u,id){var sk=SKN[id];
   return{wk:'claw',c:'#ff9a8a',el:sk?sk.el||'':'',hit:200,far:false}}
 /* 怪物待機特效：野豬鼻息、灰狼口水、青蛇吐信 */
 function drawIdle(now){if(!B)return;var main=pctx,W=frame.clientWidth,H=frame.clientHeight;mons.forEach(function(m){if(!m.fx)return;if(m.fx.width!==W||m.fx.height!==H){m.fx.width=W;m.fx.height=H}else m.fxx.clearRect(0,0,W,H);if(m.sfx&&(m.sfx.fx.stone||m.sfx.fx.frozen)||m.tfHide)return;/* 變身中：瘴氣先藏起來 *//* 石化、凍結：口水、發光這些待機特效也停 */pctx=m.fxx;idleOne(m,now);pctx.globalAlpha=1;pctx.globalCompositeOperation='source-over'});pctx=main}
+function pxFlame(x,gy,H,t,seed,a){/* 一團像素火焰（程式畫的，H = 高度）：底部寬、往上收成幾條火舌，裡面黃白、外圈橘紅；t 讓火舌晃動 */if(H<1||a<=0)return;var W=H*.62,fr=Math.floor(t/70);
+  for(var y=0;y<H;y++){var k=y/H,half=W*(k<.35?.75+k*.7:Math.max(.08,(1-k)*1.55))*(.85+.15*Math.sin(t/90+y*.5+seed)),sh=Math.sin(t/110+k*4+seed)*k*H*.12;
+    for(var xx=-Math.ceil(half);xx<=Math.ceil(half);xx++){var q=Math.abs(xx)/Math.max(.6,half);if(q>1)continue;if(k>.55&&hsh(xx*5+y+seed*17,fr)<(k-.55)*1.3*q)continue;var c=q<.35&&k<.6?'#fff4b0':q<.6&&k<.8?'#ffc23a':q<.85?'#ff7a1a':'#d8300a';VP(x+xx+sh,gy-y,c,a)}}
+  if(H>10)for(var s2=0;s2<3;s2++){var u=((t+hsh(s2,seed)*700)%700)/700;VP(x+(hsh(s2+3,seed)-.5)*W+Math.sin(u*6)*2,gy-H-u*H*.6,'#ffb030',a*(1-u))}}/* 大的火會往上飄火星 */
+function fslimeFlames(m,now,i){/* 龍角尖和頭頂一直冒小火苗、偶爾噴火星 */var MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,mp=[m.lx];var L=mp[0]-w/2,T=m.gy-(m.lift||0)-h,SRC=[[3.5,0,1],[16.5,0,1],[8,1.5,.7],[12,1.5,.7]];
+  SRC.forEach(function(q,n){var bx=L+q[0]*sc,by=T+q[1]*sc,big=q[2];for(var k=0;k<4;k++){var per=420+hsh(n*5+k,3)*260,u=((now+hsh(n*5+k,5)*900)%per)/per,x=bx+Math.sin(u*7+n+k)*1.1*big,y=by-u*7*big;VP(x,y,u<.3?'#fff4b0':u<.6?'#ffb030':'#e8401a',(1-u)*.95);if(u<.4)VP(x+(k%2?1:-1),y+1,'#ff8a2a',(1-u)*.7)}});
+  for(var s=0;s<3;s++){var ps=1600+hsh(s,7)*900,us=((now+hsh(s,9)*2000)%ps)/ps;if(us<.6){var v=us/.6;VP(L+w*(.2+.6*hsh(s,11))+Math.sin(v*6)*2,T-2-v*14,'#ffd23a',1-v)}}}
+function lavagIdle(m,now,i){/* 身上冒黑煙、飄火星；兩隻手隨機滴熔岩，落地濺開再暗掉 */var L=LAY[m.k],MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,bb=L&&L.bb||[0,0],left=m.lx-w/2,top=m.gy-(m.lift||0)-h,P=function(ix,iy){return[left+(ix-bb[0])*sc,top+(iy-bb[1])*sc]};
+  for(var k=0;k<7;k++){var per=1800+hsh(k,3)*1200,u=((now+hsh(k,5)*4000)%per)/per,b=P(12+hsh(k,7)*24,8+hsh(k,9)*14),x=b[0]+Math.sin(u*5+k)*3,y=b[1]-u*22,r=1+u*3,a=Math.sin(u*Math.PI)*.45;for(var yy=-r;yy<=r;yy++)for(var xx=-r;xx<=r;xx++)if(xx*xx+yy*yy<=r*r)VP(x+xx,y+yy,k%2?'#1a1412':'#2e2622',a)}/* 黑煙 */
+  for(var s=0;s<6;s++){var ps=1100+hsh(s,11)*900,us=((now+hsh(s,13)*3000)%ps)/ps,bs=P(8+hsh(s,15)*30,14+hsh(s,17)*20);VP(bs[0]+Math.sin(us*7+s)*4,bs[1]-us*26,us<.5?'#ffd23a':'#ff6a1a',Math.sin(us*Math.PI))}/* 火星 */
+  [[6,39],[38,40]].forEach(function(hd,n){var per=900+hsh(n,19)*700,u=((now+n*517)%per)/per,hp=P(hd[0],hd[1]);if(hsh(n,Math.floor((now+n*517)/per))<.35)return;/* 有時候這隻手這一輪不滴 */var gy=m.gy+1;
+    if(u<.25){var g=u/.25;VP(hp[0],hp[1]+g*1.5,'#ffb030',1);VP(hp[0],hp[1],'#ff6a1a',1)}else if(u<.6){var v=(u-.25)/.35,y=hp[1]+1.5+(gy-hp[1]-1.5)*v*v;VP(hp[0],y,'#ffd23a',1);VP(hp[0],y-1,'#ff6a1a',.9)}else{var q=(u-.6)/.4;for(var t2=-2;t2<=2;t2++)VP(hp[0]+t2*(1+q),gy-(Math.abs(t2)===2?0:q<.3?1:0),q<.4?'#ff8a2a':'#5a1a0a',1-q*.8)}})}
+function fwizGlow(m,now){/* 杖頭一團會明暗閃動的火光 */var L=LAY[m.k],MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,bb=L&&L.bb||[0,0],cx=m.lx-w/2+(36-bb[0])*sc,cy=m.gy-(m.lift||0)-h+(5-bb[1])*sc,fl=.75+.25*Math.sin(now/90)*Math.sin(now/37),R=7*fl;
+  for(var yy=-R;yy<=R;yy++)for(var xx=-R;xx<=R;xx++){var q=(xx*xx+yy*yy)/(R*R);if(q>1)continue;if((Math.round(xx)+Math.round(yy))%2&&q>.4)continue;VP(cx+xx,cy+yy,q<.3?'#fff0a0':'#ff8a2a',(1-q)*.35*fl)}
+  for(var k=0;k<3;k++){var per=600+hsh(k,3)*400,u=((now+hsh(k,5)*900)%per)/per;VP(cx+Math.sin(u*6+k)*2,cy-3-u*10,'#ffd23a',1-u)}}
+function balP(m,ix,iy){var L=LAY[m.k],MZ=msz(m.k),sc=m.sc||1,bb=L&&L.bb||[0,0];return[m.lx-MZ[0]*sc/2+(ix-bb[0])*sc,m.gy-(m.lift||0)-MZ[1]*sc+(iy-bb[1])*sc]}
+function balrogIdle(m,now){/* 頭上火光（橘）、大劍火光（金）、身上冒黑煙和火星 */var sc=m.sc||1,H=balP(m,33,12),S=balP(m,22,69);
+  [[H,'#ff8a2a','#fff0a0',9,.32],[S,'#ffc23a','#fff4c4',7,.26]].forEach(function(g,n){var fl=.75+.25*Math.sin(now/(80+n*25))*Math.sin(now/(37+n*11)),R=g[3]*fl*sc;for(var yy=-R;yy<=R;yy++)for(var xx=-R*(n?2.2:1);xx<=R*(n?2.2:1);xx++){var q=(xx*xx/(n?4.8:1)+yy*yy)/(R*R);if(q>1)continue;if((Math.round(xx)+Math.round(yy))%2&&q>.4)continue;VP(g[0][0]+xx,g[0][1]+yy,q<.3?g[2]:g[1],(1-q)*g[4]*fl)}});
+  for(var k=0;k<9;k++){var per=1900+hsh(k,3)*1200,u=((now+hsh(k,5)*4000)%per)/per,b=balP(m,18+hsh(k,7)*50,14+hsh(k,9)*30),x=b[0]+Math.sin(u*5+k)*4,y=b[1]-u*30,r=1.2+u*4,a=Math.sin(u*Math.PI)*.42;for(var yy2=-r;yy2<=r;yy2++)for(var xx2=-r;xx2<=r;xx2++)if(xx2*xx2+yy2*yy2<=r*r)VP(x+xx2,y+yy2,k%2?'#1a1210':'#2e2420',a)}/* 黑煙 */
+  for(var s=0;s<10;s++){var ps=1000+hsh(s,11)*900,us=((now+hsh(s,13)*3000)%ps)/ps,bs=balP(m,10+hsh(s,15)*65,10+hsh(s,17)*60);VP(bs[0]+Math.sin(us*7+s)*5,bs[1]-us*34,us<.5?'#ffd23a':'#ff6a1a',Math.sin(us*Math.PI))}}/* 火星 */
+function fapAura(m,now,i){/* 黑紅色的光帶繞著身體慢慢纏、往上飄的暗紅光點 */var MZ=msz(m.k),h=MZ[1]*m.sc,w=MZ[0]*m.sc,cx=m.lx,cy=m.gy-(m.lift||0)-h*.42;
+  for(var s=0;s<2;s++)for(var q=0;q<30;q++){var ph=now/900+s*Math.PI+q*.13,yy=cy+h*.34-q*h*.024,rx=w*.34,xx=cx+Math.cos(ph)*rx,front=Math.sin(ph)>0,a=(front?1:.45)*(1-q/36);VP(xx,yy,q%3?'#e0182e':'#ff6060',a);VP(xx+1,yy,'#c8102a',a*.7);VP(xx,yy+1,'#1a0004',a*.9)}
+  for(var k=0;k<7;k++){var per=1300+hsh(k,3)*700,u=((now+hsh(k,5)*2000)%per)/per;VP(cx+(hsh(k,7)-.5)*w*.7+Math.sin(u*6+k)*1.5,cy+h*.3-u*h*.8,k%2?'#ff3a3a':'#3a0008',Math.sin(u*Math.PI)*.8)}}
 function idleOne(m,now){(function(){
+  if(m.alive&&m.k==='fapostle')fapAura(m,now);if(m.alive&&m.k==='fslime')fslimeFlames(m,now);if(m.alive&&m.k==='lavag')lavagIdle(m,now);if(m.alive&&m.k==='fwizard')fwizGlow(m,now);if(m.alive&&m.k==='balrog')balrogIdle(m,now);/* 熔岩火原、墮落天界使徒的身上特效（戰鬥和圖鑑共用） */
   /* 電光史萊姆：身邊不時迸出小電花 */
   if(m.k==='eslime'&&m.alive){var ez=msz('eslime'),es=m.sc,ec=Math.floor((now+m.ph*5)/140);if(ec%4===0){var ea=hsh(ec,901)*Math.PI*2,ex=m.lx+Math.cos(ea)*ez[0]*es*.55,ey=m.gy-ez[1]*es*.45+Math.sin(ea)*ez[1]*es*.35;pctx.globalCompositeOperation='lighter';VP(ex,ey,'#fff6a0',.95);VP(ex+1,ey-1,'#ffd23a',.8);VP(ex-1,ey+1,'#ffd23a',.6);VP(ex+2,ey-1,'#fff6a0',.5);pctx.globalCompositeOperation='source-over'}}
   /* 猛毒史萊姆：身上一直冒毒泡，鼓起來再破掉 */
@@ -1532,7 +1556,6 @@ var ARU=['.X.','XXX','.X.','.X.'],ARD=['.X.','.X.','XXX','.X.'],HRT=['.X.X.','XX
 function drawStatus(now){if(!B||view!=='battle')return;
   party.forEach(function(p){if(p.sfx&&p.vis)stDraw(p.sfx,p.sx,p.gy,p.top,14,now+p.ph*5,0,1)});
   mons.forEach(function(m){if(m.alive&&LAY[m.k]&&LAY[m.k].orb)staffOrb(m,now)});
-  mons.forEach(function(m,i){if(m.alive&&m.k==='fapostle'&&m.lx!=null)fapAura(m,now,i);if(m.alive&&m.k==='fslime'&&m.lx!=null)fslimeFlames(m,now,i);if(m.alive&&m.k==='lavag'&&m.lx!=null)lavagIdle(m,now,i);if(m.alive&&m.k==='fwizard'&&m.lx!=null)fwizGlow(m,now);if(m.alive&&m.k==='balrog'&&m.lx!=null)balrogIdle(m,now)});/* 墮落天界使徒：身上纏繞黑紅色光輝 */
   popeTick(now);/* 教皇：聖域光罩、不滅供奉的白線、羔羊的紅線、褻瀆光環 */
   var HB=B&&B.stNow;if(HB&&HB.hbm)mons.forEach(function(m,i){var n=HB.hbm[i]|0;if(n&&m.alive&&m.lx!=null){var MZ=msz(m.k);miniShields(m.lx,m.gy-(m.lift||0)-MZ[1]*m.sc*.5,n,MZ[0]*m.sc*.42,now+i*400)}});if(HB&&HB.hbp)party.forEach(function(p,i){var n=HB.hbp[i]|0;if(n&&p.vis)miniShields(p.sx,(p.top+p.gy)/2,n,8,now+i*400)});/* 聖堂守勢的小盾牌 *//* 聖教神甫：杖頂的白金光球 */
   mons.forEach(function(m){if(!m.sfx||!m.alive)return;var MZ=msz(m.k),lf=m.lift||0;stDraw(m.sfx,m.lx,m.gy,m.gy-lf-MZ[1]*m.sc*(m.k==='dragon'?.8:1),Math.min(30,MZ[0]*m.sc*.6),now+m.ph*7,lf)});pctx.globalAlpha=1}
@@ -1542,9 +1565,6 @@ function staffOrb(m,now){var L=LAY[m.k];if(!L.bb)return;var MZ=msz(m.k),sc=m.sc|
   for(var q=0;q<3;q++){var per=1500+q*370,u=((now+m.ph*997+q*541)%per)/per;VP(Math.round(ox+Math.sin(u*6+q*2)*3*sc),Math.round(oy-u*14*sc),q%2?'#ffe9a0':'#ffffff',Math.sin(u*Math.PI)*.9)}/* 小光點往上飄 */
   pctx.globalCompositeOperation='source-over'}
 /* ===== 墮落天界使徒 ===== */
-function fapAura(m,now,i){/* 黑紅色的光帶繞著身體慢慢纏、往上飄的暗紅光點 */var MZ=msz(m.k),h=MZ[1]*m.sc,w=MZ[0]*m.sc,mp=monPos(i),cx=mp?mp[0]:m.lx,cy=mp?mp[1]+h*.08:m.gy-h*.5;
-  for(var s=0;s<2;s++)for(var q=0;q<30;q++){var ph=now/900+s*Math.PI+q*.13,yy=cy+h*.34-q*h*.024,rx=w*.34,xx=cx+Math.cos(ph)*rx,front=Math.sin(ph)>0,a=(front?1:.45)*(1-q/36);VP(xx,yy,q%3?'#e0182e':'#ff6060',a);VP(xx+1,yy,'#c8102a',a*.7);VP(xx,yy+1,'#1a0004',a*.9)}
-  for(var k=0;k<7;k++){var per=1300+hsh(k,3)*700,u=((now+hsh(k,5)*2000)%per)/per;VP(cx+(hsh(k,7)-.5)*w*.7+Math.sin(u*6+k)*1.5,cy+h*.3-u*h*.8,k%2?'#ff3a3a':'#3a0008',Math.sin(u*Math.PI)*.8)}}
 function fallenFx(d,i){/* 墮天加深：腳下竄起一圈紅黑火焰，身體閃一下 */var m=mons[i];if(!m||m.lx==null||d<0||d>900)return;var MZ=msz(m.k),h=MZ[1]*m.sc,a=d<200?d/200:1-(d-200)/700;
   for(var k=0;k<22;k++){var per=380+hsh(k,3)*260,u=((d+hsh(k,5)*600)%per)/per,xx=m.lx+(hsh(k,7)-.5)*MZ[0]*m.sc*.8+Math.sin(u*7+k)*1.5,yy=m.gy-(m.lift||0)-u*h*.9;VP(xx,yy,u<.35?'#ff5a3a':u<.7?'#a8102a':'#1a0004',a*(1-u*.6));VP(xx+1,yy,'#3a0008',a*(1-u)*.6)}}
 function bfhFx(d,i){/* 血羽庇護把擋下的傷害轉成生命：幾點紅光從身上往上冒 */var m=mons[i];if(!m||m.lx==null||d<0||d>600)return;var MZ=msz(m.k),h=MZ[1]*m.sc;for(var k=0;k<6;k++){var u=Math.max(0,(d-k*40)/500);if(u>1)continue;VP(m.lx+(k-2.5)*3,m.gy-(m.lift||0)-h*.4-u*16,k%2?'#ff8080':'#ff3a3a',1-u)}}
@@ -1557,9 +1577,6 @@ function poisonBubbles(m,now,i){/* 猛毒史萊姆：身上一直冒毒泡，鼓
   for(var k=0;k<5;k++){var per=1300+hsh(k,3)*900,u=((now+hsh(k,5)*3000)%per)/per,bx=cx+(hsh(k,7)-.5)*w*.8,by=top+h*.25-u*10,r=u<.8?.6+u*2:2.2,pop=u>.88;if(pop){var g=(u-.88)/.12;for(var q=0;q<6;q++){var an=q*1.05;VP(bx+Math.cos(an)*(2+g*2),by+Math.sin(an)*(2+g*2),'#c8ff6a',1-g)}continue}
     var n=Math.max(6,Math.round(r*6));for(var q2=0;q2<n;q2++){var an2=q2/n*Math.PI*2;VP(bx+Math.cos(an2)*r,by+Math.sin(an2)*r,q2%3?'#7ae83a':'#b060e0',.85)}VP(bx-r*.4,by-r*.4,'#e8ffc0',.9)}}
 /* ===== 火焰史萊姆 ===== */
-function fslimeFlames(m,now,i){/* 龍角尖和頭頂一直冒小火苗、偶爾噴火星 */var MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,mp=monPos(i);if(!mp)return;var L=mp[0]-w/2,T=m.gy-(m.lift||0)-h,SRC=[[3.5,0,1],[16.5,0,1],[8,1.5,.7],[12,1.5,.7]];
-  SRC.forEach(function(q,n){var bx=L+q[0]*sc,by=T+q[1]*sc,big=q[2];for(var k=0;k<4;k++){var per=420+hsh(n*5+k,3)*260,u=((now+hsh(n*5+k,5)*900)%per)/per,x=bx+Math.sin(u*7+n+k)*1.1*big,y=by-u*7*big;VP(x,y,u<.3?'#fff4b0':u<.6?'#ffb030':'#e8401a',(1-u)*.95);if(u<.4)VP(x+(k%2?1:-1),y+1,'#ff8a2a',(1-u)*.7)}});
-  for(var s=0;s<3;s++){var ps=1600+hsh(s,7)*900,us=((now+hsh(s,9)*2000)%ps)/ps;if(us<.6){var v=us/.6;VP(L+w*(.2+.6*hsh(s,11))+Math.sin(v*6)*2,T-2-v*14,'#ffd23a',1-v)}}}
 function fslamAt(e,d,m,gy){/* 火焰重壓：0–120 蹲 → 120–420 跳出畫面 → 420–560 在畫面外移到目標上方 → 560–760 砸下 → 760 命中爆開 → 760–1000 彈一下 → 1000–1400 跳回原位 */var tp=grifTgt(e);if(!tp||d<0||d>1400)return null;var tx=tp[0]+3,L0=gy-(tp[1]-8);
   if(d<120)return[m.x,0,1];if(d<420)return[m.x,ease((d-120)/300)*280,1];if(d<560)return[tx,280,1];if(d<760){var k=Math.pow((d-560)/200,2);return[tx,lerp(280,L0,k),1]}
   if(d<1000)return[tx,L0+Math.abs(Math.sin((d-760)/240*Math.PI))*6,1];var k2=ease((d-1000)/400);return[lerp(tx,m.x,k2),lerp(L0,0,k2)+Math.sin(k2*Math.PI)*26,1]}
@@ -1584,10 +1601,6 @@ function fdrgGeo(e,d){var pp=posOf(e.a);if(!pp)return null;var k=1.15,S=48*k,ris
 function fdrgTgt(e){var m=mons[(e.tg||[])[0]];if(!m||m.lx==null)return null;var h=msz(m.k)[1]*(m.sc||1);return[m.lx,m.gy-(m.lift||0)-h*.45,m.gy]}
 function fdragonBody(e,d){/* 火龍本體（畫在角色後面）：升起、微微晃動、外圍火光閃爍 */var im=IMG.firedragon;if(!im||!im.naturalWidth||d<0||d>1450)return;var G=fdrgGeo(e,d);if(!G)return;var al=Math.min(1,d/250)*(d<1150?1:Math.max(0,1-(d-1150)/300)),sw=Math.sin(d/90)*1.2,fl=.85+.15*Math.sin(d/37);
   pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalCompositeOperation='lighter';pctx.globalAlpha=al*.35*fl;pctx.drawImage(im,(G.x-2+sw)*U,(G.y-2)*U,(G.S+4)*U,(G.S+4)*U);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=al;pctx.drawImage(im,(G.x+sw)*U,G.y*U,G.S*U,G.S*U);pctx.restore();pctx.globalAlpha=1}
-function pxFlame(x,gy,H,t,seed,a){/* 一團像素火焰（程式畫的，H = 高度）：底部寬、往上收成幾條火舌，裡面黃白、外圈橘紅；t 讓火舌晃動 */if(H<1||a<=0)return;var W=H*.62,fr=Math.floor(t/70);
-  for(var y=0;y<H;y++){var k=y/H,half=W*(k<.35?.75+k*.7:Math.max(.08,(1-k)*1.55))*(.85+.15*Math.sin(t/90+y*.5+seed)),sh=Math.sin(t/110+k*4+seed)*k*H*.12;
-    for(var xx=-Math.ceil(half);xx<=Math.ceil(half);xx++){var q=Math.abs(xx)/Math.max(.6,half);if(q>1)continue;if(k>.55&&hsh(xx*5+y+seed*17,fr)<(k-.55)*1.3*q)continue;var c=q<.35&&k<.6?'#fff4b0':q<.6&&k<.8?'#ffc23a':q<.85?'#ff7a1a':'#d8300a';VP(x+xx+sh,gy-y,c,a)}}
-  if(H>10)for(var s2=0;s2<3;s2++){var u=((t+hsh(s2,seed)*700)%700)/700;VP(x+(hsh(s2+3,seed)-.5)*W+Math.sin(u*6)*2,gy-H-u*H*.6,'#ffb030',a*(1-u))}}/* 大的火會往上飄火星 */
 function fdragonFx(e,d){if(d<0||d>1600)return;var G=fdrgGeo(e,Math.min(d,1449)),T=fdrgTgt(e);if(!G||!T)return;var fa=FXA;FXA=1;var sw=Math.sin(d/90)*1.2,mx=G.mx+sw,my=G.my;
   /* 噴火的落點：先打在施法者面前的地上 → 沿著地面慢慢往前推 → 最後抬起來打中目標中心 */var gx0=G.pp[0]+14,gy0=G.pp[1],gx1=T[0]-4,gy1=T[2],aim=function(t){if(t<450)return[gx0,gy0,0];if(t<900){var u=(t-450)/450;return[gx0+(gx1-gx0)*u,gy0+(gy1-gy0)*u,u]}if(t<1050){var v=ease((t-900)/150);return[gx1+(T[0]-gx1)*v,gy1+(T[1]-gy1)*v,1]}return[T[0],T[1],1]};
   /* 地上的火：落點掃過的地方一路起火，每團火從小火苗長成大火，最後一起熄掉 */var ga=d<1250?1:Math.max(0,1-(d-1250)/300);if(ga>0)for(var n=0;n<=22;n++){var f=n/22,tb=450+f*450;if(d<tb)break;var age=d-tb,Hm=12+hsh(n,5)*8,H=Math.min(1,age/380)*Hm*(d>1250?ga:1),gx=gx0+(gx1-gx0)*f+(hsh(n,7)-.5)*4,gy=gy0+(gy1-gy0)*f+1;pxFlame(gx,gy,H,d+n*97,n,ga)}
@@ -1597,11 +1610,6 @@ function fdragonFx(e,d){if(d<0||d>1600)return;var G=fdrgGeo(e,Math.min(d,1449)),
     for(var s=0;s<8;s++){var an2=s*.785+d/50;VP(mx+Math.cos(an2)*4,my+Math.sin(an2)*3,'#fff4b0',.9)}}/* 龍嘴的火光 */
   var hd=d-1000;if(hd>=0&&hd<500){pBurst('fire',T[0],T[1],hd,22,VS*1.3);if(hd<120){var g=1-hd/120;for(var q2=-6;q2<=6;q2++){VP(T[0]+q2,T[1],'#ffffff',g*(1-Math.abs(q2)/7));VP(T[0],T[1]+q2,'#ffffff',g*(1-Math.abs(q2)/7))}}}FXA=fa}
 /* ===== 炎魔‧勾斯魔格 ===== */
-function balP(m,ix,iy){var L=LAY[m.k],MZ=msz(m.k),sc=m.sc||1,bb=L&&L.bb||[0,0];return[m.lx-MZ[0]*sc/2+(ix-bb[0])*sc,m.gy-(m.lift||0)-MZ[1]*sc+(iy-bb[1])*sc]}
-function balrogIdle(m,now){/* 頭上火光（橘）、大劍火光（金）、身上冒黑煙和火星 */var sc=m.sc||1,H=balP(m,33,12),S=balP(m,22,69);
-  [[H,'#ff8a2a','#fff0a0',9,.32],[S,'#ffc23a','#fff4c4',7,.26]].forEach(function(g,n){var fl=.75+.25*Math.sin(now/(80+n*25))*Math.sin(now/(37+n*11)),R=g[3]*fl*sc;for(var yy=-R;yy<=R;yy++)for(var xx=-R*(n?2.2:1);xx<=R*(n?2.2:1);xx++){var q=(xx*xx/(n?4.8:1)+yy*yy)/(R*R);if(q>1)continue;if((Math.round(xx)+Math.round(yy))%2&&q>.4)continue;VP(g[0][0]+xx,g[0][1]+yy,q<.3?g[2]:g[1],(1-q)*g[4]*fl)}});
-  for(var k=0;k<9;k++){var per=1900+hsh(k,3)*1200,u=((now+hsh(k,5)*4000)%per)/per,b=balP(m,18+hsh(k,7)*50,14+hsh(k,9)*30),x=b[0]+Math.sin(u*5+k)*4,y=b[1]-u*30,r=1.2+u*4,a=Math.sin(u*Math.PI)*.42;for(var yy2=-r;yy2<=r;yy2++)for(var xx2=-r;xx2<=r;xx2++)if(xx2*xx2+yy2*yy2<=r*r)VP(x+xx2,y+yy2,k%2?'#1a1210':'#2e2420',a)}/* 黑煙 */
-  for(var s=0;s<10;s++){var ps=1000+hsh(s,11)*900,us=((now+hsh(s,13)*3000)%ps)/ps,bs=balP(m,10+hsh(s,15)*65,10+hsh(s,17)*60);VP(bs[0]+Math.sin(us*7+s)*5,bs[1]-us*34,us<.5?'#ffd23a':'#ff6a1a',Math.sin(us*Math.PI))}}/* 火星 */
 function balrogGround(m,now){/* 焦土：腳下一直燒著一大片火（畫在角色後面） */var gx=m.lx,gy=m.gy,RX=44*(m.sc||1)/0.75,RY=RX*.26;
   for(var n=0;n<90;n++){var an=n/90*Math.PI*2,rr=.85+.15*Math.sin(an*5+now/300);VP(gx+Math.cos(an)*RX*rr,gy+Math.sin(an)*RY*rr,n%3?'#5a1a0a':'#a8300a',.55)}
   for(var y=-RY;y<=RY;y+=2)for(var x=-RX;x<=RX;x+=3){var q=x*x/(RX*RX)+y*y/(RY*RY);if(q>.85)continue;if(hsh(Math.round(x*3+y),Math.floor(now/180))<.55)continue;VP(gx+x,gy+y,q<.3?'#ff8a2a':'#7a2008',.35)}
@@ -1641,20 +1649,12 @@ function meteorFx(e,d){/* 殞星爆：8 顆火流星從右上方接連砸下（�
 function scorchFx(d,i){/* 焦土發動：一圈火浪從炎魔腳下掃出去，我方每個人身上被火燒一下 */var m=mons[i];if(!m||m.lx==null||d<0||d>1000)return;var u=Math.min(1,d/600),RR=20+u*240,a=(1-u)*.7;for(var n=0;n<Math.round(60+RR);n++){var an=n/(60+RR)*Math.PI*2;VP(m.lx+Math.cos(an)*RR,m.gy+Math.sin(an)*RR*.28,n%2?'#ff6a1a':'#a8200a',a)}
   (party||[]).forEach(function(p,k){var pp=posOf(k);if(!pp)return;var dd=d-250-k*40;if(dd<0||dd>650)return;var H=dd<200?dd/200*16:16*(1-(dd-200)/450);pxFlame(pp[0]-4,pp[1],H,d+k*97,k+120,1);pxFlame(pp[0]+5,pp[1],H*.75,d+k*131,k+140,1)})}
 /* ===== 沉淪魔巫師 ===== */
-function fwizGlow(m,now){/* 杖頭一團會明暗閃動的火光 */var L=LAY[m.k],MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,bb=L&&L.bb||[0,0],cx=m.lx-w/2+(36-bb[0])*sc,cy=m.gy-(m.lift||0)-h+(5-bb[1])*sc,fl=.75+.25*Math.sin(now/90)*Math.sin(now/37),R=7*fl;
-  for(var yy=-R;yy<=R;yy++)for(var xx=-R;xx<=R;xx++){var q=(xx*xx+yy*yy)/(R*R);if(q>1)continue;if((Math.round(xx)+Math.round(yy))%2&&q>.4)continue;VP(cx+xx,cy+yy,q<.3?'#fff0a0':'#ff8a2a',(1-q)*.35*fl)}
-  for(var k=0;k<3;k++){var per=600+hsh(k,3)*400,u=((now+hsh(k,5)*900)%per)/per;VP(cx+Math.sin(u*6+k)*2,cy-3-u*10,'#ffd23a',1-u)}}
 function manaStealFx(e,d){/* 魔力竊取：一道藍色射線從目標身上拉回巫師，藍色光點一路被吸回去 */var mp=monPos(e.a),tk=(e.tgts||[])[0];if(!mp||tk==null||d<0||d>800)return;var pp=posOf(tk),sx=pp[0]+3,sy=pp[1]-16,ex=mp[0]-6,ey=mp[1]-4,fa=FXA;FXA=1;
   var g=d<120?d/120:d<560?1:Math.max(0,1-(d-560)/240),ext=Math.min(1,d/160),L=Math.hypot(ex-sx,ey-sy)||1,nx=-(ey-sy)/L,ny=(ex-sx)/L;
   for(var p=0;p<=L*ext;p+=.7){var k=p/L,o=Math.sin(k*10-d/40)*1.2,x=sx+(ex-sx)*k+nx*o,y=sy+(ey-sy)*k+ny*o;VP(x,y,'#e0f4ff',g);VP(x+nx,y+ny,'#5ab4ff',g*.8);VP(x-nx,y-ny,'#2a6ad8',g*.6)}
   for(var j=0;j<10;j++){var u=((d/420+j/10)%1);if(d>640)break;var x2=sx+(ex-sx)*u+(hsh(j,3)-.5)*4*(1-u),y2=sy+(ey-sy)*u+(hsh(j,5)-.5)*4*(1-u);VP(x2,y2,'#9ad8ff',g);VP(x2,y2-1,'#ffffff',g*.6)}
   if(d<300){var r=3+d/40;for(var n=0;n<12;n++){var an=n/12*Math.PI*2-d/60;VP(sx+Math.cos(an)*r,sy+Math.sin(an)*r*.8,'#5ab4ff',(1-d/300)*.9)}}FXA=fa}
 /* ===== 熔岩魔怪 ===== */
-function lavagIdle(m,now,i){/* 身上冒黑煙、飄火星；兩隻手隨機滴熔岩，落地濺開再暗掉 */var L=LAY[m.k],MZ=msz(m.k),sc=m.sc||1,w=MZ[0]*sc,h=MZ[1]*sc,bb=L&&L.bb||[0,0],left=m.lx-w/2,top=m.gy-(m.lift||0)-h,P=function(ix,iy){return[left+(ix-bb[0])*sc,top+(iy-bb[1])*sc]};
-  for(var k=0;k<7;k++){var per=1800+hsh(k,3)*1200,u=((now+hsh(k,5)*4000)%per)/per,b=P(12+hsh(k,7)*24,8+hsh(k,9)*14),x=b[0]+Math.sin(u*5+k)*3,y=b[1]-u*22,r=1+u*3,a=Math.sin(u*Math.PI)*.45;for(var yy=-r;yy<=r;yy++)for(var xx=-r;xx<=r;xx++)if(xx*xx+yy*yy<=r*r)VP(x+xx,y+yy,k%2?'#1a1412':'#2e2622',a)}/* 黑煙 */
-  for(var s=0;s<6;s++){var ps=1100+hsh(s,11)*900,us=((now+hsh(s,13)*3000)%ps)/ps,bs=P(8+hsh(s,15)*30,14+hsh(s,17)*20);VP(bs[0]+Math.sin(us*7+s)*4,bs[1]-us*26,us<.5?'#ffd23a':'#ff6a1a',Math.sin(us*Math.PI))}/* 火星 */
-  [[6,39],[38,40]].forEach(function(hd,n){var per=900+hsh(n,19)*700,u=((now+n*517)%per)/per,hp=P(hd[0],hd[1]);if(hsh(n,Math.floor((now+n*517)/per))<.35)return;/* 有時候這隻手這一輪不滴 */var gy=m.gy+1;
-    if(u<.25){var g=u/.25;VP(hp[0],hp[1]+g*1.5,'#ffb030',1);VP(hp[0],hp[1],'#ff6a1a',1)}else if(u<.6){var v=(u-.25)/.35,y=hp[1]+1.5+(gy-hp[1]-1.5)*v*v;VP(hp[0],y,'#ffd23a',1);VP(hp[0],y-1,'#ff6a1a',.9)}else{var q=(u-.6)/.4;for(var t2=-2;t2<=2;t2++)VP(hp[0]+t2*(1+q),gy-(Math.abs(t2)===2?0:q<.3?1:0),q<.4?'#ff8a2a':'#5a1a0a',1-q*.8)}})}
 function flameWaveFx(e,d){/* 火焰波動：腳下一圈火焰往外擴散掃過全場，圈的邊緣一路燒著像素火焰 */var mo=mons[e.a];if(!mo||mo.lx==null||d<0||d>1100)return;var cx=mo.lx,gy=mo.gy,u=Math.min(1,d/750),R=8+ease(u)*270,a=d<750?1:1-(d-750)/350,fa=FXA;FXA=1;
   var N=Math.round(40+R*1.2);for(var n=0;n<N;n++){var an=n/N*Math.PI*2,x=cx+Math.cos(an)*R,y=gy+Math.sin(an)*R*.28;VP(x,y,n%2?'#ff6a1a':'#ffb030',a*.85);VP(x-Math.cos(an)*2,y-Math.sin(an)*.6,'#c8200a',a*.5)}
   var M=Math.max(8,Math.round(R/7));for(var j=0;j<M;j++){var an2=j/M*Math.PI*2+hsh(j,3)*.2,x2=cx+Math.cos(an2)*R,y2=gy+Math.sin(an2)*R*.28,H=(9+hsh(j,5)*7)*(Math.sin(an2)>0?1:.7)*Math.min(1,d/200);pxFlame(x2,y2,H,d+j*131,j,a*(Math.sin(an2)>0?1:.6))}
