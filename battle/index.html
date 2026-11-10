@@ -1564,9 +1564,9 @@ function fflashPts(e,gy,m){var T=(e.tgts||[]).map(function(tk){return posOf(tk)}
 function fflashAt(e,d,m,gy){/* 火焰爆閃：0–200 全身著火 → 200–920 化成火球在我方隊伍裡來回衝 4 次（每趟 180） → 920–1180 衝回原位 → 現身 */var P=fflashPts(e,gy,m);if(!P||d<200||d>1180)return null;var k=d<920?Math.floor((d-200)/180):4,u=d<920?((d-200)%180)/180:(d-920)/260,a=P[k],b=P[k+1],q=u*u*(3-2*u);return[a[0]+(b[0]-a[0])*q,a[1]+(b[1]-a[1])*q]}
 function fflashFx(e,d){if(d<0||d>1400)return;var mo=mons[e.a];if(!mo)return;var fa=FXA;FXA=1;
   if(d<260){var g=Math.min(1,d/200),mp=monPos(e.a);if(mp)for(var k=0;k<18;k++){var an=k/18*Math.PI*2+d/60,rr=(12-g*5)+Math.sin(d/40+k)*1.5;VP(mp[0]+Math.cos(an)*rr,mp[1]+Math.sin(an)*rr*.8,k%2?'#ffd23a':'#ff6a1a',g)}}/* 全身著火、縮成火球 */
-  var P=fflashAt(e,d);if(P){for(var j=1;j<10;j++){var Q=fflashAt(e,d-j*16);if(!Q)break;var rr2=8-j*.6;for(var q=0;q<8;q++){var an2=q*1.26+j;VP(Q[0]+Math.cos(an2)*rr2*hsh(q,j),Q[1]+Math.sin(an2)*rr2*hsh(q+3,j),j<4?'#ffb030':'#e8401a',(1-j/10)*.85)}}/* 火尾 */
-    for(var yy=-9;yy<=9;yy++)for(var xx=-9;xx<=9;xx++){var r2=(xx*xx+yy*yy)/81;if(r2>1)continue;VP(P[0]+xx,P[1]+yy,r2<.2?'#ffffff':r2<.45?'#fff4b0':r2<.75?'#ffb030':'#ff5a1a',r2>.85?.7:1)}
-    for(var f=0;f<8;f++){var af=f/8*Math.PI*2+d/50;VP(P[0]+Math.cos(af)*(10+hsh(f,Math.floor(d/50))*3),P[1]+Math.sin(af)*(10+hsh(f+9,Math.floor(d/50))*3),'#ff8a2a',.8)}}
+  var P=fflashAt(e,d);if(P){var fr=Math.floor(d/40);for(var j=20;j>=1;j--){var Q=fflashAt(e,d-j*9);if(!Q)continue;var rr2=Math.max(1,9.5*(1-j/22)),up=j*.45,cx2=Q[0]+(hsh(j,fr)-.5)*2,cy2=Q[1]-up;for(var yq=-Math.ceil(rr2);yq<=Math.ceil(rr2);yq++)for(var xq=-Math.ceil(rr2);xq<=Math.ceil(rr2);xq++){var rq=(xq*xq+yq*yq)/(rr2*rr2);if(rq>1||hsh(xq*7+yq+j*31,fr)<rq*.45)continue;VP(cx2+xq,cy2+yq,rq<.3&&j<6?'#fff4b0':j<5?'#ffc23a':j<10?'#ff8a2a':j<15?'#ff5a1a':'#b8200a',(1-j/21)*(1-rq*.4)*.9)}}/* 拖在後面的尾焰：越後面越細、越紅、往上飄 */
+    for(var yy=-11;yy<=11;yy++)for(var xx=-11;xx<=11;xx++){var r2=(xx*xx+yy*yy)/121;if(r2>1)continue;VP(P[0]+xx,P[1]+yy,r2<.2?'#ffffff':r2<.45?'#fff4b0':r2<.75?'#ffb030':'#ff5a1a',r2>.85?.7:1)}
+    for(var f=0;f<8;f++){var af=f/8*Math.PI*2+d/50;VP(P[0]+Math.cos(af)*(12+hsh(f,Math.floor(d/50))*3),P[1]+Math.sin(af)*(12+hsh(f+9,Math.floor(d/50))*3),'#ff8a2a',.8)}}
   (e.tgts||[]).forEach(function(tk,n){var pp=posOf(tk);pBurst('fire',pp[0],pp[1]-14,d-(e.hit||560)-n*40,10,VS)});FXA=fa}
 /* ===== 至高打擊 ===== */
 /* 時間軸：0–250 長出光翼 → 250–650 飛往前方上空 → 650–820 斜衝到敵人面前 → 830 起連續光明重擊 → 1250–1600 飛回原位 → 光翼淡出 */
