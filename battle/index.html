@@ -439,6 +439,7 @@ function hpBar(d,hp,mx,x,y,w,hide){if(!d)return;if(hide||mx==null||hp==null){d.s
 /* 倒下／復活：B.pkl[k] = [{t, d:true 倒下 / false 復活}] */
 /* 被吞噬：B.psw[k] = [{t, d:true 被吞 / false 出來}] → 回傳 {a: 透明度, s: 縮放} */
 function swAt(k,t){var L=(B&&B.psw&&B.psw[k])||[],x=null;L.forEach(function(q){if(t>=q.t)x=q});if(!x)return{a:1,s:1};var u=Math.min(1,(t-x.t)/350);return x.d?{a:1-u,s:1-.6*u}:{a:u,s:.4+.6*u}}
+function applyHp(ce){B.hpNow=ce.hp;if(ce.hz){B.hpNow=Object.assign({},ce.hp,{m:ce.hp.m.slice()});ce.hz.forEach(function(i){B.hpNow.m[i]=0})}/* 骨兵／冥屍龍倒下：這一招先把血條歸零，散成骨堆、變身那一行才換成新的血量 */if(ce.hp.sp)B.stNow={p:ce.hp.sp,m:ce.hp.sm,hbp:ce.hp.hbp,hbm:ce.hp.hbm}}
 function koAt(k,t){var L=(B&&B.pkl&&B.pkl[k])||[],r={ko:false,t:null};L.forEach(function(x){if(t>=x.t){r.ko=x.d;if(x.d)r.t=x.t}});return r}
 var WALK=2400;
 /* 某個時間點附近的動作進度（0~1，超出區間回 -1） */
@@ -448,7 +449,7 @@ function tick(now){
   sizeU();var t=now-B.t0,walk=t<WALK,spawn=ease(t/WALK);
   var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk&&!BG[cur].fix)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
   /* 戰報逐行出現 */
-  while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){B.hpNow=ce.hp;if(ce.hz){B.hpNow=Object.assign({},ce.hp,{m:ce.hp.m.slice()});ce.hz.forEach(function(i){B.hpNow.m[i]=0})}/* 骨兵／冥屍龍倒下：這一招先把血條歸零，散成骨堆、變身那一行才換成新的血量 */if(ce.hp.sp)B.stNow={p:ce.hp.sp,m:ce.hp.sm,hbp:ce.hp.hbp,hbm:ce.hp.hbm}}B.li++}
+  while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){if(B.hpPend){applyHp(B.hpPend.ce);B.hpPend=null}if(ce.side&&ce.hit>=600)B.hpPend={t:ce.t+ce.hit,ce:ce};else applyHp(ce)}B.li++}if(B.hpPend&&t>=B.hpPend.t){applyHp(B.hpPend.ce);B.hpPend=null}/* 蓄力很久的大招（超新星殉爆等）：血條等到真正打中那一刻才扣 */
   if(VFXT&&B){var VL=Object.keys(VT.st).filter(function(q){return VT.st[q]}),AS=VT.ast&&t>=VT.ast.t0?VT.ast.d:{p:{},m:{}};B.stNow={p:(MEMB.length?MEMB:[0]).map(function(q,i){return (i?[]:VL).concat(AS.p[i]||[])}),m:(B.mons.length?B.mons:[0]).map(function(q,i){return (i?[]:VL).concat(AS.m[i]||[])})}}/* 特效測試：按鈕選的狀態同時套在角色和怪物身上 */
   if(!B.done&&t>=B.end){B.done=true;showResult()}
   party.forEach(function(p,k){
@@ -2553,12 +2554,13 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       if(e.nums&&e.nums.length)o.nums=e.nums;/* 跳字 *//* 被奪走 SP 的我方角色 */
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
       if(e.kind!=='round')t+=e.soulR?1500:e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
-      (e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+(o.kod||260)});
+      if(e.kind!=='round'&&!e.soulR&&o.hit>=600)t=Math.max(t,o.t+o.hit+500);/* 大招：下一行至少等到打中後 0.5 秒，血條、倒下才不會被下一招搶先 */
+      var KOD=o.kod||(o.hit>=600?o.hit+80:260);/* 倒下時間跟著招式真正打中的時間走（大招蓄力久，不會動畫還沒打到人就先倒） */(e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+KOD});
       (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
       if(e.tf&&e.tf[3]){var BM0=ms[e.tf[0]];if(BM0)(BM0.tfs=BM0.tfs||[]).push({t0:o.t,t:o.t+(e.tf[3]==='bone'?BONESW:(e.tf[3]==='blood'||e.tf[3]==='demon')?BLDSW:RISESW),k:e.tf[1],n:e.tf[2],sty:e.tf[3],au:(e.tf[3]==='blood'||e.tf[3]==='demon')?(e.tf[4]||[]):[]});o.tfB=[e.tf[0],e.tf[3]]}/* 骨兵：散成骨堆／重組回骨兵（可以重複很多次） */
       else if(e.tf){if(ms[e.tf[0]]){ms[e.tf[0]].tf={t0:o.t,t:o.t+TFSW,k:e.tf[1],n:e.tf[2],au:ms[e.tf[0]].au||[]};ms[e.tf[0]].au=[]}/* 靈氣（噬血光環）等變身後才出現 */o.tfA=e.tf[0]}
       if(e.cd&&ms[e.cd[0]])(ms[e.cd[0]].cds=ms[e.cd[0]].cds||[]).push({t:o.t+(e.tf?BONESW:0),n:e.cd[1]});/* 骨堆頭上的倒數 *//* 變身（亡骸化）：先消散 → 地上浮現熒綠光陣 → 光柱往上衝 → 亡骸從光陣裡往上升起 */
-      (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+(o.kod||260),d:true})});
+      (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+KOD,d:true})});
       (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
       (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
       if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
