@@ -397,12 +397,14 @@ html,body,*{touch-action:manipulation}
 </div>
 <div class="pcard" id="pcard" hidden><div class="bg" id="pcBg"></div><div class="box"><button type="button" class="x" id="pcX" aria-label="關閉">✕</button><canvas id="pcDoll" width="192" height="192" style="width:192px;height:192px"></canvas><div class="nm" id="pcName"></div><div class="sub" id="pcSub"></div><div class="pet" id="pcPet" hidden></div><div class="ptabs" id="pcTabs" hidden></div><div class="pn" id="pcPanel" hidden></div><div class="say" id="pcSayBox" hidden><h3>想說的話</h3><div class="txt" id="pcSayTxt"></div><textarea id="pcSayIn" maxlength="50" rows="2" placeholder="留一句話給路過的冒險者（最多 50 字）" hidden></textarea><div class="row" id="pcSayRow" hidden><span class="cnt" id="pcSayCnt">0/50</span><button type="button" class="sv" id="pcSaySv">儲存</button></div><div class="when" id="pcSayWhen"></div><div class="msg" id="pcSayMsg"></div></div><div class="tp" id="pcTeam" hidden></div></div></div>
 <script src="../common/paper.js?v=6"></script>
-<script src="../common/doll.js?v=11"></script>
+<script src="../common/doll.js?v=13"></script>
+<script src="../common/npc.js?v=1"></script>
+<script src="../common/music.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
 <script src="../common/runevals.js?v=3"></script>
-<script src="party.js?v=31"></script>
+<script src="party.js?v=32"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -628,7 +630,7 @@ var scene=document.getElementById('scene'),sx=scene.getContext('2d'),tagsEl=docu
 var PETLIST=[],ACT=[],ME_UID=null,BG=null,WBYNAME={};
 function jobIcon(p){return BASE+'icons/jobs/framed/'+(p.jobSn||Doll.JOBSN[p.job|0]||'job01')+'.png?v='+V}
 function wst(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1);return Math.min(3,Math.max(0,(d.stage|0)-1,stage(lv)))}
-function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
+function look(p){if(p&&p.npc&&window.NPC){var nl=NPC.look(p.npc,true);if(nl)return nl}/* NPC 同伴 */var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],
     weapon:wd&&(wd.img[s]||wd.img[0])?{img:wd.img[s]||wd.img[0],key:w+'_'+s,cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
     shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:w?haloOf(p,w):[]}}
@@ -830,6 +832,7 @@ function openCard(a){CARD=a;var p=a.p;document.getElementById('pcPet').hidden=tr
   if(a.pet){document.getElementById('pcName').textContent=a.pet.name;document.getElementById('pcSub').textContent='營地的動物夥伴';renderPet();document.getElementById('pcard').hidden=false;return}var im=new Image();im.src=jobIcon(p);document.getElementById('pcName').appendChild(im);
   document.getElementById('pcName').appendChild(document.createTextNode(p.name+' Lv.'+Party.charLv(p)));
   var on=p.uid===ME_UID?'這是你':(p.lastSeen&&Date.now()-p.lastSeen<ONLINE_MS?'線上':(p.lastSeen?'最後上線：'+ago(p.lastSeen):''));
+  if(p.npc){var nn=NPC.get(p.npc)||{};document.getElementById('pcSub').textContent=(nn.job||'同伴')+'・同伴';var tx0=document.getElementById('pcSayTxt');document.getElementById('pcSayBox').hidden=false;document.getElementById('pcSayIn').hidden=true;document.getElementById('pcSayRow').hidden=true;document.getElementById('pcSayMsg').textContent='';tx0.hidden=false;tx0.textContent=nn.desc||'';tx0.className='txt';document.getElementById('pcard').hidden=false;return}
   var pcs=document.getElementById('pcSub');pcs.textContent=Party.jobName(p);if(Party.jobLv(p)>=50){var ms=document.createElement('span');ms.className='mstar';ms.title='職業精通';ms.textContent='★';pcs.appendChild(ms)}pcs.appendChild(document.createTextNode(' Lv.'+Party.jobLv(p)+(on?'・'+on:'')));/* ★ = 職業精通（50 級） */
   Party.fillTeam(document.getElementById('pcTeam'),p,function(){return CARD===a});
   /* 想說的話：自己可以改，別人只能看 */
@@ -910,8 +913,9 @@ function showNotice(){function put(n){var old=document.getElementById('ntc');if(
     document.getElementById('plaza').appendChild(d);var sp=d.firstChild;requestAnimationFrame(function(){var w=sp.offsetWidth;sp.style.animationDuration=Math.max(8,w/45)+'s'})}
   if(demo){put({on:true,text:'這是示範公告：今晚 9 點一起打第 20 關的綠龍！'});return}
   withFB(function(FB){if(FB.noticeGet)FB.noticeGet().then(put,function(){})})}
-function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);var list=[me].concat(others.slice(0,9));
-  document.getElementById('pcount').textContent='營地裡有 '+list.length+' 位冒險者';
+function campNpcs(me){if(!window.NPC)return[];return (me.npcParty||[]).filter(function(id,i,a){return a.indexOf(id)===i&&NPC.on(me,id)&&NPC.get(id)}).slice(0,3).map(function(id){return Object.assign(NPC.player(id,me),{runeV:me.runeV})})}
+function start(me,others){ME_UID=me.uid;ME_P=me;initNames();NavIcons.setPlayer(me);Music.init(BASE);Music.page('town');var nps=campNpcs(me),list=[me].concat(nps).concat(others.slice(0,9-nps.length));
+  document.getElementById('pcount').textContent='營地裡有 '+(list.length-nps.length)+' 位冒險者';
   Party.init({demo:demo,base:BASE,v:V,me:function(){return ME_P},look:look,withFB:withFB,getCSV:getCSV,rawWeapons:function(){return RAWW},wbyname:WBYNAME,petinfo:PETINFO,toast:toast,
     findLocal:function(u){var r=null;ACT.forEach(function(a){if(!a.pet&&a.p.uid===u)r=a.p});return r},demoList:function(){return window.__DL||[]}});
   showNotice();loadBoard();scene.width=SW;scene.height=SH;buildBG();placeAll(list);placePets(PETLIST);document.getElementById('loading').remove();renderTabs();requestAnimationFrame(tick)}
@@ -935,8 +939,8 @@ fire=function(now){var f=Math.floor(now/130)%6,cx0=FIRE.x,by0=FIRE.y-2;sx.save()
   var ch=6+[0,1,1,0,0,-1][f];for(var y=0;y<ch;y++){var ww=Math.max(1,Math.round(3*(1-y/ch)));R(y<ch*.5?'#fff6c8':'#ffe07a',cx-Math.floor(ww/2),by-3-y,ww,1)}sx.restore()};
 var demo=/[?&]demo=1/.test(location.search);
 window.addEventListener('pagehide',function(){STOP=true});window.addEventListener('pageshow',function(e){if(e.persisted&&STOP){STOP=false;last=0;requestAnimationFrame(tick)}});
-Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){RAWW=R[0];R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
-  if(demo){var d=demoPlayers();window.__DL=d;d.forEach(function(q,i){q.lv=5+i*3;q.jobLv={['job0'+(q.job+1)]:2+i};q.alloc={str:i,int:2,agi:i%3,vit:3,luk:1}});[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});d[0].party=['d1','d2','d3'];d[0].leaders=['d6'];d[2].party=['d1','d4','d7'];d[3].leaders=['d1','d2'];d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
+Promise.all(['weapon_info.csv','rune_info.csv','weapon_rune.csv','pet_info.csv'].map(getCSV)).then(function(R){RAWW=R[0];R[3].forEach(function(r){if(!r.pet_id)return;var c=[];for(var i=1;i<=10;i++)c.push(parseInt(r['cost_lv'+i],10)||1);PETINFO[r.pet_id]={id:r.pet_id,name:r.pet_name,trait:r.trait_name,stat:r.bonus_stat,perTxt:String(r.bonus_per_level||'').trim(),per:(parseFloat(r.bonus_per_level)||0)/100,max:parseInt(r.max_level,10)||10,cost:c}});return buildData(R.slice(0,3))}).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Promise.all([Doll.load(BASE,V),NPC.load(BASE,V),loadPets().then(function(l){PETLIST=l})])}).then(function(){
+  if(demo){var d=demoPlayers();window.__DL=d;d.forEach(function(q,i){q.lv=5+i*3;q.jobLv={['job0'+(q.job+1)]:2+i};q.alloc={str:i,int:2,agi:i%3,vit:3,luk:1}});[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});d[0].party=['d1','d2'];d[0].npcs={npc01:{on:true}};d[0].npcParty=['npc01'];d[0].leaders=['d6'];d[2].party=['d1','d4','d7'];d[3].leaders=['d1','d2'];d[0].cookies=4;d[0].pets={gm_pet_02:{lv:3},gm_pet_01:{lv:1}};start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){return FB.listPlayers(30).then(function(all){
     var me=Object.assign({uid:who.user.uid},who.player,{lastSeen:Date.now()});
     start(me,all.filter(function(p){return p.uid!==me.uid&&!p.disabled}));res()})})})})

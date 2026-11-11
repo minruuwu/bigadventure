@@ -22,6 +22,9 @@
 .d1 .tg{font-size:11px;color:#f0dfb8;background:#7a4f22;padding:1px 6px;box-shadow:0 0 0 2px #3d230d}.d1 .pbtn{margin-left:auto}\
 .pw .pbtn,.pw .rw button,.cf button,.cin button{font:inherit;font-weight:900;font-size:12px;color:#f0e2c4;background:#7a4f22;border:0;padding:5px 10px;cursor:pointer;box-shadow:inset 0 0 0 2px #3d230d}\
 .pw .pbtn:disabled,.cin button:disabled{opacity:.5}\
+.nbtns{display:flex;gap:6px;margin:6px 0 2px}.nbtns .pbtn{flex:1}\
+.pkt{display:flex;gap:4px;margin:4px 0 6px}.pkt button{flex:1;font:inherit;font-size:13px;font-weight:900;padding:6px 0;border:0;cursor:pointer;color:#f0dfb8;background:#4a2a12;box-shadow:0 0 0 2px #1d1008}.pkt button.on{background:#a8741e;color:#fff}\
+.nse{display:flex;flex-direction:column;gap:4px;width:100%}.nse label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;color:#3b2713}.nse label span{flex:none;width:52px}.nse select{flex:1;min-width:0;font:inherit;font-size:13px;padding:5px;background:#f4e8c8;color:#2e1d0e;border:2px solid #3d230d;border-radius:0}.nse .off{font-size:12px;color:#7a5a38;padding:4px 0 4px 60px}.nsv{display:flex;gap:8px;justify-content:center;margin-top:8px}\
 .tb2,.sg{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:12px}.tb2{margin:4px 0 2px}\
 .tb2 span,.sg span{display:flex;align-items:center;gap:4px;min-width:0}.tb2 em,.sg em{margin-left:auto;font-style:normal;font-weight:900;white-space:nowrap}\
 .icf{width:32px;height:32px;flex:none;display:inline-block;background-size:32px 32px;image-rendering:pixelated}.icf img{width:32px;height:32px;display:block;image-rendering:pixelated}.sg{gap:2px 8px!important}.sg .sl{font-style:normal;white-space:nowrap;min-width:0;overflow:hidden}.sg .sl.lg{font-size:11px;letter-spacing:-.03em}.sg em{padding-left:3px}.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
@@ -52,7 +55,13 @@
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e }
   function jobSn(p) { return p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)) }
   function jobIdx(p) { var m = /(\d+)/.exec(jobSn(p)); return m ? +m[1] - 1 : (p.job | 0) }
-  function jobName(p) { return (g.Doll.JOBN[jobIdx(p)]) || '冒險者' }
+  function jobName(p) { if (p && p.npc && g.NPC && NPC.get(p.npc)) return NPC.get(p.npc).job || '同伴'; return (g.Doll.JOBN[jobIdx(p)]) || '冒險者' }
+  /* NPC 同伴：入隊名單 npcParty（已解鎖、能參戰的），排在自己後面；全隊（玩家＋NPC）最多 4 人 */
+  function npcMembers(m) { if (!g.NPC || !m) return []; return (m.npcParty || []).filter(function (id, i, a) { return a.indexOf(id) === i && NPC.on(m, id) && NPC.get(id) && NPC.get(id).battle }).slice(0, 3).map(function (id) { return Object.assign(NPC.player(id, m), { runeV: m.runeV }) }) }
+  function teamN(m) { return 1 + (m.party || []).length + npcMembers(m).length }
+  /* 已學會：NPC 看人物等級（npc_info 的 skills），玩家看職業等級 */
+  function knows(p, k) { if (!k) return false; if (p.npcLearn) return p.npcLearn[k.id] != null && charLv(p) >= p.npcLearn[k.id]; var jl = p.jobLv || {}; return /^job\d+$/.test(k.j || '') && (jl[k.j] | 0) >= k.lv }
+  function npcSave(f) { if (C.demo || !Object.keys(f).length) return Promise.resolve(); return new Promise(function (res, rej) { C.withFB(function (FB) { FB.updatePlayer(f).then(res, rej) }) }) }
   function jobLv(p) { var m = p.jobLv || {}; return m[jobSn(p)] | 0 }
   function charLv(p) { return Math.max(1, p.lv | 0 || 1) }
   function jicon(p) { return C.base + 'icons/jobs/framed/' + jobSn(p) + '.png?v=' + C.v }
@@ -74,7 +83,7 @@
     if (STAT) return Promise.resolve(STAT);
     return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] }), C.getCSV('job_mastery.csv').catch(function () { return [] }), C.getCSV('job_info.csv').catch(function () { return [] })]).then(function (R) {
       if (R[5] && R[5].length && window.RuneVals) RuneVals.setLevels(R[5]);
-      var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element } });
+      var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element, kind: r.kind, d: r.skill_desc || '' } });
       var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
       var MS = {}; (R[6] || []).forEach(function (r) { if (r.job_sn && r.kind) MS[r.job_sn] = r }); var JS = {}; (R[7] || []).forEach(function (r) { if (r.u_sn) JS[r.u_sn] = r.skill_set || r.job_name || r.u_sn });
       STAT = { attr: A, grow: G, sk: K, eff: E, rune: R[4] || [], mst: MS, js: JS }; return STAT
@@ -85,7 +94,8 @@
   /* 已配置的被動技能加成（跟角色頁相同：有開放的格子、已學會、武器條件符合才算） */
   function skPas(p, key) {
     var D = STAT || {}, K = D.sk || {}, E = D.eff || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, pa = Array.isArray(sv.passive) ? sv.passive : [], ws = wsn(p), t = 0;
-    for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || !/^job\d+$/.test(k.j || '') || (jl[k.j] | 0) < k.lv) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
+    if (p.npcFix && p.npcFix[key]) t += p.npcFix[key]; /* NPC 的固定減傷、抗性 */
+    for (var q = 0; q < 4; q++) { var id = pa[q], k = id && K[id]; if (!k || lv < PSLOT[q] || !knows(p, k)) continue; (E[id] || []).forEach(function (e) { if (e.k === key && (!e.c || e.c === ws)) t += e.v }) }
     /* 職業精通（職業 50 級）的數值天賦 */
     var MS = D.mst || {}; Object.keys(MS).forEach(function (js) { var m = MS[js]; if (m.kind !== 'stat' || (jl[js] | 0) < 50) return; [1, 2].forEach(function (q) { if (m['stat_' + q] === key) t += parseFloat(m['value_' + q]) || 0 }) });
     return t
@@ -99,7 +109,7 @@
     function RV(id, k, d) { return window.RuneVals ? RuneVals.v(D.rune || [], id, k, d, rlv(id)) : d }
     K.forEach(function (k) { var j = 0; Object.keys(jl).forEach(function (s) { var l = jl[s] | 0, g = D.grow[s]; if (l > 0 && g) j += (parseFloat(g['per_level_' + k]) || 0) * l }); var bs = 10 + j + (al[k] | 0); T[k] = bs + (rOn('rune08') ? Math.round(bs * RV('rune08', 0, 0.1)) : 0) });
     var at = D.attr[sn] || {}, hpb = pn(at.hp_bonus), pb = pn(at.p_atk_bonus), mb = pn(at.m_atk_bonus), eb = pn(at.eva_rate_bonus), cb = pn(at.crit_rate_bonus), db = pn(at.crit_damage_rate_bonus), pd = pn(at.p_def_bonus), md = pn(at.m_def_bonus);
-    var row = null; (C.rawWeapons() || []).forEach(function (r) { if (r.u_sn === ws) row = r });
+    var row = null; (C.rawWeapons() || []).forEach(function (r) { if (r.u_sn === ws) row = r }); if (p.wrow) row = p.wrow; /* NPC 的武器數值 */
     function wsum(key) { var t = 0; if (!row) return 0; for (var q = 1; q <= 6; q++) { if (row['auto_stat_' + q] !== key) continue; var per = String(row['auto_per_level_' + q] || '').trim(), v = (parseFloat(per) || 0) * lv; t += /%/.test(per) ? v / 100 : v }
       for (var u = 1; u <= 3; u++) { if (row['temper_stat_' + u] !== key || !pts[u - 1]) continue; t += (parseFloat(row['temper_per_point_' + u]) || 0) * pts[u - 1] / 100 } return t }
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(C.petinfo).forEach(function (id) { var pi = C.petinfo[id]; if (pi.stat !== stat) return; t += pi.per * Math.max(0, Math.min(10, ((pe[id] || {}).lv) | 0)) }); return t }
@@ -124,10 +134,10 @@
   }
   function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']) + skPas(p, r[0] + '_res_rate'), 0.75))] }) }
   function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span><i class="sl' + (String(r[1]).length > 5 ? ' lg' : '') + '">' + r[1] + '</i><em>' + r[2] + '</em></span>' }).join('') + '</div>' }
-  function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
+  function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (p && p.npc && sk !== 'atk') return '<img alt="" src="' + snIcon(p.npc) + '">'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
   function skillsHtml(p) {
     var K = (STAT && STAT.sk) || {}, jl = p.jobLv || {}, lv = charLv(p), sv = p.skills || {}, cb = Array.isArray(sv.combat) ? sv.combat : [], pa = Array.isArray(sv.passive) ? sv.passive : [];
-    function ok(id) { var k = K[id]; return k && /^job\d+$/.test(k.j || '') && (jl[k.j] | 0) >= k.lv ? k : null }
+    function ok(id) { var k = K[id]; return k && knows(p, k) ? k : null }
     function line(tag, id, p) {
       var k = id === 'atk' ? 'atk' : ok(id), nm = k === 'atk' ? '普通攻擊' : k ? esc(k.n) : '（空）', el = k && k !== 'atk' && SKEL[k.e] ? '<img class="ske" alt="' + SKEL[k.e] + '" title="' + SKEL[k.e] + '" src="' + C.base + 'icons/stats/res_' + k.e + '.png?v=5">' : '';
       return '<div class="rw"><span class="sico">' + skIco(k, p) + '</span><span class="tx"><b>' + nm + el + '</b><small>' + tag + '</small></span></div>'
@@ -135,8 +145,9 @@
     /* 順序：技能組（決定戰鬥技能能放哪些）→ 戰鬥技能循環 → 反應 → 被動，跟角色頁技能書一致 */
     var JS = (STAT && STAT.js) || {}, ex = Array.isArray(sv.extra) ? sv.extra : (sv.extra ? [sv.extra] : []);
     function setLine(tag, sn) { var m = /(\d+)/.exec(sn), jn = (m && g.Doll.JOBN[+m[1] - 1]) || sn; return '<div class="rw"><span class="sico"><img alt="" src="' + snIcon(sn) + '"></span><span class="tx"><b>' + esc(JS[sn] || jn) + '</b><small>' + tag + (JS[sn] && JS[sn] !== jn ? '（' + esc(jn) + '）' : '') + '</small></span></div>' }
-    var h = setLine('現職技能組', jobSn(p));
-    ex.filter(Boolean).slice(0, 2).forEach(function (sn, q) { h += setLine('額外技能組 ' + (q + 1), sn) });
+    var h = '';
+    if (p.npc && g.NPC) NPC.groups(p.npc).forEach(function (gr) { h += '<div class="rw"><span class="sico"><img alt="" src="' + snIcon(p.npc) + '"></span><span class="tx"><b>' + esc(gr.n) + '</b><small>技能組</small></span></div>' });
+    else { h = setLine('現職技能組', jobSn(p)); ex.filter(Boolean).slice(0, 2).forEach(function (sn, q) { h += setLine('額外技能組 ' + (q + 1), sn) }) }
     for (var i = 0; i < 4; i++) { var c = cb[i] || 'atk'; h += line('戰鬥 ' + (i + 1), c === 'atk' ? 'atk' : c, p) }
     h += line('反應', sv.reaction || '', p);
     for (var q = 0; q < 4; q++) h += lv >= PSLOT[q] ? line('被動 ' + (q + 1), pa[q] || '', p) : '<div class="rw off"><span class="sico"><span class="sbl"></span></span><span class="tx"><b>（Lv' + PSLOT[q] + ' 解鎖）</b><small>被動 ' + (q + 1) + '</small></span></div>';
@@ -149,7 +160,7 @@
   }
   /* 武器分頁：武器名稱（依外觀階）、等級、裝備中的符文（新版帳號、Lv1 以上、在開放的格數內才算，跟戰鬥一致）與目前等級的數值 */
   function weaponHtml(p) {
-    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, raw = (C.rawWeapons && C.rawWeapons()) || [], row = raw.filter(function (r) { return r.u_sn === ws })[0] || {};
+    var ws = wsn(p), lv = wlv(p), wd = (p.weapons && p.weapons[ws]) || {}, raw = (C.rawWeapons && C.rawWeapons()) || [], row = raw.filter(function (r) { return r.u_sn === ws })[0] || {}; if (p.npc) row = Object.assign({}, row, p.wrow || {});
     var st = Math.min(4, Math.max(wd.stage | 0 || 1, lv >= 75 ? 4 : lv >= 60 ? 3 : lv >= 30 ? 2 : 1)), wn = row['stage_' + st + '_name'] || p.weapon || '武器';
     var n = lv >= 75 ? 3 : lv >= 60 ? 2 : lv >= 30 ? 1 : 0, rlv = function (id) { return window.RuneVals ? RuneVals.levelOf((p.rs || {})[id]) : 0 };
     var en = (p.runeV | 0) >= 2 && Array.isArray(wd.ench) ? wd.ench.filter(function (id) { return rlv(id) >= 1 }).slice(0, n) : [];
@@ -287,7 +298,7 @@
       .then(function () { syncBtn(); C.toast('全隊上限 4 人，已移出多的 ' + extra.length + ' 位隊員') }, function () { }).then(function () { trimming = null });
     return trimming
   }
-  function syncBtn() { var b = document.getElementById('mkParty'); if (b) b.querySelector('small').textContent = (1 + Math.min(3, (me().party || []).length)) + ' / 4' }
+  function syncBtn() { var b = document.getElementById('mkParty'); if (b) b.querySelector('small').textContent = Math.min(4, teamN(me())) + ' / 4' }
   function errText(e, what) { var c = e && e.code; return c === 'permission-denied' ? what + '失敗（對方已被 5 人加入，或規則尚未開放）' : c === 'timeout' ? '連線逾時，請檢查網路後再試' : what + '失敗，請稍後再試' }
 
   /* ----- 我的隊伍 ----- */
@@ -298,6 +309,7 @@
       return Promise.all([members(pu), members(lu), statData()]).then(function (R) { if (gone) return; mem = R[0]; leaders = R[1]; render() })
     }
     function detail(p, isMe) {
+      if (p.npc) return npcDetail(p);
       var d = el('div', 'dtl'), W = wicon(p), idx = isMe ? '' : '<button type="button" class="pbtn" data-a="rm">移出</button>';
       d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span>' + (isMe ? '<span class="tg">隊長</span>' : idx) + '</div>' +
         '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + (jobLv(p) >= 50 ? '<span title="職業精通" class="mstar">★</span>' : '') + '<em>Lv.' + jobLv(p) + '</em></span>' +
@@ -312,10 +324,29 @@
       });
       return d
     }
+    function npcDetail(p) {
+      var d = el('div', 'dtl'), W = wicon(p);
+      d.innerHTML = '<div class="d1"><span class="nn">' + esc(p.name) + '</span><span class="lv">Lv.' + charLv(p) + '</span><span class="tg">同伴</span><button type="button" class="pbtn" data-a="rm">移出</button></div>' +
+        '<div class="tb2"><span><img class="ji" alt="" src="' + jicon(p) + '">' + esc(jobName(p)) + '</span>' +
+        '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
+        '<div class="nbtns"><button type="button" class="pbtn" data-a="nsk">調整技能</button><button type="button" class="pbtn" data-a="nrn">調整符文</button></div>' +
+        '<div class="ptabs"></div><div class="pn"></div>';
+      p._allies = teamN(me()) - 1;
+      mountTabs(d.querySelector('.ptabs'), d.querySelector('.pn'), p, ['stat', 'skill', 'wpn']);
+      d.querySelector('[data-a=rm]').addEventListener('click', function () {
+        confirmBox(win, '要讓 ' + p.name + ' 離開隊伍嗎？（之後可以再從「＋」放回來）', '移出', function () {
+          var m = me(), arr = (m.npcParty || []).filter(function (x) { return x !== p.npc });
+          npcSave({ npcParty: arr }).then(function () { m.npcParty = arr; sel = 0; syncBtn(); render(); C.toast(p.name + ' 離開了隊伍') }, function (e) { C.toast(errText(e, '移出')) })
+        })
+      });
+      d.querySelector('[data-a=nsk]').addEventListener('click', function () { openNpcSkills(p, function () { render() }) });
+      d.querySelector('[data-a=nrn]').addEventListener('click', function () { openNpcRunes(p, function () { render() }) });
+      return d
+    }
     function render() {
-      var m = me(), n = (m.party || []).length; box.innerHTML = '<button type="button" class="x" aria-label="關閉">✕</button><h2>我的隊伍　' + (1 + Math.min(3, n)) + ' / 4</h2>';
+      var m = me(), nps = npcMembers(m); box.innerHTML = '<button type="button" class="x" aria-label="關閉">✕</button><h2>我的隊伍　' + Math.min(4, teamN(m)) + ' / 4</h2>';
       box.querySelector('.x').addEventListener('click', win.close);
-      var row = el('div', 'rowp'), ppl = [m].concat(mem.map(function (p, i) { return p || { uid: (m.party || [])[i], name: '（讀取失敗）' } }));
+      var row = el('div', 'rowp'), ppl = [m].concat(nps).concat(mem.map(function (p, i) { return p || { uid: (m.party || [])[i], name: '（讀取失敗）' } }));
       for (var i = 0; i < 4; i++) {
         if (i < ppl.length) { (function (i) { var p = ppl[i], b = el('button', 'pt' + (i === 0 ? ' me' : '') + (i === sel ? ' sel' : '')); b.type = 'button'; b.appendChild(thumb(p)); b.appendChild(el('i', null, esc(p.name))); b.addEventListener('click', function () { sel = i; render() }); row.appendChild(b) })(i) }
         else { var e = el('button', 'pt em', '<span>＋</span><i>空位</i>'); e.type = 'button'; e.setAttribute('aria-label', '加入隊員'); e.addEventListener('click', function () { openPicker(win, function () { load() }) }); row.appendChild(e) }
@@ -340,20 +371,78 @@
     trimParty().then(load).catch(function () { if (!gone) { box.innerHTML = '<button type="button" class="x">✕</button><div class="none">讀取失敗，請稍後再試</div>'; box.querySelector('.x').addEventListener('click', win.close) } })
   }
 
+  /* ----- NPC：調整技能（戰鬥 4 格、反應、被動依人物等級開放）----- */
+  function openNpcSkills(p, done) {
+    statData().then(function () {
+      var K = STAT.sk || {}, n = NPC.get(p.npc), m = me(), lv = charLv(p), sv = p.skills || {}, win = overlay('pw'), box = win.box;
+      var mine = n.skills.filter(function (x) { return lv >= x.lv && K[x.id] }), byK = function (kind, g2) { return mine.filter(function (x) { return (K[x.id].kind || '') === kind && (!g2 || g2(x)) }) };
+      function opt(list, cur, none) { return (none ? '<option value="">' + none + '</option>' : '') + list.map(function (x) { return '<option value="' + x.id + '"' + (x.id === cur ? ' selected' : '') + '>' + esc(K[x.id].n) + (x.g && x.g !== '被動' && x.g !== '反應' ? '（' + esc(x.g) + '）' : '') + '</option>' }).join('') }
+      var cb = byK('combat'), re = byK('reaction'), pa = byK('passive'), h = '<h2>' + esc(n.name) + '的技能</h2><div class="pnote">技能依人物等級自動學會；戰鬥技能在自動戰鬥時照順序輪流施放</div><div class="nse">';
+      for (var i = 0; i < 4; i++) h += '<label><span>戰鬥 ' + (i + 1) + '</span><select data-c="' + i + '"><option value="atk"' + (((sv.combat || [])[i] || 'atk') === 'atk' ? ' selected' : '') + '>普通攻擊</option>' + opt(cb, (sv.combat || [])[i]) + '</select></label>';
+      h += '<label><span>反應</span><select data-r="1">' + opt(re, sv.reaction, '（不放）') + '</select></label>';
+      for (var q = 0; q < 4; q++) h += lv >= PSLOT[q] ? '<label><span>被動 ' + (q + 1) + '</span><select data-p="' + q + '">' + opt(pa, (sv.passive || [])[q], '（不放）') + '</select></label>' : '<div class="off">被動 ' + (q + 1) + '：人物 Lv' + PSLOT[q] + ' 解鎖</div>';
+      h += '</div><div class="cmsg"></div><div class="nsv"><button type="button" class="pbtn" data-a="sv">儲存</button></div>';
+      box.insertAdjacentHTML('beforeend', h); var msg = box.querySelector('.cmsg');
+      box.querySelector('[data-a=sv]').addEventListener('click', function () {
+        var c = [0, 1, 2, 3].map(function (i) { return box.querySelector('[data-c="' + i + '"]').value || 'atk' }), r = box.querySelector('[data-r]').value || '', ps = [0, 1, 2, 3].map(function (i) { var e = box.querySelector('[data-p="' + i + '"]'); return e ? e.value || '' : '' });
+        var dc = c.filter(function (x) { return x !== 'atk' }), dp = ps.filter(Boolean);
+        if (dc.length !== dc.filter(function (x, i) { return dc.indexOf(x) === i }).length || dp.length !== dp.filter(function (x, i) { return dp.indexOf(x) === i }).length) { msg.textContent = '同一個技能不能放兩格'; return }
+        var obj = { combat: c, reaction: r, passive: ps }, f = {}; f['npcs.' + p.npc + '.skills'] = obj; this.disabled = true; var bt = this;
+        npcSave(f).then(function () { m.npcs = Object.assign({}, m.npcs || {}); m.npcs[p.npc] = Object.assign({}, m.npcs[p.npc] || {}, { skills: obj }); win.close(); C.toast('已儲存 ' + n.name + ' 的技能'); done && done() }, function (e) { bt.disabled = false; msg.textContent = errText(e, '儲存') })
+      })
+    })
+  }
+  /* ----- NPC：調整符文（武器 Lv30／60／75 各一格，用自己的符文等級；符文池照武器種類）----- */
+  var WRUNE = null;
+  function openNpcRunes(p, done) {
+    Promise.all([statData(), WRUNE ? WRUNE : C.getCSV('weapon_rune.csv').then(function (r) { WRUNE = r; return r }).catch(function () { return [] })]).then(function (R2) {
+      var m = me(), n = NPC.get(p.npc), ws = wsn(p), lv = wlv(p), rows = (R2[1] || []).filter(function (r) { return r.weapon_u_sn === ws }), RI = {};
+      ((STAT && STAT.rune) || []).forEach(function (r) { if (r && r.u_sn) RI[r.u_sn] = r });
+      var rlv = function (id) { return g.RuneVals ? RuneVals.levelOf((m.rs || {})[id]) : 1 }, cur = ((NPC.cfg(m, p.npc).ench) || []).slice(), need = [30, 60, 75];
+      var win = overlay('pw'), box = win.box, h = '<h2>' + esc(n.name) + '的符文</h2><div class="pnote">武器 Lv' + lv + '（等於人物等級，最高 ' + n.wmax + '）；用你的符文等級，Lv1 以上才能裝</div><div class="nse">';
+      need.forEach(function (nd, i) {
+        var tier = rows.filter(function (r) { return (parseInt(r.tier, 10) || 0) === i + 1 })[0] || {}, ids = [1, 2, 3].map(function (k) { return tier['rune_' + k] }).filter(Boolean);
+        if (lv < nd) { h += '<div class="off">符文 ' + (i + 1) + '：武器 Lv' + nd + ' 解鎖</div>'; return }
+        h += '<label><span>符文 ' + (i + 1) + '</span><select data-t="' + i + '"><option value="">（不裝）</option>' + ids.map(function (id) { var ok = rlv(id) >= 1; return '<option value="' + id + '"' + (cur[i] === id ? ' selected' : '') + (ok ? '' : ' disabled') + '>' + esc((RI[id] && RI[id].rune_name) || id) + (ok ? '　Lv' + rlv(id) : '（尚未擁有）') + '</option>' }).join('') + '</select></label>'
+      });
+      h += '</div><div class="cmsg"></div><div class="nsv"><button type="button" class="pbtn" data-a="sv">儲存</button></div>';
+      box.insertAdjacentHTML('beforeend', h); var msg = box.querySelector('.cmsg');
+      box.querySelector('[data-a=sv]').addEventListener('click', function () {
+        var arr = need.map(function (nd, i) { var e = box.querySelector('[data-t="' + i + '"]'); return e ? e.value || '' : '' }), f = {}; f['npcs.' + p.npc + '.ench'] = arr; this.disabled = true; var bt = this;
+        npcSave(f).then(function () { m.npcs = Object.assign({}, m.npcs || {}); m.npcs[p.npc] = Object.assign({}, m.npcs[p.npc] || {}, { ench: arr }); win.close(); C.toast('已儲存 ' + n.name + ' 的符文'); done && done() }, function (e) { bt.disabled = false; msg.textContent = errText(e, '儲存') })
+      })
+    })
+  }
+
   /* ----- 選隊員 ----- */
   function openPicker(parent, done) {
-    var win = overlay('pw'), box = win.box, m = me(); box.insertAdjacentHTML('beforeend', '<h2>選擇隊員</h2><h3>依上線時間排列</h3><div class="lst"><div class="none">讀取中…</div></div>');
+    var win = overlay('pw'), box = win.box, m = me(); box.insertAdjacentHTML('beforeend', '<h2>選擇隊員</h2><div class="pkt"><button type="button" class="on" data-k="p">玩家</button><button type="button" data-k="n">NPC</button></div><h3>依上線時間排列</h3><div class="lst"><div class="none">讀取中…</div></div>');
+    var tabs = box.querySelector('.pkt'), h3 = box.querySelector('h3'), plist = null;
+    tabs.addEventListener('click', function (e) { var b = e.target.closest('button[data-k]'); if (!b) return; [].forEach.call(tabs.children, function (x) { x.classList.toggle('on', x === b) }); if (b.dataset.k === 'n') npcs(); else { h3.hidden = false; if (plist) { var l = box.querySelector('.lst'); l.innerHTML = ''; plist.forEach(function (r) { l.appendChild(r) }) } } });
+    function npcs() {
+      h3.hidden = true; var lst = box.querySelector('.lst'); lst.innerHTML = '';
+      var L = g.NPC ? NPC.list().filter(function (n) { return n.battle && NPC.on(m, n.id) }) : [];
+      if (!L.length) { lst.appendChild(el('div', 'none', '推進劇情可以結識更多同伴')); return }
+      L.forEach(function (n) {
+        var inP = (m.npcParty || []).indexOf(n.id) >= 0, r = el('div', 'rw' + (inP ? ' off' : ''), '<img alt="" src="' + snIcon(n.id) + '"><span class="tx"><b>' + esc(n.name) + '</b><small>Lv.' + NPC.heroLv(m) + '　' + esc(n.job) + '・同伴</small></span>' + (inP ? '<span class="g">已在隊伍中</span>' : '<button type="button">放入</button>'));
+        var b = r.querySelector('button'); if (b) b.addEventListener('click', function () {
+          if (teamN(m) >= 4) { C.toast('隊伍已滿（全隊最多 4 人）'); return } b.disabled = true; var arr = (m.npcParty || []).concat(n.id);
+          npcSave({ npcParty: arr }).then(function () { m.npcParty = arr; syncBtn(); win.close(); C.toast('已把 ' + n.name + ' 放入隊伍'); done() }, function (e) { b.disabled = false; C.toast(errText(e, '放入')) })
+        }); lst.appendChild(r)
+      })
+    }
     API.list().then(function (all) {
       var lst = box.querySelector('.lst'); lst.innerHTML = '';
       all.filter(function (p) { return p.uid !== m.uid && !p.disabled }).forEach(function (p) {
         var inP = (m.party || []).indexOf(p.uid) >= 0, full = !inP && (p.leaders || []).length >= 5, why = inP ? '已在隊伍中' : full ? '已被 5 人加入' : '';
         var r = el('div', 'rw' + (why ? ' off' : ''), '<img alt="" src="' + jicon(p) + '"><span class="tx"><b>' + esc(p.name) + '</b><small>Lv.' + charLv(p) + '　' + esc(jobName(p)) + '・' + (p.lastSeen ? ago(tms(p.lastSeen)) : '—') + '</small></span>' + (why ? '<span class="g">' + why + '</span>' : '<button type="button">放入</button>'));
         var b = r.querySelector('button'); if (b) b.addEventListener('click', function () {
-          if ((m.party || []).length >= 3) { C.toast('隊伍已滿（全隊最多 4 人）'); return } b.disabled = true;
+          if (teamN(m) >= 4) { C.toast('隊伍已滿（全隊最多 4 人）'); return } b.disabled = true;
           API.add(p.uid).then(function () { m.party = (m.party || []).concat(p.uid); p.leaders = (p.leaders || []).concat(m.uid); bust(p.uid); syncBtn(); win.close(); C.toast('已把 ' + p.name + ' 放入隊伍'); done() }, function (e) { b.disabled = false; C.toast(errText(e, '放入')) })
         }); lst.appendChild(r)
       });
-      if (!lst.children.length) lst.appendChild(el('div', 'none', '目前沒有其他玩家'))
+      if (!lst.children.length) lst.appendChild(el('div', 'none', '目前沒有其他玩家'));
+      plist = [].slice.call(lst.children); if (tabs.querySelector('.on').dataset.k === 'n') npcs()
     }, function () { box.querySelector('.lst').innerHTML = '<div class="none">讀取失敗，請稍後再試</div>' })
   }
 
@@ -397,6 +486,6 @@
       host.addEventListener('click', function (e) { e.stopPropagation() }); host.innerHTML = '<div class="mk"><button type="button" class="mb" id="mkChat">聊天</button><button type="button" class="mb" id="mkParty">隊伍 <small></small></button><button type="button" class="mb" id="mkMail">組隊獎勵 <small></small></button></div>';
       document.getElementById('mkChat').addEventListener('click', openChat); document.getElementById('mkParty').addEventListener('click', openParty); document.getElementById('mkMail').addEventListener('click', openMail); syncBtn(); mailCount(); trimParty()
     },
-    fillTeam: fillTeam, mountTabs: mountTabs, jobName: jobName, jobLv: jobLv, charLv: charLv
+    fillTeam: fillTeam, mountTabs: mountTabs, jobName: jobName, jobLv: jobLv, charLv: charLv, npcMembers: npcMembers
   };
 })(window);
