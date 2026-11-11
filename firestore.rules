@@ -183,6 +183,14 @@ service cloud.firestore {
       // 附魔:清單裡每個符文都要至少 1 片碎片(Lv1)
       function enHas(l, i) { return l.size() <= i || resource.data.get('rs', {}).get(l[i], 0) >= 1; }
 
+      // 劇情與 NPC 同伴:story(看過的章節)、npcs.<npc id>(解鎖、技能、符文)、npcParty(入隊的 NPC)
+      // npcParty 有變動時:最多 3 位,而且跟玩家隊員 party 合計最多 3 位(全隊 4 人)
+      function storyOk(ak) {
+        let n = request.resource.data;
+        return n.get('story', {}) is map && n.get('story', {}).size() <= 60
+          && n.get('npcs', {}) is map && n.get('npcs', {}).keys().hasOnly(['npc01','npc02','npc03','npc04','npc05','npc06','npc07','npc08'])
+          && (!('npcParty' in ak) || (n.npcParty is list && n.npcParty.size() + n.get('party', []).size() <= 3));
+      }
       // ===== 自己改自己的資料:所有情況合成一個函式 =====
       // Firebase 每次存檔最多算 1000 個運算式。「整份資料新舊比較」(diff)很耗額度,以前每條規則各算一次,
       // 欄位多的帳號(隊長、管理者)會超過上限而被擋。現在只算一次存在 ak,各種情況共用。
@@ -199,6 +207,11 @@ service cloud.firestore {
         || (
           ak.hasOnly(['runeV','weapons'])
           && migOk()
+        )
+        // 劇情進度、NPC 同伴（解鎖、入隊、技能與符文設定）
+        || (
+          ak.hasOnly(['story','npcs','npcParty'])
+          && storyOk(ak)
         )
         || (
           (
@@ -275,8 +288,8 @@ service cloud.firestore {
         // 組隊：隊長改自己的 party(全隊最多 4 人)
         || (
           ak.hasOnly(['party'])
-          // 全隊最多 4 人(隊員 3 位);原本超過的隊伍只能減少人數
-          && (request.resource.data.party.size() <= 3 || request.resource.data.party.size() < resource.data.get('party', []).size())
+          // 全隊最多 4 人(玩家隊員＋NPC 合計 3 位);原本超過的隊伍只能減少人數
+          && (request.resource.data.party.size() + request.resource.data.get('npcParty', []).size() <= 3 || request.resource.data.party.size() < resource.data.get('party', []).size())
           && !(uid in request.resource.data.party)
         )
         // 以前的隊長清單(被移出後還能領以前累積的分成):自己整理,最多 30 個

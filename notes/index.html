@@ -49,6 +49,7 @@ img.px{image-rendering:pixelated}
 .menu button::after{content:"›";position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:26px;font-weight:900;color:var(--pink2)}
 .menu button b{font-size:20px;letter-spacing:.2em}.menu button small{font-size:12px;color:var(--pink2)}
 .menu button:active{transform:translateY(2px)}
+.setg{display:flex;flex-direction:column;gap:12px;margin:14px 0 4px}.setr{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--pink);background:rgba(255,240,205,.32);border:2px solid var(--pink2);padding:12px 14px;cursor:pointer}.setr span{display:flex;flex-direction:column;gap:2px;min-width:0}.setr b{font-size:16px;letter-spacing:.12em}.setr small{font-size:12px;color:var(--pink2)}.setr input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:#8a4a1c}.setr input[type=range]{width:46%;flex:none;accent-color:#8a4a1c}
 .bk{font:inherit;font-size:13px;font-weight:900;color:var(--pink);background:#d3b480;border:0;padding:4px 10px;cursor:pointer;position:sticky;top:10px;z-index:5;margin:-14px 0 0 -10px;box-shadow:0 0 0 2px var(--pink2),2px 2px 0 2px rgba(0,0,0,.25)}/* 返回鍵捲動時固定在畫面上方 */
 .back .sheet .sth{position:sticky;top:-40px;z-index:2;border-bottom:1px dashed rgba(107,74,42,.35);border-bottom:1px dashed rgba(107,74,42,.35);margin:-40px -26px 4px;padding:30px 70px 6px 26px;min-height:64px;box-sizing:border-box;background-color:#d3b480;background-image:var(--paperT);background-size:256px 256px}
 section[hidden]{display:none}
@@ -142,10 +143,16 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
             <button type="button" data-go="acct"><b>帳號</b><small>登入資訊、登出</small></button>
             <button type="button" data-go="dex"><b>魔物圖鑑</b><small id="foundM"></small></button>
             <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文</small></button>
+            <button type="button" data-go="set"><b>設定</b><small>背景音樂</small></button>
           </div></section>
         <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
         <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>魔物圖鑑</h1>
           <p class="hint"><span id="found"></span>　冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子，秘境的龍一開始就記錄好了。點怪物看詳細資料。</p><div id="dex"></div></section>
+        <section id="v-set" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>設定</h1>
+          <div class="setg">
+            <label class="setr" for="musOn"><span><b>背景音樂</b><small>預設關閉；只存在這台裝置的瀏覽器</small></span><input type="checkbox" id="musOn"></label>
+            <label class="setr" for="musVol"><span><b>音樂音量</b><small id="musVolT"></small></span><input type="range" id="musVol" min="0" max="100" step="5"></label>
+          </div></section>
         <section id="v-doc" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>事典</h1><div class="toc" id="toc"></div></section>
         <p class="demo" id="demoNote" hidden>示範模式：用範例進度顯示。</p>
       </div>
@@ -165,6 +172,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/runevals.js?v=3"></script>
 <script src="../common/monsters.js?v=84"></script>
+<script src="../common/music.js?v=1"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -436,8 +444,8 @@ function openDoc(k){openSheet(function(s){
 })}
 
 /* ---- 記事內的分頁：目錄 → 帳號／魔物圖鑑／事典（用網址 # 記錄，手機返回鍵回目錄） ---- */
-function show(v){['menu','acct','dex','doc'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
-function route(){var h=location.hash.replace('#','');show(['acct','dex','doc'].indexOf(h)>=0?h:'menu')}
+function show(v){['menu','acct','dex','doc','set'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
+function route(){var h=location.hash.replace('#','');show(['acct','dex','doc','set'].indexOf(h)>=0?h:'menu')}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.getAttribute('data-go');if(g){NAVD=true;location.hash=g}else if(NAVD){NAVD=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);route()}});var NAVD=false;
 window.addEventListener('hashchange',route);
 /* ---- 分頁列 ---- */
@@ -455,6 +463,10 @@ Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){USER=who.user;start(Object.assign({uid:who.user.uid},who.player));res()})})})
 }).catch(function(e){var m=$('loading');if(m){m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')}});
+/* 設定：背景音樂（預設關閉，存在這台瀏覽器） */
+(function(){if(!window.Music)return;Music.init(BASE);Music.page('town');var on=$('musOn'),vl=$('musVol'),vt=$('musVolT');if(!on||!vl)return;
+  function sync(){on.checked=Music.isOn();vl.value=Math.round(Music.vol()*100);vt.textContent=vl.value+'%';vl.disabled=!on.checked}
+  on.addEventListener('change',function(){Music.setOn(on.checked);sync()});vl.addEventListener('input',function(){Music.setVol(vl.value/100);vt.textContent=vl.value+'%'});sync()})();
 })();
 </script>
 <script type="module" src="../common/fb.js?v=42"></script>
