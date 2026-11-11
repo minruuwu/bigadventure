@@ -201,6 +201,7 @@ h3{margin:2px 0 0;font-size:12px;font-weight:700;letter-spacing:.2em;color:var(-
 .enlist{margin-top:12px;display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:#1a110b;box-shadow:inset 0 0 0 2px #080503,inset 0 3px 0 #3a2616}
 .enhd{font-size:11px;letter-spacing:.15em;color:#b09a74}
 .enit{display:flex;gap:8px;align-items:center}
+.enit .dv2{display:block;margin-top:2px;font-size:13px;font-weight:900;color:#f2c94c}
 .enit canvas{flex:0 0 auto}
 .enit .tx{min-width:0;display:flex;flex-direction:column}
 .enit b{font-size:13px}
@@ -716,7 +717,9 @@ function renderPanel(){var h=document.getElementById('panel');h.textContent='';v
     h.appendChild(row);
     if(s.ench.length){var lst=el('div','enlist');lst.appendChild(el('div','enhd','生效中的符文'));
       s.ench.forEach(function(id){var r=RUNE[id],it=el('div','enit');it.appendChild(runeStone(id,36,false,false));var tx=el('div','tx');
-        tx.appendChild(el('b',null,r.name+'　Lv'+rLv(id)));tx.appendChild(el('span','dd',r.desc));it.appendChild(tx);lst.appendChild(it)});h.appendChild(lst)}
+        tx.appendChild(el('b',null,r.name+'　Lv'+rLv(id)));tx.appendChild(el('span','dd',String(r.desc||'').replace(/（數值隨等級提升）/g,'')));
+        /* 目前等級的實際數值，不用點進符文之書 */var L=rLv(id),vs=[0,1,2,3].map(function(q){var v=r.lab[q]&&L?rVal(id,L,q):'';return v?r.lab[q]+' '+v:''}).filter(Boolean);
+        if(vs.length)tx.appendChild(el('span','dv2',vs.join('、')));it.appendChild(tx);lst.appendChild(it)});h.appendChild(lst)}
     pn.appendChild(el('p','note','點任一格打開符文之書。武器 Lv30／60／90 各開一格；符文 Lv1 以上才能裝，任何武器都能裝，同一把武器不能重複。符文碎片在冒險地圖右下角的秘境取得。'));
   }}
 function pend(k){var s=ST[k];var tm=totalPts(s.lv)-usedPts(k)>0;var en=s.ench.length<Math.min(slots(s.lv),owned().length);return {tm:tm,en:en,any:tm||en}}
