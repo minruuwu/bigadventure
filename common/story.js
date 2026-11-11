@@ -9,7 +9,7 @@
    需要先載入 common/doll.js、common/npc.js（NPC.load 完成）；有 common/music.js 就會放音樂。 */
 (function(g){
 'use strict';
-var CSS='.sty{position:fixed;inset:0;z-index:9000;background:#0b0a0d;color:#ece4d6;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;overflow-y:auto;-webkit-user-select:none;user-select:none}'+
+var CSS='.sty{position:fixed;inset:0;z-index:9000;background:#0b0a0d;color:#ece4d6;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;overflow-y:auto;-webkit-user-select:none;user-select:none;cursor:pointer}'+
 '.sty[hidden]{display:none!important}'+
 '.sty-w{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}'+
 '.sty-h{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:30px}.sty-t{font-size:14px;font-weight:700;color:#e7c26b;letter-spacing:.06em}'+
@@ -21,9 +21,9 @@ var CSS='.sty{position:fixed;inset:0;z-index:9000;background:#0b0a0d;color:#ece4
 '.sty-d{position:relative;padding-top:40px;overflow:hidden;transition:opacity .35s;cursor:pointer}.sty-d.off{opacity:0;pointer-events:none}'+
 '.sty-pt{position:absolute;bottom:-32px;width:128px;height:128px;image-rendering:pixelated;pointer-events:none;z-index:2;transition:filter .2s steps(2)}'+
 '.sty-pl{left:-16px}.sty-pr{right:-16px}.sty-pt.idle{filter:grayscale(1) brightness(.62)}'+
-'.sty-b{position:relative;z-index:1;background:#0c0a09;color:#f2ede6;border:3px solid #6e4528;box-shadow:0 0 0 2px #2a1709,inset 0 0 0 2px #3d2414,inset 0 0 0 3px #9a6a3e;padding:8px 84px;min-height:70px;display:flex;flex-direction:column;gap:2px}'+
+'.sty-b{position:relative;z-index:1;background:#0c0a09;color:#f2ede6;border:3px solid #6e4528;box-shadow:0 0 0 2px #2a1709,inset 0 0 0 2px #3d2414,inset 0 0 0 3px #9a6a3e;padding:8px 84px;height:84px;display:flex;flex-direction:column;gap:2px}'+
 '.sty-nm{font-weight:700;font-size:14px;color:#d39a5c;min-height:1.2em}.sty-b.r .sty-nm{text-align:right}'+
-'.sty-l{font-size:14px;line-height:1.55;min-width:0}'+
+'.sty-l{font-size:14px;line-height:1.55;min-width:0;height:4.65em;overflow:hidden}'+
 '.sty-nx{position:absolute;right:88px;bottom:4px;font-size:11px;color:#b07a45;animation:stybob 1s steps(2) infinite}'+
 '.sty-d.narr .sty-pt{visibility:hidden}.sty-d.narr .sty-b{padding:10px 16px}.sty-d.narr .sty-nm{display:none}.sty-d.narr .sty-l{color:#cfc6b8}.sty-d.narr .sty-nx{right:12px}'+
 '.sty-d.noL .sty-pl,.sty-d.noR .sty-pr{visibility:hidden}'+
@@ -54,7 +54,7 @@ function run(o,doc,IMG){return new Promise(function(done){
   pL.className='sty-pt sty-pl';pR.className='sty-pt sty-pr';dw.setAttribute('role','button');dw.tabIndex=0;bx.appendChild(who);bx.appendChild(line);bx.appendChild(nx);dw.appendChild(pL);dw.appendChild(pR);dw.appendChild(bx);
   w.appendChild(hd);w.appendChild(st);w.appendChild(dw);root.appendChild(w);document.body.appendChild(root);
   var cx=cv.getContext('2d'),lx=pL.getContext('2d'),rx=pR.getContext('2d'),f48=mk(48,48);[cx,lx,rx].forEach(function(c){c.imageSmoothingEnabled=false});
-  var STEPS=[];(doc.steps||[]).forEach(function(s){if(s[0]==='say')splitLong(String(s[2])).forEach(function(p){STEPS.push(['say',s[1],p])});else STEPS.push(s)});
+  var STEPS=(doc.steps||[]).slice(),pend=[];
   var NM=o.name||'冒險者',M=g.Music;
   /* 狀態 */
   var scene='black',weather='none',rainAmt=0,rainTarget=0,ship=false,bolt=0,nextBolt=0,cam=-1,fadeA=0,xfFrom=null,xfA=0,pc=0,waiting=false,busy=false,heroShown=false,lastNPC=null,alive=true,band=null;
@@ -97,8 +97,15 @@ function run(o,doc,IMG){return new Promise(function(done){
   function showBox(v){dw.classList.toggle('off',!v)}
   function fadeTo(s,op){busy=true;showBox(false);hideNarr();return anim(500,function(u){fadeA=u}).then(function(){scene=s;cam=-1;setWeather(op&&op.weather);rainAmt=rainTarget;return sleep(150)}).then(function(){return anim(600,function(u){fadeA=1-u})}).then(function(){busy=false})}
   function isNpc(sp){return !!(g.NPC&&NPC.get(sp))}
+  function fits(t){line.textContent=t;return line.scrollHeight<=line.clientHeight+1}
+  /* 依對話框實際寬度分頁：放不下三行就換下一格，盡量在標點處斷開；對白的「」只包在頭尾 */
+  function paginate(text,q){var out=[],i=0,n=text.length;while(i<n){var lo=i+1,hi=n,best=i+1;
+      while(lo<=hi){var m=(lo+hi)>>1,t=(q&&i===0?'「':'')+text.slice(i,m)+(q&&m===n?'」':'');if(fits(t)){best=m;lo=m+1}else hi=m-1}
+      if(best<n){for(var k=best;k>i+Math.floor((best-i)*.45);k--){if('。！？，、…；：」—'.indexOf(text[k-1])>=0){best=k;break}}}
+      out.push((q&&i===0?'「':'')+text.slice(i,best)+(q&&best===n?'」':''));i=best}
+    return out.length?out:['']}
   function speaker(sp,text){var narrM=sp==='N';dw.classList.toggle('narr',narrM);
-    who.textContent=sp==='P'?NM:isNpc(sp)?NPC.get(sp).name:narrM?'':sp;line.textContent=narrM?text:'「'+text+'」';
+    who.textContent=sp==='P'?NM:isNpc(sp)?NPC.get(sp).name:narrM?'':sp;pend=paginate(text,!narrM);line.textContent=pend.shift();
     if(sp==='P')heroShown=true;if(isNpc(sp))lastNPC=sp;var other=!narrM&&sp!=='P'&&!isNpc(sp);
     dw.classList.toggle('noL',!heroShown);dw.classList.toggle('noR',other||!lastNPC);bx.classList.toggle('r',sp!=='P'&&!narrM);
     pL.classList.toggle('idle',sp!=='P');pR.classList.toggle('idle',!isNpc(sp))}
@@ -119,10 +126,12 @@ function run(o,doc,IMG){return new Promise(function(done){
       if(s[0]==='end')break;
       pc++}
     finish(false)}
-  function advance(){if(busy||!waiting)return;waiting=false;pc++;next()}
+  function advance(){if(busy||!waiting)return;if(pend.length){line.textContent=pend.shift();return}waiting=false;pc++;next()}
   function finish(skipped){if(!alive)return;alive=false;root.remove();if(o.onDone)o.onDone(!!skipped);done(!!skipped)}
-  st.addEventListener('click',advance);dw.addEventListener('click',advance);
-  [st,dw].forEach(function(e){e.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();advance()}})});
+  /* 劇情中點畫面任何地方都能前進（跳過按鈕與確認視窗除外） */
+  root.addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('.sty-skip,.sty-cf'))return;advance()});
+  function onKey(ev){if(!alive){document.removeEventListener('keydown',onKey);return}if(root.hidden)return;if(ev.key==='Enter'||ev.key===' '){if(ev.target&&ev.target.closest&&ev.target.closest('.sty-skip,.sty-cf'))return;ev.preventDefault();advance()}}
+  document.addEventListener('keydown',onKey);
   sk.addEventListener('click',function(){var cf=el('div','sty-cf'),bxx=el('div'),r=el('div','r'),no=el('button',null,'繼續觀看'),yes=el('button',null,'跳過');no.type=yes.type='button';
     bxx.appendChild(el('div',null,o.skipText||'確定要跳過「'+(doc.title||'劇情')+'」嗎？'));r.appendChild(no);r.appendChild(yes);bxx.appendChild(r);cf.appendChild(bxx);root.appendChild(cf);
     no.onclick=function(){cf.remove()};yes.onclick=function(){cf.remove();(STEPS.filter(function(s){return s[0]==='join'})).forEach(function(s){if(o.onJoin)o.onJoin(s[1])});if(M)M.fade(800);finish(true)}});
