@@ -71,7 +71,7 @@
 
   /* ---------- 建立玩家單位（算法跟角色頁、營地一致） ---------- */
   function jobSn(p) { return p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)) }
-  function learned(p, sk) { var jl = p.jobLv || {}; return !!sk && (sk.id === 'atk' || (/^job\d+$/.test(sk.j || '') && (jl[sk.j] | 0) >= sk.lv)) }
+  function learned(p, sk) { if (p && p.npcLearn) return !!sk && (sk.id === 'atk' || (p.npcLearn[sk.id] != null && (p.lv | 0) >= p.npcLearn[sk.id])); /* NPC：依人物等級學會（npc_info 的 skills） */ var jl = p.jobLv || {}; return !!sk && (sk.id === 'atk' || (/^job\d+$/.test(sk.j || '') && (jl[sk.j] | 0) >= sk.lv)) }
   function setJobs(p) { var main = p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)), x = p.skills && p.skills.extra, ex = Array.isArray(x) ? x : (typeof x === 'string' && x ? [x] : []); return [main].concat(ex.slice(0, 2)) }
   function player(p, D, opt) {
     opt = opt || {};
@@ -80,7 +80,7 @@
     var pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
     var pas = (Array.isArray(sv.passive) ? sv.passive : []).filter(function (id, q) { var k = D.SK[id]; return k && lv >= PSLOT[q] && learned(p, k) });
-    var self = {}, aura = [], special = [];
+    var self = Object.assign({}, p.npcFix || {}), aura = [], special = []; /* NPC 的固定減傷、抗性（npc_info 的 fixed_stats） */
     pas.forEach(function (id) { (D.EFF[id] || []).forEach(function (e) {
       if (e.effect_kind !== 'passive' || !e.effect) return;
       if (e.condition && /^weapon/.test(e.condition) && e.condition !== ws) return;
@@ -103,7 +103,7 @@
       var j = 0; Object.keys(jl).forEach(function (s) { var l = jl[s] | 0, g = D.grow[s]; if (l > 0 && g) j += num(g['per_level_' + k]) * l });
       var bs = 10 + j + ((p.alloc || {})[k] | 0); T[k] = bs + (rOn('rune08') ? Math.round(bs * RV(D, 'rune08', 0, 0.1, rlv)) : 0);
     });
-    var at = D.attr[jobSn(p)] || {}, row = D.wpn[ws];
+    var at = D.attr[jobSn(p)] || {}, row = p.wrow || D.wpn[ws]; /* NPC 的武器數值另外寫在 npc_info */
     function wsum(key) { var t = 0; if (!row) return 0; for (var q = 1; q <= 6; q++) { if (row['auto_stat_' + q] !== key) continue; var per = String(row['auto_per_level_' + q] || '').trim(), v = num(per) * wlv; t += /%/.test(per) ? v / 100 : v }
       for (var u = 1; u <= 3; u++) { if (row['temper_stat_' + u] !== key || !pts[u - 1]) continue; t += num(row['temper_per_point_' + u]) * pts[u - 1] / 100 } return t }
     function ps(stat) { var t = 0, pe = p.pets || {}; Object.keys(D.pet).forEach(function (id) { var pi = D.pet[id]; if (pi.stat !== stat) return; t += pi.per * clamp(((pe[id] || {}).lv) | 0, 0, 10) }); return t }
@@ -124,7 +124,7 @@
         mred: pn(at.m_def_bonus) + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? RV(D, 'rune07', 0, 0.2, rlv) : 0) + sp('m_reduce_rate'),
         res: res, heal: sp('heal_rate'), speed: 10 + num(at.speed_bonus) + a / 20, hit: 0 },
       /* 4 格只認「現職＋額外技能組（最多兩組）」的技能，其他當普通攻擊 */
-      cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) && setJobs(p).indexOf(D.SK[id].j) >= 0 ? id : 'atk' }),
+      cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) && (p.npcLearn || setJobs(p).indexOf(D.SK[id].j) >= 0) ? id : 'atk' }),
       reaction: sv.reaction && D.SK[sv.reaction] && learned(p, D.SK[sv.reaction]) ? sv.reaction : '',
       aura: aura, special: special, mst: mst, runes: en.slice(), rlv: rlv, weapon: p.weapon || '', p: p,
       apa: sp('atk_per_ally'), apaN: opt.allies || 0, pB: s + wsum('p_atk') + Math.round(v * sp('vit_to_p_atk')), mB: i + wsum('m_atk') + Math.round(s * sp('str_to_m_atk')),
@@ -340,6 +340,7 @@
       if (t === 'ally_all') return A;
       if (t === 'ally_others') return A.filter(function (x) { return x !== u });
       if (t === 'ally_single') return A.length ? [choose(A, sk.p, stn)] : [];
+      if (t === 'ally_dead') { var DD = (u.side === 'p' ? P : M).filter(function (x) { return x.dead && !x.summoned }); return DD.length ? [pickOne(DD)] : [] } /* 復生術：陣亡的隊友 */
       if (t === 'ally_other_single') { var A2 = A.filter(function (x) { return x !== u && !x.dead }); return A2.length ? [choose(A2, sk.p, stn)] : [] } /* 自己以外的一名同伴（牧羊權柄） */
       if (t === 'enemy_single') {
         var c = targetable(F, sk); if (!c.length) return [];
@@ -776,11 +777,12 @@
     }
     function flushSt(e) { if (!e._st) return; Object.keys(e._st).forEach(function (n) { var L = e._st[n]; e.txt += '，' + (L.length > 3 ? L.length + ' 人' : L.join('、')) + ((D.STS[n] || {}).pol === 'buff' ? ' 獲得「' : ' 陷入「') + n + '」' }); delete e._st }
     function cdOf(u, id) { return (u.cd && u.cd[id]) || 0 }
-    function canUse(u, sk) { return sk && (sk.id === 'atk' || (cdOf(u, sk.id) <= 0 && (u.sp | 0) >= (sk.sp | 0))) }
+    function canUse(u, sk) { return sk && (sk.id === 'atk' || (cdOf(u, sk.id) <= 0 && (u.sp | 0) >= (sk.sp | 0) && (sk.t !== 'ally_dead' || (u.side === 'p' ? P : M).some(function (x) { return x.dead && !x.summoned })))) }
     /* 手動選目標：單體技能可以點的對象（嘲諷中只能打嘲諷者）；群體回傳整組 */
     function cands(u, id) { var sk = D.SK[id] || D.SK.atk, t = sk.t;
       if (t === 'enemy_single') { var c = targetable(foes(u), sk), tn = c.filter(function (x) { return has(x, 'taunt') }); return tn.length ? tn : c }
       if (t === 'ally_single') return friends(u);
+      if (t === 'ally_dead') return (u.side === 'p' ? P : M).filter(function (x) { return x.dead && !x.summoned });
       return pickTargets(u, sk, false, false) }
     function endAct(u, sk) {
       if (SPM && u.cd) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });
@@ -928,6 +930,10 @@
           else if (r.target === 'ally_all') friends(u).forEach(function (f) { applyStatus(u, f, r.status_name, r.turns, r.apply_chance, e) }); /* 傷害技順便替自己全隊上增益（神聖輝煌） */
           else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
         });
+      } else if (sk.ty === 'heal' && sk.t === 'ally_dead') {
+        /* 復生術：復活一名陣亡隊友，恢復最大生命 × part1_ratio */
+        tg.forEach(function (t) { if (!t.dead) return; t.dead = false; t.undead = null; revive(t, sk.parts[0] ? sk.parts[0].r : 0.25, sk.n, null); e.txt += '，' + t.name + ' 復活了（' + t.hp + ' 生命）'; (e.rev = e.rev || []).push([t.side, t.i]) });
+        e.hp = hpSnap();
       } else if (sk.ty === 'heal') {
         var amtList = [], tot = 0, cal = 0;
         tg.forEach(function (t) {

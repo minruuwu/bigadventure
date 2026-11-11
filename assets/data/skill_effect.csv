@@ -484,3 +484,5 @@ skill489,超新星殉爆,use_if,,,,,hp_below,0.5,,,,,,
 skill490,諸神之暮,summon,,,,,mon96;mon97;mon95;mon98,5,,,,,,all_monsters
 skill491,火焰龍捲,status,熔甲,enemy_single,2,0.4,,,,,,,,
 skill493,火焰獻祭,passive,,,,,soul_feast,0.35,,,,,,4
+skill496,殞星爆,status,魂灼,enemy_all,3,1,,,,,,,,
+skill497,凜冬浩劫,status,霜蝕,enemy_all,3,1,,,,,,,,

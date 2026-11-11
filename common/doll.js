@@ -119,6 +119,8 @@ function frame(s,now){var sk=ix('skin',s.skin),sy2=ix('style',s.style),ey=ix('ey
    octx.drawImage(tinted(hm.s[L],hk+'|s'+L,col),0,d); /* shield halo: free */
    octx.save();octx.beginPath();octx.rect(0,0,N,PAD+34);octx.clip();octx.drawImage(tinted(hm.w[L],hk+'|w'+L,col),0,d);octx.restore()} /* weapon halo stops at the feet line */
   octx.globalAlpha=1}
+ /* NPC：身體（含服裝、頭髮）＋眼睛兩層，武器一樣照斜切線前後分開 */
+ if(s.npc){if(pc)octx.drawImage(pc.under,w.ox,w.oy+d);if(s.npc.body)squash(s.npc.body,d);if(pc)octx.drawImage(pc.over,w.ox,w.oy+d);if(!closed&&s.npc.eyes)octx.drawImage(s.npc.eyes,PAD,PAD+d);if(sh)octx.drawImage(sh.under,0,d);return off}
  if(A.backs[of]&&!s.bare)squash(A.backs[of],d);
  if(pc)octx.drawImage(pc.under,w.ox,w.oy+d);
  squash(A.skins[sk],d);if(!s.bare)squash(A.outfits[of],d);

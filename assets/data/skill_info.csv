@@ -492,3 +492,7 @@ skill490,諸神之暮,monster,0,combat,enemy_all,,damage,,,m,fire,0.9,,,,怪物�
 skill491,火焰龍捲,monster,0,combat,enemy_single,random,damage,,,p,fire,1.5,,,,怪物技能（噴出一道火焰龍捲把目標捲進去：單體火焰物理傷害 ×1.5，40% 機率熔甲 2 回合）,firetornado,,,5,single,,2,,
 skill492,熔岩流,monster,0,combat,enemy_single,random,damage,,,p,fire,1.8,,,,怪物技能（一踏地，腳邊湧出一道熔岩流衝向目標，撞上後炸開：單體火焰物理傷害 ×1.8）,lavaflow,,,5,single,,2,,
 skill493,火焰獻祭,monster,0,passive,,,passive,,,,,,,,,怪物被動（同伴每倒下一隻，那一招結算完後化成一顆魂火繞在身旁，最多 4 顆；生命歸零時吞下一顆魂火復活，恢復 35% 生命，身上的狀態保留。魂火用掉之後可以再補）,,,,,,,,,
+skill494,復生術,npc,55,combat,ally_dead,,heal,,,m,,0.25,,,,復活一名陣亡隊友，並恢復 25% 生命,revive,,,4,single,,4,3,
+skill495,星界降儀,npc,90,combat,enemy_all,,damage,,,m,,2.5,,,,落下許多閃耀著紫金色光芒的流星：全體無屬性魔法傷害,astral,,,4,diamond,3,6,3,
+skill496,殞星爆,npc,40,combat,enemy_all,,damage,,,m,fire,1.5,,,,召來一陣火流星砸向敵陣：全體火焰魔法傷害，附加魂灼 3 回合,meteor,,,4,diamond,3,5,3,
+skill497,凜冬浩劫,npc,70,combat,enemy_all,,damage,,,m,frost,1.8,,,,全體冰霜魔法傷害，附加霜蝕 3 回合,icecrash,,,4,diamond,3,5,3,
