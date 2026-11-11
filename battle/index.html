@@ -130,6 +130,9 @@ button{font:inherit;color:inherit}
 .lvov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:10vh 18px 20px}
 .lvov[hidden]{display:none}.lvbg{position:fixed;inset:0;background:rgba(0,0,0,.62)}
 .lvbox{position:relative;width:100%;max-width:340px;background:#b98a57 var(--kraft,none) 0 0/288px 288px;color:#2e1d0e;padding:18px 16px 16px;box-shadow:inset 0 0 0 6px rgba(70,40,15,.35),6px 6px 0 rgba(0,0,0,.5)}
+.stl{display:flex;flex-direction:column;gap:6px;margin-top:4px}.sti{font:inherit;font-size:14px;font-weight:900;text-align:left;color:#f0dfb8;background:#4a2a12;border:0;padding:9px 12px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;display:flex;justify-content:space-between;align-items:center;gap:8px}.sti em{font-style:normal;font-size:11px;color:#ffe08a;background:#8a2a14;padding:1px 6px}.sti small{font-size:11px;color:#c9b48a}
+.vnew{display:inline-block;margin-left:5px;color:#ffe08a;background:#a82a14;padding:0 5px;box-shadow:0 0 0 1px #1d1008;animation:orb 1.8s ease-in-out infinite}
+.tutov{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}.tutb{background:#0c0a09;color:#f2ede6;border:3px solid #6e4528;box-shadow:0 0 0 2px #2a1709,inset 0 0 0 2px #3d2414;padding:14px 16px;max-width:320px;display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.6}.tuth{color:#d39a5c;font-weight:900;font-size:13px}.tutb button{align-self:flex-end;font:inherit;font-size:13px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:2px solid #6e4528;padding:5px 14px;cursor:pointer}
 .lvbox h2{margin:0;font-size:19px;font-weight:900;color:#2a1708}.lvh{margin:2px 0 10px;font-size:12px;font-weight:700;color:#5a3a1a}
 .lore{margin:4px 0 10px;font-size:12px;line-height:1.6;color:#6a4a2a;text-align:justify}
 .lvbox .x{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;background:#4a2a12;color:#f0dfb8;font-weight:900;cursor:pointer;box-shadow:0 0 0 2px #1d1008}
@@ -211,7 +214,10 @@ html,body,*{touch-action:manipulation}
  <div class="lvov" id="lvov" hidden></div>
  <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
 </div>
-<script src="../common/doll.js?v=12"></script>
+<script src="../common/doll.js?v=13"></script>
+<script src="../common/npc.js?v=1"></script>
+<script src="../common/story.js?v=1"></script>
+<script src="../common/music.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
@@ -323,7 +329,7 @@ function buildData(R){
   return Promise.all(jobs)}
 function stage(lv){return lv>=75?3:lv>=60?2:lv>=30?1:0}
 function wst(p,k){var d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1);return Math.min(3,Math.max(0,(d.stage|0)-1,stage(lv)))}
-function look(p){var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
+function look(p){if(p&&p.npc&&window.NPC){var nl=NPC.look(p.npc,true);if(nl)return nl}/* NPC 同伴：身體＋眼睛兩層＋自己的武器圖 */var w=WBYNAME[p.weapon],wd=w&&W[w],s=w?wst(p,w):0;
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],
     weapon:wd&&(wd.img[s]||wd.img[0])?{img:wd.img[s]||wd.img[0],key:w+'_'+s,cut:wd.cut,ox:wd.ox,oy:wd.oy}:null,
     shield:wd&&wd.offImg&&(wd.offImg[s]||wd.offImg[0])?{img:wd.offImg[s]||wd.offImg[0],key:'off_'+w+'_'+s}:null,halo:w?haloOf(p,w):[]}}
@@ -344,7 +350,8 @@ var BG={
  F:{ft:41,src:AS+'bg_06.png',fg:AS+'fg_06.png',band:94,bw:564,bh:140,sky:'cave',fx:'crypt',gl:{b:[],f:[]}},
  G:{ft:41,src:AS+'bg_07.png',fg:null,band:94,bw:282,bh:140,sky:'cave',fx:'throne'},
  H:{ft:41,src:AS+'bg_09.png?v=2',fg:AS+'fg_09.png?v=2',band:96,bw:564,bh:140,sky:'cave',fx:'castle'},
- R:{ft:41,src:AS+'bg_10.png?v=1',fg:null,band:94,bw:191,bh:140,sky:'cave',fx:'rift'}};/* R = 秘境（龍之聖殿）：固定不捲動 */
+ R:{ft:41,src:AS+'bg_10.png?v=1',fg:null,band:94,bw:191,bh:140,sky:'cave',fx:'rift'},
+ V:{ft:41,src:AS+'bg_11.png?v=1',fg:AS+'fg_11.png?v=1',band:92,bw:282,bh:140,sky:'cave',fix:1}};/* V = 帕拉迪村夜襲（序章教學戰）：固定不捲動 *//* R = 秘境（龍之聖殿）：固定不捲動 */
 var SCN=[['A','魔物森林'],['B','魔晶礦洞'],['C','塵嵐古漠'],['F','幽暗墓穴'],['E','凜冬雪山'],['H','聖教城領'],['D','熔岩火原'],['G','惡魔王城']];
 var cur='A',off=0,lastNow=0,CLD=[];
 /* 我方站位：依人數 1～4 各有站法，[x, 往下位移]；0 號是隊長，前排在右邊（靠近怪物），故意錯落不排成方陣；我方 x ≤ 48、怪物 x ≥ 110，中間留一段空地隔開兩邊 */
@@ -439,7 +446,7 @@ function win(t,te,len){var u=(t-te)/len;return u<0||u>1?-1:u}
 function tick(now){
   if(view!=='battle'){raf=0;return}
   sizeU();var t=now-B.t0,walk=t<WALK,spawn=ease(t/WALK);
-  var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
+  var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk&&!BG[cur].fix)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
   /* 戰報逐行出現 */
   while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){B.hpNow=ce.hp;if(ce.hz){B.hpNow=Object.assign({},ce.hp,{m:ce.hp.m.slice()});ce.hz.forEach(function(i){B.hpNow.m[i]=0})}/* 骨兵／冥屍龍倒下：這一招先把血條歸零，散成骨堆、變身那一行才換成新的血量 */if(ce.hp.sp)B.stNow={p:ce.hp.sp,m:ce.hp.sm,hbp:ce.hp.hbp,hbm:ce.hp.hbm}}B.li++}
   if(VFXT&&B){var VL=Object.keys(VT.st).filter(function(q){return VT.st[q]}),AS=VT.ast&&t>=VT.ast.t0?VT.ast.d:{p:{},m:{}};B.stNow={p:(MEMB.length?MEMB:[0]).map(function(q,i){return (i?[]:VL).concat(AS.p[i]||[])}),m:(B.mons.length?B.mons:[0]).map(function(q,i){return (i?[]:VL).concat(AS.m[i]||[])})}}/* 特效測試：按鈕選的狀態同時套在角色和怪物身上 */
@@ -2246,22 +2253,64 @@ function stMax(i){var a=AREAID[i],has={},any=0;(ENG&&ENG.stage||[]).forEach(func
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
 function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
-function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';var ap=document.querySelector('.app');if(ap)ap.classList.toggle('mapon',v==='map');if(v==='map'){renderMap();mapFocus()}}
+function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';var ap=document.querySelector('.app');if(ap)ap.classList.toggle('mapon',v==='map');if(v==='map'){if(window.Music)Music.page('town');renderMap();mapFocus()}}
 /* 進地圖時捲到最後打的那一章（有光球的區域），放在畫面可見範圍的中間；地圖圖片還沒載完就等載完再捲 */
 function mapFocus(){var img=$('map').querySelector('img');if(!img.complete||!img.naturalHeight){img.addEventListener('load',mapFocus,{once:true});return}if(view!=='map')return;var z=$('zones').children[lastArea()];if(!z){window.scrollTo(0,0);return}
   var tb=document.querySelector('.top'),th=tb?tb.offsetHeight:0,nv=document.querySelector('.tabs'),nh=nv?nv.offsetHeight:90,r=z.getBoundingClientRect(),vis=window.innerHeight-th-nh;window.scrollTo(0,Math.max(0,window.scrollY+r.top-th-Math.max(0,(vis-r.height)/2)))}
-function renderMap(){var h=$('zones');h.textContent='';var la=lastArea();
+function renderMap(){var h=$('zones');h.textContent='';var la=lastArea(),np=needPrologue();
+  (function(){var b=el('button','zone vil');b.type='button';b.style.top=(VILLAGE.y0/MAPH*100)+'%';b.style.height=((VILLAGE.y1-VILLAGE.y0)/MAPH*100)+'%';b.setAttribute('aria-label',VILLAGE.n);
+    var zn=el('span','zn',VILLAGE.n);if(STORIES.some(function(x){return !storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));b.appendChild(zn);if(np){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
+    b.addEventListener('click',openVillage);h.appendChild(b)})();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
-    var zn=el('span','zn',a.n);if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}b.appendChild(zn);if(i===la||OPENED(i)){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
-    b.addEventListener('click',function(){if(OPENED(i))openLevels(i)});h.appendChild(b)})}
+    var zn=el('span','zn',a.n);if(np){b.classList.add('lock');zn.appendChild(el('small',null,i===0?'看完序章後開放':'尚未開放'))}else if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}b.appendChild(zn);if(!np&&(i===la||OPENED(i))){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
+    b.addEventListener('click',function(){if(needPrologue()){toast('先到帕拉迪村看完序章');return}if(OPENED(i))openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2>'+(ALORE[i]?'<p class="lore">'+esc(ALORE[i])+'</p>':'<p class="lvh"></p>')+'<div class="lvg">';
   var cl=cleared(i),sm=stMax(i);for(var l=1;l<=NST;l++){var bs=isBoss(i,l);h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1||l>sm?' disabled':'')+(l>sm?' title="尚未開放" style="opacity:.35"':'')+'>'+(l>sm?'🔒':bs?'Boss':l)+(l<=cl&&l<=sm?' ✓':'')+'</button>'}
   var md=advMode();if(MANUAL){h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo3"><button type="button" class="go" data-a="lvgo" data-m="live" disabled>戰鬥</button><label class="abchk"><input type="checkbox" id="autoChk"'+(autoPref()?' checked':'')+'>自動戰鬥</label></div></div>';var o0=$('lvov');o0.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o0.hidden=false;return}
   h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
+/* ================= 帕拉迪村：劇情列表；新玩家（還沒有任何關卡進度）要先看完序章才能出發 ================= */
+var VILLAGE={n:'帕拉迪村',y0:0,y1:120,lore:'位於古老森林邊緣的一座偏遠人類村莊，但近來森林逐漸出現異變，野獸變得躁動不安，甚至開始襲擊村民。隨著森林深處的威脅日益逼近，這座村莊也逐漸失去了往日的平靜。'};
+var STORIES=[{id:'prologue',t:'序章‧漂流者'}];/* 之後新章節加在這裡（劇本放 assets/data/story/<id>.json） */
+function storyDone(id){var me=MEMB[0]||{};return !!(me.story&&me.story[id])}
+function advAny(){var m=(MEMB[0]&&MEMB[0].adv)||{};return Object.keys(m).some(function(k){return (m[k]|0)>0})}
+function needPrologue(){return !demo&&!storyDone('prologue')&&!advAny()}
+function openVillage(){var h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+VILLAGE.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+VILLAGE.n+'</h2><p class="lore">'+esc(VILLAGE.lore)+'</p><div class="stl">';
+  STORIES.forEach(function(x){h+='<button type="button" class="sti" data-a="story" data-s="'+esc(x.id)+'"><span>'+esc(x.t)+'</span>'+(storyDone(x.id)?'<small>重看</small>':'<em>NEW</em>')+'</button>'});
+  h+='</div></div>';var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
+function storySave(f){var me=MEMB[0];if(!me||!Object.keys(f).length)return;if(demo)return;withFB(function(FB){FB.updatePlayer(f).catch(function(e){toast('劇情進度存檔失敗：'+(e&&(e.code||e.message)))})})}
+function storySeen(id){var me=MEMB[0];if(!me||storyDone(id))return;me.story=Object.assign({},me.story||{});me.story[id]=1;var f={};f['story.'+id]=1;storySave(f)}
+/* NPC 加入：解鎖（npcs.<id>.on）；隊伍還有空位（玩家＋NPC 合計 3 位以內）就直接入隊 */
+function joinNpc(nid){var me=MEMB[0];if(!me||!window.NPC||!NPC.get(nid))return;var f={};me.npcs=Object.assign({},me.npcs||{});var c=Object.assign({},me.npcs[nid]||{});
+  if(!c.on){c.on=true;f['npcs.'+nid+'.on']=true}me.npcs[nid]=c;var np=(me.npcParty||[]).slice();
+  if(np.indexOf(nid)<0&&(me.party||[]).length+np.length<3){np.push(nid);me.npcParty=np;f.npcParty=np}
+  storySave(f);MEMB=[me].concat(npcMembers(me)).concat(MEMB.filter(function(p,i){return i>0&&!p.npc}))}
+function playStory(id){var me=MEMB[0]||{};if(window.Music)Music.fade(600);
+  Story.play({id:id,base:BASE,v:V,name:me.name||'冒險者',hero:look(me),
+    battle:function(kind){return kind==='tutorial'?startTutorial():Promise.resolve()},
+    onJoin:joinNpc,
+    onDone:function(){storySeen(id);showView('map')}}).catch(function(e){toast('劇情讀取失敗：'+(e&&e.message));showView('map')})}
+/* ---- 序章教學戰：主角＋瑟琳 vs 三隻哥布林；手動操作、依序跳教學提示；輸了直接重打 ---- */
+var TUT=null;
+function startTutorial(){return new Promise(function(res){TUT={res:res,tip:{}};tutStart()})}
+function tutStart(){var me=MEMB[0],ser=NPC.player('npc01',me),M=[0,1,2].map(function(k){var m=BattleEngine.monster(ENG.mon.mon05,1,ENG);m.name='哥布林 '+'ABC'[k];return m});
+  startLive(0,1,false,{tut:true,crew:[me,ser],mons:M,bg:'V'})}
+function tutBox(head,text,btn,cb){var o=document.createElement('div');o.className='tutov';o.innerHTML='<div class="tutb" role="dialog" aria-modal="true"><div class="tuth"></div><div class="tutx"></div><button type="button"></button></div>';
+  o.querySelector('.tuth').textContent=head;o.querySelector('.tutx').textContent=text;var b=o.querySelector('button');b.textContent=btn;b.addEventListener('click',function(){o.remove();cb&&cb()});document.body.appendChild(o);b.focus()}
+function tutTip(u,cb){var T=TUT?TUT.tip:{},me=MEMB[0]||{},hero=u.i===0,dead=LV.M.some(function(m){return m.dead}),t=null;u._tn=(u._tn|0)+1;
+  if(dead&&!T.d){T.d=1;t='打倒敵人可以回復 1 點 SP。'}
+  else if(T.d&&!T.e){T.e=1;t='選「待機」可以跳過這次行動，多拿 1 點 SP。覺得麻煩的話，也可以按上方的「自動」，交給隊伍自己行動。'}
+  else if(hero&&!T.a){T.a=1;t='輪到'+(me.name||'你')+'行動了！點「攻擊」，再從清單選一隻哥布林，點兩次就會出手。'}
+  else if(hero&&!T.b&&u._tn>=2&&(u.learned||[]).some(function(k){return LV.S.canUse(u,k)})){T.b=1;t='左上角人物小窗裡的藍色圓點是 SP。技能要消耗 SP，每回合 +1，最多 5 點。打開職業技能，試試你的技能吧！'}
+  else if(!hero&&!T.c){T.c=1;t='瑟琳也由你操作。「黑魔法」裡有火球，「白魔法」裡有治療術，可以替受傷的隊友補血。'}
+  if(!t){cb();return}tutBox('教學',t,'知道了',cb)}
+function tutEnd(win){if(!TUT)return;var cl=function(){$('bres').hidden=true};cl();
+  if(win){tutBox('勝利','哥布林被擊退了！','繼續',function(){var r=TUT.res;TUT=null;closeMenu();if(window.Music)Music.fade(1500);view='map';$('batv').hidden=true;r()/* 不經過 showView：劇情接著播，不要換回地圖音樂 */})}
+  else tutBox('瑟琳','「別放棄，再試一次！」','重新挑戰',function(){tutStart()})}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx')closeLevels();
+  else if(a==='story'){var sid=b.getAttribute('data-s');closeLevels();playStory(sid)}
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
     $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'');[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
   else if(a==='lvgo'&&pickL&&b.getAttribute('data-m')==='live'){var au0=!!($('autoChk')&&$('autoChk').checked);setAutoPref(au0);var A3=pickA,L3=pickL;closeLevels();startLive(A3,L3,au0)}
@@ -2285,7 +2334,7 @@ function riftOpen(d){return [d,(d+1)%7,(d+2)%7]}
 function riftDays(i){return [i,(i+6)%7,(i+5)%7].sort().map(function(d){return RWD.charAt(d)})}
 /* 這場戰鬥的隊伍：冒險 = 自己＋隊伍前 3 人；秘境 = 自己＋選的那位隊友（沒選就自己） */
 function crewOf(rift){var m=MEMB.slice(0,4);if(!rift)return m;var q=rift.mate?MEMB.filter(function(p,i){return i>0&&i<4&&p.uid===rift.mate})[0]:null;return q?[MEMB[0],q]:[MEMB[0]]}
-function crew(){return crewOf(B&&B.rift)}
+function crew(){return B&&B.tutCrew?B.tutCrew:crewOf(B&&B.rift)}
 function riftUsed(){var me=MEMB[0]||{};return me.riftDay===tpeDay()?(me.riftN|0):0}
 function riftBest(R){var me=MEMB[0]||{};return ((me.rift||{})[R.room])|0}
 /* 秘境等級 → 怪物強度：換算成主線的總關數（建議等級 ≈ 關數 × 3） */
@@ -2297,7 +2346,7 @@ function riftMons(rf){var R=RIFTS[rf.i],g=Math.max(1,Math.round(rf.lv/3)),out=[]
   var mk=function(r){var m=BattleEngine.monster(r,g,ENG);m.b.mhp=Math.round(m.b.mhp*sc.hs);m.b.patk=Math.round(m.b.patk*sc.as);m.b.matk=Math.round(m.b.matk*sc.as);m.stg=g;m.hs=sc.hs;m.as=sc.as;return m};
   if(R.young&&ENG.mon[R.young])for(var q=0;q<2;q++){var y=mk(ENG.mon[R.young]);y.name+=' '+'AB'[q];out.push(y)}
   out.push(mk(ENG.mon[R.boss]));return out}
-function battleTitle(b){if(b&&b.rift){var R=RIFTS[b.rift.i]||{};return '秘境・'+(R.n||'')+'　Lv'+b.rift.lv}return AREA[b.a].n+'　第 '+b.l+' 關'+(isBoss(b.a,b.l)?'（Boss）':'')}
+function battleTitle(b){if(b&&b.tut)return '帕拉迪村‧夜襲';if(b&&b.rift){var R=RIFTS[b.rift.i]||{};return '秘境・'+(R.n||'')+'　Lv'+b.rift.lv}return AREA[b.a].n+'　第 '+b.l+' 關'+(isBoss(b.a,b.l)?'（Boss）':'')}
 /* 背景比畫面寬：置中、不捲動 */
 function riftCenter(){if(!B||!B.rift)return;var fw=frame.clientWidth,tw=tileW();off=Math.max(0,(tw-fw)/2)}
 /* 掉落：基本 2 片，每高一階（10 級）多 15% 機率再掉 1 片，超過 100% 的部分必掉；每片各自從這間的符文池抽 */
@@ -2506,22 +2555,23 @@ function runeTxt(d,e){var R=e.rn&&RUNE[e.rn];if(!R||!R.name)return;var i=e.txt.i
 function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||(r[q[0]]={v:0,by:{}}),k=q[3]||'其他',b=o.by[k]||(o.by[k]={v:0,c:0});o.v+=q[2];b.v+=q[2];b.c++});if(btab!=='log')renderStats();var box=$('log'),d=el('div','lg'+(e.kind==='round'?' rd':''),e.txt);runeTxt(d,e);box.appendChild(d);
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});[].concat(e.pko==null?[]:e.pko).forEach(function(i){box.appendChild(el('div','lg ko',(crew()[i]||{}).name+' 倒下了'))});
   box.scrollTop=box.scrollHeight}
-function startBattle(a,l){if(!RF)setLastArea(a);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
+function startBattle(a,l){if(!RF)setLastArea(a);if(window.Music)Music.play(!RF&&isBoss(a,l)?'boss':'battle',800);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=battleTitle(B);$('log').textContent='';$('bres').hidden=true;
   setBG(B.rift?'R':AREA[a].bg);riftCenter();build();B.t0=performance.now()-(B.rift?WALK:0);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
 /* ======== 手動戰鬥（測試入口 ?manual=1）：輪到我方角色時停下來選招、選目標；可以整隊切自動，也可以這次行動交給自動 ======== */
 function autoPref(){try{return localStorage.getItem('adv.autoBattle')==='1'}catch(e){return false}}
 function setAutoPref(v){try{localStorage.setItem('adv.autoBattle',v?'1':'0')}catch(e){}}
 var LV=null;/* 手動戰鬥的狀態：S = 引擎、mp = 動畫轉換、order/qi = 這回合的行動順序、wait = 等誰選、auto = 整隊自動 */
-function startLive(a,l,auto){if(!RF)setLastArea(a);PARTS=[];curClear();
-  var CR=crewOf(RF),allies=CR.length-1,P=CR.map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
-  var M=RF?riftMons(RF):BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
+function startLive(a,l,auto,opt){opt=opt||{};if(!RF&&!opt.tut)setLastArea(a);PARTS=[];curClear();
+  var CR=opt.crew||crewOf(RF),allies=CR.length-1,P=CR.map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
+  var M=opt.mons||(RF?riftMons(RF):BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length)),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
+  if(window.Music)Music.play(!opt.tut&&!RF&&isBoss(a,l)?'boss':'battle',800);
   B={live:true,ev:mp.ev,mons:ms,pkl:mp.pkl,psw:mp.psw,pko:{},mko:mp.mko,res:null,end:1e15,a:a,l:l,rift:RF?Object.assign({},RF):null,
-    mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true};
+    mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true,tut:!!opt.tut,tutCrew:opt.crew||null};
   B.wall=Date.now();B.hp0=B.hpNow;B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   LV={S:S,P:P,M:M,mp:mp,n:0,order:[],qi:0,wait:null,auto:!!auto,b:B};
   showView('battle');var bh=$('bhead');bh.textContent=battleTitle(B);var tg=el('button','atg');tg.type='button';tg.id='atg';tg.addEventListener('click',function(){setLiveAuto(!LV.auto)});bh.appendChild(tg);setLiveAuto(LV.auto,true);
-  $('log').textContent='';$('bres').hidden=true;closeMenu();$('binfo').hidden=true;LV.infoOpen=false;setBG(B.rift?'R':AREA[a].bg);riftCenter();build();liveBind();B.t0=performance.now()-(B.rift?WALK:0);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick);liveStep()}
+  $('log').textContent='';$('bres').hidden=true;closeMenu();$('binfo').hidden=true;LV.infoOpen=false;setBG(opt.bg||(B.rift?'R':AREA[a].bg));riftCenter();if(BG[cur].fix){var tw0=tileW(),fw0=frame.clientWidth;off=Math.max(0,(tw0-fw0)/2)}build();liveBind();B.t0=performance.now()-(B.rift?WALK:0);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick);liveStep()}
 function setLiveAuto(v,quiet){if(!LV)return;LV.auto=v;renderInfo();var b=$('atg');if(b){b.textContent=v?'自動中':'自動';b.classList.toggle('on',v)}if(v&&LV.wait){var u=LV.wait;closeMenu();liveAct(u,null)}}
 function liveNow(){return B?performance.now()-B.t0:0}
 /* 把引擎新加的戰報轉成動畫事件；先把時間拉到「現在」以後，免得選招花的時間讓動畫倒著播 */
@@ -2540,14 +2590,14 @@ function liveStep(){var S=LV.S;if(B!==LV.b)return;
     S.finish(u);liveFlush()}}
 function liveAct(u,forced){var S=LV.S;LV.wait=null;LV.hold=null;closeMenu();S.finish(u,forced||undefined);liveFlush();liveStep()}
 /* 等前面的動畫演完才跳選單 */
-function menuWhenReady(){if(!LV||!LV.wait||B!==LV.b)return;if(liveNow()<LV.waitAt-150){setTimeout(menuWhenReady,80);return}openMenu(LV.wait)}
+function menuWhenReady(){if(!LV||!LV.wait||B!==LV.b)return;if(liveNow()<LV.waitAt-150){setTimeout(menuWhenReady,80);return}if(B.tut&&!LV.auto){var tw=LV.wait;tutTip(tw,function(){if(LV&&LV.wait===tw&&!LV.auto)openMenu(tw)});return}openMenu(LV.wait)}
 /* ---- 行動選單：跳在輪到的人右邊，三欄往右展開（主選單｜技能｜目標）；目標都從清單選，點兩次才施放；點選單外面退一步 ---- */
 var MS=null;/* {u, set, sk, tg} */
 function closeMenu(){var m=$('bmenu');if(m){m.hidden=true;m.textContent=''}var d=$('bdesc');if(d)d.hidden=true;MS=null;LV&&(LV.hl=null)}
 function spDots(n){var d=el('span','spd');for(var i=0;i<5;i++)d.appendChild(el('i',i<n?'on':null));return d}
 function clearTg(){if(LV)LV.hl=null}
 /* 技能組：現職（只算現職本身的技能）＋最多兩組額外技能組 */
-function skillSets(u,p){var main=p.jobSn||(Doll.JOBSN&&Doll.JOBSN[p.job|0])||'',ex=(p.skills&&p.skills.extra);ex=Array.isArray(ex)?ex:ex?[ex]:[];ex=ex.filter(function(j,i){return j&&j!==main&&ex.indexOf(j)===i}).slice(0,2);
+function skillSets(u,p){if(p&&p.npc&&window.NPC)return NPC.groups(p.npc).map(function(g){return{j:g.n,n:g.n,sk:(u.learned||[]).filter(function(k){return g.ids.indexOf(k.id)>=0})}}).filter(function(g){return g.sk.length});var main=p.jobSn||(Doll.JOBSN&&Doll.JOBSN[p.job|0])||'',ex=(p.skills&&p.skills.extra);ex=Array.isArray(ex)?ex:ex?[ex]:[];ex=ex.filter(function(j,i){return j&&j!==main&&ex.indexOf(j)===i}).slice(0,2);
   return [main].concat(ex).map(function(j){return{j:j,n:(JOBI[j]&&JOBI[j].skill_set)||((JOBI[j]&&JOBI[j].job_name)||j)+'技能',sk:(u.learned||[]).filter(function(k){return k.j===j})}}).filter(function(g){return g.sk.length})}
 function tgtLabel(t){return t==='enemy_single'?'敵方單體':t==='enemy_all'?'敵方全體':t==='ally_single'?'我方單體':t==='ally_all'?'我方全體':t==='ally_others'?'其他隊友':t==='self'?'自身':''}
 function openMenu(u){MS={u:u,set:null,sk:null,tg:null};LV.view=u;renderMenu();renderInfo()}
@@ -2628,12 +2678,12 @@ function makeReq(b){if(b.res!=='win')return null;if(b.rift)return riftReq(b);var
   return{area:AREAID[b.a],stage:b.l,exp:exp,stones:st,cookie:Math.random()<0.01,clear:newClear,name:me.name,share:share,bx:bx,lvi:lvi?Object.assign(lvi,{l:b.l}):null}}
 /* ---- 戰鬥暫存：切到別頁再回來時接著播（離開期間戰鬥照樣進行）；只存在這台裝置，不碰資料庫 ---- */
 var CURK='adv.cur',KEEP=30*60*1000;
-function curSave(){if(!B)return;try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,rift:B.rift||null,ev:B.ev,mons:B.mons,pkl:B.pkl,psw:B.psw,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
+function curSave(){if(!B||B.tut)return;/* 教學戰不存暫存 */try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,rift:B.rift||null,ev:B.ev,mons:B.mons,pkl:B.pkl,psw:B.psw,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
 function curClear(){try{localStorage.removeItem(CURK)}catch(e){}}
 function curLoad(){try{var o=JSON.parse(localStorage.getItem(CURK)||'null');if(!o||!o.wall||Date.now()-o.wall>KEEP||!MEMB[0]||o.uid!==MEMB[0].uid){curClear();return null}return o}catch(e){return null}}
 function lastAdv(){try{return parseInt(localStorage.getItem('adv.last'),10)||0}catch(e){return 0}}
 function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}}
-function showResult(){var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
+function showResult(){if(B&&B.tut){tutEnd(B.res==='win');return}var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
   var box=$('bres');box.hidden=false;$('rok').disabled=false;
   if(B.rift){riftResult(w);return}
   if(!w){$('rtxt').innerHTML='這場沒有獎勵，下次再挑戰吧。';curClear();$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});return}
@@ -2793,9 +2843,10 @@ function glArr(l){return (l||[]).map(function(g){return [g.x,g.y,g.radius,g.colo
 function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
 /* 背景讀到伺服器上最新的自己（技能、職業等級剛改過時快取可能是舊的）：還沒開打就換成新的 */
 window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo||!MEMB.length||(B&&!B.done))return;MEMB[0]=Object.assign({},MEMB[0],p,{uid:MEMB[0].uid})});
+function npcMembers(me){if(!window.NPC)return[];return (me.npcParty||[]).filter(function(id,i,a){return a.indexOf(id)===i&&NPC.on(me,id)&&NPC.get(id)&&NPC.get(id).battle}).slice(0,3).map(function(id){return NPC.player(id,me)})}
 function start(me,mem){
-  MEMB=[me].concat(mem);NavIcons.setPlayer(me);
-  $('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試入口（選關預設戰棋）':'');
+  MEMB=[me].concat(npcMembers(me)).concat(mem);NavIcons.setPlayer(me);
+  Music.init(BASE);$('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試入口（選關預設戰棋）':'');
   $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
 /* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
 var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',
@@ -2817,7 +2868,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   SKI[0]=I.monster_02;SKI[1]=I.monster_02_blink;layInit('gob',I.monster_03,I.monster_03_blink);layInit('orc',I.monster_boss_01,I.monster_boss_01_blink);layInit('gobw',I.monster_08,I.monster_08_blink);layInit('golem',I.monster_11,I.monster_11_blink);layInit('cgolem',I.monster_12,I.monster_12_blink);layInit('spider',I.monster_13,I.monster_13_blink);layInit('troll',I.monster_17,null);layInit('osiris',I.monster_boss_06,null);layInit('sdragon',I.monster_boss_05,null);layInit('croc',I.monster_22,null);layInit('jackal',I.monster_23,null);layInit('gorgon',I.monster_24,null);layInit('ydragon',I.monster_26,null);layInit('fydragon',I.monster_27,null);layInit('iydragon',I.monster_29,null);layInit('lydragon',I.monster_30,null);layInit('udragon',I.monster_boss_11,null);layInit('u2dragon',I.monster_boss_12,null);layInit('bonedragon',I.monster_31,null);layInit('mdragon',I.monster_33,null);layInit('zombie',I.monster_34,null);layInit('druid',I.monster_35,null);layInit('boneman',I.monster_36,null);layInit('bonearcher',I.monster_38,null);layInit('gargoyle',I.monster_39,I.monster_39_eyes);layInit('apostle',I.monster_40,I.monster_40_blink);layInit('fleshgolem',I.monster_42,null);LAY.leoric.wpn=I.monster_boss_15_sword;LAY.sguard.wpn=I.monster_55_wpn;layInit('sguard',I.monster_55,I.monster_55_eyes);LAY.sarcher.wpn=I.monster_56_wpn;layInit('sarcher',I.monster_56,I.monster_56_eyes);LAY.sknight.wpn=I.monster_58_wpn;layInit('sknight',I.monster_58,I.monster_58_eyes);LAY.spriest.wpn=I.monster_59_wpn;layInit('spriest',I.monster_59,null);LAY.judge1.wpn=I.monster_60_wpn;layInit('judge1',I.monster_60,null);layInit('judge2',I.monster_61,null);layInit('griffin',I.monster_62,null);LAY.ironguard.wpn=I.monster_63_wpn;layInit('ironguard',I.monster_63,I.monster_63_eyes);layInit('flagel',I.monster_64,I.monster_64_eyes);/* 聖教衛士：長槍＋盾牌＋手一層，呼吸時整層跟著上半身動、不會被切 */layInit('leoric',I.monster_boss_15,I.monster_boss_15_blink);layInit('chroma',I.monster_boss_16,null);layInit('yeti',I.monster_44,I.monster_44_eyes);layInit('stiger',I.monster_45,I.monster_45_eyes);layInit('slion',I.monster_47,null);layInit('cqueen',I.monster_boss_17,null);layInit('goatman',I.monster_48,null);layInit('mammoth',I.monster_49,I.monster_49_eyes);layInit('ielem',I.monster_50,I.monster_50_eyes);layInit('fsamurai',I.monster_51,null);layInit('valhalla',I.monster_boss_18,null);layInit('bonepile',I.monster_37,null);layInit('behemoth',I.monster_boss_14,I.monster_boss_14_blink);layInit('hydragon',I.monster_32,null);layInit('scorpion',I.monster_21,null);layInit('salam',I.monster_69,null);layInit('lavag',I.monster_71,null);layInit('felem',I.monster_75,null);layInit('shound',I.monster_76,null);layInit('acidb',I.monster_78,null);layInit('typhon',I.monster_79,null);layInit('fallen',I.monster_72,null);layInit('fwizard',I.monster_73,null);layInit('balrog',I.monster_74,null);layInit('mummy',I.monster_20,null);layInit('sandsnake',I.monster_19,I.monster_19_blink);LAY.sandsnake.tg=I.monster_19_tongue;
   Object.keys(ANI).forEach(function(k){ANI[k].im=I[ANI[k].f]});Object.keys(FLY).forEach(function(k){FLY[k].im=FLY[k].f.map(function(f){return I[f]})});if(I.monster_66&&I.monster_66_halo){FLY.pope.im=popeFrames(I.monster_66,I.monster_66_halo,0);if(I.monster_67)FLY.pope2.im=popeFrames(I.monster_67,I.monster_66_halo,1)}
   for(var vi=0;vi<8;vi++){SLASH[vi]=I['slash_0'+vi];ARROW[vi]=I['arrow_0'+vi];MISSILE[vi]=I['missile_0'+vi];THRUST[vi]=I['thrust_0'+vi];SMASH[vi]=I['smash_0'+vi]}[SLASH,ARROW,MISSILE,THRUST,SMASH].forEach(function(L){L[8]=greenOf(L[1],145);L[9]=greenOf(L[6],210);L[10]=greenOf(L[1],-22)});CLAW=I.claw;BSLASH=I.blood_slash;HSWORD=I.holy_sword;
-  return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)})
+  return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return Doll.load(BASE,V)}).then(function(){return NPC.load(BASE,V)})
 }).then(function(){
   if(VFXT){vtStart();return}
   if(demo&&/demo=2/.test(location.search)){var d2=demoPlayers().concat(demoPlayers().slice(0,1).map(function(q){return Object.assign({},q,{uid:'d4',name:'小強'})}));d2.forEach(function(q,i){var jn='job0'+((i%5)+1),k=WBYNAME[q.weapon];q.jobSn=jn;q.job=i%5;q.lv=12;q.jobLv={};q.jobLv[jn]=12;q.alloc={str:30,int:0,agi:10,vit:15,luk:0};q.weapons={};if(k)q.weapons[k]={lv:15};q.skills={combat:['skill001','skill006','skill003','skill008'],reaction:'',passive:[]};var jx='job0'+(((i+1)%5)+1);q.jobLv[jx]=8;q.skills.extra=jx/* 示範：另練一個職業，戰棋帶它當額外技能組 */});start(d2[0],d2.slice(1));return}
