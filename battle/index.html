@@ -1603,7 +1603,7 @@ var ARU=['.X.','XXX','.X.','.X.'],ARD=['.X.','.X.','XXX','.X.'],HRT=['.X.X.','XX
 function drawStatus(now){if(!B||view!=='battle')return;
   party.forEach(function(p){if(p.sfx&&p.vis)stDraw(p.sfx,p.sx,p.gy,p.top,14,now+p.ph*5,0,1)});
   mons.forEach(function(m){if(m.alive&&LAY[m.k]&&LAY[m.k].orb)staffOrb(m,now)});
-  popeTick(now);/* 教皇：聖域光罩、不滅供奉的白線、羔羊的紅線、褻瀆光環 */
+  partyDome(now);popeTick(now);/* 教皇：聖域光罩、不滅供奉的白線、羔羊的紅線、褻瀆光環 */
   var HB=B&&B.stNow;if(HB&&HB.hbm)mons.forEach(function(m,i){var n=HB.hbm[i]|0;if(n&&m.alive&&m.lx!=null){var MZ=msz(m.k);miniShields(m.lx,m.gy-(m.lift||0)-MZ[1]*m.sc*.5,n,MZ[0]*m.sc*.42,now+i*400)}});if(HB&&HB.hbp)party.forEach(function(p,i){var n=HB.hbp[i]|0;if(n&&p.vis)miniShields(p.sx,(p.top+p.gy)/2,n,8,now+i*400)});/* 聖堂守勢的小盾牌 *//* 聖教神甫：杖頂的白金光球 */
   mons.forEach(function(m){if(!m.sfx||!m.alive)return;var MZ=msz(m.k),lf=m.lift||0;stDraw(m.sfx,m.lx,m.gy,m.gy-lf-MZ[1]*m.sc*(m.k==='dragon'?.8:1),Math.min(30,MZ[0]*m.sc*.6),now+m.ph*7,lf)});pctx.globalAlpha=1}
 /* 聖盾：白金色的鳶形光盾（上方平、下方收成尖），金邊、中間一個金色十字；al = 透明度 */
@@ -1937,7 +1937,11 @@ function popeTick(now){var pi=popeIdx();if(pi<0)return;var P0=mons[pi],pm=monPos
     /* 不滅供奉：每隻活著的小兵身上一條微微波動的白線連到教皇，光點往教皇流 */mons.forEach(function(m,i){if(i===pi||!m.alive||m.lx==null)return;var mp=monPos(i);if(!mp)return;var px2=pm[0]-6,py2=pm[1]+6;wline(mp[0],mp[1],px2,py2,'#ffffff','#c8c0ff',.9,2.2,now+i*300,2,1);for(var fd=0;fd<2;fd++){var u=((now+i*400+fd*550)%1100)/1100,fx=mp[0]+(px2-mp[0])*u,fy=mp[1]+(py2-mp[1])*u,fa=u>.6?1-(u-.6)/.4:1;VP(fx,fy,'#fff4c4',fa);VP(fx+1,fy,'#ffd86a',.8*fa);VP(fx,fy-1,'#ffffff',.7*fa)}})}
   /* 褻瀆光環的腳下法陣畫在靈氣圖層（drawAura），在角色後面 */
   /* 牧羊權柄：一條紅線從教皇傳到羔羊身上 */var SN=B&&B.stNow,vtL=VFXT&&VT.sk==='skill437';if((SN&&SN.m)||vtL)mons.forEach(function(m,i){if(i===pi||!m.alive||!(vtL?i===1:(SN.m[i]||[]).some(function(n){return String(n).split('|')[0]==='羔羊'})))return;var mp=monPos(i);if(!mp)return;var px3=pm[0]-6;wline(px3,pm[1]+2,mp[0],mp[1]+2,'#e0182e','#7a0818',.85,1.2,now,2,-1);for(var j=0;j<3;j++){var u3=((now/700+j/3)%1);VP(px3+(mp[0]-px3)*u3,pm[1]+2+(mp[1]-pm[1])*u3,'#ff8080',u3<.4?u3/.4:1)}})}
-function sanctDome(now){var L=1e9,R=-1e9,T=1e9,Bm=-1e9;mons.forEach(function(m){if(!m.alive||m.lx==null)return;var MZ=msz(m.k),w=MZ[0]*m.sc/2;L=Math.min(L,m.lx-w);R=Math.max(R,m.lx+w);T=Math.min(T,m.gy-(m.lift||0)-MZ[1]*m.sc);Bm=Math.max(Bm,m.gy)});if(L>1e8)return;
+function sanctDome(now){var L=1e9,R=-1e9,T=1e9,Bm=-1e9;mons.forEach(function(m){if(!m.alive||m.lx==null)return;var MZ=msz(m.k),w=MZ[0]*m.sc/2;L=Math.min(L,m.lx-w);R=Math.max(R,m.lx+w);T=Math.min(T,m.gy-(m.lift||0)-MZ[1]*m.sc);Bm=Math.max(Bm,m.gy)});if(L>1e8)return;domeBox(L,R,T,Bm,now)}
+/* 我方聖域術：有人身上掛著「聖域」時，同一個白金光罩罩住我方全隊 */
+function partyDome(now){var SN=B&&B.stNow,on=false;if(!on&&SN&&SN.p)on=party.some(function(p,k){return p.vis&&(SN.p[k]||[]).some(function(n){return String(n).split('|')[0]==='聖域'})});if(!on)return;
+  var L=1e9,R=-1e9,T=1e9,Bm=-1e9;party.forEach(function(p){if(!p.vis||p.sx==null)return;L=Math.min(L,p.sx-9);R=Math.max(R,p.sx+9);T=Math.min(T,p.top);Bm=Math.max(Bm,p.gy)});if(L>1e8)return;domeBox(L,R,T,Bm,now)}
+function domeBox(L,R,T,Bm,now){
   var cx=(L+R)/2,base=Bm+3,rx=(R-L)/2+12,ry=Bm-T+12,a=.28+.1*Math.sin(now/700),N=Math.round(rx*3.4);for(var n=0;n<=N;n++){var an=n/N*Math.PI;VP(cx+Math.cos(an)*rx,base-Math.sin(an)*ry,'#ffd86a',a);VP(cx+Math.cos(an)*rx,base-Math.sin(an)*ry+1,'#fff4c4',a*.5)}
   for(var gy=base-ry+4;gy<base;gy+=6)for(var gx=cx-rx;gx<=cx+rx;gx+=7){var ox=gx+((Math.round((gy-base)/6)%2)?3.5:0),q=(ox-cx)/rx,h=(base-gy)/ry;if(q*q+h*h<.95)VP(ox,gy,'#fff8e4',a*.35)}
   var sw=((now/2600)%1)*Math.PI;for(var j=0;j<8;j++){var aj=sw+j*.02;if(aj>Math.PI)break;VP(cx+Math.cos(aj)*rx,base-Math.sin(aj)*ry,'#ffffff',a*2)}}
