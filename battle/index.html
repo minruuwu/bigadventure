@@ -1136,7 +1136,7 @@ function thornRing(f,d){if(d<0||d>720)return;var C=thornCols(),u=d/720,gr=u<.3?e
     for(var j=0;j<=L;j++){var rr=r0+j,x=f.x+Math.cos(an)*rr,y=f.y-1+Math.sin(an)*rr*.42,tip=j>=L-1;VP(x,y,tip?C.l:j<L*.4?C.d:C.c,fa*(Math.sin(an)>-.2?1:.6))}}
   var rx=(3+gr*4)*sc;for(var q=0;q<36;q++){var a2=q/36*Math.PI*2;VP(f.x+Math.cos(a2)*rx,f.y-1+Math.sin(a2)*rx*.42,q%2?C.c:C.d,fa*.75)}
   if(u<.25){var fl=1-u/.25;for(var q2=0;q2<20;q2++){var a3=q2/20*Math.PI*2;VP(f.x+Math.cos(a3)*rx*1.6,f.y-1+Math.sin(a3)*rx*.65,C.l,fl*.6)}}}
-function drawVfx(t){shakeY=0;shakeX=0;if(!B)return;bstBuf(t,true);/* 幻獸持續效果（守護晶石、龍印、鱗甲…）前面那層 */sunFx(t);soulFx(t);
+function drawVfx(t){shakeY=0;shakeX=0;if(!B)return;bstBuf(t,true);bstMonBuf(t);/* 幻獸持續效果（守護晶石、龍印、鱗甲…）前面那層 */sunFx(t);soulFx(t);
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
   B.ev.forEach(function(e){FXA=e.el==='undead'?UNDA:1;for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*(e.hg||130),hh);FXA=1});
   B.ev.forEach(function(e){if(e.dring){var f=footOf(e.dring[0],e.dring[1]);if(f)debuffRing(f,t-e.t-(e.rfx?40:200),e.dcol)}if(e.rfx)runeFx(e,t-e.t);if(e.spd)e.spd.forEach(function(k){var f=footOf('p',k);if(f)spDrainFx(f,t-e.t-(e.hit||180)-80)});if(e.tring){var f2=footOf(e.tring[0],e.tring[1]);if(f2)thornRing(f2,t-e.t)}if(e.frr){var fp=e.frr[0]==='p'?posOf(e.frr[1]):monPos(e.frr[1]);if(fp){var fy=e.frr[0]==='p'?fp[1]-14:fp[1];pBurst('frost',fp[0],fy,t-e.t-40,16,VS);frostShardFx(fp[0],fy,t-e.t)}}/* 霜甲反擊：攻擊者身上炸出冰晶 */if(e.acr){var ap2=e.acr[0]==='p'?posOf(e.acr[1]):monPos(e.acr[1]);if(ap2)acidSplat(ap2[0],e.acr[0]==='p'?ap2[1]-16:ap2[1],t-e.t-40)}/* 異形酸血：攻擊者身上濺酸 */if(e.firr){var fp2=e.firr[0]==='p'?posOf(e.firr[1]):monPos(e.firr[1]);if(fp2)pBurst('fire',fp2[0],e.firr[0]==='p'?fp2[1]-14:fp2[1],t-e.t-40,18,VS)}/* 焰甲反擊：攻擊者身上噴火 */});
@@ -2073,6 +2073,10 @@ BSTALL.tornado=1;BSTALL.roar=1;BSTALL.crystals=1;
 var BSELF={guard:1,sigil:1,scales:1,regen:1,neon:1};/* 作用在主人身上、不打敵人的招 */
 Object.assign(BSTHIT,{fbreath1:560,tornado:700,sigil:0,fbomb:680,scales:0,regen:0,meteor2:660,roar:460,wisp:640,crystals:520,neon:0,aurora:430});
 var BSTMENU=[['fire','fire_atk','fire_def','fire_sup'],['frost'],['lightning'],['wind'],['nature'],['light'],['dark']];
+/* 火焰化的幻獸：對比拉到最高，只有最暗的那些格子變橘色、其他全部變白（快取） */
+var BFS={};function bstFire(k){if(BFS[k])return BFS[k];var s=bstS(k),sm=bstSmall(k,s);if(!sm)return null;var c=document.createElement('canvas');c.width=c.height=s;var g=c.getContext('2d');g.drawImage(sm,0,0);var D=g.getImageData(0,0,s,s),a=D.data,L=[],i;
+  for(i=0;i<a.length;i+=4)if(a[i+3]>40)L.push(a[i]*.3+a[i+1]*.59+a[i+2]*.11);L.sort(function(x,y){return x-y});var th=L.length?L[Math.floor(L.length*.3)]:0;
+  for(i=0;i<a.length;i+=4){if(a[i+3]<=40){a[i+3]=0;continue}var lu=a[i]*.3+a[i+1]*.59+a[i+2]*.11;if(lu<=th){a[i]=255;a[i+1]=122;a[i+2]=26}else{a[i]=255;a[i+1]=248;a[i+2]=228}a[i+3]=255}g.putImageData(D,0,0);return BFS[k]=c}
 function bstS(k){var im=IMG['bst_'+k];return Math.round((im&&im.naturalWidth||32)*BSZ)}/* 幼體 32 格、成熟體 48 格，同樣縮放 → 成熟體大一圈 */
 /* 持續效果：B.bbuf[主人][種類]={b,t0} */
 function bstBufSet(k,kind,b,t){if(!B)return;B.bbuf=B.bbuf||{};var o=B.bbuf[k]=B.bbuf[k]||{};if(o[kind]&&o[kind].b===b)return;o[kind]={b:b,t0:t}}
@@ -2091,6 +2095,10 @@ function bstBuf(t,front){if(!B||!B.bbuf)return;Object.keys(B.bbuf).forEach(funct
       VP(x,y-1,c[3],al*fl);VP(x-1,y,c[2],al*fl);VP(x,y,c[3],al*fl);VP(x+1,y,c[2],al*fl);VP(x-1,y+1,c[1],al*fl);VP(x,y+1,c[2],al*fl);VP(x+1,y+1,c[1],al*fl);VP(x,y+2,c[0],al*fl*.8)});
       glowAt(hx,gy-11,11,'rgba(255,170,80,.5)','rgba(160,30,10,.22)',al*(.45+.25*Math.sin(q/200)))}
     else if(kind==='regen'&&front){glowAt(hx,gy-14,13,'rgba(255,190,90,.35)','rgba(200,60,10,.15)',al*(.6+.2*Math.sin(q/250)));for(var m=0;m<11;m++){var l2=((q+m*150)%1400)/1400,x2=hx+(hsh(m,6)-.5)*16+Math.sin(l2*6+m)*1.5,y2=gy-4-hsh(6,m)*18-l2*18,cc=l2<.3?'#fff0a0':l2<.65?'#ffb04a':'#e8401a';VP(x2,y2,cc,al*(1-l2));if(l2<.5){VP(x2+1,y2,cc,al*(1-l2)*.8);VP(x2,y2-1,cc,al*(1-l2)*.8)}}}})})}
+/* 幻火（妖火）：粉紅鬼火，停在敵人頭上一直飄著 */
+function bstWisp(x,y,t,f){glowAt(x,y,9,'rgba(255,170,220,.8)','rgba(160,40,120,.35)',f);for(var i=0;i<9;i++){var l=((t+i*67)%420)/420,ox=Math.sin(i*1.9+t/120)*(1.6-l)*1.6;VP(x+ox,y+2-l*8,l<.3?'#ffffff':l<.6?'#ffb0d0':'#ff6aa0',(1-l)*f)}for(var j=-1;j<=1;j++)for(var k=-1;k<=1;k++)VP(x+j,y+k,'#fff0f6',f)}
+function bstMonBuf(t){if(!B||!B.mbuf)return;Object.keys(B.mbuf).forEach(function(i){var g=B.mbuf[i],m=mons[i];if(!g||!m||m.lx==null||!m.alive&&m.alive!=null||t<g.t0)return;var h=Math.min(msz(m.k)[1]*(m.sc||1),60),q=t-g.t0,f=Math.min(1,q/120);
+  if(g.kind==='wisp'){bstWisp(m.lx,m.gy-h*.9-4+Math.sin(q/180)*1.5,t,f);glowAt(m.lx,m.gy-h*.4,12,'rgba(255,120,180,.3)','rgba(120,0,60,.18)',f*.6)}})}
 function bstOrbit1(hx,gy,q,c,al,front){var hy=gy-17,an=q/260,sn=Math.sin(an);if(front!==(sn>=0))return;var px=hx+Math.cos(an)*14,py=hy+sn*5+Math.sin(q/120)*1.5;
   for(var i=1;i<8;i++){var a8=an-i*.18;if((Math.sin(a8)>=0)===front)VP(hx+Math.cos(a8)*14,hy+Math.sin(a8)*5,c[2],al*(1-i/8)*.7)}
   glowAt(px,py-2,7,'rgba(255,255,255,.6)',c[1],al*(front?.6:.35));bDia(px,py-2,3,5,c,al*(front?1:.7));if(front&&((q>>7)&3)===0)VP(px+(hsh(q>>7,1)-.5)*8,py-6,c[3],al)}
@@ -2102,9 +2110,11 @@ function bstFxM(e,d,kind,c,O,T,L){var u,i,j,k;
   else if(kind==='tornado'){L.forEach(function(TT,n){var st=300+n*90,q=d-st;if(q<0||q>1150)return;var mv=Math.min(1,q/380),x=lerp(O[0]+6,TT[0],ease(mv)),gy=lerp(O[1]+8,TT[1],ease(mv)),f=q<900?1:1-(q-900)/250,H=Math.min(TT[2]*.9,30);
       for(var h=0;h<H;h++){var w=2+h*.35,an=q/60+h*.5,sx=Math.sin(h/5+q/140)*1.5;for(var s2=0;s2<3;s2++){var a2=an+s2*2.1,px=x+sx+Math.cos(a2)*w,front=Math.sin(a2)>0;VP(px,gy-h,h>H*.7?c[3]:front?c[2]:c[1],f*(front?1:.55)*(1-h/H*.3))}}
       if(mv>=1)glowAt(TT[0],TT[1]-H*.5,14,c[3],c[1],.45*f)});if(d>=300&&d<500)for(i=0;i<8;i++)VP(O[0]-6+(hsh(i,1)-.5)*10,O[1]-6+(hsh(1,i)-.5)*10,c[2],1-(d-300)/200)}
-  else if(kind==='fbomb'){if(T){var tx2=T[0],ty2=T[1]-T[2]*.45;if(d>=300&&d<680){u=ease((d-300)/380);var x2=lerp(O[0],tx2,u),y2=lerp(O[1],ty2,u)-Math.sin(u*Math.PI)*10,R=4+u*2;
-        for(i=1;i<14;i++){var uu=Math.max(0,u-i*.03);var tx3=lerp(O[0],tx2,uu),ty3=lerp(O[1],ty2,uu)-Math.sin(uu*Math.PI)*10;var rr=R*(1-i/14);for(j=-rr;j<=rr;j++)for(k=-rr;k<=rr;k++)if(j*j+k*k<=rr*rr)VP(tx3+j+(hsh(i,d>>5)-.5),ty3+k,i<4?c[2]:c[1],(1-i/14)*.8)}
-        glowAt(x2,y2,R*3,'rgba(255,240,180,.95)',c[2],1);for(j=-R;j<=R;j++)for(k=-R;k<=R;k++)if(j*j+k*k<=R*R)VP(x2+j,y2+k,j*j+k*k<R*R*.35?'#ffffff':c[3],1);for(i=0;i<3;i++){var wa=(i-1)*.9+Math.PI;bLine(x2,y2,x2+Math.cos(wa)*9,y2+Math.sin(wa)*7,c[2],.8,1)}}/* 整隻化成火焰飛過去 */
+  else if(kind==='fbomb'){if(T){var tx2=T[0],ty2=T[1]-T[2]*.45,bk2=e.bst[0],fs=bstFire(bk2);if(d>=300&&d<680&&fs){u=ease((d-300)/380);var sz=fs.width,x2=lerp(O[0]-sz*.3,tx2,u),y2=lerp(O[1]+sz*.4,ty2+sz*.3,u)-Math.sin(u*Math.PI)*10;/* 爆炎轟：整隻幻獸化成火焰飛過去（最暗處變橘、其他變白） */
+        for(i=1;i<16;i++){var uu=Math.max(0,u-i*.025),fx=lerp(O[0]-sz*.3,tx2,uu),fy=lerp(O[1]+sz*.4,ty2+sz*.3,uu)-Math.sin(uu*Math.PI)*10-sz*.45;var rr=Math.max(1,sz*.32*(1-i/16));for(j=-rr;j<=rr;j++)for(k=-rr;k<=rr;k++)if(j*j+k*k<=rr*rr&&((j+k+i)&1))VP(fx+j+(hsh(i,d>>5)-.5)*2,fy+k,i<5?c[3]:i<10?c[2]:c[1],(1-i/16)*.75)}/* 身後拖出火焰尾巴 */
+        glowAt(x2,y2-sz*.45,sz*.9,'rgba(255,240,190,.9)',c[2],.95);
+        for(i=0;i<12;i++){var l=((d+i*53)%300)/300,an=hsh(i,3)*6.28;VP(x2+Math.cos(an)*sz*.45-l*6,y2-sz*.45+Math.sin(an)*sz*.4-l*3,l<.4?c[3]:c[2],1-l)}/* 身上竄出的火焰 */
+        pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=1;pctx.drawImage(fs,Math.round(x2-sz/2)*U,Math.round(y2-sz)*U,sz*U,sz*U);pctx.restore()}
       if(d>=680){var dh=d-680;glowAt(tx2,ty2,28+dh/14,'rgba(255,250,220,.95)',c[2],Math.max(0,1-dh/520));bRing(tx2,ty2,4+dh/10,c[3],Math.max(0,1-dh/420),.6);bRing(tx2,ty2,2+dh/16,'#ffffff',Math.max(0,1-dh/300),.6);bBurst(tx2,ty2,c,dh,620,44,34,21);if(dh<200){bScreen('#ffd8a0',(1-dh/200)*.3);shakeY=Math.round(Math.sin(dh/12)*2*U*(1-dh/200))}}}}
   else if(kind==='meteor2'){if(T){var tx4=T[0],ty4=T[1]-T[2]*.45;if(d>=300&&d<660){u=(d-300)/360;var x4=lerp(O[0],tx4,u),y4=lerp(O[1],ty4,u)-Math.sin(u*Math.PI)*22;
         for(i=1;i<22;i++){var u2=Math.max(0,u-i*.018),xx=lerp(O[0],tx4,u2),yy=lerp(O[1],ty4,u2)-Math.sin(u2*Math.PI)*22,w2=Math.max(0,2.4-i*.1);for(j=-w2;j<=w2;j++)VP(xx+(hsh(i,d>>5)-.5)*1.5,yy+j,i<5?c[3]:i<12?c[2]:c[1],(1-i/22)*.9)}
@@ -2113,13 +2123,13 @@ function bstFxM(e,d,kind,c,O,T,L){var u,i,j,k;
         if(dh4>120&&dh4<1000){var sy=T[1]-T[2]-4;for(i=0;i<3;i++){var a4=i/3*6.28+dh4/180;var x5=tx4+Math.cos(a4)*6,y5=sy+Math.sin(a4)*2;VP(x5,y5,'#fff27a',1);VP(x5+1,y5,'#ffd23a',.8);VP(x5,y5-1,'#ffd23a',.8)}}}}}/* 暈眩：頭上繞圈的星星 */
   else if(kind==='roar'){if(d>=300){for(var w=0;w<4;w++){var q5=d-300-w*110;if(q5<0||q5>520)continue;u=q5/520;var R5=6+u*110;for(i=-16;i<=16;i++){var an5=i/16*1.1;VP(O[0]+Math.cos(an5)*R5,O[1]+Math.sin(an5)*R5*.7,i%2?c[2]:'#ffffff',(1-u)*.85)}}
       if(d<460)glowAt(O[0],O[1],10,'rgba(255,255,255,.7)',c[2],1-(d-300)/160);if(d>=460&&d<1400)L.forEach(function(TT,n){var f=d<1150?1:1-(d-1150)/250,hy=TT[1]-TT[2]-6,sh=Math.sin(d/40+n)*.8;for(j=0;j<4;j++)VP(TT[0]+sh,hy+j,'#b06ae8',f);VP(TT[0]+sh,hy+5,'#b06ae8',f);glowAt(TT[0],TT[1]-TT[2]*.4,10,'rgba(90,30,140,.45)','rgba(20,0,40,.3)',f*.7)})}}/* 恐懼：頭上紫色驚嘆號 */
-  else if(kind==='wisp'){if(T){var hx6=T[0],hy6=T[1]-T[2]*.9-4;if(d>=300){var mv6=Math.min(1,(d-300)/340),x6=lerp(O[0],hx6,ease(mv6)),y6=lerp(O[1],hy6,ease(mv6))-Math.sin(mv6*Math.PI)*10+(mv6>=1?Math.sin(d/180)*1.5:0),f6=d<1450?1:Math.max(0,1-(d-1450)/250);
-        glowAt(x6,y6,9,'rgba(255,170,220,.8)','rgba(160,40,120,.35)',f6);for(i=0;i<9;i++){var l6=((d+i*67)%420)/420,ox=Math.sin(i*1.9+d/120)*(1.6-l6)*1.6;VP(x6+ox,y6+2-l6*8,l6<.3?'#ffffff':l6<.6?'#ffb0d0':'#ff6aa0',(1-l6)*f6)}for(j=-1;j<=1;j++)for(k=-1;k<=1;k++)VP(x6+j,y6+k,'#fff0f6',f6)
-        if(mv6>=1)glowAt(T[0],T[1]-T[2]*.4,12,'rgba(255,120,180,.35)','rgba(120,0,60,.2)',f6*.6)}}}
+  else if(kind==='wisp'){if(T&&d>=300&&d<640){var hx6=T[0],hy6=T[1]-T[2]*.9-4,mv6=(d-300)/340,x6=lerp(O[0],hx6,ease(mv6)),y6=lerp(O[1],hy6,ease(mv6))-Math.sin(mv6*Math.PI)*10;bstWisp(x6,y6,d,1)}}/* 飛到敵人頭上，之後交給持續效果 */
   else if(kind==='crystals'){L.forEach(function(TT,n){for(i=0;i<7;i++){var st=300+n*40+i*55,q7=d-st;if(q7<0||q7>420)continue;var cx=TT[0]+(hsh(n,i)-.5)*TT[2]*.7,cy=TT[1]-hsh(i,n)*TT[2]*.8,ph=q7<120?q7/120:1;
       if(q7<300){var fl=((q7>>5)&1)?1:.6;bDia(cx,cy,1+Math.round(ph),2+Math.round(ph*2),c,ph*fl)}else bBurst(cx,cy,c,q7-300,120,8,7,n*7+i)}if(d>500&&d<900)glowAt(TT[0],TT[1]-TT[2]*.4,14,c[3],c[1],.45*(1-(d-500)/400))})}
-  else if(kind==='aurora'){if(T){var tx8=T[0],ty8=T[1]-T[2]*.45;if(d>=300&&d<820){u=Math.min(1,(d-300)/130);var f8=d<650?1:1-(d-650)/170,n8=Math.ceil(Math.hypot(tx8-O[0],ty8-O[1]));for(i=0;i<=n8*u;i++){var s8=i/n8,x8=lerp(O[0],tx8,s8),y8=lerp(O[1],ty8,s8),wv=Math.sin(s8*14-d/50)*2;
-        for(j=-2;j<=2;j++){var hh=(s8*3+j*.25+d/600)%1,col=hh<.33?'#ff8ab0':hh<.66?'#ffb070':'#ffd8e8';VP(x8,y8+wv+j,Math.abs(j)<1?'#ffffff':col,f8*(Math.abs(j)<2?1:.6))}}glowAt(tx8,ty8,13,'rgba(255,220,230,.85)','rgba(255,120,150,.35)',f8)}
+  else if(kind==='aurora'){if(T){var tx8=T[0],ty8=T[1]-T[2]*.45;if(d>=300&&d<900){u=Math.min(1,(d-300)/140);var f8=d<680?1:1-(d-680)/220,dx8=tx8-O[0],dy8=ty8-O[1],n8=Math.ceil(Math.hypot(dx8,dy8)),nx8=-dy8/n8,ny8=dx8/n8;/* 熾霞：一道筆直的霞光，從嘴邊越往前越寬，中間亮白、往外粉紅、橘紅、淡金，色帶慢慢流動 */
+        for(i=0;i<=n8*u;i++){var s8=i/n8,x8=O[0]+dx8*s8,y8=O[1]+dy8*s8,W8=1+s8*3.2;for(j=-Math.ceil(W8);j<=Math.ceil(W8);j++){var r8=Math.abs(j)/W8;if(r8>1)continue;var hh=(s8*1.6-d/700+j*.04+9)%1,col=r8<.25?'#ffffff':hh<.33?'#ffa0c0':hh<.66?'#ffb878':'#ffe0b0';VP(x8+nx8*j,y8+ny8*j,col,f8*(1-r8*r8*.7)*(r8<.25?1:.85))}}
+        for(i=0;i<6;i++){var l8=((d+i*97)%500)/500,s9=hsh(i,8)*u;VP(O[0]+dx8*s9+nx8*(hsh(8,i)-.5)*6,O[1]+dy8*s9+ny8*(hsh(8,i)-.5)*6-l8*4,'#ffffff',f8*(1-l8))}
+        glowAt(tx8,ty8,14,'rgba(255,230,235,.9)','rgba(255,140,150,.35)',f8*u);glowAt(O[0],O[1],8,'rgba(255,240,230,.9)','rgba(255,150,120,.3)',f8)}
       if(d>=520&&d<1500){var f9=d<1250?1:1-(d-1250)/250,sy9=T[1]-T[2]-4;for(i=0;i<4;i++){var a9=i/4*6.28+d/220;VP(tx8+Math.cos(a9)*7,sy9+Math.sin(a9)*2.4,i%2?'#ff8ab0':'#ffd070',f9);VP(tx8+Math.cos(a9)*7,sy9+Math.sin(a9)*2.4-1,'#ffffff',f9*.7)}}}}/* 混亂：頭上繞圈的彩色光點 */
   else if(BSELF[kind]){var p=party[e.a];if(p&&p.sx!=null&&d>=280&&d<900){var q9=d-280,hy9=p.gy-17;glowAt(p.sx,hy9,20,c[3],c[1],.45*(1-q9/620));bBurst(p.sx,hy9,c,q9,360,18,16,4);bRing(p.sx,hy9,6+q9/30,c[2],Math.max(0,1-q9/400),.4);if(kind==='regen')glowAt(p.sx,hy9,16,'rgba(190,255,170,.7)','rgba(60,160,60,.3)',Math.max(0,1-q9/500))}}/* 自身增益：施放時的光爆，之後交給持續效果 */
 }
@@ -3168,7 +3178,7 @@ function vtSkEv(t){var sk=ENG.SK[VT.sk];if(!sk)return null;var mon=sk.j==='monst
   var ast={p:{},m:{}},any=false;(ENG.EFF[VT.sk]||[]).forEach(function(r){if(r.effect_kind!=='status'||!r.status_name)return;var tgt=String(r.target||''),me=/^(self|ally)/.test(tgt),sd=me?(mon?'m':'p'):(mon?'p':'m'),ix=me?(/_all$/.test(tgt)?(sd==='p'?MEMB.map(function(q,i){return i}):B.mons.map(function(q,i){return i})):[0]):(mon?(e.tgP||[]):(e.tg&&e.tg.length?e.tg:[0]));
     ix.forEach(function(i){(ast[sd][i]=ast[sd][i]||[]).push(r.status_name);any=true})});
   VT.ast=any?{t0:t+(o&&o.hit||300),d:ast}:null;return o}
-function vtFire(t){if(VT.bst){var bk0=BST[VT.bst.b].sk[VT.bst.i][1],be={side:'p',a:0,t:t,bst:[VT.bst.b,VT.bst.i],tg:BSELF[bk0]?[]:BSTALL[bk0]?B.mons.map(function(m,i){return i}):[0],hit:BSTHIT[bk0]||400,ty:BSELF[bk0]?'buff':'damage',atk:false,far:true,el:''};B.ev=B.ev.filter(function(x){return t-x.t<1900});B.ev.push(be);if(BSELF[bk0])bstBufSet(0,bk0,VT.bst.b,t+280);return}if(VT.sk){var se=vtSkEv(t);if(se){B.ev=B.ev.filter(function(x){return t-x.t<1500});B.ev.push(se);return}}var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
+function vtFire(t){if(VT.bst){var bk0=BST[VT.bst.b].sk[VT.bst.i][1],be={side:'p',a:0,t:t,bst:[VT.bst.b,VT.bst.i],tg:BSELF[bk0]?[]:BSTALL[bk0]?B.mons.map(function(m,i){return i}):[0],hit:BSTHIT[bk0]||400,ty:BSELF[bk0]?'buff':'damage',atk:false,far:true,el:''};B.ev=B.ev.filter(function(x){return t-x.t<1900});B.ev.push(be);if(BSELF[bk0])bstBufSet(0,bk0,VT.bst.b,t+280);if(bk0==='wisp'&&!(B.mbuf&&B.mbuf[0])){B.mbuf={0:{kind:'wisp',t0:t+640}}}/* 幻火：停在敵人頭上 */return}if(VT.sk){var se=vtSkEv(t);if(se){B.ev=B.ev.filter(function(x){return t-x.t<1500});B.ev.push(se);return}}var wk=VT.w==='拋擲'?'throw':(VTW.filter(function(x){return x[0]===VT.w})[0]||['','sword'])[1],s={el:VT.el,atk:VT.atk},e;
   if(VT.kind==='claw')e={side:'m',a:0,tgt:0,tgts:[0],t:t,clawc:VT.el?ELC[VT.el]:null};
   else if(VT.kind==='roots')e={side:'m',a:0,tgt:0,tgts:[0],t:t,roots:1};
   else if(VT.kind==='sonic')e={side:'m',a:0,tgt:0,tgts:[0],t:t,sonic:1};
