@@ -2081,7 +2081,7 @@ function bstS(k){var im=IMG['bst_'+k];return Math.round((im&&im.naturalWidth||32
 /* 持續效果：B.bbuf[主人][種類]={b,t0} */
 function bstBufSet(k,kind,b,t){if(!B)return;B.bbuf=B.bbuf||{};var o=B.bbuf[k]=B.bbuf[k]||{};if(o[kind]&&o[kind].b===b)return;o[kind]={b:b,t0:t}}
 var NEONP=[[255,176,206],[255,150,120],[255,206,160],[255,120,170]];
-function bstBuf(t,front){if(!B||!B.bbuf)return;Object.keys(B.bbuf).forEach(function(k){var o=B.bbuf[k],p=party[k];if(!o||!p||p.sx==null)return;var hx=p.sx,gy=p.gy;
+function bstBuf(t,front,only){if(!B||!B.bbuf)return;Object.keys(B.bbuf).forEach(function(k){if(only!=null&&+k!==only)return;var o=B.bbuf[k],p=party[k];if(!o||!p||p.sx==null)return;var hx=p.sx,gy=p.gy;
   Object.keys(o).forEach(function(kind){var g=o[kind];if(!g||t<g.t0)return;var q=t-g.t0,al=Math.min(1,q/220),c=bstGc(g.b);
     if(kind==='guard')bstOrbit1(hx,gy,q,c,al,front);
     else if(kind==='neon'&&!front){bstFog(pctx,hx,gy-4,24,t,NEONP,1.4*al)}/* 粉紅橘紅光霧，在主人後面 */
@@ -2133,13 +2133,17 @@ function bstFxM(e,d,kind,c,O,T,L){var u,i,j,k;
       if(d>=520&&d<1500){var f9=d<1250?1:1-(d-1250)/250,sy9=T[1]-T[2]-4;for(i=0;i<4;i++){var a9=i/4*6.28+d/220;VP(tx8+Math.cos(a9)*7,sy9+Math.sin(a9)*2.4,i%2?'#ff8ab0':'#ffd070',f9);VP(tx8+Math.cos(a9)*7,sy9+Math.sin(a9)*2.4-1,'#ffffff',f9*.7)}}}}/* 混亂：頭上繞圈的彩色光點 */
   else if(BSELF[kind]){var p=party[e.a];if(p&&p.sx!=null&&d>=280&&d<900){var q9=d-280,hy9=p.gy-17;glowAt(p.sx,hy9,20,c[3],c[1],.45*(1-q9/620));bBurst(p.sx,hy9,c,q9,360,18,16,4);bRing(p.sx,hy9,6+q9/30,c[2],Math.max(0,1-q9/400),.4);if(kind==='regen')glowAt(p.sx,hy9,16,'rgba(190,255,170,.7)','rgba(60,160,60,.3)',Math.max(0,1-q9/500))}}/* 自身增益：施放時的光爆，之後交給持續效果 */
 }
-function beastLayer(t){if(!B||!party)return;var spo=pctx;pctx=aux;try{bstBuf(t,false)}finally{pctx=spo}party.forEach(function(p,k){var bk=(MEMB[k]||{}).beast;if(!bk||p.sx==null||!BST[bk]||!IMG['bst_'+bk])return;var spb=pctx;pctx=aux;try{
+/* 每個主人一張幻獸畫布，疊層＝主人的前一層：幻獸只在自己主人後面，站得更後面的隊友會被幻獸擋住 */
+function bstCv(p){var W=frame.clientWidth,H=frame.clientHeight;if(!p.bc){var c=document.createElement('canvas');c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';frame.appendChild(c);els.push(c);p.bc=c;p.bcx=c.getContext('2d')}
+  if(p.bc.width!==W||p.bc.height!==H){p.bc.width=W;p.bc.height=H}else p.bcx.clearRect(0,0,W,H);p.bc.style.zIndex=Math.max(0,(parseInt(p.f.style.zIndex,10)||0)-1);return p.bcx}
+function beastLayer(t){if(!B||!party)return;party.forEach(function(p,k){var bk=(MEMB[k]||{}).beast,hasB=bk&&p.sx!=null&&BST[bk]&&IMG['bst_'+bk],hasF=B.bbuf&&B.bbuf[k];if(!hasB&&!hasF){if(p.bc&&p.bcd){p.bcx.clearRect(0,0,p.bc.width,p.bc.height);p.bcd=0}return}
+  var cx=bstCv(p);p.bcd=1;var spb=pctx;pctx=cx;try{bstBuf(t,false,k);/* 持續效果的後半圈（守護晶石、霓虹光霧） */if(!hasB)return;
   var P=bstPos(k,p,t),s=bstS(bk),im=bstSmall(bk,s),x0=Math.round(P.x-s/2),y0=Math.round(P.y-s);
-  bstFog(aux,P.x,P.y,s,t);/* 最底下：霞彩光霧 */
+  bstFog(cx,P.x,P.y,s,t);/* 最底下：霞彩光霧 */
   var D=bstHalo(bk,s);if(D){var ph=(t%1800)/1800,gl=1+P.pw*.8;for(var y=0;y<D.h;y++)for(var x=0;x<D.w;x++){var dd=D.d[y*D.w+x];if(dd<=0||dd>D.R)continue;var u=dd/D.R;if(u>.55&&((x+y+(t>>8))&1))continue;var al=((1-u)*(1-u)*.55+Math.max(0,1-Math.abs(u-ph)*6)*(1-ph)*.35)*gl;if(al<=.02)continue;
-    aux.globalAlpha=Math.min(.9,al);aux.fillStyle='#ffffff';aux.fillRect((x0-D.R+x)*U,(y0-D.R+y)*U,Math.ceil(U),Math.ceil(U))}}/* 中間：白色光暈從身上往外散 */
-  aux.globalAlpha=P.a;aux.imageSmoothingEnabled=false;if(P.flip){aux.save();aux.translate((x0+s)*U,0);aux.scale(-1,1);aux.drawImage(im,0,y0*U,s*U,s*U);aux.restore()}else aux.drawImage(im,x0*U,y0*U,s*U,s*U);
-  if(P.pw>.05){aux.globalCompositeOperation='lighter';aux.globalAlpha=P.pw*.55;aux.drawImage(im,x0*U,y0*U,s*U,s*U);aux.globalCompositeOperation='source-over'}aux.globalAlpha=1}finally{pctx=spb}})}
+    cx.globalAlpha=Math.min(.9,al);cx.fillStyle='#ffffff';cx.fillRect((x0-D.R+x)*U,(y0-D.R+y)*U,Math.ceil(U),Math.ceil(U))}}/* 中間：白色光暈從身上往外散 */
+  cx.globalAlpha=P.a;cx.imageSmoothingEnabled=false;if(P.flip){cx.save();cx.translate((x0+s)*U,0);cx.scale(-1,1);cx.drawImage(im,0,y0*U,s*U,s*U);cx.restore()}else cx.drawImage(im,x0*U,y0*U,s*U,s*U);
+  if(P.pw>.05){cx.globalCompositeOperation='lighter';cx.globalAlpha=P.pw*.55;cx.drawImage(im,x0*U,y0*U,s*U,s*U);cx.globalCompositeOperation='source-over'}cx.globalAlpha=1}finally{pctx=spb}})}
 /* 嘴巴（技能出發點）與目標 */
 function bstMouth(e,t){var p=party[e.a];if(!p||p.sx==null)return[0,0];var P=bstPos(e.a,p,t),s=bstS((MEMB[e.a]||{}).beast);return[P.x+s*.3,P.y-s*.55]}
 function bstTg(e,j){var i=(e.tg||[])[j];var m=mons[i];if(!m||m.lx==null)return null;var h=msz(m.k)[1]*(m.sc||1);return[m.lx,m.gy,Math.min(h,60)]}
