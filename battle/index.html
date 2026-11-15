@@ -355,7 +355,7 @@ var BG={
 var SCN=[['A','魔物森林'],['B','魔晶礦洞'],['C','塵嵐古漠'],['F','幽暗墓穴'],['E','凜冬雪山'],['H','聖教城領'],['D','熔岩火原'],['G','惡魔王城']];
 var cur='A',off=0,lastNow=0,CLD=[];
 /* 我方站位：依人數 1～4 各有站法，[x, 往下位移]；0 號是隊長，前排在右邊（靠近怪物），故意錯落不排成方陣；我方 x ≤ 48、怪物 x ≥ 110，中間留一段空地隔開兩邊 */
-var PFORM={1:[[40,20]],2:[[46,27],[30,8]],3:[[48,20],[34,4],[22,33]],4:[[48,22],[38,3],[26,34],[14,14]]};
+var PFORM={1:[[40,20]],2:[[48,29],[28,8]],3:[[51,22],[34,4],[19,36]],4:[[51,24],[39,3],[25,37],[11,15]]};/* 2026-11-15：左右間距 1.2 倍、上下 1.1 倍（最上面那位不動，其他往下） */
 function posOf(i){var F=PFORM[Math.max(1,Math.min(4,party.length||1))],q=F[Math.min(i,F.length-1)];return [q[0],BG[cur].band+q[1]]}
 /* 怪物站位：依隻數 1～5 各有站法，前排在左邊（靠近我方）；有 Boss 時 Boss 站最後面中間，小怪都站在 Boss 前面免得被擋住 */
 var MFORM={1:[[126,20]],2:[[136,28],[118,8]],3:[[140,12],[127,33],[115,4]],4:[[140,24],[132,2],[121,34],[114,14]],5:[[141,14],[136,34],[130,0],[120,22],[113,5]]};
@@ -2077,7 +2077,8 @@ var BSTMENU=[['fire','fire_atk','fire_def','fire_sup'],['frost'],['lightning'],[
 var BFS={};function bstFire(k){if(BFS[k])return BFS[k];var s=bstS(k),sm=bstSmall(k,s);if(!sm)return null;var c=document.createElement('canvas');c.width=c.height=s;var g=c.getContext('2d');g.drawImage(sm,0,0);var D=g.getImageData(0,0,s,s),a=D.data,L=[],i;
   for(i=0;i<a.length;i+=4)if(a[i+3]>40)L.push(a[i]*.3+a[i+1]*.59+a[i+2]*.11);L.sort(function(x,y){return x-y});var th=L.length?L[Math.floor(L.length*.3)]:0;
   for(i=0;i<a.length;i+=4){if(a[i+3]<=40){a[i+3]=0;continue}var lu=a[i]*.3+a[i+1]*.59+a[i+2]*.11;if(lu<=th){a[i]=255;a[i+1]=122;a[i+2]=26}else{a[i]=255;a[i+1]=248;a[i+2]=228}a[i+3]=255}g.putImageData(D,0,0);return BFS[k]=c}
-function bstS(k){var im=IMG['bst_'+k];return Math.round((im&&im.naturalWidth||32)*BSZ)}/* 幼體 32 格、成熟體 48 格，同樣縮放 → 成熟體大一圈 */
+var BSZM=.6;/* 成熟體大小 */
+function bstS(k){var im=IMG['bst_'+k];return Math.round((im&&im.naturalWidth||32)*(BST[k]&&BST[k].el?BSZM:BSZ))}/* 幼體 32 格、成熟體 48 格，同樣縮放 → 成熟體大一圈 */
 /* 持續效果：B.bbuf[主人][種類]={b,t0} */
 function bstBufSet(k,kind,b,t){if(!B)return;B.bbuf=B.bbuf||{};var o=B.bbuf[k]=B.bbuf[k]||{};if(o[kind]&&o[kind].b===b)return;o[kind]={b:b,t0:t}}
 var NEONP=[[255,176,206],[255,150,120],[255,206,160],[255,120,170]];
