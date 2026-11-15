@@ -73,6 +73,8 @@ section[hidden]{display:none}
 .mt .st{position:relative;width:100%;height:56px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
 .mt .st img{position:absolute;bottom:2px;left:50%;transform-origin:50% 100%}
 .mt .nm{font-size:11px;font-weight:700;line-height:1.2;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.mt .st img.bst{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);image-rendering:pixelated}.mt.mat{border-color:#7a5a20}
+.bstg{position:relative;height:150px;margin:6px 0 4px;background:radial-gradient(ellipse at 50% 70%,rgba(255,240,205,.5),rgba(255,240,205,0) 70%)}.bstg canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
 .mt.boss{border-color:#9a3a2a;box-shadow:inset 0 0 0 1px rgba(154,58,42,.5)}
 .mt.boss::after{content:"首領";position:absolute;top:2px;left:2px;font-size:9px;font-weight:900;color:#f0e2c4;background:#9a3a2a;padding:0 3px;line-height:1.4}
 .mt.unk{cursor:default}.mt.unk .st img{filter:brightness(0);opacity:.45}.mt.unk .nm{color:var(--pink2)}
@@ -142,12 +144,15 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
           <div class="menu">
             <button type="button" data-go="acct"><b>帳號</b><small>登入資訊、登出</small></button>
             <button type="button" data-go="dex"><b>魔物圖鑑</b><small id="foundM"></small></button>
+            <button type="button" data-go="bdex"><b>幻獸圖鑑</b><small id="foundB"></small></button>
             <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文</small></button>
             <button type="button" data-go="set"><b>設定</b><small>背景音樂</small></button>
           </div></section>
         <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
         <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>魔物圖鑑</h1>
           <p class="hint"><span id="found"></span>　冒險進度推到哪裡，就記錄到哪裡；還沒遇過的怪只看得到影子，秘境的龍一開始就記錄好了。點怪物看詳細資料。</p><div id="dex"></div></section>
+        <section id="v-bdex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>幻獸圖鑑</h1>
+          <p class="hint">幼年體從實境模式取得的幻獸蛋孵化，餵養到 20 級後依照餵食的方向進化成攻擊型、生存型或輔助型的成熟體。技能的傷害以主人物理、魔法攻擊力較高者計算。點幻獸看詳細資料。</p><div id="bdex"></div></section>
         <section id="v-set" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>設定</h1>
           <div class="setg">
             <label class="setr" for="musOn"><span><b>背景音樂</b><small>預設關閉；只存在這台裝置的瀏覽器</small></span><input type="checkbox" id="musOn"></label>
@@ -392,6 +397,47 @@ function skRow(sid,kind){var d=el('div','sk'),r=D.sk[sid],nm=sid==='atk'?'普通
   try{if(sid==='atk')txt='對敵方單體造成 100% 物理傷害。';else if(r){var o=SkillDesc.fromRow(r),e=SkillDesc.fromEff(D.eff[sid]);txt=SkillDesc.text(o,e.st,e.hl,function(n){return D.stsBy[n]&&D.stsBy[n].status_desc});if(!txt||txt==='。')txt=r.skill_desc||''}}catch(err){txt=r&&r.skill_desc||''}
   d.appendChild(el('span','kd',kind));d.appendChild(el('b',null,nm));d.appendChild(el('span',null,txt));return d}
 
+
+/* ================= 幻獸圖鑑 ================= */
+var BRACES=['龍蜥種','牙犬種','羽禽種','靈鼠種','角蹄種','輝獸種','暗鱗種'],BRACE='',BRACEOPEN=false,BOPEN={};try{BRACE=localStorage.getItem('notes.bdex.race')||''}catch(e){}
+var BTYPE={'攻擊型':'攻擊','生存型':'生存','輔助型':'輔助'};
+function renderBdex(){var box=$('bdex');if(!box)return;box.textContent='';var L=D.beasts||[];if(BRACE&&BRACES.indexOf(BRACE)<0)BRACE='';
+  var cnt={'':L.length};BRACES.forEach(function(k){cnt[k]=L.filter(function(b){return b.race===k}).length});
+  var rb=el('div','race'),tg=el('button','rtg');tg.type='button';tg.appendChild(el('span',null,'分類：'+(BRACE||'全部')));tg.appendChild(el('i',null,BRACEOPEN?'▴':'▾'));rb.appendChild(tg);
+  var ch=el('div','rch');ch.hidden=!BRACEOPEN;[''].concat(BRACES).forEach(function(k){var b=el('button',k===BRACE?'on':null);b.type='button';b.appendChild(el('span',null,k||'全部'));b.appendChild(el('i',null,String(cnt[k])));b.addEventListener('click',function(){BRACE=k;BRACEOPEN=false;try{localStorage.setItem('notes.bdex.race',k)}catch(e){}renderBdex()});ch.appendChild(b)});
+  tg.addEventListener('click',function(){BRACEOPEN=!BRACEOPEN;renderBdex()});rb.appendChild(ch);box.appendChild(rb);
+  [['j','幼年體'],['m','成熟體']].forEach(function(G){var list=L.filter(function(b){return b.stage===G[1]&&(!BRACE||b.race===BRACE)});
+    var w=el('div','area'),h=el('button');h.type='button';h.appendChild(el('span',null,G[1]));h.appendChild(el('i',null,list.length+' 種'));w.appendChild(h);
+    var g=el('div','grid');if(BOPEN[G[0]]===undefined)BOPEN[G[0]]=true;g.hidden=!BOPEN[G[0]];h.addEventListener('click',function(){BOPEN[G[0]]=!BOPEN[G[0]];g.hidden=!BOPEN[G[0]]});
+    if(!list.length){var e0=el('p','hint',G[0]==='m'?'這個種族的成熟體還沒被發現。':'—');e0.style.gridColumn='1/-1';g.appendChild(e0)}
+    list.forEach(function(b){var t=el('button','mt'+(b.stage==='成熟體'?' mat':''));t.type='button';var st=el('div','st'),im=el('img','bst');im.alt='';im.src=BASE+'beasts/beast_'+b.beast_id+'.png?v=1';im.onload=function(){var sc=Math.max(1,Math.floor(Math.min(56/im.naturalHeight,60/im.naturalWidth)*2)/2);im.style.width=im.naturalWidth*sc+'px';im.style.height=im.naturalHeight*sc+'px'};st.appendChild(im);t.appendChild(st);
+      t.appendChild(el('div','nm',b.beast_name));t.addEventListener('click',function(){openBeast(b.beast_id)});g.appendChild(t)});
+    w.appendChild(g);box.appendChild(w)});
+  var fb=$('foundB');if(fb)fb.textContent=L.length+' 種幻獸'}
+/* 詳細頁的幻獸：跟戰鬥中一樣，最底下霞彩光霧、中間從身上散開的白色光暈、上面是幻獸本體，上下輕飄 */
+function bhsh(a,b){var x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floor(x)}
+function bvn(x,y){var X=Math.floor(x),Y=Math.floor(y),fx=x-X,fy=y-Y,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),a=bhsh(X,Y),b=bhsh(X+1,Y),c=bhsh(X,Y+1),d=bhsh(X+1,Y+1);return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy}
+function bfbm(x,y){return bvn(x,y)*.6+bvn(x*2.1+5,y*2.1+3)*.4}
+var BIRI=[[172,206,255],[200,188,255],[255,196,228],[186,246,214]];function bmix(a,b,k){return[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k]}
+function beastStage(id,box){var cv=document.createElement('canvas'),W=100,H=60;cv.width=W;cv.height=H;box.appendChild(cv);var cx=cv.getContext('2d'),im=new Image(),D2=null,s=0;im.src=BASE+'beasts/beast_'+id+'.png?v=1';
+  im.onload=function(){s=im.naturalWidth;var R=Math.max(4,Math.round(s*.3)),w=s+R*2,c=document.createElement('canvas');c.width=c.height=w;var g=c.getContext('2d');g.drawImage(im,R,R);var a=g.getImageData(0,0,w,w).data,pts=[],x,y,i;for(y=0;y<w;y++)for(x=0;x<w;x++)if(a[(y*w+x)*4+3]>40)pts.push(x,y);var d=new Float32Array(w*w);
+    for(y=0;y<w;y++)for(x=0;x<w;x++){if(a[(y*w+x)*4+3]>40)continue;var m=1e9;for(i=0;i<pts.length;i+=2){var dx=pts[i]-x,dy=pts[i+1]-y,q=dx*dx+dy*dy;if(q<m)m=q}d[y*w+x]=Math.sqrt(m)}D2={R:R,w:w,d:d}};
+  function fr(t){if(!cv.isConnected)return;cx.clearRect(0,0,W,H);if(s){var bx=W/2,by=H-8-Math.round(Math.sin(t/600)*2),x0=Math.round(bx-s/2),y0=Math.round(by-s),RX=Math.round(s*.85),RY=Math.round(s*.9),cy0=by-s*.5,tt=t/1000*.45;
+      for(var y=-RY;y<=RY;y++)for(var x=-RX;x<=RX;x++){var e=(x*x)/(RX*RX)+(y*y)/(RY*RY);if(e>1)continue;var px=Math.round(bx)+x,py=Math.round(cy0)+y,v=bfbm(px*.2+Math.sin(tt*.7)*1.5,py*.17-tt*1.1)*.6+bfbm(px*.37-tt*.8,py*.34-tt*1.7)*.4;v=(v-.28)*(1-e*e)*2.1*.8;if(v<=.08)continue;
+        var h=bvn(px*.07+tt*.25,py*.07-tt*.15),c=h<.22?bmix(BIRI[0],BIRI[3],(.22-h)/.22):h<.5?bmix(BIRI[0],BIRI[1],(h-.22)/.28):h<.74?BIRI[1]:bmix(BIRI[1],BIRI[2],Math.min(1,(h-.74)/.16));c=bmix(c,[248,250,255],Math.min(1,Math.max(0,(v-.45)/.5)));if(v<.2&&((x+y+(t>>8))&1))continue;cx.globalAlpha=Math.min(.6,v*.75);cx.fillStyle='rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')';cx.fillRect(px,py,1,1)}
+      if(D2){var ph=(t%1800)/1800;for(var yy=0;yy<D2.w;yy++)for(var xx=0;xx<D2.w;xx++){var dd=D2.d[yy*D2.w+xx];if(dd<=0||dd>D2.R)continue;var u=dd/D2.R;if(u>.55&&((xx+yy+(t>>8))&1))continue;var al=(1-u)*(1-u)*.55+Math.max(0,1-Math.abs(u-ph)*6)*(1-ph)*.35;if(al<=.02)continue;cx.globalAlpha=Math.min(.9,al);cx.fillStyle='#fff';cx.fillRect(x0-D2.R+xx,y0-D2.R+yy,1,1)}}
+      cx.globalAlpha=1;cx.imageSmoothingEnabled=false;cx.drawImage(im,x0,y0)}requestAnimationFrame(fr)}requestAnimationFrame(fr)}
+function openBeast(id){var b=(D.beasts||[]).filter(function(x){return x.beast_id===id})[0];if(!b)return;openSheet(function(s){
+  var h=el('h2',null,b.beast_name);h.appendChild(el('span','tag',b.type||b.stage));s.appendChild(h);
+  s.appendChild(el('p','sub','種族：'+b.race+'　屬性：'+b.element+'　'+b.stage));
+  var stg=el('div','bstg');s.appendChild(stg);beastStage(id,stg);
+  if(b.beast_desc)s.appendChild(el('p','desc',b.beast_desc));
+  if(b.stage==='幼年體'){var ev=(D.beasts||[]).filter(function(x){return x.evolve_from===id});s.appendChild(el('p','sub','進化：'+(ev.length?ev.map(function(x){return x.beast_name+'（'+x.type+'）'}).join('、'):'尚未發現')))}
+  else{var fm=(D.beasts||[]).filter(function(x){return x.beast_id===b.evolve_from})[0];if(fm)s.appendChild(el('p','sub','由 '+fm.beast_name+' 進化'))}
+  s.appendChild(el('div','k2','技能'));var LV=['Lv1','Lv6','Lv12','Lv18'];
+  [1,2,3,4].forEach(function(i){var nm=b['skill_'+i];if(!nm)return;var d=el('div','sk');d.appendChild(el('span','kd',b.stage==='幼年體'?LV[i-1]:'招式'));d.appendChild(el('b',null,nm));d.appendChild(el('span',null,b['skill_'+i+'_desc']||''));s.appendChild(d)});
+  s.appendChild(el('p','hint',b.stage==='幼年體'?'幼年體依固定順序在 Lv1、6、12、18 學會；同時只能配戴 2 招，每回合 25% 機率從配戴的招式中隨機施放一招。':'成熟體在進化時與 Lv6、12、18 隨機學會；同時只能配戴 2 招，每回合 25% 機率從配戴的招式中隨機施放一招。'))})}
+
 /* ---- 事典 ---- */
 var TOC=[['el','屬性','七種屬性與抗性'],['st','狀態','增益、減益的效果'],['rule','戰鬥規則','命中、暴擊、傷害與順序'],['rune','符文','武器附魔的 26 種符文'],['mst','職業精通','職業 50 級的永久天賦']];
 function renderToc(){var t=$('toc');t.textContent='';TOC.forEach(function(x){var b=el('button');b.type='button';b.appendChild(el('span',null,x[1]));b.appendChild(el('small',null,x[2]));b.addEventListener('click',function(){openDoc(x[0])});t.appendChild(b)})}
@@ -444,8 +490,8 @@ function openDoc(k){openSheet(function(s){
 })}
 
 /* ---- 記事內的分頁：目錄 → 帳號／魔物圖鑑／事典（用網址 # 記錄，手機返回鍵回目錄） ---- */
-function show(v){['menu','acct','dex','doc','set'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
-function route(){var h=location.hash.replace('#','');show(['acct','dex','doc','set'].indexOf(h)>=0?h:'menu')}
+function show(v){['menu','acct','dex','bdex','doc','set'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
+function route(){var h=location.hash.replace('#','');show(['acct','dex','bdex','doc','set'].indexOf(h)>=0?h:'menu')}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.getAttribute('data-go');if(g){NAVD=true;location.hash=g}else if(NAVD){NAVD=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);route()}});var NAVD=false;
 window.addEventListener('hashchange',route);
 /* ---- 分頁列 ---- */
@@ -457,9 +503,9 @@ function renderTabs(){var h=$('tabs');h.textContent='';
 
 /* ================= 開始 ================= */
 var DEMO={uid:'demo',name:'示範冒險者',lv:24,job:0,jobSn:'job01',weapon:'劍',skin:0,style:0,hair:0,eyes:6,outfit:0,adv:{area01:20,area02:9}};
-function start(me){ME=me;if(window.NavIcons)NavIcons.setPlayer(me);renderTabs();renderAcct();renderDex();renderToc();route();var l=$('loading');if(l)l.remove();requestAnimationFrame(tick)}
-Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.csv','status_info.csv','rune_info.csv'].map(getCSV).concat([getCSV('rune_level.csv').catch(function(){return []}),getCSV('rift_info.csv').catch(function(){return []}),getCSV('job_mastery.csv').catch(function(){return []}),getCSV('job_info.csv').catch(function(){return []})]).concat([Monsters.load(BASE)])).then(function(r){
-  build({monster_info:r[0],stage_info:r[1],skill_info:r[2],skill_effect:r[3],status_info:r[4],rune_info:r[5],rune_level:r[6],rift_info:r[7],job_mastery:r[8],job_info:r[9]});
+function start(me){ME=me;if(window.NavIcons)NavIcons.setPlayer(me);renderTabs();renderAcct();renderDex();renderBdex();renderToc();route();var l=$('loading');if(l)l.remove();requestAnimationFrame(tick)}
+Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.csv','status_info.csv','rune_info.csv'].map(getCSV).concat([getCSV('rune_level.csv').catch(function(){return []}),getCSV('rift_info.csv').catch(function(){return []}),getCSV('job_mastery.csv').catch(function(){return []}),getCSV('job_info.csv').catch(function(){return []}),getCSV('beast_info.csv').catch(function(){return []})]).concat([Monsters.load(BASE)])).then(function(r){
+  build({monster_info:r[0],stage_info:r[1],skill_info:r[2],skill_effect:r[3],status_info:r[4],rune_info:r[5],rune_level:r[6],rift_info:r[7],job_mastery:r[8],job_info:r[9]});D.beasts=r[10]||[];
   if(demo){$('demoNote').hidden=false;start(DEMO);return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){USER=who.user;start(Object.assign({uid:who.user.uid},who.player));res()})})})
 }).catch(function(e){var m=$('loading');if(m){m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')}});
