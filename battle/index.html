@@ -2995,7 +2995,7 @@ function vtFire(t){if(VT.sk){var se=vtSkEv(t);if(se){B.ev=B.ev.filter(function(x
   else if(VT.kind==='beam')e={side:'p',a:0,t:t,tg:[0],wk:'beam',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:180};
   else if(VT.kind.indexOf('song:')===0)e=vtSong(t,VT.kind.slice(5));
   else if(VT.kind.indexOf('rune:')===0){var rf=VT.kind.slice(5),rid={moon:'rune15',tome:'rune21',drown:'rune25',grave:'rune26',bear:'rune22',sun:'rune14',nm:'rune13',stone:'rune23'}[rf],rc=(RUNE[rid]||{}).color||'#ffffff',RI=RIMP[rf]||300;
-    if(rf==='tome'){/* 啟示之書：每次傷害技能累積一層，第 3 次飛出去 */VT.tc=(VT.tc||0)%3+1;e={side:'p',a:0,t:t,tg:[0],wk:'staff',vc:'#d6b8ff',atk:false,el:'',ty:'damage',far:true,hit:290,tome:['p',0,VT.tc,3]};
+    if(rf==='tome'){/* 啟示之書：每次傷害技能累積一層，第 2 次飛出去 */VT.tc=(VT.tc||0)%2+1;e={side:'p',a:0,t:t,tg:[0],wk:'staff',vc:'#d6b8ff',atk:false,el:'',ty:'damage',far:true,hit:290,tome:['p',0,VT.tc,2]};
       if(VT.tc===3)B.ev.push({t:t+700,rn:rid,rfx:'tome',rc:rc,rs:['p',0],rtg:[['m',0]],thr:[['m',0]],hit:RI-140,tome:['p',0,0,3]})}
     else{e={t:t,rn:rid,rfx:rf,rc:rc,rs:['p',0],rtg:[rf==='sun'?['p',0]:['m',0]]};if(rf==='sun'){e.gs='p';e.ga=0;e.cast=rc;e.castLen=820}else if(rf==='nm'||rf==='stone'){e.dring=['m',0];e.dcol=rc}else{e.thr=[['m',0]];e.hit=Math.max(1,RI-140);if(rf==='grave'){e.gs='p';e.ga=0;e.cast='#5a4632';e.castLen=420}}}}
   else if(VT.kind==='storm')e={side:'p',a:0,t:t,tg:[0],wk:'storm',vc:'#ffffff',atk:false,el:VT.el,ty:'damage',far:true,hit:520};
