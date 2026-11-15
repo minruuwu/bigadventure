@@ -410,7 +410,7 @@ function renderBdex(){var box=$('bdex');if(!box)return;box.textContent='';var L=
     var w=el('div','area'),h=el('button');h.type='button';h.appendChild(el('span',null,G[1]));h.appendChild(el('i',null,list.length+' 種'));w.appendChild(h);
     var g=el('div','grid');if(BOPEN[G[0]]===undefined)BOPEN[G[0]]=true;g.hidden=!BOPEN[G[0]];h.addEventListener('click',function(){BOPEN[G[0]]=!BOPEN[G[0]];g.hidden=!BOPEN[G[0]]});
     if(!list.length){var e0=el('p','hint',G[0]==='m'?'這個種族的成熟體還沒被發現。':'—');e0.style.gridColumn='1/-1';g.appendChild(e0)}
-    list.forEach(function(b){var t=el('button','mt'+(b.stage==='成熟體'?' mat':''));t.type='button';var st=el('div','st'),im=el('img','bst');im.alt='';im.src=BASE+'beasts/beast_'+b.beast_id+'.png?v=1';im.onload=function(){var sc=1;/* 幼年體、成熟體用同一個倍率，幼年體看起來比較小 */im.style.width=im.naturalWidth*sc+'px';im.style.height=im.naturalHeight*sc+'px'};st.appendChild(im);t.appendChild(st);
+    list.forEach(function(b){var t=el('button','mt'+(b.stage==='成熟體'?' mat':''));t.type='button';var st=el('div','st'),im=el('img','bst');im.alt='';im.src=BASE+'beasts/beast_'+b.beast_id+'.png?v=2';im.onload=function(){var sc=1;/* 幼年體、成熟體用同一個倍率，幼年體看起來比較小 */im.style.width=im.naturalWidth*sc+'px';im.style.height=im.naturalHeight*sc+'px'};st.appendChild(im);t.appendChild(st);
       t.appendChild(el('div','nm',b.beast_name));t.addEventListener('click',function(){openBeast(b.beast_id)});g.appendChild(t)});
     w.appendChild(g);box.appendChild(w)});
   var fb=$('foundB');if(fb)fb.textContent=L.length+' 種幻獸'}
@@ -419,7 +419,7 @@ function bhsh(a,b){var x=Math.sin(a*127.1+b*311.7)*43758.5453;return x-Math.floo
 function bvn(x,y){var X=Math.floor(x),Y=Math.floor(y),fx=x-X,fy=y-Y,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),a=bhsh(X,Y),b=bhsh(X+1,Y),c=bhsh(X,Y+1),d=bhsh(X+1,Y+1);return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy}
 function bfbm(x,y){return bvn(x,y)*.6+bvn(x*2.1+5,y*2.1+3)*.4}
 var BIRI=[[172,206,255],[200,188,255],[255,196,228],[186,246,214]];function bmix(a,b,k){return[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k]}
-function beastStage(id,box){var cv=document.createElement('canvas'),W=100,H=60;cv.width=W;cv.height=H;box.appendChild(cv);var cx=cv.getContext('2d'),im=new Image(),D2=null,s=0;im.src=BASE+'beasts/beast_'+id+'.png?v=1';
+function beastStage(id,box){var cv=document.createElement('canvas'),W=100,H=60;cv.width=W;cv.height=H;box.appendChild(cv);var cx=cv.getContext('2d'),im=new Image(),D2=null,s=0;im.src=BASE+'beasts/beast_'+id+'.png?v=2';
   im.onload=function(){s=im.naturalWidth;var R=Math.max(4,Math.round(s*.3)),w=s+R*2,c=document.createElement('canvas');c.width=c.height=w;var g=c.getContext('2d');g.drawImage(im,R,R);var a=g.getImageData(0,0,w,w).data,pts=[],x,y,i;for(y=0;y<w;y++)for(x=0;x<w;x++)if(a[(y*w+x)*4+3]>40)pts.push(x,y);var d=new Float32Array(w*w);
     for(y=0;y<w;y++)for(x=0;x<w;x++){if(a[(y*w+x)*4+3]>40)continue;var m=1e9;for(i=0;i<pts.length;i+=2){var dx=pts[i]-x,dy=pts[i+1]-y,q=dx*dx+dy*dy;if(q<m)m=q}d[y*w+x]=Math.sqrt(m)}D2={R:R,w:w,d:d}};
   function fr(t){if(!cv.isConnected)return;cx.clearRect(0,0,W,H);if(s){var bx=W/2,by=H-8-Math.round(Math.sin(t/600)*2),x0=Math.round(bx-s/2),y0=Math.round(by-s),RX=Math.round(s*.85),RY=Math.round(s*.9),cy0=by-s*.5,tt=t/1000*.45;
