@@ -77,7 +77,7 @@ function run(o,doc,IMG){return new Promise(function(done){
     FIRE.forEach(function(p){var n=Math.sin(p.x*1.3+t/110)*.5+Math.sin(p.y*.8+t/65+p.x*.5)*.5,v=p.l*.8+.12+n*(p.e?.3:.18),k=Math.max(0,Math.min(FR.length-1,Math.round(v*(FR.length-1))));cx.fillStyle=FR[k];cx.fillRect(p.x,p.y,1,1)});
     var c=.6+.4*Math.sin(t/55+Math.sin(t/23)),g2=cx.createRadialGradient(213,110,0,213,110,14);g2.addColorStop(0,'rgba(255,200,110,'+(.32*c)+')');g2.addColorStop(1,'rgba(255,180,90,0)');cx.fillStyle=g2;cx.fillRect(196,94,34,34);cx.fillStyle='#ffe2a0';cx.fillRect(213,108+(c>.8?0:1),1,2);
     stepRain();drawRain(.5,[178,34,244,101])}
-  function bgImg(s){return s==='village'?IMG.village:s==='vnight'?IMG.vnight:s==='dawn'?IMG.dawn:null}
+  function bgImg(s){return s&&s!=='black'&&s!=='house'?IMG[s]||null:null}/* 劇本 bg 裡登記的背景都能用（village、vnight、dawn、forest…） */
   function draw(t){if(rainAmt!==rainTarget&&!busy)rainAmt+=(rainTarget-rainAmt)*.02;cx.fillStyle='#000';cx.fillRect(0,0,SW,SH);
     if(cam>=0){cx.drawImage(band,0,SH-cam);if(IMG.village)cx.drawImage(IMG.village,0,SH+BANDH-cam)}
     else if(scene==='house'&&IMG.house)drawHouse(t);else{var b=bgImg(scene);if(b)cx.drawImage(b,0,0)}
