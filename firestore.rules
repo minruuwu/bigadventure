@@ -191,6 +191,13 @@ service cloud.firestore {
           && n.get('npcs', {}) is map && n.get('npcs', {}).keys().hasOnly(['npc01','npc02','npc03','npc04','npc05','npc06','npc07','npc08'])
           && (!('npcParty' in ak) || (n.npcParty is list && n.npcParty.size() + n.get('party', []).size() <= 3));
       }
+      // 管理後台:可以改的欄位(管理者帳號、信箱已驗證)
+      function adminOk() {
+        return request.auth.token.email == 'minruu0215@gmail.com'
+          && request.auth.token.email_verified == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cookies','pets','weapons','stones','lv','exp','jobLv','jobUp',
+               'job','jobSn','jobSeen','alloc','weapon','outfit','skills','adv','owe','rs','rift','riftDay','riftN','runeV']);
+      }
       // ===== 自己改自己的資料:所有情況合成一個函式 =====
       // Firebase 每次存檔最多算 1000 個運算式。「整份資料新舊比較」(diff)很耗額度,以前每條規則各算一次,
       // 欄位多的帳號(隊長、管理者)會超過上限而被擋。現在只算一次存在 ak,各種情況共用。
@@ -426,14 +433,11 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/meta/stats).data.active
            == get(/databases/$(database)/documents/meta/stats).data.active + 1;
 
-      allow update: if request.auth != null && request.auth.uid == uid && selfOk();
+      // 管理者改自己的帳號時先檢查管理後台規則:不然 selfOk() 裡跟經驗有關的情況會逐一算下去,超過每次 1000 個運算式的上限而整筆被擋
+      allow update: if request.auth != null && request.auth.uid == uid && (adminOk() || selfOk());
 
 // 管理後台:改餅乾、寵物、武器、鍛造石、等級、經驗、職業等級,以及一鍵重置角色進度、組隊分紅歸零
-allow update: if request.auth != null
-  && request.auth.token.email == 'minruu0215@gmail.com'
-  && request.auth.token.email_verified == true
-  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cookies','pets','weapons','stones','lv','exp','jobLv','jobUp',
-       'job','jobSn','jobSeen','alloc','weapon','outfit','skills','adv','owe','rs','rift','riftDay','riftN','runeV']);
+allow update: if request.auth != null && adminOk();
 
 
 // 隊長把我加入／移出：只動對方的 leaders(加入時順便記到 pastLeaders),只增減隊長自己,最多 5 個
