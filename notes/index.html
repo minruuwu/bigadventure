@@ -410,7 +410,7 @@ function renderBdex(){var box=$('bdex');if(!box)return;box.textContent='';var L=
     var w=el('div','area'),h=el('button');h.type='button';h.appendChild(el('span',null,G[1]));h.appendChild(el('i',null,list.length+' 種'));w.appendChild(h);
     var g=el('div','grid');if(BOPEN[G[0]]===undefined)BOPEN[G[0]]=true;g.hidden=!BOPEN[G[0]];h.addEventListener('click',function(){BOPEN[G[0]]=!BOPEN[G[0]];g.hidden=!BOPEN[G[0]]});
     if(!list.length){var e0=el('p','hint',G[0]==='m'?'這個種族的成熟體還沒被發現。':'—');e0.style.gridColumn='1/-1';g.appendChild(e0)}
-    list.forEach(function(b){var t=el('button','mt'+(b.stage==='成熟體'?' mat':''));t.type='button';var st=el('div','st'),im=el('img','bst');im.alt='';im.src=BASE+'beasts/beast_'+b.beast_id+'.png?v=1';im.onload=function(){var sc=Math.max(1,Math.floor(Math.min(56/im.naturalHeight,60/im.naturalWidth)*2)/2);im.style.width=im.naturalWidth*sc+'px';im.style.height=im.naturalHeight*sc+'px'};st.appendChild(im);t.appendChild(st);
+    list.forEach(function(b){var t=el('button','mt'+(b.stage==='成熟體'?' mat':''));t.type='button';var st=el('div','st'),im=el('img','bst');im.alt='';im.src=BASE+'beasts/beast_'+b.beast_id+'.png?v=1';im.onload=function(){var sc=1;/* 幼年體、成熟體用同一個倍率，幼年體看起來比較小 */im.style.width=im.naturalWidth*sc+'px';im.style.height=im.naturalHeight*sc+'px'};st.appendChild(im);t.appendChild(st);
       t.appendChild(el('div','nm',b.beast_name));t.addEventListener('click',function(){openBeast(b.beast_id)});g.appendChild(t)});
     w.appendChild(g);box.appendChild(w)});
   var fb=$('foundB');if(fb)fb.textContent=L.length+' 種幻獸'}
