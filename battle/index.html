@@ -2081,9 +2081,12 @@ function bstBuf(t,front){if(!B||!B.bbuf)return;Object.keys(B.bbuf).forEach(funct
   Object.keys(o).forEach(function(kind){var g=o[kind];if(!g||t<g.t0)return;var q=t-g.t0,al=Math.min(1,q/220),c=bstGc(g.b);
     if(kind==='guard')bstOrbit1(hx,gy,q,c,al,front);
     else if(kind==='neon'&&!front){bstFog(pctx,hx,gy-4,24,t,NEONP,1.4*al)}/* 粉紅橘紅光霧，在主人後面 */
-    else if(kind==='sigil'&&front){var ry=gy-46+Math.sin(q/400)*1.2,pu=.8+.2*Math.sin(q/160);glowAt(hx,ry,9,'rgba(255,200,90,.75)','rgba(200,40,10,.35)',al*.75*pu);
-      bRing(hx,ry,5,c[2],al,.55);bRing(hx,ry,3,c[3],al*.8,.55);for(var i=0;i<3;i++){var a=i/3*6.28+q/500;bLine(hx,ry,hx+Math.cos(a)*4,ry+Math.sin(a)*2.2,c[1],al*.9,1)}
-      VP(hx,ry-1,'#ffffff',al);for(var j=0;j<3;j++){var l=((q+j*230)%700)/700;VP(hx+(hsh(j,4)-.5)*8,ry-2-l*7,c[2],al*(1-l))}}
+    else if(kind==='sigil'&&front){/* 火焰龍印：頭上立著一個北歐符文（ᚠ 的樣子：一根直立主幹＋兩道往右上的斜枝），亮芯＋火紅外框，上下浮動、明暗脈動 */
+      var ry=gy-47+Math.sin(q/400)*1.2,pu=.75+.25*Math.sin(q/160),G=[[0,-5],[0,-4],[0,-3],[0,-2],[0,-1],[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[1,-2],[2,-3],[3,-4],[1,0],[2,-1],[3,-2]],gk={};G.forEach(function(g){gk[g[0]+','+g[1]]=1});
+      glowAt(hx,ry,11,'rgba(255,190,80,.7)','rgba(200,40,10,.3)',al*.7*pu);
+      G.forEach(function(g){for(var dx=-1;dx<=1;dx++)for(var dy=-1;dy<=1;dy++){if(!dx&&!dy||gk[(g[0]+dx)+','+(g[1]+dy)])continue;VP(hx+g[0]+dx,ry+g[1]+dy,c[1],al*.75*pu)}});/* 火紅外框 */
+      G.forEach(function(g,n){VP(hx+g[0],ry+g[1],(n+(q>>6))%5===0?'#ffffff':c[3],al)});/* 亮芯，光沿著筆畫流動 */
+      for(var j=0;j<4;j++){var l=((q+j*210)%760)/760;VP(hx+(hsh(j,4)-.5)*10,ry+5-l*12,l<.4?c[3]:c[2],al*(1-l))}}
     else if(kind==='scales'&&front){var SC=[[-6,-12],[-3,-13],[0,-13],[3,-12],[-5,-9],[-2,-10],[1,-10],[4,-9]];/* 胸口、肩膀一排火焰鱗片，輪流閃爍 */SC.forEach(function(sv,i){var fl=.6+.4*Math.sin(q/120+i*1.7),x=hx+sv[0],y=gy+sv[1];
       VP(x,y-1,c[3],al*fl);VP(x-1,y,c[2],al*fl);VP(x,y,c[3],al*fl);VP(x+1,y,c[2],al*fl);VP(x-1,y+1,c[1],al*fl);VP(x,y+1,c[2],al*fl);VP(x+1,y+1,c[1],al*fl);VP(x,y+2,c[0],al*fl*.8)});
       glowAt(hx,gy-11,11,'rgba(255,170,80,.5)','rgba(160,30,10,.22)',al*(.45+.25*Math.sin(q/200)))}
