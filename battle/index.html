@@ -1696,11 +1696,12 @@ var SKYC={meteor:{n:8,span:620,fd:420,dx:-62,dy:-96,h:['#fff3c0','#ffb040'],tr:[
   astral:{n:18,span:900,fd:380,dx:-48,dy:-112,h:['#fffbe0','#f5d66a'],tr:['#e8c25a','#b48cff','#5a2aa8'],bu:['#fff4c0','#d6a8ff','#7a3ad8'],sz:2}};
 /* 星界降儀：大顆像素彗星（奶油金色圓頭＋紫色系長尾、外面一層光暈）從左上方砸向敵人腳下的影子；
    每顆砸中：光芒往四周炸開＋一圈圈藍金色光環在地面擴散；最後一顆落下後，一個巨大的半圓光罩擴大籠罩戰場，畫面一閃 */
-var COMC={core:'#fff6d6',hot:'#ffc65a',rim:'#f5d66a',in:'#d9b8ff',mid:'#9a66e8',out:'#5a2fa8',edge:'#2e1866'};
+var COMC={core:'#fff6d6',hot:'#ffc65a',rim:'#f5d66a',in:'#d9b8ff',mid:'#9a66e8',out:'#5a2fa8',edge:'#2e1866'};window.COMC0=COMC;
+var COMC_GOLD={core:'#ffffff',hot:'#fff3b0',rim:'#ffe08a',in:'#fff6d0',mid:'#ffd76a',out:'#e8b830',edge:'#a8801a',g0:'rgba(255,240,180,.6)',g1:'rgba(255,200,80,.25)'};/* 晨曦星雨：金白色流星 */
 function glowAt(x,y,r,c0,c1,a){/* 柔和光暈（加亮疊上去） */if(a<=0)return;var g=pctx.createRadialGradient(x*U,y*U,0,x*U,y*U,r*U);g.addColorStop(0,c0);g.addColorStop(.45,c1);g.addColorStop(1,'rgba(0,0,0,0)');
   pctx.save();pctx.globalCompositeOperation='lighter';pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=g;pctx.fillRect((x-r)*U,(y-r)*U,2*r*U,2*r*U);pctx.restore()}
-function cometPx(hx,hy,vx,vy,R,L,a,k){/* vx,vy = 飛行方向（單位向量）；R = 頭半徑；L = 尾長 */
-  for(var q=0;q<5;q++){var f=q/5;glowAt(hx-vx*L*f,hy-vy*L*f,(R*2.6)*(1-f*.6),'rgba(200,150,255,.55)','rgba(120,60,220,.22)',a*(1-f)*.8)}/* 沿尾巴的紫色光暈 */
+function cometPx(hx,hy,vx,vy,R,L,a,k,PAL){/* vx,vy = 飛行方向（單位向量）；R = 頭半徑；L = 尾長；PAL 換顏色（預設星界降儀的紫金） */var COMC=PAL||window.COMC0;
+  for(var q=0;q<5;q++){var f=q/5;glowAt(hx-vx*L*f,hy-vy*L*f,(R*2.6)*(1-f*.6),COMC.g0||'rgba(200,150,255,.55)',COMC.g1||'rgba(120,60,220,.22)',a*(1-f)*.8)}/* 沿尾巴的紫色光暈 */
   glowAt(hx,hy,R*3.4,'rgba(255,240,190,.9)','rgba(245,200,90,.35)',a);/* 頭的金色光暈 */
   var px=-vy,py=vx,B=Math.ceil(R+2);
   for(var gy=-L-B;gy<=B;gy++)for(var gx=-L-B;gx<=B;gx++){var al=-(gx*vx+gy*vy),pp=gx*px+gy*py;if(al>L+1||al<-B)continue;
@@ -2409,7 +2410,7 @@ function bstFxLg(e,d,kind,c,O,T,L){var u,i,j,k,p=party[e.a];
       var a0=f4*(q4<200?q4/200:1)*.6,gr=pctx.createLinearGradient((mx-W)*U,0,(mx+W)*U,0);gr.addColorStop(0,'rgba(255,246,200,0)');gr.addColorStop(.4,'rgba(255,246,200,1)');gr.addColorStop(.5,'rgba(255,255,255,1)');gr.addColorStop(.6,'rgba(255,246,200,1)');gr.addColorStop(1,'rgba(255,246,200,0)');pctx.save();pctx.globalAlpha=a0;pctx.fillStyle=gr;pctx.fillRect((mx-W)*U,0,W*2*U,pfx.height);pctx.restore();glowAt(mx,H*.6,10+W*.5,'rgba(255,252,230,.5)','rgba(255,220,120,.2)',f4)}/* 細光柱落在畫面中間，再擴散覆蓋全場 */
     if(d>=700&&d<1500)party.forEach(function(pp){if(pp.sx==null)return;glowAt(pp.sx,pp.gy-18,14,'rgba(200,255,200,.6)','rgba(255,220,120,.25)',d<1250?.8:.8*(1-(d-1250)/250))})}/* 我方全體回復 */
   else if(kind==='starrain'){var Lx2=1e9,Rx2=-1e9;L.forEach(function(TT){Lx2=Math.min(Lx2,TT[0]-12);Rx2=Math.max(Rx2,TT[0]+12)});var top=6,cx2=(Lx2+Rx2)/2;if(d>=300&&d<1500){var f5=d<1250?1:1-(d-1250)/250,op=Math.min(1,(d-300)/150);for(i=-Math.round((Rx2-Lx2)/2*op);i<=Math.round((Rx2-Lx2)/2*op);i++){VP(cx2+i,top+Math.round(Math.sin(i*.7)*.6),'#ffffff',f5);VP(cx2+i,top+1,'#ffd76a',f5*.6)}glowAt(cx2,top,14,'rgba(255,250,220,.7)','rgba(255,210,80,.25)',f5*op)}/* 敵陣上方裂開一道星光縫隙 */
-    for(i=0;i<24;i++){var st=420+i*30,q5=d-st;if(q5<0||q5>360)continue;var TT=L[i%Math.max(1,L.length)];if(!TT)break;var tx=TT[0]+(hsh(i,2)-.5)*16,ty=TT[1]-hsh(2,i)*TT[2]*.8,sx3=cx2+(hsh(i,5)-.5)*(Rx2-Lx2),u5=Math.min(1,q5/180);if(q5<180){var x3=lerp(sx3,tx,u5),y3=lerp(top,ty,u5);for(j=0;j<10;j++){var uu=Math.max(0,u5-j*.035);VP(lerp(sx3,tx,uu),lerp(top,ty,uu),j<2?'#ffffff':j<5?'#fff3b0':'#ffd76a',(1-j/10)*.95)}}else bstStar4(tx,ty,3+Math.round((q5-180)/60),'#fff3b0','#ffffff',1-(q5-180)/180)}}/* 數十顆拖著金白長尾焰的流星，擊中炸開十字星芒 */
+    for(i=0;i<12;i++){var st=420+i*65,q5=d-st;if(q5<0||q5>480)continue;var TT=L[i%Math.max(1,L.length)];if(!TT)break;var tx=TT[0]+(hsh(i,2)-.5)*14,ty=TT[1]-hsh(2,i)*TT[2]*.7,sx3=cx2+(hsh(i,5)-.5)*(Rx2-Lx2)-26,u5=q5/260;if(u5<=1){var uu=Math.pow(u5,1.3),hx3=lerp(sx3,tx,uu),hy3=lerp(top,ty,uu),vx3=tx-sx3,vy3=ty-top,L3=Math.hypot(vx3,vy3)||1;cometPx(hx3,hy3,vx3/L3,vy3/L3,i%3?3.2:4,i%3?24:30,1,i,COMC_GOLD)}else{var q6b=q5-260;bstStar4(tx,ty,4+Math.round(q6b/40),'#fff3b0','#ffffff',1-q6b/220);glowAt(tx,ty,12,'rgba(255,250,220,.9)','rgba(255,200,80,.35)',1-q6b/220);bBurst(tx,ty,LGC,q6b,220,10,10,i+180)}}}/* 數十顆拖著金白長尾焰的流星，擊中炸開十字星芒 */
   else if(kind==='stardew'){if(p&&p.sx!=null&&d>=280&&d<1500){var q6=d-280,f6=q6<1000?1:Math.max(0,1-(q6-1000)/220);for(i=0;i<40;i++){var l=((q6*1.4+i*53)%700)/700,x6=p.sx+(hsh(i,4)-.5)*22,y6=p.gy-52+l*50;VP(x6,y6,i%3?'#fff2c8':'#ffd890',f6*(l<.85?1:(1-l)/.15)*.85)}glowAt(p.sx,p.gy-18,16,'rgba(255,240,200,.6)','rgba(255,200,100,.25)',f6*.8)}}/* 暖金與乳白星塵如瀑布灑下 */
   else if(BSELF[kind]){if(p&&p.sx!=null&&d>=280&&d<900){var q9=d-280,hy9=p.gy-17;glowAt(p.sx,hy9,20,c[3],c[1],.45*(1-q9/620));bBurst(p.sx,hy9,c,q9,360,18,16,4);bRing(p.sx,hy9,6+q9/30,c[2],Math.max(0,1-q9/400),.4)}}}
 /* 每個主人一張幻獸畫布，疊層＝主人的前一層：幻獸只在自己主人後面，站得更後面的隊友會被幻獸擋住 */
