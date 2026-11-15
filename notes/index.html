@@ -429,7 +429,7 @@ function beastStage(id,box){var cv=document.createElement('canvas'),W=100,H=60;c
       cx.globalAlpha=1;cx.imageSmoothingEnabled=false;cx.drawImage(im,x0,y0)}requestAnimationFrame(fr)}requestAnimationFrame(fr)}
 function openBeast(id){var b=(D.beasts||[]).filter(function(x){return x.beast_id===id})[0];if(!b)return;openSheet(function(s){
   var h=el('h2',null,b.beast_name);h.appendChild(el('span','tag',b.type||b.stage));s.appendChild(h);
-  s.appendChild(el('p','sub','種族：'+b.race+'　屬性：'+b.element+'　'+b.stage));
+  s.appendChild(el('p','sub','種族：'+b.race+'　屬性：'+b.element));
   var stg=el('div','bstg');s.appendChild(stg);beastStage(id,stg);
   if(b.beast_desc)s.appendChild(el('p','desc',b.beast_desc));
   if(b.stage==='幼年體'){var ev=(D.beasts||[]).filter(function(x){return x.evolve_from===id});s.appendChild(el('p','sub','進化：'+(ev.length?ev.map(function(x){return x.beast_name+'（'+x.type+'）'}).join('、'):'尚未發現')))}
