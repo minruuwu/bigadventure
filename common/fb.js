@@ -264,12 +264,12 @@ const FB = {
   async beastEdit(fn) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const p = await FB.myFresh(); if (!p) throw new Error('no-player'); const f = fn(p); if (!f) throw new Error('bad-op');
     await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f; },
-  // 實境冒險勝利：經驗、一種素材、可能一顆蛋、這個時段打倒的怪物點（規則 realWinOk）
+  // 實境冒險勝利：經驗、同一顏色的幾種素材、可能一顆蛋、這個時段打倒的怪物點（規則 realWinOk）
   async realWin(r) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const p = await FB.myFresh(); if (!p) throw new Error('no-player'); const ok = p.realK || { p: -1, k: [] };
     const k = ok.p === r.p ? (ok.k || []).slice() : []; if (k.indexOf(r.id) >= 0) { const e = new Error('already'); e.code = 'already'; throw e; } k.push(r.id);
-    const rk = { p: r.p, k, m: r.mat, n: r.n, e: r.egg || '' }, f = { exp: increment(r.exp), realK: rk, realAt: serverTimestamp() }; f['beastMat.' + r.mat] = increment(r.n); if (r.egg) f['beastEggs.' + r.egg] = increment(1);
-    await tmo(updateDoc(doc(db, 'players', u.uid), f)); const bm = Object.assign({}, p.beastMat || {}), be = Object.assign({}, p.beastEggs || {}); bm[r.mat] = (bm[r.mat] | 0) + r.n; if (r.egg) be[r.egg] = (be[r.egg] | 0) + 1;
+    const rk = { p: r.p, k, c: r.col, m: r.mats, e: r.egg || '' }, f = { exp: increment(r.exp), realK: rk, realAt: serverTimestamp() }; Object.keys(r.mats).forEach(m => { f['beastMat.' + m] = increment(r.mats[m]); }); if (r.egg) f['beastEggs.' + r.egg] = increment(1);
+    await tmo(updateDoc(doc(db, 'players', u.uid), f)); const bm = Object.assign({}, p.beastMat || {}), be = Object.assign({}, p.beastEggs || {}); Object.keys(r.mats).forEach(m => { bm[m] = (bm[m] | 0) + r.mats[m]; }); if (r.egg) be[r.egg] = (be[r.egg] | 0) + 1;
     mePatch({ exp: (p.exp | 0) + r.exp, realK: rk, beastMat: bm, beastEggs: be }); return rk; },
   async updatePlayer(fields) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), fields)); mePatch(fields); },
   // Rename: names must stay unique; at most 3 renames; the old name is released after success.

@@ -442,7 +442,7 @@ function killed(id){var p=meP(),k=p&&p.realK;return !!(k&&k.p===PER&&(k.k||[]).i
 /* 開戰：代表怪＋同地域的其他怪（照怪物點固定），王只有一隻；帶著資料到冒險頁打，打完回來 */
 function lineup(o){if(o.rare)return[o.mid];var pool=(POOL[o.z.area]||{}).norm||[o.mid],L=[o.mid];for(var i=1;i<o.cnt;i++){var sx=+o.id.split(',')[0],sy=+o.id.split(',')[1];L.push(pool[h32('mq'+i,sx,sy,PER)%pool.length]||o.mid)}return L}
 function fight(o){if(!meP()){toastMsg('要先登入才能戰鬥');return}if(killed(o.id)){toastMsg('這組怪物已經打倒了');return}
-  try{sessionStorage.setItem('real.fight',JSON.stringify({id:o.id,p:PER,mons:lineup(o),lv:o.lv,area:o.z.area,zn:o.z.n,rare:o.rare}))}catch(e){toastMsg('瀏覽器不允許暫存，沒辦法開戰');return}save();location.href='../battle/index.html?real=1'}
+  try{sessionStorage.setItem('real.fight',JSON.stringify({id:o.id,p:PER,mons:lineup(o),lv:o.lv,base:(P&&P.lv)||LV,area:o.z.area,zn:o.z.n,rare:o.rare}))}catch(e){toastMsg('瀏覽器不允許暫存，沒辦法開戰');return}save();location.href='../battle/index.html?real=1'}
 function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');
   pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" data-a="go"'+(ok?'':' disabled')+'>'+(ok?'戰鬥':'太遠了')+'</button></div><p style="font-size:11px;margin:6px 0 0">打贏可得經驗、'+o.z.n+'的素材'+(o.rare?'，王必掉一顆幻獸蛋':'，有機會掉幻獸蛋')+'</p>';pn.hidden=false}
 $('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};

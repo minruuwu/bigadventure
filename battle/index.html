@@ -3576,7 +3576,7 @@ function curLoad(){try{var o=JSON.parse(localStorage.getItem(CURK)||'null');if(!
 function lastAdv(){try{return parseInt(localStorage.getItem('adv.last'),10)||0}catch(e){return 0}}
 function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}}
 /* ================= 幻境（實境冒險）的戰鬥：幻境頁點怪物 → 帶著 sessionStorage 的 real.fight 來這裡打 =================
-   獎勵：經驗 = 主線等級最接近的關卡 × 30%（照敵人數量增減、0.9～1.1 亂數）；素材 = 該地域顏色、三種隨機一種，一般 5～20、王 20～39；
+   獎勵：經驗 = 主線等級最接近的關卡 × 30%（照敵人數量增減、0.9～1.1 亂數）；素材 = 該地域顏色，數量見 realMatN；
    蛋：王必掉該地域的蛋，一般 1%；打倒的怪物點記在 realK（這個 3 小時時段內不再出現） */
 var REALC={area01:['green','leaf'],area02:['yellow','bolt'],area03:['teal','wind'],area04:['purple','moon'],area05:['blue','ice'],area06:['gold','sun'],area07:['red','fire']},REALX=0.3;
 function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try{o=JSON.parse(sessionStorage.getItem('real.fight')||'null');sessionStorage.removeItem('real.fight')}catch(e){}
@@ -3584,14 +3584,18 @@ function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try
   var M=o.mons.map(function(id){var r=ENG.mon[id];return r?BattleEngine.monster(r,stg,ENG):null}).filter(Boolean);if(!M.length){toast('怪物資料讀不到');return}
   startLive(a,1,autoPref(),{mons:M,real:o})}
 function realExpBase(lv,boss){var best=null,bd=1e9;(ENG.stage||[]).forEach(function(r){if((r.boss==='1')!==!!boss)return;var rec=parseInt(r.level,10)||3*(parseInt(r.stage,10)||1),d=Math.abs(rec-lv);if(d<bd){bd=d;best=r}});return best?parseInt(best.exp,10)||0:20}
+/* 素材數量：一般怪看「怪物等級 ÷ 自己的基準等級」— 0.5 以下上限 1、1.0 上限 10、1.5 以上上限 20，實際是上限的一半到上限；王固定 20～30。每一個各自平均抽結晶／礦石／寶珠 */
+function realMatN(o){if(o.rare)return 20+Math.floor(Math.random()*11);var r=(o.lv|0)/Math.max(1,o.base|0||1),up=r<=.5?1:r>=1.5?20:r<=1?1+(r-.5)/.5*9:10+(r-1)/.5*10;up=Math.max(1,Math.min(20,Math.round(up)));var lo=Math.max(1,Math.ceil(up/2));return lo+Math.floor(Math.random()*(up-lo+1))}
 function realReq(b){var o=b.real,c=REALC[o.area]||REALC.area01,n=o.mons.length,cm=o.rare?1:n>=3?n/3:1-(3-n)/4;
-  var exp=Math.max(1,Math.round(realExpBase(o.lv|0,o.rare)*REALX*cm*(0.9+Math.random()*0.2))),kind=['crystal','ore','orb'][Math.floor(Math.random()*3)],cnt=o.rare?20+Math.floor(Math.random()*20):5+Math.floor(Math.random()*16);
-  return{real:true,id:o.id,p:o.p,exp:Math.min(1500,exp),mat:kind+'_'+c[0],n:cnt,egg:o.rare||Math.random()<0.01?c[1]:''}}
+  var exp=Math.max(1,Math.round(realExpBase(o.lv|0,o.rare)*REALX*cm*(0.9+Math.random()*0.2))),cnt=realMatN(o),mats={};
+  for(var q=0;q<cnt;q++){var k=['crystal','ore','orb'][Math.floor(Math.random()*3)]+'_'+c[0];mats[k]=(mats[k]|0)+1}
+  return{real:true,id:o.id,p:o.p,exp:Math.min(1500,exp),col:c[0],mats:mats,egg:o.rare||Math.random()<0.01?c[1]:''}}
 function realResult(w){var me=MEMB[0];if(!w){$('rtxt').innerHTML='這場沒有獎勵。怪物還在原地，可以再挑戰。';curClear();return}
-  var req=B.req||(B.req=makeReq(B)),ki=(MKINDB.filter(function(k){return req.mat.indexOf(k[0]+'_')===0})[0]||[0,''])[1],cc=(MCOLB.filter(function(c){return req.mat.slice(req.mat.indexOf('_')+1)===c[0]})[0]||[0,''])[1],en=req.egg?(EGGN.filter(function(x){return x[0]===req.egg})[0]||[0,''])[1]:'';
-  $('rtxt').innerHTML='獲得 經驗 <b>'+req.exp+'</b>、<img src="../assets/beast/mat_'+esc(req.mat)+'.png" alt="" style="width:18px;height:18px;image-rendering:pixelated;vertical-align:-3px">'+cc+'色'+ki+' <b>×'+req.n+'</b>'+(en?'<br>🥚 得到「'+en+'」！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
+  var req=B.req||(B.req=makeReq(B)),cc=(MCOLB.filter(function(c){return c[0]===req.col})[0]||[0,''])[1],en=req.egg?(EGGN.filter(function(x){return x[0]===req.egg})[0]||[0,''])[1]:'';
+  var mt=MKINDB.filter(function(k){return req.mats[k[0]+'_'+req.col]}).map(function(k){var key=k[0]+'_'+req.col;return '<span style="white-space:nowrap"><img src="../assets/beast/mat_'+esc(key)+'.png" alt="" style="width:18px;height:18px;image-rendering:pixelated;vertical-align:-3px">'+cc+'色'+k[1]+' <b>×'+req.mats[key]+'</b></span>'}).join('、');
+  $('rtxt').innerHTML='獲得 經驗 <b>'+req.exp+'</b><br>'+mt+(en?'<br>🥚 得到「'+en+'」！':'')+'<br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
   if(B.saved)return;var bb=B,msg=function(t){var q=$('rsave');if(q)q.textContent=t};if(demo){msg('示範模式：不寫入');return}$('rok').disabled=true;
-  var tries=0;(function put(){tries++;withFB(function(FB){FB.realWin(req).then(function(){bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.beastMat=Object.assign({},me.beastMat||{});me.beastMat[req.mat]=(me.beastMat[req.mat]|0)+req.n;if(req.egg){me.beastEggs=Object.assign({},me.beastEggs||{});me.beastEggs[req.egg]=(me.beastEggs[req.egg]|0)+1}msg('已存檔');$('rok').disabled=false},
+  var tries=0;(function put(){tries++;withFB(function(FB){FB.realWin(req).then(function(){bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.beastMat=Object.assign({},me.beastMat||{});Object.keys(req.mats).forEach(function(k){me.beastMat[k]=(me.beastMat[k]|0)+req.mats[k]});if(req.egg){me.beastEggs=Object.assign({},me.beastEggs||{});me.beastEggs[req.egg]=(me.beastEggs[req.egg]|0)+1}msg('已存檔');$('rok').disabled=false},
     function(e){if(e&&e.code==='already'){bb.saved=true;msg('這組怪物已經打倒過了（沒有重複給獎勵）');$('rok').disabled=false;return}if(tries<3&&e&&e.code==='permission-denied'){msg('跟上一場隔太近，稍等一下自動存檔…');setTimeout(put,16000);return}msg('存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入，請截圖給開發者）');$('rok').disabled=false})})})()}
 function showResult(){if(B&&B.tut){tutEnd(B.res==='win');return}var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
   var box=$('bres');box.hidden=false;$('rok').disabled=false;
