@@ -73,7 +73,7 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <div id="rdm" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);font-size:12px;background:rgba(18,12,8,.8);padding:3px 8px;pointer-events:none"></div>
 <div style="position:fixed;right:4px;top:calc(env(safe-area-inset-top) + 50px);font-size:9px;color:rgba(255,255,255,.75);text-shadow:0 0 2px #000;pointer-events:none">© OpenStreetMap contributors</div>
 <div id="load">讀取中…</div>
-<script type="module" src="../common/fb.js?v=43"></script>
+<script type="module" src="../common/fb.js?v=44"></script>
 <script src="../common/monsters.js?v=84"></script>
 <script src="../common/doll.js?v=12"></script>
 <script>
@@ -256,7 +256,7 @@ function openBag(){var d=bagData(),B='../assets/beast/',h='<button type="button"
   Array.prototype.forEach.call(el.querySelectorAll('.eg'),function(x){x.onclick=function(){askHatch(x.getAttribute('data-egg'))}})}
 function ename(k){for(var i=0;i<EGGS.length;i++)if(EGGS[i][0]===k)return EGGS[i][1];return k}
 function pnShow(h){var p=$('pn');$('bag').hidden=true;sel=null;p.dataset.k='msg';p.innerHTML='<button type="button" class="x" id="pnX">✕</button>'+h;p.hidden=false;$('pnX').onclick=function(){p.hidden=true}}
-function fbErr(e){var c=e&&(e.message||e.code)||'';return c==='not-signed-in'?'請先在首頁登入。':c==='full'?'幻獸已滿 '+BEAST_MAX+' 隻，不能再孵。':c==='busy'?'已經有一顆蛋在孵化中。':c==='no-egg'?'沒有這顆蛋。':'存檔失敗，請稍後再試（'+c+'）'}
+function fbErr(e){var c=e&&(e.message||e.code)||'';return c==='not-signed-in'?'請先在首頁登入。':c==='full'?'幻獸已滿 '+BEAST_MAX+' 隻，不能再孵。':c==='busy'?'已經有一顆蛋在孵化中。':c==='no-egg'?'沒有這顆蛋。':c==='not-ready'?'孵化進度還沒同步完成，稍等一下再按一次。':c==='timeout'?'網路比較慢，沒等到回應。請再按一次（不會重複孵化）。':'存檔失敗，請稍後再試（'+c+'）'}
 function askHatch(k){var d=bagData();
   if(d.h){if(d.h.egg!==k)toastMsg('「'+ename(d.h.egg)+'」孵化中，孵化成功前不能更換。');return}
   if(!(d.e[k]|0))return toastMsg('還沒有'+ename(k)+'。');
