@@ -286,7 +286,7 @@ $('nest').onclick=function(){var h=bagData().h;if(!h)return;if(hatchM()<HATCH_M)
   if(pend>0&&((h.m||0)<HATCH_M)){hatchSync(true);return toastMsg('同步孵化進度中，再點一次…')}
   var bs=BEAST[h.egg];pnShow('<h3>🎉 孵化成功！</h3><img class="hb" src="../assets/beasts/beast_'+bs[0]+'.png" alt=""><p>「'+ename(h.egg)+'」孵化成功了！幫牠取個名字吧（最多 8 個字）：</p><input id="hName" maxlength="8" value="'+bs[1]+'"><div class="row"><button type="button" id="hDone">確定</button></div>');
   $('hDone').onclick=function(){var b=this,nm=Array.from(($('hName').value||'').trim()).slice(0,8).join('');if(!nm)return toastMsg('請輸入名字。');b.disabled=true;
-    FB.beastHatchDone(nm).then(function(){$('pn').hidden=true;pend=0;savePend();nestUpd();toastMsg('「'+nm+'」加入了你的幻獸！之後可以到帕拉迪村找艾德蒙。')},function(e){b.disabled=false;toastMsg(fbErr(e))})}};
+    FB.beastHatchDone(nm).then(function(){$('pn').hidden=true;pend=0;savePend();nestUpd();toastMsg('「'+nm+'」加入了你的幻獸！之後可以到帕拉迪村找艾德蒙。');FB.beastFree().then(function(g){var N={atk:'攻擊力',dmg:'增傷',crit:'暴擊率',red:'減傷',hp:'生命力',res:'本屬性抗性',eva:'閃避率',cdmg:'暴擊傷害',ores:'其他屬性抗性'},c={};g.slice(1).forEach(function(k){c[N[k]]=(c[N[k]]|0)+1});setTimeout(function(){toastMsg('孵化的祝福：'+Object.keys(c).map(function(n){return n+' +'+c[n]}).join('、'))},2800)},function(){})/* 孵化送一次屬性（3 格） */},function(e){b.disabled=false;toastMsg(fbErr(e))})}};
 window.addEventListener('fb-player-updated',function(){nestUpd()});
 /* 進頁面時跟伺服器拿一次最新的玩家資料（蛋、孵化進度），再補上還沒同步的距離 */
 function fbInit(){FB.ready.then(function(u){if(!u)return;FB.myFresh().then(function(){nestUpd();hatchSync()},function(){})})}
