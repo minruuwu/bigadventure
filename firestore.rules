@@ -232,12 +232,21 @@ service cloud.firestore {
       function bKeep(ob, nb, i) { return nb.size() == ob.size() && nb[0:i] == ob[0:i] && nb[i + 1:nb.size()] == ob[i + 1:ob.size()]; }
       // 已學會的技能(順序編號):Lv1 第 0 招、Lv6 第 2 招、Lv12 第 3 招、Lv18 第 1 招
       function bLearn(lv) { return lv >= 18 ? [0, 2, 3, 1] : lv >= 12 ? [0, 2, 3] : lv >= 6 ? [0, 2] : [0]; }
+      // 第 s 招學會了沒:幼年體照 bLearn;成熟體幼年四招都會,成熟招(4~7)照進化時抽的順序 mo,Lv1/6/12/18 各學一招
+      function bOk(b, s) {
+        let lv = b.get('lv', 1);
+        return ('ev' in b)
+          ? (s in [0, 1, 2, 3] || (s is int && s >= 4 && s <= 7 && (s - 4) in b.mo[0:(lv >= 18 ? 4 : lv >= 12 ? 3 : lv >= 6 ? 2 : 1)]))
+          : s in bLearn(lv);
+      }
+      function bSkOk(b) { return b.sk is list && b.sk.size() >= 1 && b.sk.size() <= 2 && bOk(b, b.sk[0]) && (b.sk.size() < 2 || (bOk(b, b.sk[1]) && b.sk[1] != b.sk[0])); }
       // 餵養屬性:9 項,每項 0~15 格、只增不減,合計剛好 +3 格
-      function bSt(os, ns, k) { return ns.get(k, 0) is int && ns.get(k, 0) >= os.get(k, 0) && ns.get(k, 0) <= 15; }
-      function bStOk(os, ns) {
+      // 每項上限:幼年體 15 格、成熟體(有 ev)30 格
+      function bSt(os, ns, k, cap) { return ns.get(k, 0) is int && ns.get(k, 0) >= os.get(k, 0) && ns.get(k, 0) <= cap; }
+      function bStOk(os, ns, cap) {
         return ns is map && ns.keys().hasOnly(['atk','dmg','crit','red','hp','res','eva','cdmg','ores'])
-          && bSt(os, ns, 'atk') && bSt(os, ns, 'dmg') && bSt(os, ns, 'crit') && bSt(os, ns, 'red') && bSt(os, ns, 'hp')
-          && bSt(os, ns, 'res') && bSt(os, ns, 'eva') && bSt(os, ns, 'cdmg') && bSt(os, ns, 'ores')
+          && bSt(os, ns, 'atk', cap) && bSt(os, ns, 'dmg', cap) && bSt(os, ns, 'crit', cap) && bSt(os, ns, 'red', cap) && bSt(os, ns, 'hp', cap)
+          && bSt(os, ns, 'res', cap) && bSt(os, ns, 'eva', cap) && bSt(os, ns, 'cdmg', cap) && bSt(os, ns, 'ores', cap)
           && ns.get('atk', 0) + ns.get('dmg', 0) + ns.get('crit', 0) + ns.get('red', 0) + ns.get('hp', 0) + ns.get('res', 0) + ns.get('eva', 0) + ns.get('cdmg', 0) + ns.get('ores', 0)
            - os.get('atk', 0) - os.get('dmg', 0) - os.get('crit', 0) - os.get('red', 0) - os.get('hp', 0) - os.get('res', 0) - os.get('eva', 0) - os.get('cdmg', 0) - os.get('ores', 0) == 3;
       }
@@ -254,27 +263,45 @@ service cloud.firestore {
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['name']) && nb[i].name is string && nb[i].name.size() >= 1 && nb[i].name.size() <= 8)
             // 選技能:1~2 招,都要是已學會的
             || (op.t == 'sk' && ak.hasOnly(['beasts','bOp']) && bKeep(ob, nb, i)
-              && nb[i].diff(ob[i]).affectedKeys().hasOnly(['sk']) && nb[i].sk is list && nb[i].sk.size() >= 1 && nb[i].sk.size() <= 2
-              && nb[i].sk[0] in bLearn(ob[i].get('lv', 1)) && (nb[i].sk.size() < 2 || (nb[i].sk[1] in bLearn(ob[i].get('lv', 1)) && nb[i].sk[1] != nb[i].sk[0])))
-            // 餵養:升 1 級(最高 20),屬性合計 +3 格;扣這隻幻獸顏色的一種素材,數量 = 10 + 5 ×(等級 − 1)
+              && nb[i].diff(ob[i]).affectedKeys().hasOnly(['sk']) && bSkOk(nb[i]))
+            // 餵養:升 1 級(最高 20),屬性合計 +3 格;扣這隻幻獸顏色的一種素材,數量 = 10 + 5 ×(等級 − 1)、成熟體 = 110 + 5 ×(等級 − 1)
             || (op.t == 'feed' && ak.hasOnly(['beasts','beastMat','bOp']) && bKeep(ob, nb, i)
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','st'])
               && nb[i].lv == ob[i].get('lv', 1) + 1 && nb[i].lv <= 20
-              && bStOk(ob[i].get('st', {}), nb[i].get('st', {}))
+              && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), ('ev' in ob[i]) ? 30 : 15)
               && op.k is string
               && op.k in bMatOf(ob[i].sp)
               && n.get('beastMat', {}).diff(resource.data.get('beastMat', {})).affectedKeys().hasOnly([op.k])
-              && n.get('beastMat', {}).get(op.k, 0) == resource.data.get('beastMat', {}).get(op.k, 0) - (10 + 5 * (ob[i].get('lv', 1) - 1))
+              && n.get('beastMat', {}).get(op.k, 0) == resource.data.get('beastMat', {}).get(op.k, 0) - ((('ev' in ob[i]) ? 110 : 10) + 5 * (ob[i].get('lv', 1) - 1))
               && n.get('beastMat', {}).get(op.k, 0) >= 0)
             // 孵化(之後還有進化)送的一次屬性:每隻只有一次(fr = 1 標記),屬性合計 +3 格
             || (op.t == 'free' && ak.hasOnly(['beasts','bOp']) && bKeep(ob, nb, i)
               && !('fr' in ob[i]) && nb[i].diff(ob[i]).affectedKeys().hasOnly(['st','fr']) && nb[i].fr == 1
-              && bStOk(ob[i].get('st', {}), nb[i].get('st', {})))
+              && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 15))
+            // 進化:幼年體 Lv20 → 成熟體 Lv1,型別 ev、成熟招學習順序 mo(0~3 的排列),送 3 格屬性(上限 30),可以順便換裝備技能;
+            // 扣這隻幻獸顏色的結晶、礦石、寶珠各 50 個
+            || (op.t == 'evo' && ak.hasOnly(['beasts','beastMat','bOp']) && bKeep(ob, nb, i)
+              && !('ev' in ob[i]) && ob[i].get('lv', 1) == 20
+              && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','ev','mo','st','sk'])
+              && nb[i].lv == 1 && nb[i].ev in ['atk','def','sup']
+              && nb[i].mo is list && nb[i].mo.size() == 4 && nb[i].mo.hasAll([0, 1, 2, 3])
+              && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 30)
+              && (!('sk' in nb[i]) || bSkOk(nb[i]))
+              && bEvoMat(ob[i].sp))
             // 放生:拿掉第 i 隻,其他順序不變;同行的編號可以一起改
             || (op.t == 'del' && ak.hasOnly(['beasts','bOp','beastOn'])
               && nb.size() == ob.size() - 1 && nb[0:i] == ob[0:i] && nb[i:nb.size()] == ob[i + 1:ob.size()]
               && (!('beastOn' in ak) || (n.beastOn is int && n.beastOn >= -1 && n.beastOn < nb.size())))
           );
+      }
+      function bEvoMat(sp) {
+        let c = {'fire':'red','ice':'blue','bolt':'yellow','wind':'teal','leaf':'green','sun':'gold','moon':'purple'}[sp];
+        let om = resource.data.get('beastMat', {});
+        let nm = request.resource.data.get('beastMat', {});
+        return nm.diff(om).affectedKeys().hasOnly(['crystal_' + c, 'ore_' + c, 'orb_' + c])
+          && nm.get('crystal_' + c, 0) == om.get('crystal_' + c, 0) - 50 && nm.get('crystal_' + c, 0) >= 0
+          && nm.get('ore_' + c, 0) == om.get('ore_' + c, 0) - 50 && nm.get('ore_' + c, 0) >= 0
+          && nm.get('orb_' + c, 0) == om.get('orb_' + c, 0) - 50 && nm.get('orb_' + c, 0) >= 0;
       }
       // 幻獸顏色的三種素材(攻擊 = 結晶、生存 = 礦石、輔助 = 寶珠)
       function bMatOf(sp) {
