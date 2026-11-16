@@ -454,6 +454,8 @@ function starGate(x,N,tt){var C=N/2,R=N*.47,img=x.createImageData(N,N),d=img.dat
     if(s<1){r=40+s*60;g=10+s*20;b=80+s*110;a=255;if(s>.8){r=170;g=90;b=255}if(s>.9){r=215;g=160;b=255}}
     else{var s2=sd(dx,dy,R*br*1.25);if(s2<1){r=150;g=70;b=230;a=Math.round((1-s2)*200*br)}else{var s3=sd(dx,dy,R*1.5);if(s3<1){r=120;g=50;b=200;a=Math.round((1-s3)*110)}}}/* 外面兩層淡紫光暈 */
     var ax=Math.abs(dx),ay=Math.abs(dy),L=R*.95*cl;if((ay<w&&ax<L)||(ax<w&&ay<L*.8)){var t=1-Math.max(ax/L,ay/(L*.8)),m=Math.min(1,t*1.4);r+=(255-r)*m;g+=(240-g)*m;b+=(255-b)*m;a=Math.max(a,Math.round(255*Math.min(1,t*2)))}/* 中間白十字 */
+    var dd=Math.abs(ax-ay)*.7071,dr=(ax+ay)*.7071,DL=R*.82*br*(1+fl*.25),dw=N>40?1.6:.9;if(dd<dw&&dr<DL){var t2=(1-dr/DL)*(1-dd/dw),m2=Math.min(1,t2*1.3);r+=(235-r)*m2;g+=(205-g)*m2;b+=(255-b)*m2;a=Math.max(a,Math.round(230*Math.min(1,t2*1.6)))}/* 四個對角的淡紫白光芒，比十字短、比較柔 */
+    var dg=Math.max(0,1-Math.sqrt(dx*dx+dy*dy)/(R*.95))*Math.pow(Math.max(0,1-dd/(R*.3)),2)*.8;if(dg>0&&s>=1){r+=(200-r)*dg;g+=(150-g)*dg;b+=(255-b)*dg;a=Math.max(a,Math.round(200*dg))}/* 對角方向一層淡光暈，讓四芒星不會只有上下左右重 */
     var cg=Math.max(0,1-Math.sqrt(dx*dx+dy*dy)/(N*.12*cl));if(cg>0){r+=(255-r)*cg;g+=(255-g)*cg;b+=(255-b)*cg;a=Math.max(a,Math.round(255*cg))}
     var i=(y*N+X)*4;d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=a}
   x.putImageData(img,0,0);
