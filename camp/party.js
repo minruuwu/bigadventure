@@ -25,6 +25,7 @@
 .nbtns{display:flex;gap:6px;margin:6px 0 2px}.nbtns .pbtn{flex:1}\
 .pkt{display:flex;gap:4px;margin:4px 0 6px}.pkt button{flex:1;font:inherit;font-size:13px;font-weight:900;padding:6px 0;border:0;cursor:pointer;color:#f0dfb8;background:#4a2a12;box-shadow:0 0 0 2px #1d1008}.pkt button.on{background:#a8741e;color:#fff}\
 .nse{display:flex;flex-direction:column;gap:4px;width:100%}.nse label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;color:#3b2713}.nse label span{flex:none;width:52px}.nse select{flex:1;min-width:0;font:inherit;font-size:13px;padding:5px;background:#f4e8c8;color:#2e1d0e;border:2px solid #3d230d;border-radius:0}.nse .off{font-size:12px;color:#7a5a38;padding:4px 0 4px 60px}.nsv{display:flex;gap:8px;justify-content:center;margin-top:8px}\
+.bbl{display:flex;flex-wrap:wrap;gap:4px 6px}.bbn{font-size:12px;background:rgba(74,42,18,.12);box-shadow:inset 0 0 0 1px rgba(74,42,18,.3);padding:2px 6px;color:#2e1d0e}.bbn b{color:#2e6a1a}\
 .tb2,.sg{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:12px}.tb2{margin:4px 0 2px}\
 .tb2 span,.sg span{display:flex;align-items:center;gap:4px;min-width:0}.tb2 em,.sg em{margin-left:auto;font-style:normal;font-weight:900;white-space:nowrap}\
 .icf{width:32px;height:32px;flex:none;display:inline-block;background-size:32px 32px;image-rendering:pixelated}.icf img{width:32px;height:32px;display:block;image-rendering:pixelated}.sg{gap:2px 8px!important}.sg .sl{font-style:normal;white-space:nowrap;min-width:0;overflow:hidden}.sg .sl.lg{font-size:11px;letter-spacing:-.03em}.sg em{padding-left:3px}.dtl img.si{width:16px;height:16px;image-rendering:pixelated;flex:none}.dtl img.ji,.rw img,.tp .m img,.chat img{image-rendering:pixelated}.dtl img.ji{width:20px;height:20px;flex:none}\
@@ -81,7 +82,8 @@
   /* ---------- 戰鬥屬性（跟角色頁同一套算法，只是唯讀） ---------- */
   function statData() {
     if (STAT) return Promise.resolve(STAT);
-    return Promise.all([C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] }), C.getCSV('job_mastery.csv').catch(function () { return [] }), C.getCSV('job_info.csv').catch(function () { return [] })]).then(function (R) {
+    if (window.BeastInfo && !statData.bi) statData.bi = BeastInfo.load(C.base, C.v);/* 幻獸名稱、技能名稱 */
+    return Promise.all([statData.bi || null, C.getCSV('job_attribute.csv'), C.getCSV('job_level_up.csv'), C.getCSV('skill_info.csv').catch(function () { return [] }), C.getCSV('skill_effect.csv').catch(function () { return [] }), C.getCSV('rune_info.csv').catch(function () { return [] }), C.getCSV('rune_level.csv').catch(function () { return [] }), C.getCSV('job_mastery.csv').catch(function () { return [] }), C.getCSV('job_info.csv').catch(function () { return [] })]).then(function (R) { R = R.slice(1);
       if (R[5] && R[5].length && window.RuneVals) RuneVals.setLevels(R[5]);
       var A = {}, G = {}, K = {}; R[0].forEach(function (r) { if (r.u_sn) A[r.u_sn] = r }); R[1].forEach(function (r) { if (r.u_sn) G[r.u_sn] = r }); R[2].forEach(function (r) { if (r.skill_id) K[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, e: r.part1_element || r.part2_element, kind: r.kind, d: r.skill_desc || '' } });
       var E = {}; (R[3] || []).forEach(function (r) { if (r.effect_kind === 'passive' && r.effect && r.skill_id) (E[r.skill_id] = E[r.skill_id] || []).push({ k: r.effect, v: parseFloat(r.value) || 0, c: r.condition || '' }) });
@@ -119,20 +121,32 @@
     var r5 = rOn('rune05') ? RV('rune05', 0, 0.2) : 0, r5d = rOn('rune05') ? RV('rune05', 1, 1) : 0;
     var pdT = pd + wsum('p_reduce_rate') + ps('p_reduce_rate') + (rOn('rune06') ? RV('rune06', 0, 0.2) : 0) + skPas(p, 'p_reduce_rate'), mdT = md + wsum('m_reduce_rate') + ps('m_reduce_rate') + (rOn('rune07') ? RV('rune07', 0, 0.2) : 0) + skPas(p, 'm_reduce_rate');
     /* 羊之新生：減傷同時加成為增傷（上限看 rune_info） */
+    var BB = bstBonus(p), hiP = (P0 + balP) >= (M0 + balM);/* 幻獸加成（跟戰鬥一致；NPC 沒有幻獸） */
     var r24 = rOn('rune24'), k24 = RV('rune24', 0, 1), c24 = RV('rune24', 1, 9), pd24 = r24 ? Math.min(Math.min(pdT, 0.8) * k24, c24) : 0, md24 = r24 ? Math.min(Math.min(mdT, 0.8) * k24, c24) : 0;
     return [
-      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1) + Math.round(a * skPas(p, 'agi_to_hp') * 5) + Math.round(i * skPas(p, 'int_to_hp') * 5) + Math.round((P0 + balP) * skPas(p, 'p_atk_to_hp'))) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate') + (rOn('rune06') ? RV('rune06', 1, 0) : 0) + (rOn('rune07') ? RV('rune07', 1, 0) : 0)))],
-      ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate') + skPas(p, 'eva_rate'))],
-      ['patk', '物理攻擊力', P0 + balP],
-      ['matk', '魔法攻擊力', M0 + balM],
-      ['pdmg', '物理加成', pct(wsum('p_damage_rate') + skPas(p, 'p_damage_rate') + pd24)],
-      ['mdmg', '魔法加成', pct(wsum('m_damage_rate') + skPas(p, 'm_damage_rate') + md24)],
-      ['pdef', '物理減傷', pct(pdT)],
-      ['mdef', '魔法減傷', pct(mdT)],
-      ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5 + skPas(p, 'crit_rate'))],
-      ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + r5d + skPas(p, 'crit_damage_rate'))]].concat(skPas(p, 'atk_per_ally') ? [['patk', '觀眾熱情', '隊友 ' + allies + ' 人 → 物攻魔攻 +' + pct(apa)]] : []);
+      ['hp', '生命力', Math.round((v * 5 + 10 * Math.max(0, (p.lv | 0 || 1) - 1) + Math.round(a * skPas(p, 'agi_to_hp') * 5) + Math.round(i * skPas(p, 'int_to_hp') * 5) + Math.round((P0 + balP) * skPas(p, 'p_atk_to_hp'))) * (1 + hpb + wsum('hp_rate') + skPas(p, 'hp_rate') + (rOn('rune06') ? RV('rune06', 1, 0) : 0) + (rOn('rune07') ? RV('rune07', 1, 0) : 0)) * (1 + BB.hp))],
+      ['eva', '閃避率', pct(a / (a + 800) + eb + wsum('eva_rate') + ps('eva_rate') + skPas(p, 'eva_rate') + BB.eva)],
+      ['patk', '物理攻擊力', Math.round((P0 + balP) * (1 + (hiP ? BB.atk : 0)))],
+      ['matk', '魔法攻擊力', Math.round((M0 + balM) * (1 + (hiP ? 0 : BB.atk)))],
+      ['pdmg', '物理加成', pct(wsum('p_damage_rate') + skPas(p, 'p_damage_rate') + pd24 + BB.dmg)],
+      ['mdmg', '魔法加成', pct(wsum('m_damage_rate') + skPas(p, 'm_damage_rate') + md24 + BB.dmg)],
+      ['pdef', '物理減傷', pct(pdT + BB.red)],
+      ['mdef', '魔法減傷', pct(mdT + BB.red)],
+      ['crit', '暴擊率', pct(a / (a + 500) + cb + wsum('crit_rate') + r5 + skPas(p, 'crit_rate') + BB.crit)],
+      ['critdmg', '暴擊傷害', pct(0.5 + l * 0.01 + db + wsum('crit_damage_rate') + r5d + skPas(p, 'crit_damage_rate') + BB.cdmg)]].concat(skPas(p, 'atk_per_ally') ? [['patk', '觀眾熱情', '隊友 ' + allies + ' 人 → 物攻魔攻 +' + pct(apa)]] : []);
   }
-  function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']) + skPas(p, r[0] + '_res_rate'), 0.75))] }) }
+  function resists(p) { var at = (STAT && STAT.attr[jobSn(p)]) || {}; var BB = bstBonus(p); return RES.map(function (r) { return ['res_' + r[0], r[1], pct(Math.min(pn(at[r[0] + '_res_rate_bonus']) + skPas(p, r[0] + '_res_rate') + (BB.el ? (r[0] === BB.el ? BB.res : BB.ores) : 0), 0.75))] }) }
+  /* 幻獸：同行幻獸給的加成（NPC 沒有幻獸）；幻獸分頁＝名字、等級、種族名稱、有加成的項目、裝備的兩招 */
+  function bstBonus(p) { var z = { atk: 0, dmg: 0, crit: 0, red: 0, hp: 0, res: 0, eva: 0, cdmg: 0, ores: 0, el: '' }; if (!window.BeastInfo || !p || p.npc) return z; var b = BeastInfo.of(p); return b ? BeastInfo.bonus(b) : z }
+  function beastHtml(p) {
+    if (p.npc) return '<div class="none">同伴還不能帶幻獸</div>';
+    var b = window.BeastInfo && BeastInfo.of(p); if (!b) return '<div class="none">沒有同行的幻獸</div>';
+    var B = BeastInfo.bonus(b), bl = BeastInfo.ORDER.filter(function (k) { return B[k] > 0 }).map(function (k) { return '<span class="bbn">' + BeastInfo.LBL[k] + ' <b>+' + pct(B[k]) + '</b></span>' }).join('');
+    var h = '<div class="rw"><img alt="" src="' + C.base + 'beasts/beast_' + esc(b.k) + '.png?v=' + C.v + '" style="width:48px;height:48px;image-rendering:pixelated"><span class="tx"><b>' + esc(b.name) + '</b><small>' + esc(BeastInfo.species(b)) + '</small></span><span class="g" style="font-size:13px;font-weight:900;color:#2e1d0e">Lv.' + b.lv + '</span></div>';
+    h += '<div style="margin:8px 0 4px;font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a">加成屬性</div><div class="bbl">' + (bl || '<span class="none" style="padding:0">還沒有加成</span>') + '</div>';
+    h += '<div style="margin:10px 0 4px;font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a">裝備技能</div>' + b.sk.map(function (s, q) { return '<div class="rw"><span class="tx"><b>' + esc(BeastInfo.skillName(b, s) || '—') + '</b><small>技能 ' + (q + 1) + '</small></span></div>' }).join('');
+    return '<div class="lst" style="max-height:none">' + h + '</div>'
+  }
   function gridHtml(rows) { return '<div class="sg">' + rows.map(function (r) { return '<span><span class="icf" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + C.base + 'icons/stats/' + r[0] + '.png?v=5" onerror="this.style.visibility=\'hidden\'"></span><i class="sl' + (String(r[1]).length > 5 ? ' lg' : '') + '">' + r[1] + '</i><em>' + r[2] + '</em></span>' }).join('') + '</div>' }
   function skIco(sk, p) { if (!sk) return '<span class="sbl"></span>'; if (p && p.npc && sk !== 'atk') return '<img alt="" src="' + snIcon(p.npc) + '">'; if (sk === 'atk') { var w = wicon(p); return w ? '<span class="icf sw" style="background-image:url(' + goldFrame() + ')"><img alt="" src="' + w + '"></span>' : '<span class="sbl"></span>' } return '<img alt="" src="' + snIcon(sk.j) + '">' }
   function skillsHtml(p) {
@@ -176,7 +190,7 @@
     });
     return '<div class="lst" style="max-height:none">' + h + '</div>'
   }
-  var TABN = { say: '想說的話', stat: '屬性', skill: '技能', res: '抗性', wpn: '武器', job: '職業' };
+  var TABN = { say: '想說的話', stat: '屬性', skill: '技能', res: '抗性', wpn: '武器', job: '職業', bst: '幻獸' };
   /* 分頁：bar 放按鈕，panel 放內容；onTab(name) 讓呼叫端決定其他區塊（例如想說的話）要不要顯示 */
   function mountTabs(bar, panel, p, names, onTab, alive) {
     var cur = names[0];
@@ -185,7 +199,7 @@
       if (onTab) onTab(cur);
       if (cur === 'say') { panel.innerHTML = ''; return }
       panel.innerHTML = '<div class="none">讀取中…</div>'; var mine = cur;
-      statData().then(function () { if (cur !== mine || (alive && !alive())) return; panel.innerHTML = mine === 'stat' ? gridHtml(combat(p)) + '<div style="margin:10px 0 4px;font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a;border-top:2px dashed rgba(60,30,10,.35);padding-top:8px">抗性</div>' + gridHtml(resists(p)) : mine === 'res' ? gridHtml(resists(p)) : mine === 'wpn' ? weaponHtml(p) : mine === 'skill' ? skillsHtml(p) : jobsHtml(p) })
+      statData().then(function () { if (cur !== mine || (alive && !alive())) return; panel.innerHTML = mine === 'stat' ? gridHtml(combat(p)) + '<div style="margin:10px 0 4px;font-size:12px;font-weight:900;letter-spacing:.12em;color:#5a3a1a;border-top:2px dashed rgba(60,30,10,.35);padding-top:8px">抗性</div>' + gridHtml(resists(p)) : mine === 'res' ? gridHtml(resists(p)) : mine === 'wpn' ? weaponHtml(p) : mine === 'skill' ? skillsHtml(p) : mine === 'bst' ? beastHtml(p) : jobsHtml(p) })
     }
     bar.onclick = function (e) { var b = e.target.closest && e.target.closest('button[data-t]'); if (!b || b.dataset.t === cur) return; cur = b.dataset.t; paint() };
     bar.hidden = false; panel.hidden = false; paint()
@@ -316,7 +330,7 @@
         '<span>' + (W ? '<img class="si" alt="" src="' + W + '">' : '') + esc(p.weapon || '—') + '<em>Lv.' + wlv(p) + '</em></span></div>' +
         '<div class="ptabs"></div><div class="pn"></div>';
       p._allies = Math.min(3, (me().party || []).length); /* 在我的隊伍裡：隊友數 = 隊伍人數 − 1 */
-      mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'wpn', 'job']);
+      mountTabs(d.querySelector(".ptabs"), d.querySelector('.pn'), p, ['stat', 'skill', 'wpn', 'job', 'bst']);
       var b = d.querySelector('[data-a=rm]'); if (b) b.addEventListener('click', function () {
         confirmBox(win, '要把 ' + p.name + ' 移出隊伍嗎？', '移出', function () {
           API.remove(p.uid).then(function () { var m = me(); m.party = (m.party || []).filter(function (x) { return x !== p.uid }); bust(p.uid); sel = 0; syncBtn(); load(); C.toast('已移出 ' + p.name) }, function (e) { C.toast(errText(e, '移出')) })
