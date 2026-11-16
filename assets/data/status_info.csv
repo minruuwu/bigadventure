@@ -306,6 +306,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 磁晶壁,buff,debuff_block,,,,,
 磁爆,debuff,dmg_taken_rate,0.15,,,,受到的傷害 +15%
 磁極偏轉,buff,hit_block,2,,,,抵擋 2 次攻擊，期間不會被施加新的負面狀態
+磁極偏轉,buff,debuff_block,,,,,
 電漿過載,buff,speed,3,,,,速度 +3、物理與魔法攻擊力 +15%
 電漿過載,buff,p_atk_rate,0.15,,,,
 電漿過載,buff,m_atk_rate,0.15,,,,
