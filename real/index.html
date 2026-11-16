@@ -11,18 +11,18 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .bar b{font-size:15px;letter-spacing:.06em}.bar small{color:#b09a74;font-size:11px}
 .zn{display:flex;align-items:center;gap:6px}.zn i{width:12px;height:12px;display:inline-block;box-shadow:0 0 0 2px #080503}
 [hidden]{display:none!important}
-.btns{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column;gap:8px}
+.btns{position:fixed;right:76px;bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column;gap:8px}
 .btns button,.pn button{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;min-width:92px}
 .btns button.on{background:#2f6a2a;box-shadow:0 0 0 2px #0a2408,inset 0 2px 0 #4f9a46}
 .tip{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);max-width:52%;font-size:11px;line-height:1.5;color:#d8c8a4;background:rgba(18,12,8,.75);padding:6px 8px;box-shadow:0 0 0 2px #080503}
-.pn{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);width:min(340px,calc(100% - 24px));background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
+.pn{z-index:10;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);width:min(340px,calc(100% - 24px));background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
 .pn[hidden]{display:none}
 .pn h3{margin:0 0 4px;font-size:16px}.pn p{margin:2px 0;font-size:13px}.pn .row{display:flex;gap:8px;margin-top:10px}.pn .row button{flex:1}
 .pn button:disabled{opacity:.5}.pn .x{position:absolute;top:6px;right:6px;min-width:0;width:28px;height:28px;padding:0}
-.back{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 8px);display:flex;flex-direction:column;align-items:center;text-decoration:none;z-index:5;-webkit-tap-highlight-color:transparent}.back canvas{width:64px;height:64px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(170,90,255,.7))}.back span{font-size:12px;font-weight:900;color:#f2e6ff;background:rgba(18,10,24,.85);padding:0 8px;margin-top:-8px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #9a5ae0;letter-spacing:.15em}
+.back{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);width:60px;display:flex;flex-direction:column;align-items:center;text-decoration:none;z-index:5;-webkit-tap-highlight-color:transparent}.back canvas{width:62px;height:62px;margin:-5px 0 -5px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(170,90,255,.7))}.back span,.bagb span{font-size:12px;font-weight:900;color:#f6e8c0;background:rgba(18,10,24,.8);padding:0 7px;margin-top:-2px;box-shadow:0 0 0 2px #080503;letter-spacing:.15em;text-shadow:1px 1px 0 #000;white-space:nowrap}.back span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #9a5ae0}
 .gpsb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px}.gpsb[hidden]{display:none}.gpsb>div{background:#e8d4a8;color:#3b2713;max-width:320px;padding:16px 16px 14px;box-shadow:0 0 0 3px #4a2a12,6px 6px 0 rgba(0,0,0,.5);font-size:14px;line-height:1.6}.gpsb h3{margin:0 0 6px;font-size:16px}.gpsb p{margin:0 0 12px}.gpsb .r{display:flex;gap:8px;flex-wrap:wrap}.gpsb button,.gpsb a{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 12px;cursor:pointer;text-decoration:none;box-shadow:0 0 0 2px #1d1008}
-.bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 136px);width:52px;height:52px;padding:0;border:0;background:rgba(18,12,8,.72);box-shadow:0 0 0 2px #1d1008,inset 0 0 0 1px #5a3a18;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.bagb img{width:42px;height:auto;image-rendering:pixelated}
+.bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 86px);width:60px;padding:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;z-index:5;-webkit-tap-highlight-color:transparent}
+.bagb img{width:52px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
 .bag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:translateX(-50%);width:min(360px,calc(100% - 16px));max-height:calc(100% - 120px);overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:5}
 .bag[hidden]{display:none}
 .bag h3{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:6px}.bag h3 img{width:24px;image-rendering:pixelated}
@@ -66,7 +66,7 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <a class="back" id="bBack" href="../battle/index.html" aria-label="返回原本的世界"><canvas id="bkc" width="24" height="24"></canvas><span>返回</span></a>
 <div class="gpsb" id="gpsb" hidden><div><h3>需要開啟定位</h3><p id="gpsm"></p><div class="r"><button type="button" id="gpsR">重新嘗試</button><a href="../battle/index.html">返回原本的世界</a></div></div></div>
 <div class="pn" id="pn" hidden></div>
-<button type="button" class="bagb" id="bBag" title="行囊"><img src="../assets/real/bag.png" alt="行囊"></button>
+<button type="button" class="bagb" id="bBag" title="行囊"><img src="../assets/real/bag.png" alt=""><span>行囊</span></button>
 <div class="bag" id="bag" hidden></div>
 <div id="tst" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 84px);transform:translateX(-50%);max-width:86%;font-size:13px;background:rgba(18,12,8,.88);color:#f6e8c0;padding:6px 10px;box-shadow:0 0 0 2px #5a3a18;z-index:9;pointer-events:none"></div>
 <div class="nest" id="nest" hidden title="孵化中的蛋"><div class="nw"><img class="nb" src="../assets/beast/nest.png" alt=""><img class="ne" id="nestEgg" alt=""></div><div class="bar"><i id="nestBar"></i></div><small id="nestTxt"></small></div>
@@ -446,7 +446,7 @@ function fight(o){if(!meP()){toastMsg('要先登入才能戰鬥');return}if(kill
 function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');
   pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" data-a="go"'+(ok?'':' disabled')+'>'+(ok?'戰鬥':'太遠了')+'</button></div><p style="font-size:11px;margin:6px 0 0">打贏可得經驗（一般關卡的 30%）、'+o.z.n+'的素材'+(o.rare?'，王必掉一顆幻獸蛋':'，1% 機率掉幻獸蛋')+'</p>';pn.hidden=false}
 $('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};
-var DEV=/[?&]dev=1/.test(location.search);if(DEV){$('devb').hidden=false;$('tip').hidden=false}else $('bBag').style.bottom='calc(env(safe-area-inset-bottom) + 14px)';/* ?dev=1：測試用，保留 GPS 開關、快速移動、回到起點與拖曳走路 */
+var DEV=/[?&]dev=1/.test(location.search);if(DEV){$('devb').hidden=false;$('tip').hidden=false}/* ?dev=1：測試用，保留 GPS 開關、快速移動、回到起點與拖曳走路 */
 /* 下方的返回傳送門：跟冒險地圖上的幻境門同一個紫色星芒 */
 function starGate(x,N,tt){var C=N/2,R=N*.47,img=x.createImageData(N,N),d=img.data,br=.82+.18*Math.sin(tt*Math.PI),fl=Math.pow(Math.max(0,Math.sin(tt*5.3)),12),cl=1+fl*.35,w=N>40?1.2:.7;
   function sd(dx,dy,Rr){var ax=Math.abs(dx)/Rr,ay=Math.abs(dy)/Rr;return Math.pow(Math.pow(ax,.62)+Math.pow(ay,.62),1/.62)}/* < 1：在四芒星裡 */
