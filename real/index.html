@@ -185,14 +185,17 @@ function draw(now){
   MONS.forEach(function(o){if(!o.box)return;var bx=(o.box[0]+o.box[2]/2)*S,by=o.box[1]*S-4,t='Lv'+o.lv+(o.cnt>1?' ×'+o.cnt:''),tw=ox.measureText(t).width+8;
     ox.fillStyle=o===sel?'rgba(154,58,42,.95)':'rgba(18,12,8,.78)';ox.fillRect(bx-tw/2,by-14,tw,15);ox.fillStyle=Math.hypot(o.x-me.x,o.y-me.y)<=REACH?'#9cf08a':'#f0e2c4';ox.fillText(t,bx,by-3)});
   drawClouds(now)}
-/* ---- 天上的雲：偶爾一朵從西往東飄過，疊在最上層（連怪物等級標籤也蓋過），半透明 ---- */
-var CLOUD_A=0.4,CLOUD_V=6,CLOUD_CELL=700;/* 不透明度、風速（公尺／秒）、每 700 公尺見方最多一朵 */
-function drawClouds(now){var dr=now/1000*CLOUD_V,x0=me.x-W/2*MPP-400,x1=me.x+W/2*MPP+100,y0=me.y-H/2*MPP-100,y1=me.y+H/2*MPP+100;
+/* ---- 天上的雲：從左上往右下飄過，疊在最上層（連怪物等級標籤也蓋過），半透明；偶爾一小群一起飄來 ---- */
+var CLOUD_A=0.4,CLOUD_V=6,CLOUD_CELL=700;/* 不透明度、風速（公尺／秒）、每 700 公尺見方一格 */
+function drawClouds(now){var d=now/1000*CLOUD_V/Math.SQRT2,dx=d,dy=-d,/* 往東南（畫面右下）飄 */
+    x0=me.x-W/2*MPP-500-dx,x1=me.x+W/2*MPP+200-dx,y0=me.y-H/2*MPP-200-dy,y1=me.y+H/2*MPP+500-dy;
   ox.save();ox.imageSmoothingEnabled=false;ox.globalAlpha=CLOUD_A;
-  for(var cx2=Math.floor((x0-dr)/CLOUD_CELL);cx2<=Math.floor((x1-dr)/CLOUD_CELL);cx2++)for(var cy2=Math.floor(y0/CLOUD_CELL);cy2<=Math.floor(y1/CLOUD_CELL);cy2++){
-    if(r01('cl',cx2,cy2)>.35)continue;var ci=IM['cloud'+(1+h32('ck',cx2,cy2)%6)];if(!ci)continue;
-    var wx=(cx2+r01('cx',cx2,cy2))*CLOUD_CELL+dr,wy=(cy2+r01('cy',cx2,cy2))*CLOUD_CELL,p=scr(wx,wy),sc=3+h32('cs',cx2,cy2)%2;
-    ox.drawImage(ci,Math.round((p[0]-ci.width*sc/2)*S),Math.round((p[1]-ci.height*sc/2)*S),ci.width*sc*S,ci.height*sc*S)}
+  for(var cx2=Math.floor(x0/CLOUD_CELL);cx2<=Math.floor(x1/CLOUD_CELL);cx2++)for(var cy2=Math.floor(y0/CLOUD_CELL);cy2<=Math.floor(y1/CLOUD_CELL);cy2++){
+    var rr=r01('cl',cx2,cy2),n=rr<.22?1:rr<.3?3+h32('cn',cx2,cy2)%3:0;/* 22% 一朵、8% 一小群 3～5 朵、其他沒有 */
+    var bx=(cx2+.2+.6*r01('cx',cx2,cy2))*CLOUD_CELL,by=(cy2+.2+.6*r01('cy',cx2,cy2))*CLOUD_CELL;
+    for(var k=0;k<n;k++){var ci=IM['cloud'+(1+h32('ck',cx2,cy2,k)%6)];if(!ci)continue;
+      var wx=bx+(n>1?(r01('gx',cx2,cy2,k)-.5)*260:0)+dx,wy=by+(n>1?(r01('gy',cx2,cy2,k)-.5)*200:0)+dy,p=scr(wx,wy),sc=1.5+(h32('cs',cx2,cy2,k)%2)*.5;
+      ox.drawImage(ci,Math.round((p[0]-ci.width*sc/2)*S),Math.round((p[1]-ci.height*sc/2)*S),Math.round(ci.width*sc*S),Math.round(ci.height*sc*S))}}
   ox.restore()}
 /* ---- 地域交界淡化：交界兩側各 BL 格，用 2×2 的像素顆粒慢慢混進隔壁的地面，不畫硬邊 ---- */
 var BL=18,MASKV=null,MASKH=null,TMP=document.createElement('canvas'),TX=TMP.getContext('2d');
