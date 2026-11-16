@@ -183,6 +183,29 @@ service cloud.firestore {
       // 附魔:清單裡每個符文都要至少 1 片碎片(Lv1)
       function enHas(l, i) { return l.size() <= i || resource.data.get('rs', {}).get(l[i], 0) >= 1; }
 
+      // 幻獸孵蛋(實境頁):beastEggs(各元素蛋的數量)、hatch(孵化中:{egg, m=已走公尺})、beasts(孵出來的幻獸清單,最多 6 隻)
+      // 開始孵化:沒有在孵的蛋、那顆蛋至少 1 顆且只扣 1 顆、進度從 0 開始、幻獸還沒滿 6 隻
+      // 走路進度:同一顆蛋、只能增加、一次最多 +600 公尺、最多 2000 公尺
+      // 孵化完成:進度滿 2000 公尺才行;孵化中拿掉、幻獸清單原本的不變、最後多 1 隻同元素的,名字 1～8 個字
+      function beastOk(ak) {
+        let n = request.resource.data;
+        let oh = resource.data.get('hatch', null);
+        let nh = n.get('hatch', null);
+        let oe = resource.data.get('beastEggs', {});
+        let ne = n.get('beastEggs', {});
+        let ob = resource.data.get('beasts', []);
+        let nb = n.get('beasts', []);
+        return (ak.hasOnly(['beastEggs','hatch']) && oh == null && nh is map && nh.keys().hasOnly(['egg','m']) && nh.m == 0
+            && nh.egg in ['fire','ice','bolt','wind','leaf','sun','moon']
+            && ne is map && ne.diff(oe).affectedKeys().hasOnly([nh.egg])
+            && oe.get(nh.egg, 0) >= 1 && ne.get(nh.egg, 0) == oe.get(nh.egg, 0) - 1 && ob.size() < 6)
+          || (ak.hasOnly(['hatch']) && oh != null && nh is map && nh.keys().hasOnly(['egg','m']) && nh.egg == oh.egg
+            && nh.m is number && nh.m > oh.m && nh.m <= 2000 && nh.m - oh.m <= 600)
+          || (ak.hasOnly(['hatch','beasts']) && oh != null && oh.m >= 2000 && nh == null
+            && nb is list && nb.size() == ob.size() + 1 && nb.size() <= 6 && nb[0:ob.size()] == ob
+            && nb[ob.size()].keys().hasOnly(['sp','name','at']) && nb[ob.size()].sp == oh.egg
+            && nb[ob.size()].name is string && nb[ob.size()].name.size() >= 1 && nb[ob.size()].name.size() <= 8);
+      }
       // 劇情與 NPC 同伴:story(看過的章節)、npcs.<npc id>(解鎖、技能、符文)、npcParty(入隊的 NPC)
       // npcParty 有變動時:最多 3 位,而且跟玩家隊員 party 合計最多 3 位(全隊 4 人)
       function storyOk(ak) {
@@ -196,7 +219,8 @@ service cloud.firestore {
         return request.auth.token.email == 'minruu0215@gmail.com'
           && request.auth.token.email_verified == true
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cookies','pets','weapons','stones','lv','exp','jobLv','jobUp',
-               'job','jobSn','jobSeen','alloc','weapon','outfit','skills','adv','owe','rs','rift','riftDay','riftN','runeV']);
+               'job','jobSn','jobSeen','alloc','weapon','outfit','skills','adv','owe','rs','rift','riftDay','riftN','runeV',
+               'beastEggs','hatch','beasts']);
       }
       // ===== 自己改自己的資料:所有情況合成一個函式 =====
       // Firebase 每次存檔最多算 1000 個運算式。「整份資料新舊比較」(diff)很耗額度,以前每條規則各算一次,
@@ -214,6 +238,11 @@ service cloud.firestore {
         || (
           ak.hasOnly(['runeV','weapons'])
           && migOk()
+        )
+        // 幻獸孵蛋(實境頁)
+        || (
+          ak.hasOnly(['beastEggs','hatch','beasts'])
+          && beastOk(ak)
         )
         // 劇情進度、NPC 同伴（解鎖、入隊、技能與符文設定）
         || (
