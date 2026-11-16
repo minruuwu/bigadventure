@@ -76,7 +76,7 @@ function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
     if(big&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹（仙人掌）不要疊在一起 */
-    L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0})}
+    L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0,sh:z.k==='tomb'})}
   if(z.k==='desert'){
     /* 小沙丘：每格一半機率有 1 個，矮矮的不透明 */
     for(var k=0,nd=h32('dd',sx,sy,PER)%2;k<nd;k++)L.push({x:(sx+.05+.9*r01('ddx',sx,sy,k,PER))*SUB,y:(sy+.05+.9*r01('ddy',sx,sy,k,PER))*SUB,im:IM['desert_dune'+(1+h32('ddk',sx,sy,k,PER)%3)],dune:1});
@@ -86,11 +86,7 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
   if(z.k==='tomb'){
     /* 墓碑：每格一半機率 1 個（跟樹一樣半透明、會遮擋） */
     if(h32('ts',sx,sy,PER)%2){var sk='tomb_stone'+(1+h32('tsk',sx,sy,PER)%5),tx=(sx+.1+.8*r01('tsx',sx,sy,PER))*SUB,ty=(sy+.1+.8*r01('tsy',sx,sy,PER))*SUB;
-      if(!L.some(function(q){return Math.hypot(q.x-tx,q.y-ty)<20}))L.push({x:tx,y:ty,im:IM[sk],big:BIGH[sk]})}
-    /* 骷髏頭、碎骨：每格一半機率 1 個，不透明 */
-    if(h32('tb',sx,sy,PER)%2)L.push({x:(sx+.05+.9*r01('tbx',sx,sy,PER))*SUB,y:(sy+.05+.9*r01('tby',sx,sy,PER))*SUB,im:IM['tomb_bone'+(1+h32('tbk',sx,sy,PER)%3)]});
-    /* 石塊路：大約每 3～4 格一段，平貼在地上（畫在最底層） */
-    if(r01('tp',sx,sy,PER)<.3)L.push({x:(sx+.2+.6*r01('tpx',sx,sy,PER))*SUB,y:(sy+.2+.6*r01('tpy',sx,sy,PER))*SUB,im:IM['tomb_path'+(1+h32('tpk',sx,sy,PER)%3)],flat:1})}
+      if(!L.some(function(q){return Math.hypot(q.x-tx,q.y-ty)<20}))L.push({x:tx,y:ty,im:IM[sk],big:BIGH[sk],sh:1})}}
   return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
 function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
@@ -133,7 +129,8 @@ function draw(now){
   objs.sort(function(a,b){return b.y-a.y});
   objs.forEach(function(q){var o=q.o;
     if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);
-      if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);cx.globalAlpha=TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
+      if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);
+        if(o.sh){/* 墓穴的樹、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,.32)';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]),Math.max(5,tw*.42),Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
       else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
     else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Math.min(1,36/Math.max(sz[0],sz[1])),w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
@@ -281,7 +278,7 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ['pine','oak','acacia'].map(function(n){return img(BASE+'real/deco_forest_'+n+'.png').then(function(i){IM['forest_'+n]=i})}),
   ['blue','violet','gold','green','pink','silver'].map(function(n){return img(BASE+'real/deco_mine_'+n+'.png').then(function(i){IM['mine_'+n]=i})}),
   ['cactus1','cactus2','cactus3','pyramid1','pyramid2','dune1','dune2','dune3'].map(function(n){return img(BASE+'real/deco_desert_'+n+'.png').then(function(i){IM['desert_'+n]=i})}),
-  ['tree1','tree2','tree3','stone1','stone2','stone3','stone4','stone5','bone1','bone2','bone3','path1','path2','path3'].map(function(n){return img(BASE+'real/deco_tomb_'+n+'.png').then(function(i){IM['tomb_'+n]=i})}))).then(function(R){
+  ['tree1','tree2','tree3','stone1','stone2','stone3','stone4','stone5'].map(function(n){return img(BASE+'real/deco_tomb_'+n+'.png').then(function(i){IM['tomb_'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
   IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
