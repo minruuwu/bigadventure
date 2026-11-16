@@ -47,8 +47,8 @@ var BASEC='#8c7a58';      /* 地面底色：所有地域共用的土色，地域
 var GA=0.14;
 var TREE_A=0.88;          /* 樹、仙人掌、金字塔的不透明度（1 = 完全不透明），後面的人、怪物隱約看得到；點擊不會被擋住 */
 /* 大型裝飾物的高度（畫面像素）：人物約 36 */
-var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,castle_house1:52,castle_house2:52,castle_house3:52,castle_house4:52,castle_house5:52,castle_house6:52,castle_house9:54,castle_house10:54,fire_pillar1:36,fire_pillar2:28,fire_pillar3:22,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
-var SHY={castle_fountain:9,castle_house1:4,castle_house2:4,castle_house3:4,castle_house4:4,castle_house5:4,castle_house6:4,castle_house9:7,castle_house10:7,tomb_tree2:4,snow_rock1:2,snow_rock2:3,snow_rock3:3};      /* 陰影往上移幾格（圖的最下面是細根、草，樹幹其實在比較上面） */
+var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,castle_house1:52,castle_house2:52,castle_house3:52,castle_house4:52,castle_house5:52,castle_house6:52,castle_house9:54,castle_house10:54,fire_pillar1:30,fire_pillar2:24,fire_pillar3:19,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
+var SHY={fire_pillar1:4,fire_pillar2:4,fire_pillar3:3,fire_shard1:2,fire_shard2:2,castle_fountain:9,castle_house1:4,castle_house2:4,castle_house3:4,castle_house4:4,castle_house5:4,castle_house6:4,castle_house9:7,castle_house10:7,tomb_tree2:4,snow_rock1:2,snow_rock2:3,snow_rock3:3};      /* 陰影往上移幾格（圖的最下面是細根、草，樹幹其實在比較上面） */
 /* 房子陰影的寬、高（相對圖的寬、高） */
 var HSH={castle_house1:[.46,.14],castle_house2:[.46,.14],castle_house3:[.46,.14],castle_house4:[.46,.14],castle_house5:[.46,.14],castle_house6:[.46,.14],castle_house9:[.56,.2],castle_house10:[.56,.2]};
 var GAZ={desert:0.5,tomb:0.85,snow:0.7,castle:0.7,fire:0.85};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
@@ -114,7 +114,7 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     if(r01('cfc',zx,zy,PER)<PYF&&sx-zx*per2===pk2%per2&&sy-zy*per2===Math.floor(pk2/per2)){var fi=IM.castle_fountain;if(fi)L.push({x:(sx+.5)*SUB,y:(sy+.5)*SUB,im:fi,big:fi.height,sh:1,op:1,ftn:1,house:1,srx:.52,sry:.3,sa:.22,k:'castle_fountain'})}}
   if(z.k==='fire'){
     /* 黑曜石柱：每格 3 成機率 1 根，柱頂冒黑煙 */
-    if(r01('fp',sx,sy,PER)<.3){var pk3='fire_pillar'+(1+h32('fpk',sx,sy,PER)%3),pi=IM[pk3];if(pi)L.push({x:(sx+.15+.7*r01('fpx',sx,sy,PER))*SUB,y:(sy+.15+.7*r01('fpy',sx,sy,PER))*SUB,im:pi,big:BIGH[pk3],sh:1,smoke:1,ph:h32('fph',sx,sy)%1000/1000,tip:.5,k:pk3})}
+    if(r01('fp',sx,sy,PER)<.3){var pk3='fire_pillar'+(1+h32('fpk',sx,sy,PER)%3),pi=IM[pk3];if(pi)L.push({x:(sx+.15+.7*r01('fpx',sx,sy,PER))*SUB,y:(sy+.15+.7*r01('fpy',sx,sy,PER))*SUB,im:pi,big:BIGH[pk3],sh:1,srx:.62,sry:.11,smoke:1,ph:h32('fph',sx,sy)%1000/1000,tip:.5,k:pk3})}
     /* 黑曜石碎塊：每格 2.5 成機率，矮、不透明 */
     if(r01('fs',sx,sy,PER)<.25){var sk2='fire_shard'+(1+h32('fsk',sx,sy,PER)%2),si=IM[sk2],fx=(sx+.1+.8*r01('fsx',sx,sy,PER))*SUB,fy=(sy+.1+.8*r01('fsy',sx,sy,PER))*SUB;if(si&&!L.some(function(q){return Math.hypot(q.x-fx,q.y-fy)<20}))L.push({x:fx,y:fy,im:si,big:si.height,sh:1,op:1,k:sk2})}
     /* 火星：偶爾一處，貼地往上飄 */
