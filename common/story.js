@@ -51,8 +51,9 @@ function play(o){
   if(!cssOn){var st=el('style');st.textContent=CSS;document.head.appendChild(st);cssOn=true}
   var base=o.base||'../assets/',q=o.v?'?v='+o.v:'';
   return Promise.all([fetch(base+'data/story/'+o.id+'.json'+q).then(function(r){if(!r.ok)throw new Error('劇本讀取失敗');return r.json()})]).then(function(r){var doc=r[0],bgs=doc.bg||{},keys=Object.keys(bgs);
-    return Promise.all(keys.map(function(k){return loadImg(base+'story/'+bgs[k]+q)})).then(function(ims){var IMG={};keys.forEach(function(k,i){IMG[k]=ims[i]});return run(o,doc,IMG)})})}
-function run(o,doc,IMG){return new Promise(function(done){
+    var who=doc.who||{},wk=Object.keys(who);/* who：不是 NPC 的說話者（例如魔王）用圖片當頭像 {名字:{img:相對 assets 的路徑, crop:[x,y,w,h], flip}} */
+    return Promise.all(keys.map(function(k){return loadImg(base+'story/'+bgs[k]+q)}).concat(wk.map(function(k){return loadImg(base+who[k].img+q)}))).then(function(ims){var IMG={},WHO={};keys.forEach(function(k,i){IMG[k]=ims[i]});wk.forEach(function(k,i){if(ims[keys.length+i])WHO[k]=Object.assign({im:ims[keys.length+i]},who[k])});return run(o,doc,IMG,WHO)})})}
+function run(o,doc,IMG,WHO){WHO=WHO||{};return new Promise(function(done){
   var root=el('div','sty'),w=el('div','sty-w'),hd=el('div','sty-h'),tt=el('span','sty-t',doc.title||''),sk=el('button','sty-skip','跳過');sk.type='button';hd.appendChild(tt);hd.appendChild(sk);
   var st=el('div','sty-st'),cv=mk(SW,SH),narr=el('div','sty-n');st.setAttribute('role','button');st.tabIndex=0;st.appendChild(cv);st.appendChild(narr);
   var dw=el('div','sty-d off'),pL=mk(32,32),pR=mk(32,32),bx=el('div','sty-b'),who=el('div','sty-nm'),line=el('div','sty-l'),nx=el('div','sty-nx','▼');
@@ -109,7 +110,8 @@ function run(o,doc,IMG){return new Promise(function(done){
   function portrait(ctx,lk,t,flip){ctx.clearRect(0,0,32,32);if(!lk||!g.Doll)return;Doll.draw(f48,lk,t);ctx.save();if(flip){ctx.translate(32,0);ctx.scale(-1,1)}ctx.drawImage(f48,8,4,32,32,0,0,32,32);ctx.restore()}
   var heroLook=o.hero?Object.assign({},o.hero,{weapon:null,shield:null,halo:[]}):null,npcLook={};
   function lookOf(id){if(!(id in npcLook))npcLook[id]=g.NPC?NPC.look(id,false):null;return npcLook[id]}
-  function loop(t){if(!alive)return;if(!root.hidden){draw(t);portrait(lx,heroLook,t+400,false);portrait(rx,lastNPC?lookOf(lastNPC):null,t+700,true)}requestAnimationFrame(loop)}
+  function loop(t){if(!alive)return;if(!root.hidden){draw(t);portrait(lx,heroLook,t+400,false);if(rWho){rx.clearRect(0,0,32,32);var cr=rWho.crop||[0,0,rWho.im.width,rWho.im.height];rx.save();if(rWho.flip){rx.translate(32,0);rx.scale(-1,1)}rx.drawImage(rWho.im,cr[0],cr[1],cr[2],cr[3],0,0,32,32);rx.restore()}else portrait(rx,lastNPC?lookOf(lastNPC):null,t+700,true)}requestAnimationFrame(loop)}
+  var rWho=null;
   requestAnimationFrame(loop);
   /* 播放 */
   function showNarr(t,title){narr.classList.remove('on');narr.classList.toggle('tt',!!title);setTimeout(function(){narr.textContent=t;narr.classList.add('on')},280)}
@@ -126,9 +128,9 @@ function run(o,doc,IMG){return new Promise(function(done){
     return out.length?out:['']}
   function speaker(sp,text){var narrM=sp==='N';dw.classList.toggle('narr',narrM);
     who.textContent=sp==='P'?NM:isNpc(sp)?NPC.get(sp).name:narrM?'':sp;pend=paginate(text,!narrM);line.textContent=pend.shift();
-    if(sp==='P')heroShown=true;if(isNpc(sp))lastNPC=sp;var other=!narrM&&sp!=='P'&&!isNpc(sp);
-    dw.classList.toggle('noL',!heroShown);dw.classList.toggle('noR',other||!lastNPC);bx.classList.toggle('r',sp!=='P'&&!narrM);
-    pL.classList.toggle('idle',sp!=='P');pR.classList.toggle('idle',!isNpc(sp))}
+    if(sp==='P')heroShown=true;if(isNpc(sp)){lastNPC=sp;rWho=null}if(WHO[sp])rWho=WHO[sp];var other=!narrM&&sp!=='P'&&!isNpc(sp)&&!WHO[sp];
+    dw.classList.toggle('noL',!heroShown);dw.classList.toggle('noR',other||!(lastNPC||rWho));bx.classList.toggle('r',sp!=='P'&&!narrM);
+    pL.classList.toggle('idle',sp!=='P');pR.classList.toggle('idle',!isNpc(sp)&&!WHO[sp])}
   function next(){
     while(pc<STEPS.length&&alive){var s=STEPS[pc],op=s[2]||{};
       if(s[0]==='mark'||s[0]==='start'){pc++;continue}

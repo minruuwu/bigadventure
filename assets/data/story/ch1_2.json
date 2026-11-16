@@ -185,5 +185,16 @@
   [
    "end"
   ]
- ]
+ ],
+ "who": {
+  "半獸人戰酋": {
+   "img": "monsters/monster_boss_01.png",
+   "crop": [
+    8,
+    1,
+    30,
+    30
+   ]
+  }
+ }
 }
