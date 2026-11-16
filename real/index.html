@@ -15,7 +15,7 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .btns button,.pn button{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;min-width:92px}
 .btns button.on{background:#2f6a2a;box-shadow:0 0 0 2px #0a2408,inset 0 2px 0 #4f9a46}
 .tip{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);max-width:52%;font-size:11px;line-height:1.5;color:#d8c8a4;background:rgba(18,12,8,.75);padding:6px 8px;box-shadow:0 0 0 2px #080503}
-.pn{z-index:10;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);width:min(340px,calc(100% - 24px));background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
+.pn{z-index:10;position:fixed;left:max(12px,calc(50% - 204px));right:80px;bottom:calc(env(safe-area-inset-bottom) + 14px);max-width:340px;background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
 .pn[hidden]{display:none}
 .pn h3{margin:0 0 4px;font-size:16px}.pn p{margin:2px 0;font-size:13px}.pn .row{display:flex;gap:8px;margin-top:10px}.pn .row button{flex:1}
 .pn button:disabled{opacity:.5}.pn .x{position:absolute;top:6px;right:6px;min-width:0;width:28px;height:28px;padding:0}
@@ -23,7 +23,7 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .gpsb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px}.gpsb[hidden]{display:none}.gpsb>div{background:#e8d4a8;color:#3b2713;max-width:320px;padding:16px 16px 14px;box-shadow:0 0 0 3px #4a2a12,6px 6px 0 rgba(0,0,0,.5);font-size:14px;line-height:1.6}.gpsb h3{margin:0 0 6px;font-size:16px}.gpsb p{margin:0 0 12px}.gpsb .r{display:flex;gap:8px;flex-wrap:wrap}.gpsb button,.gpsb a{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 12px;cursor:pointer;text-decoration:none;box-shadow:0 0 0 2px #1d1008}
 .bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 86px);width:60px;padding:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;z-index:5;-webkit-tap-highlight-color:transparent}
 .bagb img{width:52px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
-.bag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:translateX(-50%);width:min(360px,calc(100% - 16px));max-height:calc(100% - 120px);overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:5}
+.bag{position:fixed;left:max(8px,calc(50% - 214px));right:76px;bottom:calc(env(safe-area-inset-bottom) + 10px);max-width:360px;max-height:calc(100% - 120px);overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:9}
 .bag[hidden]{display:none}
 .bag h3{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:6px}.bag h3 img{width:24px;image-rendering:pixelated}
 .bag h4{margin:10px 0 4px;font-size:13px;color:#6b4a2a;border-bottom:1px dashed #b08a5a;padding-bottom:2px}
@@ -255,7 +255,7 @@ function openBag(){var d=bagData(),B='../assets/beast/',h='<button type="button"
   h+='</div>';var el=$('bag');el.innerHTML=h;el.hidden=false;$('bagX').onclick=function(){el.hidden=true};
   Array.prototype.forEach.call(el.querySelectorAll('.eg'),function(x){x.onclick=function(){askHatch(x.getAttribute('data-egg'))}})}
 function ename(k){for(var i=0;i<EGGS.length;i++)if(EGGS[i][0]===k)return EGGS[i][1];return k}
-function pnShow(h){var p=$('pn');$('bag').hidden=true;p.style.zIndex=8;p.innerHTML='<button type="button" class="x" id="pnX">✕</button>'+h;p.hidden=false;$('pnX').onclick=function(){p.hidden=true}}
+function pnShow(h){var p=$('pn');$('bag').hidden=true;sel=null;p.dataset.k='msg';p.innerHTML='<button type="button" class="x" id="pnX">✕</button>'+h;p.hidden=false;$('pnX').onclick=function(){p.hidden=true}}
 function fbErr(e){var c=e&&(e.message||e.code)||'';return c==='not-signed-in'?'請先在首頁登入。':c==='full'?'幻獸已滿 '+BEAST_MAX+' 隻，不能再孵。':c==='busy'?'已經有一顆蛋在孵化中。':c==='no-egg'?'沒有這顆蛋。':'存檔失敗，請稍後再試（'+c+'）'}
 function askHatch(k){var d=bagData();
   if(d.h){if(d.h.egg!==k)toastMsg('「'+ename(d.h.egg)+'」孵化中，孵化成功前不能更換。');return}
@@ -443,7 +443,7 @@ function killed(id){var p=meP(),k=p&&p.realK;return !!(k&&k.p===PER&&(k.k||[]).i
 function lineup(o){if(o.rare)return[o.mid];var pool=(POOL[o.z.area]||{}).norm||[o.mid],L=[o.mid];for(var i=1;i<o.cnt;i++){var sx=+o.id.split(',')[0],sy=+o.id.split(',')[1];L.push(pool[h32('mq'+i,sx,sy,PER)%pool.length]||o.mid)}return L}
 function fight(o){if(!meP()){toastMsg('要先登入才能戰鬥');return}if(killed(o.id)){toastMsg('這組怪物已經打倒了');return}
   try{sessionStorage.setItem('real.fight',JSON.stringify({id:o.id,p:PER,mons:lineup(o),lv:o.lv,base:(P&&P.lv)||LV,area:o.z.area,zn:o.z.n,rare:o.rare}))}catch(e){toastMsg('瀏覽器不允許暫存，沒辦法開戰');return}save();location.href='../battle/index.html?real=1'}
-function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');
+function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');pn.dataset.k='mon';
   pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" data-a="go"'+(ok?'':' disabled')+'>'+(ok?'戰鬥':'太遠了')+'</button></div><p style="font-size:11px;margin:6px 0 0">打贏可得經驗、'+o.z.n+'的素材'+(o.rare?'，王必掉一顆幻獸蛋':'，有機會掉幻獸蛋')+'</p>';pn.hidden=false}
 $('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};
 var DEV=/[?&]dev=1/.test(location.search);if(DEV){$('devb').hidden=false;$('tip').hidden=false}/* ?dev=1：測試用，保留 GPS 開關、快速移動、回到起點與拖曳走路 */
@@ -482,7 +482,7 @@ function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
   if(!gps&&DEV){var vx=0,vy=0;if(drag){var L=Math.hypot(drag.dx,drag.dy);if(L>12){vx=drag.dx/L;vy=-drag.dy/L}}
     if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy+=1;if(keys.ArrowDown||keys.s)vy-=1;
     var l2=Math.hypot(vx,vy);if(l2>0){vx/=l2;vy/=l2;var sp=fast?FAST:WALK;me.x+=vx*sp*dt;me.y+=vy*sp*dt;if(vx)me.face=vx<0?-1:1;me.mv=1;if(Math.random()<.02)save()}else me.mv=0}
-  hud(t);draw(t);if(sel&&!$('pn').hidden&&Math.random()<.1)showMon(sel);requestAnimationFrame(tick)}
+  hud(t);draw(t);if(sel&&!$('pn').hidden&&$('pn').dataset.k==='mon'&&Math.random()<.1)showMon(sel);/* 只有怪物資訊會自己更新距離，取名等視窗不會被蓋掉 */requestAnimationFrame(tick)}
 /* ---- 開始 ---- */
 Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(BASE),Doll.load(BASE,V),
   img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png'),img(BASE+'real/ground_castle.png'),img(BASE+'real/ground_fire.png'),img(BASE+'real/ground_fire_glow.png')].concat(
