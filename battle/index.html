@@ -3054,7 +3054,7 @@ function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 var VILLAGE={n:'帕拉迪村',y0:0,y1:120,lore:'位於古老森林邊緣的一座偏遠人類村莊，但近來森林逐漸出現異變，野獸變得躁動不安，甚至開始襲擊村民。隨著森林深處的威脅日益逼近，這座村莊也逐漸失去了往日的平靜。'};
 var STORIES=[{id:'prologue',t:'序章‧漂流者'}];
 /* 各章劇情：放在該章關卡選單 1～5 關的上方（劇本 assets/data/story/<id>.json） */
-var ASTORY={0:[{id:'ch1_1',t:'第一章之一‧變異之始',at:1},{id:'ch1_2',t:'第一章之二‧森林的暴徒',at:6}]};/* at：放在第幾關那一排的上方 */
+var ASTORY={0:[{id:'ch1_1',t:'第一章之一‧變異之始',at:1},{id:'ch1_2',t:'第一章之二‧森林的暴徒',at:10}]};/* at：放在第幾關那一排的上方 */
 function storyList(L){var h='<div class="stl">';L.forEach(function(x){h+='<button type="button" class="sti" data-a="story" data-s="'+esc(x.id)+'"><span>'+esc(x.t)+'</span>'+(storyDone(x.id)?'<small>重看</small>':'<em>NEW</em>')+'</button>'});return h+'</div>'}/* 之後新章節加在這裡（劇本放 assets/data/story/<id>.json） */
 function storyDone(id){var me=MEMB[0]||{};return !!(me.story&&me.story[id])}
 function advAny(){var m=(MEMB[0]&&MEMB[0].adv)||{};return Object.keys(m).some(function(k){return (m[k]|0)>0})}
