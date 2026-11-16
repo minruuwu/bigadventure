@@ -2,7 +2,7 @@
 // Loaded as <script type="module">; exposes window.FB and fires a 'fb-ready' event.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField, documentId, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, initializeFirestore, disableNetwork, enableNetwork, doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp, collection, query, orderBy, limit, getDocs, writeBatch, arrayUnion, arrayRemove, onSnapshot, increment, where, deleteField, documentId, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey: 'AIzaSyDOaardrrtoqBHH7-KOc-OPu9cY2yuHS_E',
@@ -13,10 +13,14 @@ const app = initializeApp({
   appId: '1:732488307020:web:412ea31fc4ecb9f6473fe9'
 });
 const auth = getAuth(app);
-const db = getFirestore(app);
+// iPhone Safari 開著頁面一陣子（尤其切到背景、螢幕關掉再回來）連線偶爾會卡住、存檔一直等不到回應：
+// 讓 Firestore 自動判斷要不要改用長輪詢；回到頁面時、或存檔逾時時，把連線斷掉重連一次
+let db; try { db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true }); } catch (e) { db = getFirestore(app); }
+let kicking = null; const netKick = () => kicking || (kicking = disableNetwork(db).then(() => enableNetwork(db)).catch(() => {}).finally(() => { setTimeout(() => { kicking = null; }, 3000); }));
+let hiddenAt = 0; document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 30000) netKick(); });
 
 let firstUser;
-const tmo = (pr, ms = 10000) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), ms))]);
+const tmo = (pr, ms = 10000) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => { netKick(); rej(Object.assign(new Error('timeout'), { code: 'timeout' })); }, ms))]);/* 存檔逾時：順便把連線重連，卡住的寫入通常就會送出去 */
 const ready = new Promise(res => { const off = onAuthStateChanged(auth, u => { firstUser = u; off(); res(u); }); });
 
 // ---- speed-ups: local copy of my player doc (page switches show instantly, then re-check in the background), timeouts ----
@@ -255,18 +259,19 @@ const FB = {
     const f = {}; f['beastEggs.' + egg] = n - 1; f.hatch = { egg, m: 0 }; await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f; },
   async beastHatchStep(m) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const f = { 'hatch.m': Math.min(2000, Math.round(m)) }; await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f['hatch.m']; },
+  netKick() { return netKick(); },
   async beastHatchDone(name) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const nm = String(name || '').trim().slice(0, 8); if (!nm) throw new Error('no-name');
     // 網路慢時多等一下、多試一次；寫入逾時不一定是失敗（可能晚一點才送到），所以逾時後再讀一次看有沒有孵好
-    const fresh = async () => { for (let i = 0; i < 2; i++) { try { const p = await withTimeout(FB.getPlayer(u.uid), 20000); if (p) meSet(u.uid, p); return p ? ser(p) : null; } catch (e) { if (i) throw e; } } };
+    const fresh = async () => { for (let i = 0; i < 2; i++) { try { const p = await withTimeout(FB.getPlayer(u.uid), i ? 20000 : 12000); if (p) meSet(u.uid, p); return p ? ser(p) : null; } catch (e) { if (i) throw e; await netKick(); } } };/* 第一次逾時就重連再讀 */
     const doneOn = p => { const L = (p && p.beasts) || []; const b = L[L.length - 1]; return p && !p.hatch && b && b.name === nm ? b : null; };
     const fin = p => { const c = meGet(); if (c) { delete c.player.hatch; c.player.beasts = p.beasts; try { localStorage.setItem(ME_KEY, JSON.stringify(c)); } catch (e) {} } };
     let p = await fresh(); if (!p) throw new Error('no-player');
     const got = doneOn(p); if (got) { fin(p); return got; }/* 上一次其實已經存進去了 */
     if (!p.hatch || (p.hatch.m || 0) < 2000) throw new Error('not-ready');
     const b = { sp: p.hatch.egg, name: nm, at: Date.now() }, nb = (p.beasts || []).concat([b]);
-    try { await tmo(updateDoc(doc(db, 'players', u.uid), { hatch: deleteField(), beasts: nb }), 25000); }
-    catch (e) { if (e && e.code === 'timeout') { const p2 = await fresh().catch(() => null); const g2 = doneOn(p2); if (g2) { fin(p2); return g2; } } throw e; }
+    try { await tmo(updateDoc(doc(db, 'players', u.uid), { hatch: deleteField(), beasts: nb }), 15000); }
+    catch (e) { if (e && e.code === 'timeout') { await netKick(); const p2 = await fresh().catch(() => null); const g2 = doneOn(p2); if (g2) { fin(p2); return g2; } } throw e; }
     fin({ beasts: nb }); return b; },
   // 照料幻獸：先讀最新資料，再由 fn(玩家資料) 算出要寫的欄位（餵養要用最新的素材數量；規則 beastEditOk 會核對）
   async beastEdit(fn) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
