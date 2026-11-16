@@ -73,6 +73,19 @@
   function jobSn(p) { return p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)) }
   function learned(p, sk) { if (p && p.npcLearn) return !!sk && (sk.id === 'atk' || (p.npcLearn[sk.id] != null && (p.lv | 0) >= p.npcLearn[sk.id])); /* NPC：依人物等級學會（npc_info 的 skills） */ var jl = p.jobLv || {}; return !!sk && (sk.id === 'atk' || (/^job\d+$/.test(sk.j || '') && (jl[sk.j] | 0) >= sk.lv)) }
   function setJobs(p) { var main = p.jobSn || ('job' + ('0' + ((p.job | 0) + 1)).slice(-2)), x = p.skills && p.skills.extra, ex = Array.isArray(x) ? x : (typeof x === 'string' && x ? [x] : []); return [main].concat(ex.slice(0, 2)) }
+  /* ---------- 幻獸 ----------
+     玩家資料 beasts[0]（艾德蒙的頁面做好之前，第一隻就是裝備中的）= {sp 蛋的種類, name, lv 等級, st 各項屬性格數, sk 裝備的兩招}。
+     幼年體：Lv1 單體攻擊、Lv6 守護、Lv12 減益、Lv18 全體攻擊（技能編號 = beast_info 的 skill_1～4 → bst_元素_1～4）；
+     屬性每項 15 格滿，數值 = 格數 / 15 × 上限；攻擊力只加在物攻、魔攻較高的那個；本屬性抗性只加幻獸自己那一系、其他屬性抗性加另外 6 系 */
+  var BSTK = { fire: 'fire', ice: 'frost', bolt: 'lightning', wind: 'wind', leaf: 'nature', sun: 'light', moon: 'dark', frost: 'frost', lightning: 'lightning', nature: 'nature', light: 'light', dark: 'dark' };
+  var BLEARN = [[1, 0], [6, 2], [12, 3], [18, 1]]; /* [等級, 技能順序 0～3] */
+  var BCAP = { atk: 0.10, dmg: 0.15, crit: 0.10, red: 0.15, hp: 0.20, res: 0.30, eva: 0.08, cdmg: 1, ores: 0.10 }, BSTEP = 15, BCH = 0.25;
+  function beastOf(p) {
+    var L = p && Array.isArray(p.beasts) ? p.beasts : [], b = L[0]; if (!b || !BSTK[b.sp]) return null;
+    var lv = clamp(b.lv | 0 || 1, 1, 20), got = BLEARN.filter(function (x) { return lv >= x[0] }).map(function (x) { return x[1] });
+    var sk = (Array.isArray(b.sk) ? b.sk : []).filter(function (i, n, a) { return got.indexOf(i) >= 0 && a.indexOf(i) === n }).slice(0, 2); if (!sk.length) sk = got.slice(-2);
+    return { k: BSTK[b.sp], name: b.name || '幻獸', lv: lv, st: b.st || {}, sk: sk, learned: got };
+  }
   function player(p, D, opt) {
     opt = opt || {};
     var jl = p.jobLv || {}, lv = Math.max(1, p.lv | 0 || 1), sv = p.skills || {}, ws = D.wbyname[p.weapon] || '';
@@ -132,6 +145,12 @@
     };
     while (u.cycle.length < 4) u.cycle.push('atk');
     /* 羊之新生：減傷 × v1 加成為增傷，轉換來的加成最多 v2 */
+    /* 幻獸：屬性加成直接加進主人的基礎數值（NPC 沒有幻獸） */
+    var bst = p.npcLearn ? null : beastOf(p);
+    if (bst) { u.bst = bst; var bf = function (k) { return clamp(Number(bst.st[k]) || 0, 0, BSTEP) / BSTEP * BCAP[k] };
+      if (u.b.patk >= u.b.matk) u.b.patk = Math.round(u.b.patk * (1 + bf('atk'))); else u.b.matk = Math.round(u.b.matk * (1 + bf('atk')));
+      u.b.pdmg += bf('dmg'); u.b.mdmg += bf('dmg'); u.b.crit += bf('crit'); u.b.pred += bf('red'); u.b.mred += bf('red'); u.b.mhp = Math.round(u.b.mhp * (1 + bf('hp'))); u.b.eva += bf('eva'); u.b.cdmg += bf('cdmg');
+      ELS.forEach(function (e) { u.b.res[e] = (u.b.res[e] || 0) + (e === bst.k ? bf('res') : bf('ores')) }) }
     if (rOn('rune24')) { var k24 = RV(D, 'rune24', 0, 1, rlv), c24 = RV(D, 'rune24', 1, 9, rlv); u.b.pdmg += Math.min(Math.min(u.b.pred, 0.8) * k24, c24); u.b.mdmg += Math.min(Math.min(u.b.mred, 0.8) * k24, c24) }
     return u;
   }
@@ -302,7 +321,7 @@
       var old = null; tgt.st.forEach(function (s) { if (s.n === name && s.src === src) old = s });
       var rows = def.rows.map(function (r) {
         var o = { k: r.k, v: r.v, el: r.el, dt: r.dt };
-        if (r.k === 'dot' || r.k === 'hot' || r.k === 'banish') o.amt = r.v * (r.base === 'p_atk' ? stat(src, 'patk') : stat(src, 'matk'));
+        if (r.k === 'dot' || r.k === 'hot' || r.k === 'banish') o.amt = r.base === 'mhp' ? r.v * tgt.b.mhp /* 幻獸木靈守護：照持有者最大生命 */ : r.v * (r.base === 'p_atk' ? stat(src, 'patk') : stat(src, 'matk'));
         if (r.k === 'shield') o.amt = r.base === 'm_atk' ? r.v * stat(src, 'matk') : r.base === 'p_atk' ? r.v * stat(src, 'patk') : r.v;
         return o;
       });
@@ -665,6 +684,29 @@
       endAct(u, sk);
       fieldPulse(u);
       flushBoom();
+      beastTurn(u);
+    }
+    /* 幻獸：主人行動結束後 25% 機率，從裝備的兩招隨機放一招。
+       幻獸沒有生命、不能被選為目標；打敵人的招用幻獸自己的數值（主人當下的物攻、魔攻較高者 × 50%，傷害類型跟著較高的那個），
+       作用在主人身上的招（守護）用主人的數值。敵人的反擊、反彈不會打到幻獸；幻獸打倒敵人的擊殺 SP 算主人的 */
+    function bproxy(u, full) {
+      var key = full ? '_bpF' : '_bpD', x = u[key];
+      if (!x) { x = u[key] = { side: 'p', i: u.i, name: u.bst.name, boss: false, st: [], runes: [], special: [], aura: [], mst: null, used: {}, flags: {}, dead: false, hp: 1, dragon: 0, owner: u };
+        Object.defineProperty(x, 'sp', { get: function () { return u.sp }, set: function (v) { u.sp = v } }); Object.defineProperty(x, 'i', { get: function () { return u.i } }); Object.defineProperty(x, 'dead', { get: function () { return u.dead }, set: function () {} }) }
+      var hi = Math.max(stat(u, 'patk'), stat(u, 'matk')) * (full ? 1 : 0.5);
+      x.b = { mhp: u.b.mhp, patk: hi, matk: hi, pdmg: stat(u, 'pdmg'), mdmg: stat(u, 'mdmg'), eva: 0, crit: stat(u, 'crit'), cdmg: stat(u, 'cdmg'), pred: 0, mred: 0, res: {}, heal: u.b.heal || 0, speed: stat(u, 'speed'), hit: 0 };
+      return x;
+    }
+    function beastTurn(u) {
+      if (!u.bst || u.side !== 'p' || u.dead || u.undead || banished(u) || !foes(u).length || RND() >= (opt.beastCh != null ? opt.beastCh : BCH)) return;
+      var b = u.bst, L = b.sk.filter(function (i) { var k0 = D.SK['bst_' + b.k + '_' + (i + 1)]; return k0 && !(k0.t === 'self' && u.st.some(function (q) { return q.n === k0.n && !q.paused })) }) /* 守護還在身上就放另一招 */, idx = pickOne(L.length ? L : b.sk), sk = D.SK['bst_' + b.k + '_' + (idx + 1)]; if (!sk) return;
+      var self = sk.t === 'self', px = bproxy(u, self), hiM = stat(u, 'matk') > stat(u, 'patk');
+      if (sk.parts && sk.parts.length) { var k2 = {}; Object.keys(sk).forEach(function (q) { k2[q] = sk[q] }); k2.parts = sk.parts.map(function (q) { return { d: hiM ? 'm' : 'p', e: q.e, r: q.r } }); sk = k2 }
+      var tg = self ? [u] : pickTargets(px, sk, false, false); if (!tg.length) return;
+      var e = line({ side: 'p', a: u.i, bst: [b.k, idx], ty: sk.ty, txt: b.name + '（幻獸）使用「' + sk.n + '」' }); nowAct = null;
+      doSkill(px, sk, tg, e); delete e._rq; delete e._th; delete e._rn; /* 反擊、反彈、符文都不算幻獸的 */
+      if (self) { e.tg = []; e.hl = [u.i] }
+      flushSt(e); flushRel(e); e.hp = hpSnap(); flushBoom();
     }
     /* 行動結束觸發的力場（雷暴龍的雷電力場）：機率對全體敵人造成「各自最大生命 × value」的屬性傷害，吃減傷與抗性；獨立一行，畫面用 rfx = zap 電一下 */
     function fieldPulse(u) {
@@ -1078,6 +1120,6 @@
     var rs = S.res(); return { ev: S.ev, res: rs === 'win' ? 'win' : 'lose', rounds: S.rounds() };
   }
 
-  var API = { prepare: prepare, player: player, monster: monster, stageMonsters: stageMonsters, stageRow: stageRow, run: run, session: session, ELN: ELN };
+  var API = { beast: beastOf, prepare: prepare, player: player, monster: monster, stageMonsters: stageMonsters, stageRow: stageRow, run: run, session: session, ELN: ELN };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.BattleEngine = API;
 })(this);

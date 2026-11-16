@@ -232,3 +232,28 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 自燃,buff,self_burn,0.4,,,,
 汽化,debuff,zero_red,1,,,,被超新星的高熱汽化：物理、魔法減傷歸零，受到的傷害 +20%
 汽化,debuff,dmg_taken_rate,0.2,,,,
+火靈守護,buff,fire_res_rate,0.2,,,,火焰抗性 +20%，物理、魔法減傷 +8%
+火靈守護,buff,p_reduce_rate,0.08,,,,
+火靈守護,buff,m_reduce_rate,0.08,,,,
+蜥血火毒,debuff,dot,0.2,m_atk,fire,m,每回合受到施加者攻擊力 20% 的火焰傷害，物理、魔法減傷 −10%
+蜥血火毒,debuff,p_reduce_rate,-0.1,,,,
+蜥血火毒,debuff,m_reduce_rate,-0.1,,,,
+冰靈守護,buff,frost_res_rate,0.2,,,,冰霜抗性 +20%，被攻擊時反彈冰霜傷害
+冰靈守護,buff,frost_thorn,0.2,,,,
+寒冷,debuff,eva_rate,-0.1,,,,閃避率 −10%
+雷靈守護,buff,lightning_res_rate,0.2,,,,雷電抗性 +20%，閃避率 +8%
+雷靈守護,buff,eva_rate,0.08,,,,
+風靈守護,buff,wind_res_rate,0.2,,,,疾風抗性 +20%，命中率 +10%
+風靈守護,buff,hit_rate,0.1,,,,
+木靈守護,buff,nature_res_rate,0.2,,,,自然抗性 +20%，每回合回復 3% 生命
+木靈守護,buff,hot,0.03,mhp,,,
+森林醉氧,debuff,dot,0.2,m_atk,nature,m,每回合受到施加者攻擊力 20% 的自然傷害
+光靈守護,buff,light_res_rate,0.2,,,,光明抗性 +20%，物理、魔法攻擊力 +10%
+光靈守護,buff,p_atk_rate,0.1,,,,
+光靈守護,buff,m_atk_rate,0.1,,,,
+光蝕,debuff,light_res_rate,-0.15,,,,光明抗性 −15%
+暗靈守護,buff,dark_res_rate,0.2,,,,黑暗抗性 +20%，暴擊率 +8%，暴擊傷害 +20%
+暗靈守護,buff,crit_rate,0.08,,,,
+暗靈守護,buff,crit_damage_rate,0.2,,,,
+影之詛咒,debuff,p_atk_rate,-0.15,,,,物理、魔法攻擊力 −15%
+影之詛咒,debuff,m_atk_rate,-0.15,,,,

@@ -221,7 +221,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=78"></script>
+<script src="engine.js?v=79"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=18"></script>
 <script>
@@ -449,7 +449,7 @@ function tick(now){
   sizeU();var t=now-B.t0,walk=t<WALK,spawn=ease(t/WALK);
   var dtm=Math.min(60,now-lastNow);lastNow=now;if(walk&&!BG[cur].fix)off+=dtm*0.09;$('bg').style.backgroundPosition=(-off)+'px 0';if(BG[cur].mask){var mp=(-off)+'px 0';$('sky2').style.webkitMaskPosition=mp;$('sky2').style.maskPosition=mp}drawSky(now);$('fgl').style.backgroundPosition=(-off*1.35)+'px 0';
   /* 戰報逐行出現 */
-  while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){if(B.hpPend){applyHp(B.hpPend.ce);B.hpPend=null}if(ce.side&&ce.hit>=600)B.hpPend={t:ce.t+ce.hit,ce:ce};else applyHp(ce)}B.li++}if(B.hpPend&&t>=B.hpPend.t){applyHp(B.hpPend.ce);B.hpPend=null}/* 蓄力很久的大招（超新星殉爆等）：血條等到真正打中那一刻才扣 */
+  while(B.li<B.ev.length&&B.ev[B.li].t<=t){var ce=B.ev[B.li];addLog(ce);if(ce.bpers)bstBufSet(ce.a,ce.bpers[0],ce.bst[0],ce.t+280,ce.bpers[1]);if(B.live&&LV&&ce.dside&&ce.da!=null&&!LV.wait&&!LV.infoOpen){var vu=liveUnit(ce.dside,ce.da);if(vu)LV.view=vu}if(B.live)LV&&(LV.infoDirty=1);if(ce.hp){if(B.hpPend){applyHp(B.hpPend.ce);B.hpPend=null}if(ce.side&&ce.hit>=600)B.hpPend={t:ce.t+ce.hit,ce:ce};else applyHp(ce)}B.li++}if(B.hpPend&&t>=B.hpPend.t){applyHp(B.hpPend.ce);B.hpPend=null}/* 蓄力很久的大招（超新星殉爆等）：血條等到真正打中那一刻才扣 */
   if(VFXT&&B){var VL=Object.keys(VT.st).filter(function(q){return VT.st[q]}),AS=VT.ast&&t>=VT.ast.t0?VT.ast.d:{p:{},m:{}};B.stNow={p:(MEMB.length?MEMB:[0]).map(function(q,i){return (i?[]:VL).concat(AS.p[i]||[])}),m:(B.mons.length?B.mons:[0]).map(function(q,i){return (i?[]:VL).concat(AS.m[i]||[])})}}/* 特效測試：按鈕選的狀態同時套在角色和怪物身上 */
   if(!B.done&&t>=B.end){B.done=true;showResult()}
   party.forEach(function(p,k){
@@ -2033,6 +2033,8 @@ var BSTHIT={orb:560,shards:520,breath:560,wave:560,blades:580,spikes:470,beam:33
 var BSZ=.5,BSA=.7,BSX=10,BSY=14;/* 大小、透明度、相對主人腳底的位置（玩家在模擬頁調好的數值） */
 /* 幻獸圖先縮成跟主角同一種像素格（1 格 = 1 單位），縮的時候平滑取樣，所以會稍微糊一點 */
 var BSM={};function bstSmall(k,s){var key=k+s;if(BSM[key])return BSM[key];var im=IMG['bst_'+k];if(!im)return null;var c=document.createElement('canvas');c.width=c.height=s;var g=c.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(im,0,0,s,s);return BSM[key]=c}
+/* 第 k 位隊員帶的幻獸（元素 key）：測試頁直接指定 MEMB[k].beast；正式戰鬥看玩家資料的 beasts[0] */
+function bstK(k){var m=MEMB[k];if(!m)return null;if(m.beast)return m.beast;var b=window.BattleEngine&&BattleEngine.beast(m);return b&&BST[b.k]?b.k:null}
 function bstSkill(e){var b=BST[e.bst[0]];return b?b.sk[e.bst[1]]:null}
 function bstC(e){return(BST[e.bst[0]]||BST.fire).c}
 /* 光暈距離場：幻獸輪廓往外每格的距離（依元素快取） */
@@ -2081,10 +2083,10 @@ var BFS={};function bstFire(k){if(BFS[k])return BFS[k];var s=bstS(k),sm=bstSmall
 var BSZM=.6;/* 成熟體大小 */
 function bstS(k){var im=IMG['bst_'+k];return Math.round((im&&im.naturalWidth||32)*(BST[k]&&BST[k].el?BSZM:BSZ))}/* 幼體 32 格、成熟體 48 格，同樣縮放 → 成熟體大一圈 */
 /* 持續效果：B.bbuf[主人][種類]={b,t0} */
-function bstBufSet(k,kind,b,t){if(!B)return;B.bbuf=B.bbuf||{};var o=B.bbuf[k]=B.bbuf[k]||{};if(o[kind]&&o[kind].b===b)return;o[kind]={b:b,t0:t}}
+function bstBufSet(k,kind,b,t,sn){if(!B)return;B.bbuf=B.bbuf||{};var o=B.bbuf[k]=B.bbuf[k]||{};if(o[kind]&&o[kind].b===b)return;o[kind]={b:b,t0:t,sn:sn||''}}/* sn = 對應的狀態名稱：正式戰鬥裡狀態結束就不再畫 */
 var NEONP=[[255,176,206],[255,150,120],[255,206,160],[255,120,170]];
 function bstBuf(t,front,only){if(!B||!B.bbuf)return;Object.keys(B.bbuf).forEach(function(k){if(only!=null&&+k!==only)return;var o=B.bbuf[k],p=party[k];if(!o||!p||p.sx==null)return;var hx=p.sx,gy=p.gy;
-  Object.keys(o).forEach(function(kind){var g=o[kind];if(!g||t<g.t0)return;var q=t-g.t0,al=Math.min(1,q/220),c=bstGc(g.b);if(bstBufIce(kind,p,q,c,al,front,t)||bstBufLt(kind,p,q,c,al,front,t)||bstBufWd(kind,p,q,c,al,front,t)||bstBufNt(kind,p,q,c,al,front,t,+k)||bstBufLg(kind,p,q,c,al,front,t)||bstBufDk(kind,p,q,c,al,front,t,k))return;
+  Object.keys(o).forEach(function(kind){var g=o[kind];if(!g||t<g.t0)return;if(g.sn&&!VFXT&&!((B.stNow&&B.stNow.p&&B.stNow.p[k])||[]).some(function(n){return String(n).split('|')[0]===g.sn})){delete o[kind];return}var q=t-g.t0,al=Math.min(1,q/220),c=bstGc(g.b);if(bstBufIce(kind,p,q,c,al,front,t)||bstBufLt(kind,p,q,c,al,front,t)||bstBufWd(kind,p,q,c,al,front,t)||bstBufNt(kind,p,q,c,al,front,t,+k)||bstBufLg(kind,p,q,c,al,front,t)||bstBufDk(kind,p,q,c,al,front,t,k))return;
     if(kind==='guard')bstOrbit1(hx,gy,q,c,al,front);
     else if(kind==='neon'&&!front){bstFog(pctx,hx,gy-4,24,t,NEONP,1.4*al)}/* 粉紅橘紅光霧，在主人後面 */
     else if(kind==='sigil'&&front){/* 火焰龍印：頭上立著一個北歐符文（ᚠ 的樣子：一根直立主幹＋兩道往右上的斜枝），亮芯＋火紅外框，上下浮動、明暗脈動 */
@@ -2338,7 +2340,7 @@ function bstLeafCircle(cx,cy,q,al){var R=15,RY=4.5;for(var i=0;i<48;i++){var a=i
 /* 持續效果（自然系） */
 function bstBufNt(kind,p,q,c,al,front,t,k){var hx=p.sx,gy=p.gy,i;
   if(kind==='wildlife'){if(!front){bstLeafCircle(hx,gy,q,al);return true}for(i=0;i<9;i++){var l=((q+i*150)%1300)/1300;VP(hx+(hsh(i,3)-.5)*20+Math.sin(l*6+i)*2,gy-2-l*30,i%2?'#ffe08a':'#a8e86a',al*(1-l))}
-    var P=bstPos(k,p,t),s=bstS((MEMB[k]||{}).beast);for(i=0;i<4;i++){if(((q>>7)+i)%3)continue;VP(P.x-s*.1+(hsh(i,q>>7)-.5)*s*.5,P.y-s*.85+(hsh(q>>7,i))*s*.2,i%2?'#ffe08a':'#c8ffd0',al)}return true}/* 腳下樹葉藤蔓魔法陣、周身綠金光塵、鹿角上的光點 */
+    var P=bstPos(k,p,t),s=bstS(bstK(k));for(i=0;i<4;i++){if(((q>>7)+i)%3)continue;VP(P.x-s*.1+(hsh(i,q>>7)-.5)*s*.5,P.y-s*.85+(hsh(q>>7,i))*s*.2,i%2?'#ffe08a':'#c8ffd0',al)}return true}/* 腳下樹葉藤蔓魔法陣、周身綠金光塵、鹿角上的光點 */
   if(kind==='barkwall'){if(!front)return true;var R=16,RY=21,cy=gy-17;for(i=0;i<56;i++){var a=i/56*6.28,x=hx+Math.cos(a)*R,y=cy+Math.sin(a)*RY,band=(i%7<4);VP(x,y,band?'#6a4a2a':'#4a3018',al*.7);VP(x+Math.cos(a),y+Math.sin(a),band?'#3fae3a':'#7ae06a',al*.6);if(i%5===0)VP(x-Math.cos(a),y-Math.sin(a),'#a8ff9a',al*(.5+.5*Math.sin(q/200+i)))}
     for(i=0;i<4;i++){var l2=((q+i*400)%1600)/1600;bstLeaf(hx+(hsh(i,6)-.5)*26,gy-40+l2*36,l2*6+i,'#7ae06a','#d8ffd0',al*(1-l2*.4))}glowAt(hx,cy,16,'rgba(150,230,130,.2)','rgba(80,60,20,.1)',al*.5);return true}/* 樹皮與苔蘚的半透明圓形屏障 */
   return false}
@@ -2519,7 +2521,7 @@ function bstFxDk(e,d,kind,c,O,T,L){var u,i,j,k,p=party[e.a];
 /* 每個主人一張幻獸畫布，疊層＝主人的前一層：幻獸只在自己主人後面，站得更後面的隊友會被幻獸擋住 */
 function bstCv(p){var W=frame.clientWidth,H=frame.clientHeight;if(!p.bc){var c=document.createElement('canvas');c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';frame.appendChild(c);els.push(c);p.bc=c;p.bcx=c.getContext('2d')}
   if(p.bc.width!==W||p.bc.height!==H){p.bc.width=W;p.bc.height=H}else p.bcx.clearRect(0,0,W,H);p.bc.style.zIndex=Math.max(0,(parseInt(p.f.style.zIndex,10)||0)-1);return p.bcx}
-function beastLayer(t){if(!B||!party)return;party.forEach(function(p,k){var bk=(MEMB[k]||{}).beast,hasB=bk&&p.sx!=null&&BST[bk]&&IMG['bst_'+bk],hasF=B.bbuf&&B.bbuf[k]||(B.ev||[]).some(function(e){return e.bst&&e.a===k});if(!hasB&&!hasF){if(p.bc&&p.bcd){p.bcx.clearRect(0,0,p.bc.width,p.bc.height);p.bcd=0}return}
+function beastLayer(t){if(!B||!party)return;party.forEach(function(p,k){var bk=bstK(k),hasB=bk&&p.sx!=null&&BST[bk]&&IMG['bst_'+bk],hasF=B.bbuf&&B.bbuf[k]||(B.ev||[]).some(function(e){return e.bst&&e.a===k});if(!hasB&&!hasF){if(p.bc&&p.bcd){p.bcx.clearRect(0,0,p.bc.width,p.bc.height);p.bcd=0}return}
   var cx=bstCv(p);p.bcd=1;var spb=pctx;pctx=cx;try{bstGround(k,p,t);bstBuf(t,false,k);/* 持續效果的後半圈（守護晶石、霓虹光霧） */if(!hasB)return;
   var P=bstPos(k,p,t),s=bstS(bk),im=bstSmall(bk,s),x0=Math.round(P.x-s/2),y0=Math.round(P.y-s);
   bstFog(cx,P.x,P.y,s,t);/* 最底下：霞彩光霧 */
@@ -2528,7 +2530,7 @@ function beastLayer(t){if(!B||!party)return;party.forEach(function(p,k){var bk=(
   cx.globalAlpha=P.a;cx.imageSmoothingEnabled=false;if(P.flip){cx.save();cx.translate((x0+s)*U,0);cx.scale(-1,1);cx.drawImage(im,0,y0*U,s*U,s*U);cx.restore()}else cx.drawImage(im,x0*U,y0*U,s*U,s*U);
   if(P.pw>.05){cx.globalCompositeOperation='lighter';cx.globalAlpha=P.pw*.55;cx.drawImage(im,x0*U,y0*U,s*U,s*U);cx.globalCompositeOperation='source-over'}cx.globalAlpha=1;bstDarkDraw(cx,bk,P,x0,y0,s)}finally{pctx=spb}})}
 /* 嘴巴（技能出發點）與目標 */
-function bstMouth(e,t){var p=party[e.a];if(!p||p.sx==null)return[0,0];var P=bstPos(e.a,p,t),s=bstS((MEMB[e.a]||{}).beast);return[P.x+s*.3,P.y-s*.55]}
+function bstMouth(e,t){var p=party[e.a];if(!p||p.sx==null)return[0,0];var P=bstPos(e.a,p,t),s=bstS(bstK(e.a));return[P.x+s*.3,P.y-s*.55]}
 function bstTg(e,j){var i=(e.tg||[])[j];var m=mons[i];if(!m||m.lx==null)return null;var h=msz(m.k)[1]*(m.sc||1);return[m.lx,m.gy,Math.min(h,60)]}
 function bstAllT(e){return(e.tg||[]).map(function(i,j){return bstTg(e,j)}).filter(Boolean)}
 function bstDashAt(e,d){var L=bstAllT(e),p=party[e.a];if(!L.length||!p)return null;var H=[p.sx+BSX,p.gy-BSY];if(d<300||d>1000)return null;
@@ -3308,6 +3310,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       else if(e.rn)o.rn=e.rn;
       if(e.tome)o.tome=e.tome;
       if(e.spd)o.spd=e.spd;
+      if(e.bst){var bk0=((BST[e.bst[0]]||{}).sk||[])[e.bst[1]];bk0=bk0?bk0[1]:'orb';o.bst=e.bst;o.side='p';o.a=e.a;o.tg=BSELF[bk0]?[]:(e.tg||[]);o.hits=1;o.hit=BSTHIT[bk0]||400;o.ty=BSELF[bk0]?'buff':e.ty;o.atk=false;o.far=true;o.el='';if(BSTPERS[bk0])o.bpers=[bk0,(BST[e.bst[0]].sk[e.bst[1]]||[])[0]]}/* 幻獸出招：跟特效測試頁一樣的事件，主人不動作 */
       if(e.nums&&e.nums.length)o.nums=e.nums;/* 跳字 *//* 被奪走 SP 的我方角色 */
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
       if(e.kind!=='round')t+=e.soulR?1500:e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
