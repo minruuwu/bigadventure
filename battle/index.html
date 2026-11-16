@@ -328,7 +328,10 @@ function parseCSV(t){t=t.replace(/^﻿/,'');var rows=[],row=[],f='',q=false;
   if(f!==''||row.length){row.push(f);rows.push(row)}
   var head=rows.shift().map(function(h){return h.trim()});
   return rows.map(function(r){var o={};head.forEach(function(h,k){o[h]=(r[k]==null?'':r[k]).trim()});return o})}
-function getCSV(n){return fetch(BASE+'data/'+n+'?v='+V+'.'+Math.floor(Date.now()/300000)).then(function(r){if(!r.ok)throw new Error(n+' '+r.status);return r.arrayBuffer()}).then(function(b){return parseCSV(new TextDecoder('utf-8').decode(b))})}
+/* 讀檔逾時就重試：12 秒沒回來就放棄這次、換一個網址再抓一次（共 3 次），避免網路卡一下整頁停住 */
+function fetchT(u,tries){tries=tries||3;return new Promise(function(res,rej){var ac=window.AbortController?new AbortController():null,dn=false,t=setTimeout(function(){if(dn)return;dn=true;if(ac)ac.abort();if(tries>1)fetchT(u+(u.indexOf('?')<0?'?':'&')+'r='+tries,tries-1).then(res,rej);else rej(new Error('逾時：'+u.split('/').pop()))},12000);
+  fetch(u,ac?{signal:ac.signal}:undefined).then(function(r){if(dn)return;dn=true;clearTimeout(t);res(r)},function(e){if(dn)return;dn=true;clearTimeout(t);if(tries>1)setTimeout(function(){fetchT(u,tries-1).then(res,rej)},800);else rej(e)})})}
+function getCSV(n){return fetchT(BASE+'data/'+n+'?v='+V+'.'+Math.floor(Date.now()/300000)).then(function(r){if(!r.ok)throw new Error(n+' '+r.status);return r.arrayBuffer()}).then(function(b){return parseCSV(new TextDecoder('utf-8').decode(b))})}
 function loadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
 function buildData(R){
   R[0].forEach(function(r){var k=r.u_sn;if(!k)return;ORDER.push(k);var au=[],tm=[];
@@ -3755,7 +3758,7 @@ try{document.body.style.setProperty('--kraft',(function(){var c=document.createE
 var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),MANUAL=!/[?&]manual=0/.test(location.search)/* SP 制度＋手動戰鬥：正式開放（網址加 ?manual=0 回到舊版自動戰鬥） */,VFXT=/[?&]vfx=1/.test(location.search);
 function withFB(cb){if(window.FB)cb(window.FB);else window.addEventListener('fb-ready',function(){cb(window.FB)},{once:true})}
 function demoPlayers(){var names=['阿明','小美','阿傑','雞湯'],ws=['劍','斧','匕','弓'];return names.map(function(n,i){return{uid:'d'+i,name:n,job:i%5,skin:i%3,style:[0,1,2,3][i],hair:i%8,eyes:i%8,outfit:null,weapon:ws[i]}})}
-function loadPx(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
+function loadPx(src){return new Promise(function(res){var im=new Image(),dn=false,f=function(v){if(!dn){dn=true;res(v)}};im.onload=function(){f(im)};im.onerror=function(){f(null)};setTimeout(function(){f(null)},15000);/* 單張圖 15 秒還沒到就先跳過，不讓整頁卡住 */im.src=src})}
 function glArr(l){return (l||[]).map(function(g){return [g.x,g.y,g.radius,g.color,g.speed,g.alpha]})}
 function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
 /* 背景讀到伺服器上最新的自己（技能、職業等級剛改過時快取可能是舊的）：還沒開打就換成新的 */
@@ -3789,6 +3792,9 @@ function imgsReady(){
 function whenImgs(fn){if(IMGOK){fn();return}if(!IMGP){fn();return}var t=setTimeout(function(){toast('戰鬥畫面載入中…')},250);IMGP.then(function(){clearTimeout(t);fn()})}
 function lazyFn(f){return function(){var a=arguments,s=this;whenImgs(function(){f.apply(s,a)})}}
 var PREP=(!demo&&!VFXT)?new Promise(function(res,rej){withFB(function(FB){FB.requirePlayer('../').then(res,rej)})}):null;/* 登入、讀自己的資料：跟讀表格同時開始，不用等表格讀完 */
+/* 讀取畫面：顯示目前在等哪一步；15 秒還沒好就多一顆「重新整理」 */
+function setLoad(t){var m=$('loading');if(m&&!m.classList.contains('err'))m.firstChild?m.firstChild.textContent=t:m.textContent=t}
+setTimeout(function(){var m=$('loading');if(!m||m.querySelector('button'))return;var b=document.createElement('button');b.type='button';b.textContent='重新整理';b.style.cssText='display:block;margin:14px auto 0;font:inherit;font-size:14px;font-weight:700;color:#f0dfb8;background:#4a2a12;border:0;padding:8px 18px;box-shadow:0 0 0 2px #1d1008;cursor:pointer';b.onclick=function(){location.reload()};var s=document.createElement('div');s.style.cssText='font-size:12px;margin-top:8px;opacity:.8';s.textContent='網路比較慢，等不及可以重新整理';m.appendChild(s);m.appendChild(b)},15000);
 var IMGGO=null;IMGP=new Promise(function(r){IMGGO=r}).then(function(){return loadImgs()}).then(function(){imgsReady()});/* 地圖出來之後才開始載戰鬥用的圖（不跟地圖搶網路） */
 setTimeout(function(){IMGGO()},20000);/* 保險：20 秒後無論如何開始載 */
 Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.csv','skill_effect.csv','status_info.csv','job_attribute.csv','job_level_up.csv','pet_info.csv','monster_info.csv','stage_info.csv','job_info.csv'].map(getCSV).concat([getCSV('rune_level.csv').catch(function(){return []}),getCSV('rift_info.csv').catch(function(){return []}),getCSV('job_mastery.csv').catch(function(){return []})]),getJSON(AS+'clouds.json'),getJSON(AS+'fx_02.json'),getJSON(AS+'fx_06.json'),Doll.load(BASE,V)].map(function(x){return Array.isArray(x)?Promise.all(x):x})).then(function(r){
@@ -3796,7 +3802,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
   if(r[2]){BG.B.gl={b:glArr(r[2].background),f:glArr(r[2].foreground)}}if(r[3]){BG.F.gl={b:glArr(r[3].background),f:glArr(r[3].foreground)}}
   /* 史萊姆類：裁掉透明邊；cropSl(圖) → dataURL */
 
-  return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return NPC.load(BASE,V)})
+  setLoad('準備角色…');return buildData(csv.slice(0,3)).then(function(){ORDER.forEach(function(k){WBYNAME[W[k].n]=k});return NPC.load(BASE,V)})
 }).then(function(){
   if(VFXT){IMGGO();vtStart();return}
   if(demo&&/demo=2/.test(location.search)){var d2=demoPlayers().concat(demoPlayers().slice(0,1).map(function(q){return Object.assign({},q,{uid:'d4',name:'小強'})}));d2.forEach(function(q,i){var jn='job0'+((i%5)+1),k=WBYNAME[q.weapon];q.jobSn=jn;q.job=i%5;q.lv=12;q.jobLv={};q.jobLv[jn]=12;q.alloc={str:30,int:0,agi:10,vit:15,luk:0};q.weapons={};if(k)q.weapons[k]={lv:15};q.skills={combat:['skill001','skill006','skill003','skill008'],reaction:'',passive:[]};var jx='job0'+(((i+1)%5)+1);q.jobLv[jx]=8;q.skills.extra=jx/* 示範：另練一個職業，戰棋帶它當額外技能組 */});start(d2[0],d2.slice(1));return}
@@ -3805,7 +3811,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
       var mine=Object.keys(ENG.SK).map(function(k){return ENG.SK[k]}).filter(function(k){return k.kind==='combat'&&k.j===j&&k.lv<=20}).map(function(k){return k.id});
       q.skills={combat:mine.slice(0,4),extra:EX[i].slice()}});start(dm[0],dm.slice(1));return}
   if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});if(d[0]&&!d[0].beasts){d[0].beasts=[{sp:'fire',name:'小紅',at:1,lv:7,st:{atk:4,dmg:3,crit:2,hp:2,red:1,eva:1,ores:2,res:2,cdmg:1}},{sp:'moon',name:'小紫',at:2}];d[0].beastMat={crystal_red:120,ore_red:15,orb_red:60};d[0].beastEggs={leaf:1}}/* 示範模式：給兩隻幻獸試照料幻獸 */start(d[0],d.slice(1));return}
-  return new Promise(function(res){withFB(function(FB){(PREP||FB.requirePlayer('../')).then(function(who){
+  setLoad('登入中…');return new Promise(function(res){withFB(function(FB){(PREP||FB.requirePlayer('../')).then(function(who){setLoad('讀取隊伍…');
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
     return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null,FB.rewardGet?FB.rewardGet().catch(function(){return null}):null,FB.riftMulGet?FB.riftMulGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];if(R[3])RMUL=R[3];/* 秘境專用倍率（管理後台） */if(R[2])REW=R[2];/* 獎勵等級遞減（管理後台） *//* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
