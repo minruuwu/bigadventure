@@ -550,7 +550,7 @@ bst_frost_sup_3,狐火極光,beast,0,beast,self,random,buff,,,,,,,,,主人 SP +1
 bst_frost_sup_4,狐化身,beast,0,beast,self,random,buff,,,,,,,,,雪分身隱入主人，2 回合內受到致命傷害時抵擋一次。,,,,,,,,,
 bst_lightning_atk_1,轟雷,beast,0,beast,enemy_single,random,damage,,,m,lightning,1.4,,,,從頭頂劈下巨雷，造成 140% 單體雷電傷害，25% 機率麻痺。,,,,,,,,,
 bst_lightning_atk_2,電光一閃,beast,0,beast,enemy_single,random,damage,,,m,lightning,2.0,,,,化成電光撞擊敵人，造成 200% 單體雷電傷害。,,,,,,,,,
-bst_lightning_atk_3,電流環,beast,0,beast,enemy_all,random,damage,,,m,lightning,0.4,,,,主人帶電 4 回合，每回合開始向四周放電，對敵方全體造成 40% 雷電傷害，15% 機率麻痺。,,,,,,,,,
+bst_lightning_atk_3,電流環,beast,0,beast,self,random,buff,,,,,,,,,主人帶電 4 回合，每回合開始向四周放電，對敵方全體造成 40% 雷電傷害，15% 機率麻痺。,,,,,,,,,
 bst_lightning_atk_4,萬雷,beast,0,beast,enemy_all,random,damage,,,m,lightning,0.7,,,,化成雷光劈下大雷，對敵方全體造成 70% 雷電傷害，雷電抗性 −20%。,,,,,,,,,
 bst_lightning_def_1,電療,beast,0,beast,self,random,buff,,,,,,,,,主人回復 12% 生命，命中 +15%，持續 4 回合。,,,,,,,,,
 bst_lightning_def_2,磁晶壁,beast,0,beast,ally_all,random,buff,,,,,,,,,電磁力場罩住我方全體，雷電抗性 +30%，並免疫新的負面狀態，持續 2 回合。,,,,,,,,,

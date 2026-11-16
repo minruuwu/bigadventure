@@ -241,7 +241,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=79"></script>
+<script src="engine.js?v=80"></script>
 <script src="../common/skilldesc.js?v=2"></script>
 <script src="tactics.js?v=18"></script>
 <script>
@@ -490,7 +490,7 @@ function tick(now){
     if(B.live&&LV&&LV.hl&&!ko&&LV.hl.some(function(q){return q[0]==='p'&&q[1]===k})){p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' brightness(1.35) drop-shadow(0 0 3px #ffffff)'}
     if(B.live&&LV&&LV.wait&&LV.wait.i===k&&!ko){var fq=Math.round(3+2*Math.sin(now/220));p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 '+fq+'px #ffffff)'}/* 手動戰鬥：輪到的人發白光 */
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
-    hpBar(p.hb,B.hpNow&&B.hpNow.p[k],B.mhpP&&B.mhpP[k],pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
+    hpBar(p.hb,B.hpNow&&B.hpNow.p[k],(B.hpNow&&B.hpNow.pm&&B.hpNow.pm[k])||(B.mhpP&&B.mhpP[k]),pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
     if(B.spm)spBar(p,k,pp,ko||walk||sw.a<.5);
     p.auOk=!ko&&sw.a>.5;p.sfx=sf;p.sx=x;p.gy=pp[1];p.top=y-34;p.vis=!ko&&!walk&&sw.a>.5;
   });
@@ -2480,7 +2480,7 @@ var BDS={};function bstDarkSil(k,s){var key=k+s;if(BDS[key])return BDS[key];var 
 function bstDarkDraw(cx,bk,P,x0,y0,s){if(!(P.dk>0))return;var D=bstDarkSil(bk,s);if(!D)return;cx.globalAlpha=P.dk*P.a;if(P.flip){cx.save();cx.translate((x0+s)*U,0);cx.scale(-1,1);cx.drawImage(D,0,y0*U,s*U,s*U);cx.restore()}else cx.drawImage(D,x0*U,y0*U,s*U,s*U);cx.globalAlpha=1;
   if(P.dk>.6){var ex=P.flip?x0+s*.25:x0+s*.75,ey=y0+s*.27,ea=(P.dk-.6)/.4,sp=pctx;pctx=cx;glowAt(ex,ey,4,'rgba(255,70,70,.85)','rgba(200,0,20,.3)',ea*.8);VP(ex,ey,'#ff4a4a',ea);VP(ex+(P.flip?-1:1),ey,'#ffd0d0',ea);pctx=sp}}/* 紅眼 */
 /* 持續效果（黑暗系） */
-function bstObsLeft(k,t,g){if(g&&g.n!=null)return g.n;var e0=null;(B.ev||[]).forEach(function(e){if(e.bst&&e.a===+k&&bstSkill(e)&&bstSkill(e)[1]==='obsidian7'&&(!e0||e.t>e0.t))e0=e});if(!e0)return 7;var dq=t-e0.t;return 7-(dq>1100?1:0)-(dq>1600?2:0)}/* 測試頁示範：1.1 秒挨一下（−1），1.6 秒挨一下又中負面（−2） */
+function bstObsLeft(k,t,g){if(g&&g.n!=null)return g.n;if(!VFXT&&B&&B.hpNow&&B.hpNow.ob)return B.hpNow.ob[k]|0;/* 正式戰鬥：照引擎記的剩幾顆 */var e0=null;(B.ev||[]).forEach(function(e){if(e.bst&&e.a===+k&&bstSkill(e)&&bstSkill(e)[1]==='obsidian7'&&(!e0||e.t>e0.t))e0=e});if(!e0)return 7;var dq=t-e0.t;return 7-(dq>1100?1:0)-(dq>1600?2:0)}/* 測試頁示範：1.1 秒挨一下（−1），1.6 秒挨一下又中負面（−2） */
 function bstBufDk(kind,p,q,c,al,front,t,k){var hx=p.sx,gy=p.gy,i,j;
   if(kind==='abysspact'){if(!front){glowAt(hx,gy-18,24,'rgba(40,0,50,.7)','rgba(10,0,16,.3)',al*(.75+.2*Math.sin(q/180)));return true}for(var i2=0;i2<44;i2++){var per2=600+(i2%4)*90,l2=((q+i2*73)%per2)/per2,sd=hsh(i2,5)<.5?-1:1,x2=hx+sd*(4+hsh(i2,9)*11)*(1-l2*.3)+Math.sin(l2*6+i2)*1.2,y2=gy-hsh(9,i2)*20-l2*22,len=3+Math.round(hsh(i2,2)*4);for(var z=0;z<len;z++){var cz=z===0?'#c070ff':z<2?'#6a20a0':'#0a0410';VP(x2,y2+z,cz,al*(1-l2)*(z===0?.9:.85));if(z>0&&z<len-1)VP(x2+sd,y2+z+1,'#14061e',al*(1-l2)*.6)}}/* 身旁往上竄的黑色氣焰 */
     for(i=0;i<30;i++){var per=520+(i%5)*70,l=((q+i*91)%per)/per,x=hx+(hsh(i,3)<.5?-1:1)*(7+hsh(i,7)*7)+Math.sin(l*7+i)*1.5,y=gy-2-hsh(3,i)*14-l*26,cc=l<.25?'#8a2ab0':l<.6?'#2a0a3a':'#0a0410';VP(x,y,cc,al*(1-l)*.95);if(l<.5)VP(x,y-1,cc,al*(1-l)*.8);if(i%6===0&&l<.4)VP(x+1,y,'#c0102a',al*(1-l))}/* 黑色氣勁往上竄，偶爾夾著暗紅 */
@@ -3579,7 +3579,7 @@ function renderInfo(){var w=$('binfo');if(!w||!LV)return;var u=LV.view||LV.wait;
   if(u.side==='p'&&party[u.i]){var c=document.createElement('canvas');c.width=c.height=48;try{c.getContext('2d').drawImage(party[u.i].f,0,0)}catch(e){}pic.appendChild(c)}
   else if(mons[u.i]&&mons[u.i].f.src){var im=new Image();im.src=mons[u.i].f.src;im.className='mi';pic.appendChild(im)}
   /* 生命：綠條（比例）上面疊數字；SP：藍色方格 */
-  var tx=el('div','bi-x');tx.appendChild(el('b',null,u.name));var HN=B&&B.hpNow,hp=Math.max(0,Math.round(HN?(u.side==='p'?HN.p:HN.m)[u.i]:u.hp)),mh=(u.side==='m'&&HN&&HN.mm&&HN.mm[u.i])||u.b.mhp,r=Math.max(0,Math.min(1,hp/mh)),hb=el('div','bi-hp'+(r<.25?' cr':r<.5?' lo':'')),hi=el('i');hi.style.width=(r*100)+'%';hb.appendChild(hi);hb.appendChild(el('span',null,hp+' / '+mh));/* 用畫面上演到的血量，不用引擎已經算好的結果 */tx.appendChild(hb);
+  var tx=el('div','bi-x');tx.appendChild(el('b',null,u.name));var HN=B&&B.hpNow,hp=Math.max(0,Math.round(HN?(u.side==='p'?HN.p:HN.m)[u.i]:u.hp)),mh=(u.side==='m'&&HN&&HN.mm&&HN.mm[u.i])||(u.side==='p'&&HN&&HN.pm&&HN.pm[u.i])||u.b.mhp,r=Math.max(0,Math.min(1,hp/mh)),hb=el('div','bi-hp'+(r<.25?' cr':r<.5?' lo':'')),hi=el('i');hi.style.width=(r*100)+'%';hb.appendChild(hi);hb.appendChild(el('span',null,hp+' / '+mh));/* 用畫面上演到的血量，不用引擎已經算好的結果 */tx.appendChild(hb);
   if(u.side==='p'&&u.sp!=null){var spv=HN&&HN.pp&&HN.pp[u.i]!=null?HN.pp[u.i]:u.sp,sp=el('div','bi-sp');for(var q=0;q<5;q++)sp.appendChild(el('i',q<(spv|0)?'on':null));tx.appendChild(sp)}
   top.appendChild(tx);w.appendChild(top);
   /* 狀態：有才列；回合數縮寫（3 回／下次攻擊）；點狀態在右邊跳一個說明小窗，一次只開一個 */
