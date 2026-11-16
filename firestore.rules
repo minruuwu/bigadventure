@@ -210,9 +210,22 @@ service cloud.firestore {
       // npcParty 有變動時:最多 3 位,而且跟玩家隊員 party 合計最多 3 位(全隊 4 人)
       function storyOk(ak) {
         let n = request.resource.data;
+        let os = resource.data.get('story', {});
         return n.get('story', {}) is map && n.get('story', {}).size() <= 60
+          && (!('ch1_4' in os) || n.get('story', {}).get('ch1_4', null) == os.ch1_4)
           && n.get('npcs', {}) is map && n.get('npcs', {}).keys().hasOnly(['npc01','npc02','npc03','npc04','npc05','npc06','npc07','npc08'])
           && (!('npcParty' in ak) || (n.npcParty is list && n.npcParty.size() + n.get('party', []).size() <= 3));
+      }
+      // 第一章之四(幻境的傳說)看完:記下選的蛋顏色 story.ch1_4 = 元素,同時那個元素的蛋 +1(每個帳號只有一次;看過之後 story.ch1_4 不能再改或刪)
+      function storyEggOk() {
+        let os = resource.data.get('story', {});
+        let ns = request.resource.data.get('story', {});
+        let oe = resource.data.get('beastEggs', {});
+        let ne = request.resource.data.get('beastEggs', {});
+        return !('ch1_4' in os) && ns is map && ns.diff(os).affectedKeys().hasOnly(['ch1_4'])
+          && ns.ch1_4 in ['fire','ice','bolt','wind','leaf','sun','moon']
+          && ne is map && ne.diff(oe).affectedKeys().hasOnly([ns.ch1_4])
+          && ne.get(ns.ch1_4, 0) == oe.get(ns.ch1_4, 0) + 1;
       }
       // 管理後台:可以改的欄位(管理者帳號、信箱已驗證)
       function adminOk() {
@@ -220,7 +233,7 @@ service cloud.firestore {
           && request.auth.token.email_verified == true
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cookies','pets','weapons','stones','lv','exp','jobLv','jobUp',
                'job','jobSn','jobSeen','alloc','weapon','outfit','skills','adv','owe','rs','rift','riftDay','riftN','runeV',
-               'beastEggs','hatch','beasts']);
+               'beastEggs','hatch','beasts','beastOn']);
       }
       // ===== 自己改自己的資料:所有情況合成一個函式 =====
       // Firebase 每次存檔最多算 1000 個運算式。「整份資料新舊比較」(diff)很耗額度,以前每條規則各算一次,
@@ -243,6 +256,17 @@ service cloud.firestore {
         || (
           ak.hasOnly(['beastEggs','hatch','beasts'])
           && beastOk(ak)
+        )
+        // 第一章之四看完:領一顆選的顏色的幻獸蛋(只有一次)
+        || (
+          ak.hasOnly(['story','beastEggs'])
+          && storyEggOk()
+        )
+        // 照料幻獸(艾德蒙):選哪一隻同行 beastOn = 幻獸清單的第幾隻
+        || (
+          ak.hasOnly(['beastOn'])
+          && request.resource.data.beastOn is int && request.resource.data.beastOn >= 0
+          && request.resource.data.beastOn < request.resource.data.get('beasts', []).size()
         )
         // 劇情進度、NPC 同伴（解鎖、入隊、技能與符文設定）
         || (
