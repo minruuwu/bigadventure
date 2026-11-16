@@ -266,6 +266,10 @@ service cloud.firestore {
               && n.get('beastMat', {}).diff(resource.data.get('beastMat', {})).affectedKeys().hasOnly([op.k])
               && n.get('beastMat', {}).get(op.k, 0) == resource.data.get('beastMat', {}).get(op.k, 0) - (10 + 5 * (ob[i].get('lv', 1) - 1))
               && n.get('beastMat', {}).get(op.k, 0) >= 0)
+            // 孵化(之後還有進化)送的一次屬性:每隻只有一次(fr = 1 標記),屬性合計 +3 格
+            || (op.t == 'free' && ak.hasOnly(['beasts','bOp']) && bKeep(ob, nb, i)
+              && !('fr' in ob[i]) && nb[i].diff(ob[i]).affectedKeys().hasOnly(['st','fr']) && nb[i].fr == 1
+              && bStOk(ob[i].get('st', {}), nb[i].get('st', {})))
             // 放生:拿掉第 i 隻,其他順序不變;同行的編號可以一起改
             || (op.t == 'del' && ak.hasOnly(['beasts','bOp','beastOn'])
               && nb.size() == ob.size() - 1 && nb[0:i] == ob[0:i] && nb[i:nb.size()] == ob[i + 1:ob.size()]
