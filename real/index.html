@@ -76,13 +76,13 @@ function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
     if(big&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹（仙人掌）不要疊在一起 */
-    L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0,sh:z.k==='tomb'})}
+    L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0,sh:big})}
   if(z.k==='desert'){
     /* 小沙丘：每格一半機率有 1 個，矮矮的不透明 */
     for(var k=0,nd=h32('dd',sx,sy,PER)%2;k<nd;k++)L.push({x:(sx+.05+.9*r01('ddx',sx,sy,k,PER))*SUB,y:(sy+.05+.9*r01('ddy',sx,sy,k,PER))*SUB,im:IM['desert_dune'+(1+h32('ddk',sx,sy,k,PER)%3)],dune:1});
     /* 金字塔：每個沙漠地域格最多一組，放在其中一個小格的中間 */
     var per=ZONE/SUB,pick=h32('py',zx,zy,PER)%(per*per);
-    if(r01('pyc',zx,zy,PER)<PYR&&sx-zx*per===pick%per&&sy-zy*per===Math.floor(pick/per)){var pk='desert_pyramid'+(1+h32('pyk',zx,zy,PER)%2);L.push({x:(sx+.5)*SUB,y:(sy+.3)*SUB,im:IM[pk],big:BIGH[pk],pyr:1})}}
+    if(r01('pyc',zx,zy,PER)<PYR&&sx-zx*per===pick%per&&sy-zy*per===Math.floor(pick/per)){var pk='desert_pyramid'+(1+h32('pyk',zx,zy,PER)%2);L.push({x:(sx+.5)*SUB,y:(sy+.3)*SUB,im:IM[pk],big:BIGH[pk],pyr:1,sh:1})}}
   if(z.k==='tomb'){
     /* 墓碑：每格一半機率 1 個（跟樹一樣半透明、會遮擋） */
     if(h32('ts',sx,sy,PER)%2){var sk='tomb_stone'+(1+h32('tsk',sx,sy,PER)%5),tx=(sx+.1+.8*r01('tsx',sx,sy,PER))*SUB,ty=(sy+.1+.8*r01('tsy',sx,sy,PER))*SUB;
@@ -130,7 +130,7 @@ function draw(now){
   objs.forEach(function(q){var o=q.o;
     if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);
       if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);
-        if(o.sh){/* 墓穴的樹、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,.32)';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]),Math.max(5,tw*.42),Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
+        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,.32)';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]),Math.max(5,tw*.42),Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
       else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
     else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Math.min(1,36/Math.max(sz[0],sz[1])),w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
