@@ -47,14 +47,14 @@ var BASEC='#8c7a58';      /* 地面底色：所有地域共用的土色，地域
 var GA=0.14;
 var TREE_A=0.88;          /* 樹、仙人掌、金字塔的不透明度（1 = 完全不透明），後面的人、怪物隱約看得到；點擊不會被擋住 */
 /* 大型裝飾物的高度（畫面像素）：人物約 36 */
-var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,castle_house1:52,castle_house2:52,castle_house3:52,castle_house4:52,castle_house5:52,castle_house6:52,castle_house9:54,castle_house10:54,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
+var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,castle_house1:52,castle_house2:52,castle_house3:52,castle_house4:52,castle_house5:52,castle_house6:52,castle_house9:54,castle_house10:54,fire_pillar1:36,fire_pillar2:28,fire_pillar3:22,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
 var SHY={castle_fountain:9,castle_house1:4,castle_house2:4,castle_house3:4,castle_house4:4,castle_house5:4,castle_house6:4,castle_house9:7,castle_house10:7,tomb_tree2:4,snow_rock1:2,snow_rock2:3,snow_rock3:3};      /* 陰影往上移幾格（圖的最下面是細根、草，樹幹其實在比較上面） */
 /* 房子陰影的寬、高（相對圖的寬、高） */
 var HSH={castle_house1:[.46,.14],castle_house2:[.46,.14],castle_house3:[.46,.14],castle_house4:[.46,.14],castle_house5:[.46,.14],castle_house6:[.46,.14],castle_house9:[.56,.2],castle_house10:[.56,.2]};
-var GAZ={desert:0.5,tomb:0.85,snow:0.7,castle:0.7};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
+var GAZ={desert:0.5,tomb:0.85,snow:0.7,castle:0.7,fire:0.85};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
 var PYR=0.5;              /* 每個 500 公尺的沙漠地域格出現一組金字塔的機率 */              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
-/* 地域（試作版：森林、礦洞、沙漠、墓穴、雪山、王城） */
-var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']},{k:'desert',n:'沙漠',c:'#e8c27a',area:'area03',deco:['cactus1','cactus2','cactus3']},{k:'tomb',n:'墓穴',c:'#6a5878',area:'area04',deco:['tree1','tree2','tree3']},{k:'snow',n:'雪山',c:'#cfe2f5',area:'area05',deco:['tree1','tree2','tree3','tree4']},{k:'castle',n:'王城',c:'#d8c9a8',area:'area06',deco:[]}];
+/* 地域（森林、礦洞、沙漠、墓穴、雪山、王城、火原） */
+var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']},{k:'desert',n:'沙漠',c:'#e8c27a',area:'area03',deco:['cactus1','cactus2','cactus3']},{k:'tomb',n:'墓穴',c:'#6a5878',area:'area04',deco:['tree1','tree2','tree3']},{k:'snow',n:'雪山',c:'#cfe2f5',area:'area05',deco:['tree1','tree2','tree3','tree4']},{k:'castle',n:'王城',c:'#d8c9a8',area:'area06',deco:[]},{k:'fire',n:'火原',c:'#c0482a',area:'area07',deco:[]}];
 var PYF=0.3;              /* 每個 500 公尺的王城地域格出現噴泉的機率 */
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
 function h32(){var h=2166136261>>>0;for(var i=0;i<arguments.length;i++){var s=String(arguments[i]);for(var j=0;j<s.length;j++){h^=s.charCodeAt(j);h=Math.imul(h,16777619)>>>0}h^=124;h=Math.imul(h,16777619)>>>0}h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;return h>>>0}
@@ -78,7 +78,7 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 /* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵（樹變大後稍微稀疏：大多 0～1），礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
 function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:z.k==='tomb'?[0,0,0,1,2][h32('dn',sx,sy,PER)%5]:[0,1,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%(z.deco.length||1)],L=[],big=z.k!=='mine';
-  if(!z.deco.length)n=0;/* 王城的物件還沒做 */
+  if(!z.deco.length)n=0;/* 王城、火原的物件另外擺 */
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
     if(big&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹（仙人掌）不要疊在一起 */
     L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0,sh:big,k:z.k+'_'+kind})}
@@ -112,6 +112,13 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     /* 噴泉：每個王城地域格最多一座 */
     var per2=ZONE/SUB,pk2=h32('cf',zx,zy,PER)%(per2*per2);
     if(r01('cfc',zx,zy,PER)<PYF&&sx-zx*per2===pk2%per2&&sy-zy*per2===Math.floor(pk2/per2)){var fi=IM.castle_fountain;if(fi)L.push({x:(sx+.5)*SUB,y:(sy+.5)*SUB,im:fi,big:fi.height,sh:1,op:1,ftn:1,house:1,srx:.52,sry:.3,sa:.22,k:'castle_fountain'})}}
+  if(z.k==='fire'){
+    /* 黑曜石柱：每格 3 成機率 1 根，柱頂冒黑煙 */
+    if(r01('fp',sx,sy,PER)<.3){var pk3='fire_pillar'+(1+h32('fpk',sx,sy,PER)%3),pi=IM[pk3];if(pi)L.push({x:(sx+.15+.7*r01('fpx',sx,sy,PER))*SUB,y:(sy+.15+.7*r01('fpy',sx,sy,PER))*SUB,im:pi,big:BIGH[pk3],sh:1,smoke:1,ph:h32('fph',sx,sy)%1000/1000,tip:[.33,.64,.33][h32('fpk',sx,sy,PER)%3],k:pk3})}
+    /* 黑曜石碎塊：每格 2.5 成機率，矮、不透明 */
+    if(r01('fs',sx,sy,PER)<.25){var sk2='fire_shard'+(1+h32('fsk',sx,sy,PER)%2),si=IM[sk2],fx=(sx+.1+.8*r01('fsx',sx,sy,PER))*SUB,fy=(sy+.1+.8*r01('fsy',sx,sy,PER))*SUB;if(si&&!L.some(function(q){return Math.hypot(q.x-fx,q.y-fy)<20}))L.push({x:fx,y:fy,im:si,big:si.height,sh:1,op:1,k:sk2})}
+    /* 火星：偶爾一處，貼地往上飄 */
+    if(r01('fk',sx,sy,PER)<.15)L.push({x:(sx+.1+.8*r01('fkx',sx,sy,PER))*SUB,y:(sy+.1+.8*r01('fky',sx,sy,PER))*SUB,spark:1,flat:1,ph:h32('fkp',sx,sy)%6283/1000})}
   return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
 function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
@@ -138,7 +145,7 @@ function draw(now){
   blendEdges(x0,x1,y0,y1);
   /* 地面淡一點：每個地域格再蓋一層共用的土色（GA = 地面花紋保留多少），花紋不會那麼搶眼、分界也比較不明顯 */
   for(var zx2=Math.floor(x0/ZONE);zx2<=Math.floor(x1/ZONE);zx2++)for(var zy2=Math.floor(y0/ZONE);zy2<=Math.floor(y1/ZONE);zy2++){var z2=zoneAt(zx2,zy2),a2=scr(zx2*ZONE,(zy2+1)*ZONE),b2=scr((zx2+1)*ZONE,zy2*ZONE);cx.globalAlpha=1-GA;cx.fillStyle=BASEC;cx.fillRect(Math.floor(a2[0]),Math.floor(a2[1]),Math.ceil(b2[0])-Math.floor(a2[0]),Math.ceil(b2[1])-Math.floor(a2[1]));cx.globalAlpha=1}
-  softZones(x0,x1,y0,y1);
+  softZones(x0,x1,y0,y1);lavaGlow(x0,x1,y0,y1,now);
   /* 道路（OpenStreetMap） */
   drawRoads(x0,x1,y0,y1);
   /* 可以打的範圍 */
@@ -149,7 +156,7 @@ function draw(now){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
     decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.ftn?60:d.house?30:d.big?20:d.lamp?14:14))return;if(!clearOf(d))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
-  flats.forEach(function(o){if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
+  flats.forEach(function(o){if(o.spark){var g2=scr(o.x,o.y);cx.save();for(var q=0;q<4;q++){var t=((now/1800)+o.ph+q/4)%1;cx.globalAlpha=(1-t)*.9;cx.fillStyle=t<.4?'#ffd27a':'#ff7a30';cx.fillRect(Math.round(g2[0]+Math.sin(t*7+q*2+o.ph)*3+(q-1.5)*3),Math.round(g2[1]-t*18),1,1)}cx.restore();return}if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
     cx.save();cx.globalAlpha=a*.25;cx.fillStyle='#4dff7a';cx.beginPath();cx.ellipse(gx,gy,9,5,0,0,Math.PI*2);cx.fill();
     cx.globalAlpha=a*.45;cx.beginPath();cx.ellipse(gx,gy,5,3,0,0,Math.PI*2);cx.fill();
     cx.globalAlpha=Math.min(1,a+.2);cx.fillStyle='#b8ffc8';cx.fillRect(gx-1,gy-1,2,2);
@@ -160,7 +167,9 @@ function draw(now){
   objs.forEach(function(q){var o=q.o;
     if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);
       if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);
-        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,'+(o.sa||.32)+')';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.srx?tw*o.srx:o.op?tw*.6:Math.max(5,tw*.42),o.sry?Math.round(th*o.sry):o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.al||(o.op?1:TREE_A);cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);if(o.lamp){/* 街燈：燈籠外一圈暖黃的光，輕輕閃 */var lx0=Math.round(s[0]-tw/2),ly0=Math.round(s[1]-th);cx.globalCompositeOperation='lighter';cx.globalAlpha=.22+.08*Math.sin(now/260+o.x);cx.fillStyle='#ffc860';cx.beginPath();cx.ellipse(lx0+15,ly0+12,6,6,0,0,Math.PI*2);cx.fill();cx.globalAlpha*=.6;cx.beginPath();cx.ellipse(lx0+15,ly0+12,10,9,0,0,Math.PI*2);cx.fill();cx.globalCompositeOperation='source-over'}
+        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,'+(o.sa||.32)+')';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.srx?tw*o.srx:o.op?tw*.6:Math.max(5,tw*.42),o.sry?Math.round(th*o.sry):o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.al||(o.op?1:TREE_A);cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);if(o.smoke){/* 黑曜石柱頂冒黑煙：一團團往上飄，邊飄邊變大變淡，被風往右吹 */var sx0=Math.round(s[0]-tw/2+tw*o.tip),sy0=Math.round(s[1]-th);
+            for(var q=0;q<8;q++){var t=((now/3400)+q/8+o.ph)%1,r2=2+t*7,ox=Math.round(Math.sin(t*5+q)*2+t*12),oy=Math.round(-2-t*44);cx.globalAlpha=.95*Math.pow(1-t,.7)*(t<.06?t/.06:1);cx.fillStyle=t<.2?'#1e181c':t<.5?'#3c3438':'#5e565a';cx.beginPath();cx.arc(sx0+ox,sy0+oy,r2,0,Math.PI*2);cx.fill()}}
+          if(o.lamp){/* 街燈：燈籠外一圈暖黃的光，輕輕閃 */var lx0=Math.round(s[0]-tw/2),ly0=Math.round(s[1]-th);cx.globalCompositeOperation='lighter';cx.globalAlpha=.22+.08*Math.sin(now/260+o.x);cx.fillStyle='#ffc860';cx.beginPath();cx.ellipse(lx0+15,ly0+12,6,6,0,0,Math.PI*2);cx.fill();cx.globalAlpha*=.6;cx.beginPath();cx.ellipse(lx0+15,ly0+12,10,9,0,0,Math.PI*2);cx.fill();cx.globalCompositeOperation='source-over'}
           if(o.ftn){/* 噴泉：水面反光慢慢明滅、噴口冒水滴 */var gi=IM.castle_fountain_glint,fx0=Math.round(s[0]-tw/2),fy0=Math.round(s[1]-th);if(gi){cx.globalAlpha=.35+.35*Math.sin(now/500);cx.drawImage(gi,fx0,fy0,tw,th)}
           for(var q=0;q<4;q++){var t=((now/1100)+q/4)%1,dx=Math.round(Math.sin(q*2.1)*4*t),dy=Math.round(-5*Math.sin(t*Math.PI));cx.globalAlpha=1-t*.6;cx.fillStyle=q%2?'#c8fff4':'#7fe8dc';cx.fillRect(fx0+Math.round(tw*.5)+dx,fy0+3+dy,1,1)}}cx.globalAlpha=1}
       else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
@@ -207,6 +216,14 @@ function softZones(x0,x1,y0,y1){
     if(dl)fade(L2,0,L2+FE,0);if(dr)fade(R2,0,R2-FE,0);if(du)fade(0,T2,0,T2+FE);if(dd)fade(0,B2,0,B2-FE);
     SX.globalCompositeOperation='source-over';
     cx.globalAlpha=al;cx.drawImage(ST,l,t);cx.globalAlpha=1}}
+/* 火原：岩漿裂隙的光一明一暗（地面上再疊一層只有裂隙的圖，交界處淡出） */
+function lavaGlow(x0,x1,y0,y1,now){var g=IM.g_fire_glow;if(!g)return;var a=.25+.22*Math.sin(now/900);
+  for(var zx=Math.floor(x0/ZONE);zx<=Math.floor(x1/ZONE);zx++)for(var zy=Math.floor(y0/ZONE);zy<=Math.floor(y1/ZONE);zy++){if(zoneAt(zx,zy).k!=='fire')continue;
+    var p=scr(zx*ZONE,(zy+1)*ZONE),q=scr((zx+1)*ZONE,zy*ZONE),z=zoneAt(zx,zy),h=FE/2,
+      l=Math.floor(p[0])+(zoneAt(zx-1,zy)!==z?h:0),t=Math.floor(p[1])+(zoneAt(zx,zy+1)!==z?h:0),r=Math.ceil(q[0])-(zoneAt(zx+1,zy)!==z?h:0),b=Math.ceil(q[1])-(zoneAt(zx,zy-1)!==z?h:0);
+    l=Math.max(l,0);t=Math.max(t,0);r=Math.min(r,W);b=Math.min(b,H);if(r<=l||b<=t)continue;
+    var ox0=Math.round(-me.x/MPP),oy0=Math.round(me.y/MPP);cx.save();cx.beginPath();cx.rect(l,t,r-l,b-t);cx.clip();cx.translate((((ox0+W/2))%256+256)%256,(((oy0+H/2))%256+256)%256);
+    cx.globalCompositeOperation='lighter';cx.globalAlpha=a;cx.fillStyle=cx.createPattern(g,'repeat');cx.fillRect(-256,-256,W+512,H+512);cx.restore()}}
 function blendEdges(x0,x1,y0,y1){
   for(var zx=Math.floor(x0/ZONE);zx<=Math.floor(x1/ZONE);zx++)for(var zy=Math.floor(y0/ZONE);zy<=Math.floor(y1/ZONE);zy++){var z=zoneAt(zx,zy),zr=zoneAt(zx+1,zy),zu=zoneAt(zx,zy+1);
     var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
@@ -321,16 +338,17 @@ function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
   hud(t);draw(t);if(sel&&!$('pn').hidden&&Math.random()<.1)showMon(sel);requestAnimationFrame(tick)}
 /* ---- 開始 ---- */
 Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(BASE),Doll.load(BASE,V),
-  img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png'),img(BASE+'real/ground_castle.png')].concat(
+  img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png'),img(BASE+'real/ground_castle.png'),img(BASE+'real/ground_fire.png'),img(BASE+'real/ground_fire_glow.png')].concat(
   ['pine','oak','acacia'].map(function(n){return img(BASE+'real/deco_forest_'+n+'.png').then(function(i){IM['forest_'+n]=i})}),
   ['blue','violet','gold','green','pink','silver'].map(function(n){return img(BASE+'real/deco_mine_'+n+'.png').then(function(i){IM['mine_'+n]=i})}),
   ['cactus1','cactus2','cactus3','pyramid1','pyramid2','dune1','dune2','dune3'].map(function(n){return img(BASE+'real/deco_desert_'+n+'.png').then(function(i){IM['desert_'+n]=i})}),
   ['tree1','tree2','tree3','stone1','stone2','stone3','stone4','stone5'].map(function(n){return img(BASE+'real/deco_tomb_'+n+'.png').then(function(i){IM['tomb_'+n]=i})}),
   ['tree1','tree2','tree3','tree4','rock1','rock2','rock3','ice1','ice2'].map(function(n){return img(BASE+'real/deco_snow_'+n+'.png').then(function(i){IM['snow_'+n]=i})}),
-  ['house1','house2','house3','house4','house5','house6','house9','house10','fountain','fountain_glint','lamp'].map(function(n){return img(BASE+'real/deco_castle_'+n+'.png').then(function(i){IM['castle_'+n]=i})}))).then(function(R){
+  ['house1','house2','house3','house4','house5','house6','house9','house10','fountain','fountain_glint','lamp'].map(function(n){return img(BASE+'real/deco_castle_'+n+'.png').then(function(i){IM['castle_'+n]=i})}),
+  ['pillar1','pillar2','pillar3','shard1','shard2'].map(function(n){return img(BASE+'real/deco_fire_'+n+'.png').then(function(i){IM['fire_'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
-  IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
+  IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];IM.g_fire=R[10];IM.g_fire_glow=R[11];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
   P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;
   PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick)
 }).catch(function(e){$('load').textContent='讀取失敗：'+(e&&e.message||e)});
