@@ -183,7 +183,17 @@ function draw(now){
   /* 文字層（高解析度）：怪物的隻數、等級 */
   ox.setTransform(DPR,0,0,DPR,0,0);ox.clearRect(0,0,innerWidth,innerHeight);ox.font='700 11px system-ui,sans-serif';ox.textAlign='center';
   MONS.forEach(function(o){if(!o.box)return;var bx=(o.box[0]+o.box[2]/2)*S,by=o.box[1]*S-4,t='Lv'+o.lv+(o.cnt>1?' ×'+o.cnt:''),tw=ox.measureText(t).width+8;
-    ox.fillStyle=o===sel?'rgba(154,58,42,.95)':'rgba(18,12,8,.78)';ox.fillRect(bx-tw/2,by-14,tw,15);ox.fillStyle=Math.hypot(o.x-me.x,o.y-me.y)<=REACH?'#9cf08a':'#f0e2c4';ox.fillText(t,bx,by-3)})}
+    ox.fillStyle=o===sel?'rgba(154,58,42,.95)':'rgba(18,12,8,.78)';ox.fillRect(bx-tw/2,by-14,tw,15);ox.fillStyle=Math.hypot(o.x-me.x,o.y-me.y)<=REACH?'#9cf08a':'#f0e2c4';ox.fillText(t,bx,by-3)});
+  drawClouds(now)}
+/* ---- 天上的雲：偶爾一朵從西往東飄過，疊在最上層（連怪物等級標籤也蓋過），半透明 ---- */
+var CLOUD_A=0.4,CLOUD_V=6,CLOUD_CELL=700;/* 不透明度、風速（公尺／秒）、每 700 公尺見方最多一朵 */
+function drawClouds(now){var dr=now/1000*CLOUD_V,x0=me.x-W/2*MPP-400,x1=me.x+W/2*MPP+100,y0=me.y-H/2*MPP-100,y1=me.y+H/2*MPP+100;
+  ox.save();ox.imageSmoothingEnabled=false;ox.globalAlpha=CLOUD_A;
+  for(var cx2=Math.floor((x0-dr)/CLOUD_CELL);cx2<=Math.floor((x1-dr)/CLOUD_CELL);cx2++)for(var cy2=Math.floor(y0/CLOUD_CELL);cy2<=Math.floor(y1/CLOUD_CELL);cy2++){
+    if(r01('cl',cx2,cy2)>.35)continue;var ci=IM['cloud'+(1+h32('ck',cx2,cy2)%4)];if(!ci)continue;
+    var wx=(cx2+r01('cx',cx2,cy2))*CLOUD_CELL+dr,wy=(cy2+r01('cy',cx2,cy2))*CLOUD_CELL,p=scr(wx,wy),sc=2+h32('cs',cx2,cy2)%2;
+    ox.drawImage(ci,Math.round((p[0]-ci.width*sc/2)*S),Math.round((p[1]-ci.height*sc/2)*S),ci.width*sc*S,ci.height*sc*S)}
+  ox.restore()}
 /* ---- 地域交界淡化：交界兩側各 BL 格，用 2×2 的像素顆粒慢慢混進隔壁的地面，不畫硬邊 ---- */
 var BL=18,MASKV=null,MASKH=null,TMP=document.createElement('canvas'),TX=TMP.getContext('2d');
 function mkMasks(){function mk(w,h,vert){var c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d'),d=x.createImageData(w,h);
@@ -346,7 +356,8 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ['tree1','tree2','tree3','stone1','stone2','stone3','stone4','stone5'].map(function(n){return img(BASE+'real/deco_tomb_'+n+'.png').then(function(i){IM['tomb_'+n]=i})}),
   ['tree1','tree2','tree3','tree4','rock1','rock2','rock3','ice1','ice2'].map(function(n){return img(BASE+'real/deco_snow_'+n+'.png').then(function(i){IM['snow_'+n]=i})}),
   ['house1','house2','house3','house4','house5','house6','house9','house10','fountain','fountain_glint','lamp'].map(function(n){return img(BASE+'real/deco_castle_'+n+'.png').then(function(i){IM['castle_'+n]=i})}),
-  ['pillar1','pillar2','pillar3','shard1','shard2'].map(function(n){return img(BASE+'real/deco_fire_'+n+'.png').then(function(i){IM['fire_'+n]=i})}))).then(function(R){
+  ['pillar1','pillar2','pillar3','shard1','shard2'].map(function(n){return img(BASE+'real/deco_fire_'+n+'.png').then(function(i){IM['fire_'+n]=i})}),
+  [1,2,3,4].map(function(n){return img(BASE+'real/cloud'+n+'.png').then(function(i){IM['cloud'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
   IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];IM.g_fire=R[10];IM.g_fire_glow=R[11];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
