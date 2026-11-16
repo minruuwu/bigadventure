@@ -91,11 +91,11 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     /* 螢綠的亡者光芒：大約每 4 格 1 處（道路上不出現），貼在地上慢慢明滅 */
     if(r01('tg',sx,sy,PER)<.25)L.push({x:(sx+.1+.8*r01('tgx',sx,sy,PER))*SUB,y:(sy+.1+.8*r01('tgy',sx,sy,PER))*SUB,glow:1,flat:1,ph:h32('tgp',sx,sy)%6283/1000})}
   if(z.k==='snow'){
-    /* 覆雪的石頭：每格一半機率 1 個，不透明，有陰影 */
-    if(h32('sr',sx,sy,PER)%2){var rk='snow_rock'+(1+h32('srk',sx,sy,PER)%3),rx=(sx+.1+.8*r01('srx',sx,sy,PER))*SUB,ry=(sy+.1+.8*r01('sry',sx,sy,PER))*SUB,ri=IM[rk];
+    /* 覆雪的石頭：每格 3 成機率 1 個，不透明，有陰影 */
+    if(r01('sr',sx,sy,PER)<.3){var rk='snow_rock'+(1+h32('srk',sx,sy,PER)%3),rx=(sx+.1+.8*r01('srx',sx,sy,PER))*SUB,ry=(sy+.1+.8*r01('sry',sx,sy,PER))*SUB,ri=IM[rk];
       if(ri&&!L.some(function(q){return Math.hypot(q.x-rx,q.y-ry)<20}))L.push({x:rx,y:ry,im:ri,big:ri.height,sh:1,op:1,k:rk})}
-    /* 小冰晶：大約每 5 格 1 個，矮矮的 */
-    if(r01('si',sx,sy,PER)<.2){var ik='snow_ice'+(1+h32('sik',sx,sy,PER)%2),ix=(sx+.1+.8*r01('six',sx,sy,PER))*SUB,iy=(sy+.1+.8*r01('siy',sx,sy,PER))*SUB,ii=IM[ik];
+    /* 小冰晶：大約每 3～4 格 1 個，矮矮的 */
+    if(r01('si',sx,sy,PER)<.28){var ik='snow_ice'+(1+h32('sik',sx,sy,PER)%2),ix=(sx+.1+.8*r01('six',sx,sy,PER))*SUB,iy=(sy+.1+.8*r01('siy',sx,sy,PER))*SUB,ii=IM[ik];
       if(ii&&!L.some(function(q){return Math.hypot(q.x-ix,q.y-iy)<15}))L.push({x:ix,y:iy,im:ii,big:ii.height,sh:1,op:1,k:ik})}}
   return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
