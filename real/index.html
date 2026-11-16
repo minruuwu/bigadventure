@@ -148,7 +148,7 @@ function draw(now){
       if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);
         if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,.32)';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.op?tw*.6:Math.max(5,tw*.42),o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.op?1:TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
       else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
-    else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Math.min(1,36/Math.max(sz[0],sz[1])),w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
+    else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Monsters.scale(o.k)*(o.rare&&Monsters.scale(o.k)===1?1.2:1)/* 跟戰鬥裡一樣的比例（人物 48 格高的畫布＝戰鬥裡的大小） */,w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
       if(o.rare){cx.save();cx.globalAlpha=.35+.2*Math.sin(now/300);cx.fillStyle='#ffd34a';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]-h/2-lf),w*.7,h*.6,0,0,Math.PI*2);cx.fill();cx.restore()}
       var mi=src&&imgFor(src);if(mi&&mi.complete&&mi.naturalWidth)cx.drawImage(mi,Math.round(s2[0]-w/2),Math.round(s2[1]-h-lf),w,h);o.box=[s2[0]-w/2,s2[1]-h-lf,w,h]}
