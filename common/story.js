@@ -93,15 +93,19 @@ function run(o,doc,IMG){return new Promise(function(done){
     picA+=((picOn?1:0)-picA)*.08;if(pic==='@portal'&&picA>.01)drawPortal(t,picA);else if(pic&&picA>.01){var pw=pic.width*picS,ph=pic.height*picS,px=Math.round(SW/2-pw/2),py=Math.round(SH*.42-ph/2+Math.sin(t/700)*2),gl=.55+.25*Math.sin(t/480),gr=cx.createRadialGradient(SW/2,py+ph/2,4,SW/2,py+ph/2,pw*1.1);
       gr.addColorStop(0,'rgba(235,240,250,'+(.35*gl*picA)+')');gr.addColorStop(1,'rgba(235,240,250,0)');cx.fillStyle=gr;cx.fillRect(px-pw,py-ph,pw*3,ph*3);cx.save();cx.globalAlpha=picA;cx.imageSmoothingEnabled=false;cx.drawImage(pic,px,py,pw,ph);cx.restore()}/* pic：畫面中央的圖（例如神秘的蛋），帶微弱光暈 */
     if(fadeA>0){cx.fillStyle='rgba(0,0,0,'+fadeA+')';cx.fillRect(0,0,SW,SH)}}
-  /* 幻境入口（程式畫）：一圈虹彩光環，中間是慢慢旋轉的白、金、粉、紫漩渦（跟地圖上的幻境門同色系） */
-  var PTC=mk(48,48),ptx=PTC.getContext('2d');
-  function drawPortal(t,a){var N=48,C=24,tt=t/1000;ptx.clearRect(0,0,N,N);var op=Math.min(1,a);for(var y=0;y<N;y++)for(var x=0;x<N;x++){var dx=x+.5-C,dy=(y+.5-C)*1.15,r=Math.sqrt(dx*dx+dy*dy),an=Math.atan2(dy,dx),R=21*Math.min(1,.35+op*.65),col=null;
-      if(r<R-2){var v=Math.sin(an*3+r*.42-tt*2.6)*.5+.5,k=1-r/R,wv=v*.6+k*.6;col=wv>1.02?'#ffffff':wv>.86?'#fff3c0':wv>.7?'#ffc8ee':wv>.55?'#ff8ad0':wv>.4?'#c050b0':wv>.25?'#5a1a6a':'#2a0a3a'}
-      else if(r<R){var hu=(an/Math.PI/2+tt*.15)%1;col=hu<.25?'#fff3b0':hu<.5?'#b8f4ff':hu<.75?'#ffd0f0':'#d8c0ff'}
-      if(col){ptx.fillStyle=col;ptx.fillRect(x,y,1,1)}}
-    var px=Math.round(SW/2-48),py=Math.round(SH*.42-48),gr=cx.createRadialGradient(SW/2,SH*.42,6,SW/2,SH*.42,80);gr.addColorStop(0,'rgba(255,220,245,'+(.45*a)+')');gr.addColorStop(1,'rgba(255,180,230,0)');cx.fillStyle=gr;cx.fillRect(SW/2-90,SH*.42-90,180,180);
-    cx.save();cx.globalAlpha=a;cx.drawImage(PTC,px,py,96,96);cx.restore();
-    for(var i=0;i<14;i++){var l=((t/1000*.6+i*.37)%1),aa=i/14*6.283+t/2400,rr=44+l*18;cx.fillStyle=i%3?'rgba(255,240,255,'+(a*(1-l))+')':'rgba(180,240,255,'+(a*(1-l))+')';cx.fillRect(Math.round(SW/2+Math.cos(aa)*rr),Math.round(SH*.42+Math.sin(aa)*rr*.85),1,1)}}
+  /* 幻境入口（程式畫）：紫色四芒星、中間白十字，跟地圖上的幻境門同一個樣子，放大到畫面高度的一半 */
+  var PTC=mk(60,60),ptx=PTC.getContext('2d');
+  function starGate(x,N,tt){var C=N/2,R=N*.47,img=x.createImageData(N,N),d=img.data,br=.82+.18*Math.sin(tt*Math.PI),fl=Math.pow(Math.max(0,Math.sin(tt*5.3)),12),cl=1+fl*.35,w=N>40?1.2:.7;
+  function sd(dx,dy,Rr){var ax=Math.abs(dx)/Rr,ay=Math.abs(dy)/Rr;return Math.pow(Math.pow(ax,.62)+Math.pow(ay,.62),1/.62)}/* < 1：在四芒星裡 */
+  for(var y=0;y<N;y++)for(var X=0;X<N;X++){var dx=X+.5-C,dy=y+.5-C,s=sd(dx,dy,R*br),r=0,g=0,b=0,a=0;
+    if(s<1){r=40+s*60;g=10+s*20;b=80+s*110;a=255;if(s>.8){r=170;g=90;b=255}if(s>.9){r=215;g=160;b=255}}
+    else{var s2=sd(dx,dy,R*br*1.25);if(s2<1){r=150;g=70;b=230;a=Math.round((1-s2)*200*br)}else{var s3=sd(dx,dy,R*1.5);if(s3<1){r=120;g=50;b=200;a=Math.round((1-s3)*110)}}}/* 外面兩層淡紫光暈 */
+    var ax=Math.abs(dx),ay=Math.abs(dy),L=R*.95*cl;if((ay<w&&ax<L)||(ax<w&&ay<L*.8)){var t=1-Math.max(ax/L,ay/(L*.8)),m=Math.min(1,t*1.4);r+=(255-r)*m;g+=(240-g)*m;b+=(255-b)*m;a=Math.max(a,Math.round(255*Math.min(1,t*2)))}/* 中間白十字 */
+    var cg=Math.max(0,1-Math.sqrt(dx*dx+dy*dy)/(N*.12*cl));if(cg>0){r+=(255-r)*cg;g+=(255-g)*cg;b+=(255-b)*cg;a=Math.max(a,Math.round(255*cg))}
+    var i=(y*N+X)*4;d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=a}
+  x.putImageData(img,0,0);
+  for(var j=0;j<6;j++){var tw=Math.max(0,Math.sin(tt*2+j*1.7));if(tw<.3)continue;var h1=Math.sin((j+2)*127.1)*43758.5453,h2=Math.sin((j+9)*127.1)*43758.5453,px=Math.floor((h1-Math.floor(h1))*N),py=Math.floor((h2-Math.floor(h2))*N);if(sd(px-C,py-C,R)<1.3)continue;x.fillStyle=j%2?'rgba(170,255,240,'+tw+')':'rgba(255,255,255,'+tw+')';x.fillRect(px,py,1,1)}}/* 周圍忽亮忽滅的小星點 */
+  function drawPortal(t,a){starGate(ptx,60,t/1000);var cy=Math.round(SH*.4),px=Math.round(SW/2-60),py=cy-60;var gr=cx.createRadialGradient(SW/2,cy,4,SW/2,cy,95);gr.addColorStop(0,'rgba(200,150,255,'+(.5*a)+')');gr.addColorStop(.5,'rgba(130,60,220,'+(.22*a)+')');gr.addColorStop(1,'rgba(90,30,180,0)');cx.fillStyle=gr;cx.fillRect(SW/2-100,cy-100,200,200);/* 房間裡的紫光 */cx.save();cx.globalAlpha=a;cx.imageSmoothingEnabled=false;cx.drawImage(PTC,px,py,120,120);cx.restore()}
   function portrait(ctx,lk,t,flip){ctx.clearRect(0,0,32,32);if(!lk||!g.Doll)return;Doll.draw(f48,lk,t);ctx.save();if(flip){ctx.translate(32,0);ctx.scale(-1,1)}ctx.drawImage(f48,8,4,32,32,0,0,32,32);ctx.restore()}
   var heroLook=o.hero?Object.assign({},o.hero,{weapon:null,shield:null,halo:[]}):null,npcLook={};
   function lookOf(id){if(!(id in npcLook))npcLook[id]=g.NPC?NPC.look(id,false):null;return npcLook[id]}

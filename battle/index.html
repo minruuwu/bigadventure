@@ -163,7 +163,7 @@ button{font:inherit;color:inherit}
 /* ---- 秘境：地圖右下角的門、三間列表、選等級 ---- */
 .portal{position:fixed;bottom:99px;right:max(30px,calc((100vw - 460px)/2 + 30px));z-index:6;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;-webkit-tap-highlight-color:transparent}
 .portal canvas{width:60px;height:60px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(140,90,255,.75)) drop-shadow(0 0 2px rgba(120,240,255,.8))}
-.portal.gate{right:max(102px,calc((100vw - 460px)/2 + 102px))}.portal.gate canvas{filter:drop-shadow(0 0 6px rgba(255,190,240,.75)) drop-shadow(0 0 2px rgba(180,255,240,.85))}.portal.gate span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #c070b0}
+.portal.gate{right:max(102px,calc((100vw - 460px)/2 + 102px))}.portal.gate canvas{width:72px;height:72px;filter:drop-shadow(0 0 6px rgba(170,90,255,.7))}.portal.gate span{margin-top:-8px}.portal.gate span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #9a5ae0}
 .edrow{display:flex;margin-top:12px}.edm{font:inherit;display:flex;align-items:center;gap:6px;border:0;background:#4a2a12;color:#f0dfb8;font-size:13px;font-weight:900;padding:3px 12px 3px 3px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}.edm canvas,.edp canvas{width:40px;height:40px;image-rendering:pixelated;background:#2a1709;box-shadow:0 0 0 2px #1d1008}
 .edp{display:flex;gap:10px;align-items:flex-start;margin:6px 0 10px}.edp canvas{width:56px;height:56px;flex:none}.edsay{position:relative;flex:1;min-width:0;background:#f4e6c6;color:#2e1d0e;font-size:13px;line-height:1.6;padding:8px 10px;box-shadow:0 0 0 2px #1d1008}.edsay b{display:block;color:#7a3a12;font-size:12px}
 .edbt{display:flex;flex-direction:column;gap:6px}.edbt button{font:inherit;font-size:14px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:0;padding:9px 12px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;text-align:left}.edbt button.bk{background:#6b4a2a;font-size:13px}
@@ -209,7 +209,7 @@ html,body,*{touch-action:manipulation}
  <div class="top"><h1>冒險</h1><span class="tag">測試</span></div>
  <div class="main">
   <div id="loading">讀取資料中…</div>
-  <div id="mapv" hidden><button type="button" class="portal gate" id="portal2" aria-label="幻境" hidden><canvas id="ptc2" width="20" height="20"></canvas><span>幻境</span></button><button type="button" class="portal" id="portal" aria-label="秘境"><canvas id="ptc" width="20" height="20"></canvas><span>秘境</span></button><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
+  <div id="mapv" hidden><button type="button" class="portal gate" id="portal2" aria-label="幻境" hidden><canvas id="ptc2" width="24" height="24"></canvas><span>幻境</span></button><button type="button" class="portal" id="portal" aria-label="秘境"><canvas id="ptc" width="20" height="20"></canvas><span>秘境</span></button><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
   <div id="tacv" hidden></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
@@ -225,7 +225,7 @@ html,body,*{touch-action:manipulation}
 </div>
 <script src="../common/doll.js?v=13"></script>
 <script src="../common/npc.js?v=1"></script>
-<script src="../common/story.js?v=6"></script>
+<script src="../common/story.js?v=7"></script>
 <script src="../common/music.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
@@ -3203,7 +3203,18 @@ function portalAnim(id,P){var c=$(id);if(!c)return;var x=c.getContext('2d'),N=20
     requestAnimationFrame(frame)}
   requestAnimationFrame(frame)}
 portalAnim('ptc',['#f2fdff','#9af0ff','#7a7cff','#6a34c8','#3e1a7a','#1e0c40','#8ff3ff','#6ad8ff']);/* 秘境：藍紫漩渦 */
-portalAnim('ptc2',['#ffffff','#fff3c0','#ffc8ee','#ff8ad0','#c050b0','#5a1a6a','#ffe9a0','#9af0d8']);/* 幻境：白、粉、青、紫的虹彩漩渦 */
+/* 幻境門：紫色四芒星、中間白十字；整顆慢慢呼吸，白十字偶爾一閃 */
+function starGate(x,N,tt){var C=N/2,R=N*.47,img=x.createImageData(N,N),d=img.data,br=.82+.18*Math.sin(tt*Math.PI),fl=Math.pow(Math.max(0,Math.sin(tt*5.3)),12),cl=1+fl*.35,w=N>40?1.2:.7;
+  function sd(dx,dy,Rr){var ax=Math.abs(dx)/Rr,ay=Math.abs(dy)/Rr;return Math.pow(Math.pow(ax,.62)+Math.pow(ay,.62),1/.62)}/* < 1：在四芒星裡 */
+  for(var y=0;y<N;y++)for(var X=0;X<N;X++){var dx=X+.5-C,dy=y+.5-C,s=sd(dx,dy,R*br),r=0,g=0,b=0,a=0;
+    if(s<1){r=40+s*60;g=10+s*20;b=80+s*110;a=255;if(s>.8){r=170;g=90;b=255}if(s>.9){r=215;g=160;b=255}}
+    else{var s2=sd(dx,dy,R*br*1.25);if(s2<1){r=150;g=70;b=230;a=Math.round((1-s2)*200*br)}else{var s3=sd(dx,dy,R*1.5);if(s3<1){r=120;g=50;b=200;a=Math.round((1-s3)*110)}}}/* 外面兩層淡紫光暈 */
+    var ax=Math.abs(dx),ay=Math.abs(dy),L=R*.95*cl;if((ay<w&&ax<L)||(ax<w&&ay<L*.8)){var t=1-Math.max(ax/L,ay/(L*.8)),m=Math.min(1,t*1.4);r+=(255-r)*m;g+=(240-g)*m;b+=(255-b)*m;a=Math.max(a,Math.round(255*Math.min(1,t*2)))}/* 中間白十字 */
+    var cg=Math.max(0,1-Math.sqrt(dx*dx+dy*dy)/(N*.12*cl));if(cg>0){r+=(255-r)*cg;g+=(255-g)*cg;b+=(255-b)*cg;a=Math.max(a,Math.round(255*cg))}
+    var i=(y*N+X)*4;d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=a}
+  x.putImageData(img,0,0);
+  for(var j=0;j<6;j++){var tw=Math.max(0,Math.sin(tt*2+j*1.7));if(tw<.3)continue;var h1=Math.sin((j+2)*127.1)*43758.5453,h2=Math.sin((j+9)*127.1)*43758.5453,px=Math.floor((h1-Math.floor(h1))*N),py=Math.floor((h2-Math.floor(h2))*N);if(sd(px-C,py-C,R)<1.3)continue;x.fillStyle=j%2?'rgba(170,255,240,'+tw+')':'rgba(255,255,255,'+tw+')';x.fillRect(px,py,1,1)}}/* 周圍忽亮忽滅的小星點 */
+(function(){var c=$('ptc2');if(!c)return;var x=c.getContext('2d');(function f(t){if(!$('mapv').hidden&&!$('portal2').hidden)starGate(x,24,t/1000);requestAnimationFrame(f)})(0)})();
 $('portal2').addEventListener('click',function(){location.href='../real/index.html'});/* 幻境 = 實境冒險 */
 /* ---- 秘境列表、選等級 ---- */
 var RHEAD={};/* 龍頭：首領圖左上方（脖子以上）裁一塊；[x0,y0,x1,y1,放大倍率,圓形遮罩,要挖掉的小方塊（原圖座標）] */
