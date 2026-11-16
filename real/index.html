@@ -39,7 +39,8 @@ var MPP=2.5;             /* 1 個像素格 = 幾公尺 */
 var ZONE=500;            /* 地域格 500 公尺 */
 var SUB=100;             /* 怪物、裝飾物的小格 100 公尺 */
 var SPAWN=0.25;           /* 每個小格有一群怪的機率 */
-var REACH=150;            /* 可以打的距離（公尺） */
+var REACH=100;            /* 可以打的距離（公尺） */
+var MROAD=40;             /* 怪物只生在路邊：離路邊超過這麼多公尺的，挪到最近那條路的路邊 */
 var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
 var LV=50;
@@ -121,10 +122,15 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     if(r01('fk',sx,sy,PER)<.15)L.push({x:(sx+.1+.8*r01('fkx',sx,sy,PER))*SUB,y:(sy+.1+.8*r01('fky',sx,sy,PER))*SUB,spark:1,flat:1,ph:h32('fkp',sx,sy)%6283/1000})}
   return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
-function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
+var MOC={},MOV=-1,MOP=-1;
+function monOf(sx,sy){if(MOV!==RDV||MOP!==PER){MOC={};MOV=RDV;MOP=PER}var ck=sx+','+sy;if(ck in MOC)return MOC[ck];return MOC[ck]=monOf0(sx,sy)}
+function monOf0(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
   var rare=r01('mr',sx,sy,PER)<.05&&pool.boss.length,list=rare?pool.boss:pool.norm,id=list[h32('mk',sx,sy,PER)%list.length],m=MON[id];if(!m)return null;
   var lv0=Math.max(1,(P&&P.lv)||LV),lv=Math.max(1,lv0+Math.round((r01('ml',sx,sy,PER)*2-1)*20));
-  return{id:sx+','+sy,x:(sx+.2+.6*r01('mx',sx,sy,PER))*SUB,y:(sy+.2+.6*r01('my',sx,sy,PER))*SUB,k:m.sprite,n:m.monster_name.split('‧')[0],lv:lv,cnt:rare?1:2+h32('mc',sx,sy,PER)%3,z:z,rare:!!rare,ph:h32('mp',sx,sy)%1000}}
+  var mx=(sx+.2+.6*r01('mx',sx,sy,PER))*SUB,my=(sy+.2+.6*r01('my',sx,sy,PER))*SUB;
+  /* 只生在路邊：離路邊 MROAD 公尺內（又不在路上、水裡）就留著，太遠就挪到 250 公尺內最近那條路的路邊；附近沒路就不生 */
+  if(!(onRoad(mx,my,MROAD)&&!onRoad(mx,my,2)&&!inWater(mx,my))){var rp=roadSide(mx,my,250);if(!rp)return null;mx=rp[0];my=rp[1]}
+  return{id:sx+','+sy,x:mx,y:my,k:m.sprite,n:m.monster_name.split('‧')[0],lv:lv,cnt:rare?1:2+h32('mc',sx,sy,PER)%3,z:z,rare:!!rare,ph:h32('mp',sx,sy)%1000}}
 /* ---- 狀態 ---- */
 var cv=$('map'),cx=cv.getContext('2d'),ov=$('ov'),ox=ov.getContext('2d'),S=2,W=0,H=0,DPR=1;
 var me={x:0,y:0,face:1,mv:0},gps=false,gpsId=null,fast=false,keys={},drag=null,sel=null,lastT=0,pat={},doll=null,MONS=[];
