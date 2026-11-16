@@ -87,7 +87,9 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
   if(z.k==='tomb'){
     /* 墓碑：每格一半機率 1 個（跟樹一樣半透明、會遮擋） */
     if(h32('ts',sx,sy,PER)%2){var sk='tomb_stone'+(1+h32('tsk',sx,sy,PER)%5),tx=(sx+.1+.8*r01('tsx',sx,sy,PER))*SUB,ty=(sy+.1+.8*r01('tsy',sx,sy,PER))*SUB;
-      if(!L.some(function(q){return Math.hypot(q.x-tx,q.y-ty)<20}))L.push({x:tx,y:ty,im:IM[sk],big:BIGH[sk],sh:1})}}
+      if(!L.some(function(q){return Math.hypot(q.x-tx,q.y-ty)<20}))L.push({x:tx,y:ty,im:IM[sk],big:BIGH[sk],sh:1})}
+    /* 螢綠的亡者光芒：大約每 4 格 1 處（道路上不出現），貼在地上慢慢明滅 */
+    if(r01('tg',sx,sy,PER)<.25)L.push({x:(sx+.1+.8*r01('tgx',sx,sy,PER))*SUB,y:(sy+.1+.8*r01('tgy',sx,sy,PER))*SUB,glow:1,flat:1,ph:h32('tgp',sx,sy)%6283/1000})}
   if(z.k==='snow'){
     /* 覆雪的石頭：每格一半機率 1 個，不透明，有陰影 */
     if(h32('sr',sx,sy,PER)%2){var rk='snow_rock'+(1+h32('srk',sx,sy,PER)%3),rx=(sx+.1+.8*r01('srx',sx,sy,PER))*SUB,ry=(sy+.1+.8*r01('sry',sx,sy,PER))*SUB,ri=IM[rk];
@@ -132,7 +134,12 @@ function draw(now){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
     decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr?60:d.big?20:14))return;if(nearRoad(d.x,d.y,d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
-  flats.forEach(function(o){if(!o.im)return;var s=scr(o.x,o.y);cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height/2))});
+  flats.forEach(function(o){if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
+    cx.save();cx.globalAlpha=a*.25;cx.fillStyle='#4dff7a';cx.beginPath();cx.ellipse(gx,gy,9,5,0,0,Math.PI*2);cx.fill();
+    cx.globalAlpha=a*.45;cx.beginPath();cx.ellipse(gx,gy,5,3,0,0,Math.PI*2);cx.fill();
+    cx.globalAlpha=Math.min(1,a+.2);cx.fillStyle='#b8ffc8';cx.fillRect(gx-1,gy-1,2,2);
+    /* 幾顆往上飄的光點 */for(var q=0;q<3;q++){var t=((now/2400+o.ph+q/3)%1),px=gx+Math.round(Math.sin((t*6)+q*2+o.ph)*3)+(q-1)*3,py=gy-Math.round(t*14);cx.globalAlpha=(1-t)*a;cx.fillStyle='#7dffa0';cx.fillRect(px,py,1,1)}
+    cx.restore();return}if(!o.im)return;var s=scr(o.x,o.y);cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height/2))});
   objs.push({t:'p',y:me.y});
   objs.sort(function(a,b){return b.y-a.y});
   objs.forEach(function(q){var o=q.o;
