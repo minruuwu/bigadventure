@@ -7,7 +7,7 @@
   "egg": "egg_mystery.png",
   "stone": "stone_tablet.png"
  },
- "note": "劇本格式同 prologue.json；pic 放圖（@portal = 程式畫的幻境入口，null 收起）；choice 讓玩家選，選到的標籤用 {key} 代入台詞",
+ "note": "劇本格式同 prologue.json；pic 放圖（@portal = 程式畫的幻境入口，null 收起）；choice 讓玩家選，選到的標籤用 {key} 代入台詞；pic 的 s = 放大倍數（預設 3）",
  "steps": [
   [
    "mark",
@@ -320,7 +320,10 @@
   ],
   [
    "pic",
-   "stone"
+   "stone",
+   {
+    "s": 1
+   }
   ],
   [
    "say",
