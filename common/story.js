@@ -57,7 +57,7 @@ function run(o,doc,IMG){return new Promise(function(done){
   var STEPS=(doc.steps||[]).slice(),pend=[];
   var NM=o.name||'冒險者',M=g.Music;
   /* 狀態 */
-  var scene='black',weather='none',rainAmt=0,rainTarget=0,ship=false,bolt=0,nextBolt=0,cam=-1,fadeA=0,xfFrom=null,xfA=0,pc=0,waiting=false,busy=false,heroShown=false,lastNPC=null,alive=true,band=null;
+  var pic=null,picOn=false,picA=0,scene='black',weather='none',rainAmt=0,rainTarget=0,ship=false,bolt=0,nextBolt=0,cam=-1,fadeA=0,xfFrom=null,xfA=0,pc=0,waiting=false,busy=false,heroShown=false,lastNPC=null,alive=true,band=null;
   var drops=[];for(var i=0;i<130;i++)drops.push({x:Math.random()*SW,y:Math.random()*SH,v:6+Math.random()*3,l:9+(Math.random()*7|0)});
   function setWeather(x){weather=x||'none';rainTarget=weather==='storm'?1:weather==='drizzle'?.28:0}
   function buildBand(){var src=IMG.village;band=mk(SW,BANDH);if(!src)return;var t=mk(SW,1).getContext('2d');t.drawImage(src,0,0);var top=t.getImageData(0,0,SW,1).data,b=band.getContext('2d'),d=b.createImageData(SW,BANDH);
@@ -85,6 +85,8 @@ function run(o,doc,IMG){return new Promise(function(done){
     if(weather==='storm'&&cam<0&&scene==='black'&&t>nextBolt){bolt=t;nextBolt=t+2600+Math.random()*4200}
     if(bolt&&cam<0&&scene==='black'){var dt=t-bolt,a=0;if(dt<90)a=.85;else if(dt<150)a=.15;else if(dt<230)a=.6;else if(dt<700)a=.6*(1-(dt-230)/470);if(a>0){cx.fillStyle='rgba(200,210,235,'+a+')';cx.fillRect(0,0,SW,SH);if(ship)drawShip(Math.min(1,a*1.6))}}
     if(scene!=='house'){stepRain();drawRain(rainAmt)}
+    picA+=((picOn?1:0)-picA)*.08;if(pic&&picA>.01){var pw=pic.width*3,ph=pic.height*3,px=Math.round(SW/2-pw/2),py=Math.round(SH*.42-ph/2+Math.sin(t/700)*2),gl=.55+.25*Math.sin(t/480),gr=cx.createRadialGradient(SW/2,py+ph/2,4,SW/2,py+ph/2,pw*1.1);
+      gr.addColorStop(0,'rgba(235,240,250,'+(.35*gl*picA)+')');gr.addColorStop(1,'rgba(235,240,250,0)');cx.fillStyle=gr;cx.fillRect(px-pw,py-ph,pw*3,ph*3);cx.save();cx.globalAlpha=picA;cx.imageSmoothingEnabled=false;cx.drawImage(pic,px,py,pw,ph);cx.restore()}/* pic：畫面中央的圖（例如神秘的蛋），帶微弱光暈 */
     if(fadeA>0){cx.fillStyle='rgba(0,0,0,'+fadeA+')';cx.fillRect(0,0,SW,SH)}}
   function portrait(ctx,lk,t,flip){ctx.clearRect(0,0,32,32);if(!lk||!g.Doll)return;Doll.draw(f48,lk,t);ctx.save();if(flip){ctx.translate(32,0);ctx.scale(-1,1)}ctx.drawImage(f48,8,4,32,32,0,0,32,32);ctx.restore()}
   var heroLook=o.hero?Object.assign({},o.hero,{weapon:null,shield:null,halo:[]}):null,npcLook={};
@@ -113,6 +115,7 @@ function run(o,doc,IMG){return new Promise(function(done){
     while(pc<STEPS.length&&alive){var s=STEPS[pc],op=s[2]||{};
       if(s[0]==='mark'||s[0]==='start'){pc++;continue}
       if(s[0]==='scene'){scene=s[1];cam=-1;setWeather(op.weather);rainAmt=rainTarget;pc++;continue}
+      if(s[0]==='pic'){if(s[1]&&IMG[s[1]]){pic=IMG[s[1]];picOn=true}else picOn=false;pc++;continue}
       if(s[0]==='bgm'){if(M)M.play(s[1],s[2]||1500);pc++;continue}
       if(s[0]==='bgmfade'){if(M)M.fade(s[1]||1500);pc++;continue}
       if(s[0]==='join'){if(o.onJoin)o.onJoin(s[1]);pc++;continue}

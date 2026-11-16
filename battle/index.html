@@ -216,7 +216,7 @@ html,body,*{touch-action:manipulation}
 </div>
 <script src="../common/doll.js?v=13"></script>
 <script src="../common/npc.js?v=1"></script>
-<script src="../common/story.js?v=3"></script>
+<script src="../common/story.js?v=4"></script>
 <script src="../common/music.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
@@ -3042,10 +3042,10 @@ function renderMap(){var h=$('zones');h.textContent='';var la=lastArea(),np=need
     var zn=el('span','zn',VILLAGE.n);if(STORIES.some(function(x){return !storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));b.appendChild(zn);if(np){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
     b.addEventListener('click',openVillage);h.appendChild(b)})();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
-    var zn=el('span','zn',a.n);if(np){b.classList.add('lock');zn.appendChild(el('small',null,i===0?'看完序章後開放':'尚未開放'))}else if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}if(!np&&OPENED(i)&&(ASTORY[i]||[]).some(function(x){return !storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));/* 這章有還沒看的劇情 */b.appendChild(zn);if(!np&&(i===la||OPENED(i))){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
+    var zn=el('span','zn',a.n);if(np){b.classList.add('lock');zn.appendChild(el('small',null,i===0?'看完序章後開放':'尚未開放'))}else if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}if(!np&&OPENED(i)&&(ASTORY[i]||[]).some(function(x){return stOpen(i,x)&&!storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));/* 這章有還沒看的劇情 */b.appendChild(zn);if(!np&&(i===la||OPENED(i))){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
     b.addEventListener('click',function(){if(needPrologue()){toast('先到帕拉迪村看完序章');return}if(OPENED(i))openLevels(i)});h.appendChild(b)})}
 function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+a.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+a.n+'</h2>'+(ALORE[i]?'<p class="lore">'+esc(ALORE[i])+'</p>':'<p class="lvh"></p>')+'<div class="lvg">';
-  var cl=cleared(i),sm=stMax(i),lpad=0;for(var l=1;l<=NST;l++){var bs=isBoss(i,l),sl=(ASTORY[i]||[]).filter(function(x){return x.at===l});if(sl.length){h+=storyList(sl);if((l-1)%5)lpad=(l-1)%5}h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1||l>sm?' disabled':'')+(l>sm?' title="尚未開放" style="opacity:.35"':'')+'>'+(l>sm?'🔒':bs?'Boss':l)+(l<=cl&&l<=sm?' ✓':'')+'</button>';if(lpad&&l%5===0){h+='<i style="grid-column:span '+lpad+'"></i>';lpad=0}/* 劇情插在一排中間時補空格，後面的關卡維持每排五關對齊 */}
+  var cl=cleared(i),sm=stMax(i),lpad=0;for(var l=1;l<=NST;l++){var bs=isBoss(i,l),sl=(ASTORY[i]||[]).filter(function(x){return x.at===l&&stOpen(i,x)});if(sl.length){h+=storyList(sl);if((l-1)%5)lpad=(l-1)%5}h+='<button type="button" class="lv'+(bs?' boss':'')+'" data-a="lv" data-l="'+l+'"'+(l>cl+1||l>sm?' disabled':'')+(l>sm?' title="尚未開放" style="opacity:.35"':'')+'>'+(l>sm?'🔒':bs?'Boss':l)+(l<=cl&&l<=sm?' ✓':'')+'</button>';if(lpad&&l%5===0){h+='<i style="grid-column:span '+lpad+'"></i>';lpad=0}/* 劇情插在一排中間時補空格，後面的關卡維持每排五關對齊 */}
   var md=advMode();if(MANUAL){h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo3"><button type="button" class="go" data-a="lvgo" data-m="live" disabled>戰鬥</button><label class="abchk"><input type="checkbox" id="autoChk"'+(autoPref()?' checked':'')+'>自動戰鬥</label></div></div>';var o0=$('lvov');o0.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o0.hidden=false;return}
   h+='</div><div class="lvinfo" id="lvinfo">先點一個關卡</div><div class="lvgo2"><button type="button" class="go'+(md==='auto'?'':' alt')+'" data-a="lvgo" data-m="auto" disabled>自動戰鬥</button>'+(TACT?'<button type="button" class="go'+(md==='tac'?'':' alt')+'" data-a="lvgo" data-m="tac" disabled>戰棋</button>':'')+'</div></div>';/* 戰棋模式暫時隱藏，只有 ?tactics=1 測試入口看得到 */
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
@@ -3054,7 +3054,8 @@ function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 var VILLAGE={n:'帕拉迪村',y0:0,y1:120,lore:'位於古老森林邊緣的一座偏遠人類村莊，但近來森林逐漸出現異變，野獸變得躁動不安，甚至開始襲擊村民。隨著森林深處的威脅日益逼近，這座村莊也逐漸失去了往日的平靜。'};
 var STORIES=[{id:'prologue',t:'序章‧漂流者'}];
 /* 各章劇情：放在該章關卡選單 1～5 關的上方（劇本 assets/data/story/<id>.json） */
-var ASTORY={0:[{id:'ch1_1',t:'第一章之一‧變異之始',at:1},{id:'ch1_2',t:'第一章之二‧森林的暴徒',at:10}]};/* at：放在第幾關那一排的上方 */
+function stOpen(i,x){return cleared(i)>=x.at-1}/* 劇情要打到前一關才出現 */
+var ASTORY={0:[{id:'ch1_1',t:'第一章之一‧變異之始',at:1},{id:'ch1_2',t:'第一章之二‧森林的暴徒',at:10},{id:'ch1_3',t:'第一章之三‧神秘的蛋',at:11}]};/* at：放在第幾關那一排的上方 */
 function storyList(L){var h='<div class="stl">';L.forEach(function(x){h+='<button type="button" class="sti" data-a="story" data-s="'+esc(x.id)+'"><span>'+esc(x.t)+'</span>'+(storyDone(x.id)?'<small>重看</small>':'<em>NEW</em>')+'</button>'});return h+'</div>'}/* 之後新章節加在這裡（劇本放 assets/data/story/<id>.json） */
 function storyDone(id){var me=MEMB[0]||{};return !!(me.story&&me.story[id])}
 function advAny(){var m=(MEMB[0]&&MEMB[0].adv)||{};return Object.keys(m).some(function(k){return (m[k]|0)>0})}
