@@ -44,7 +44,9 @@ var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快�
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
 var LV=50;
 var BASEC='#8c7a58';      /* 地面底色：所有地域共用的土色，地域之間的分界比較不明顯 */
-var GA=0.14;              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
+var GA=0.14;
+var TREE_H=36;            /* 森林的樹高（畫面像素）＝地圖上人物的高度，人物大小不變，只放大樹 */
+var TREE_A=0.88;          /* 樹的不透明度（1 = 完全不透明），後面的人、怪物隱約看得到；點擊不會被樹擋住 */              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
 /* 地域（試作版只有兩種） */
 var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']}];
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
@@ -67,9 +69,11 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
   return{skin:Doll.val(p.skin,0),style:Doll.val(p.style,0),hair:p.hair|0,eyes:Doll.val(p.eyes,5),outfit:p.outfit==null?(p.job|0):Doll.val(p.outfit,0),bare:p.outfit==null&&!Doll.assets.outfits[p.job|0],weapon:null,shield:null,halo:[],lv:p.lv?(p.lv|0)+Object.keys(p.jobLv||{}).reduce(function(t,k){return t+((p.jobLv[k])|0)},0):0}}/* 怪物等級的基準：人物等級＋職業等級總和 */
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
-/* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵、礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
-function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):h32('dn',sx,sy,PER)%3,main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
-  for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length];L.push({x:(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,y:(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB,im:IM[z.k+'_'+kind]})}return L}
+/* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵（樹變大後稍微稀疏：大多 0～1），礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
+function decoOf(sx,sy){var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[];
+  for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
+    if(z.k==='forest'&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹不要疊在一起 */
+    L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],tree:z.k==='forest'})}return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
 function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
   var rare=r01('mr',sx,sy,PER)<.05&&pool.boss.length,list=rare?pool.boss:pool.norm,id=list[h32('mk',sx,sy,PER)%list.length],m=MON[id];if(!m)return null;
@@ -101,13 +105,15 @@ function draw(now){
   var rr=REACH/MPP;cx.save();cx.globalAlpha=.16+.06*Math.sin(now/500);cx.fillStyle='#fff6c8';cx.beginPath();cx.ellipse(W/2,H/2,rr,rr,0,0,Math.PI*2);cx.fill();cx.restore();
   /* 裝飾物、怪物、自己：依畫面上下排序（下面的蓋住上面的） */
   var objs=[];MONS=[];
-  for(var sx=Math.floor((x0-30)/SUB);sx<=Math.floor((x1+30)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
+  for(var sx=Math.floor((x0-60)/SUB);sx<=Math.floor((x1+60)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
-    decoOf(sx,sy).forEach(function(d){if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14)return;if(nearRoad(d.x,d.y,9))return;objs.push({t:'d',o:d,y:d.y})})}
+    decoOf(sx,sy).forEach(function(d){if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.tree?20:14))return;if(nearRoad(d.x,d.y,d.tree?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
   objs.push({t:'p',y:me.y});
   objs.sort(function(a,b){return b.y-a.y});
   objs.forEach(function(q){var o=q.o;
-    if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
+    if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);
+      if(o.tree){/* 樹：放大到跟人一樣高（保持原本長寬比），稍微透明 */var th=TREE_H,tw=Math.round(o.im.width*th/o.im.height);cx.globalAlpha=TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
+      else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
     else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Math.min(1,36/Math.max(sz[0],sz[1])),w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
       if(o.rare){cx.save();cx.globalAlpha=.35+.2*Math.sin(now/300);cx.fillStyle='#ffd34a';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]-h/2-lf),w*.7,h*.6,0,0,Math.PI*2);cx.fill();cx.restore()}
