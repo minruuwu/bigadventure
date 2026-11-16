@@ -145,7 +145,7 @@ function draw(now){
   var objs=[],flats=[];MONS=[];
   for(var sx=Math.floor((x0-100)/SUB);sx<=Math.floor((x1+100)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
-    decoOf(sx,sy).forEach(function(d){if(d.lamp){if(!(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14))objs.push({t:'d',o:d,y:d.y});return}if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.house?60:d.big?20:14))return;if(nearRoad(d.x,d.y,d.ftn?50:d.house?35:d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
+    decoOf(sx,sy).forEach(function(d){if(d.lamp){if(!(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14))objs.push({t:'d',o:d,y:d.y});return}if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.ftn?60:d.house?30:d.big?20:14))return;if(nearRoad(d.x,d.y,d.ftn?50:d.house?35:d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
   flats.forEach(function(o){if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
     cx.save();cx.globalAlpha=a*.25;cx.fillStyle='#4dff7a';cx.beginPath();cx.ellipse(gx,gy,9,5,0,0,Math.PI*2);cx.fill();
