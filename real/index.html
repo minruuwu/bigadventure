@@ -147,7 +147,7 @@ function draw(now){
   var objs=[],flats=[];MONS=[];
   for(var sx=Math.floor((x0-100)/SUB);sx<=Math.floor((x1+100)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
-    decoOf(sx,sy).forEach(function(d){if(d.lamp){if(!(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14))objs.push({t:'d',o:d,y:d.y});return}if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.ftn?60:d.house?30:d.big?20:14))return;if(nearRoad(d.x,d.y,d.ftn?50:d.house?35:d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
+    decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.ftn?60:d.house?30:d.big?20:d.lamp?14:14))return;if(!clearOf(d))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
   flats.forEach(function(o){if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
     cx.save();cx.globalAlpha=a*.25;cx.fillStyle='#4dff7a';cx.beginPath();cx.ellipse(gx,gy,9,5,0,0,Math.PI*2);cx.fill();
@@ -257,13 +257,22 @@ var NRC={},NRV=-1,WTC={};
 function nearRoad(x,y,r){if(NRV!==RDV){NRC={};WTC={};NRV=RDV}var ck=x+','+y;if(ck in NRC)return NRC[ck];return NRC[ck]=nearRoad0(x,y,r)||inWater(x,y)}
 function segNear(p,x,y,rr){for(var n=1;n<p.length;n++){var a=p[n-1],b=p[n];if(Math.max(a[0],b[0])<x-rr||Math.min(a[0],b[0])>x+rr||Math.max(a[1],b[1])<y-rr||Math.min(a[1],b[1])>y+rr)continue;
   var dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx-x,qy=a[1]+t*dy-y;if(qx*qx+qy*qy<rr*rr)return true}return false}
+/* 點在不在路面上（含褐色路邊線），pad = 再外擴幾公尺 */
+function onRoad(x,y,pad){return roadsNear(x-30,x+30,y-30,y+30).some(function(G){return G.r.some(function(rd){return segNear(rd.p,x,y,(rd.w+2)/2*MPP+pad)})})}
 function nearRoad0(x,y,r){return roadsNear(x-r,x+r,y-r,y+r).some(function(G){return G.r.some(function(rd){return segNear(rd.p,x,y,r+rd.w*MPP)})})}
+/* 物件在地上佔的範圍（底部、扣掉左右透明的邊）不能碰到道路、河流、湖：玩家都走在路上，路上不要有東西 */
+var FPC={},FPV=-1;
+function clearOf(d){if(!d.im)return false;if(FPV!==RDV){FPC={};FPV=RDV}var ck=d.x+','+d.y;if(ck in FPC)return FPC[ck];
+  var th=d.big||d.im.height,tw=d.im.width*th/d.im.height,hw=d.lamp?0:tw*.36*MPP,ht=d.lamp?0:th*MPP*.4,st=Math.max(6,Math.min(hw,ht)/3);/* 檢查物件的底部（地面上佔的位置）；街燈只看柱腳 */
+  if(onRoad(d.x,d.y,d.lamp?1:4)||inWater(d.x,d.y))return FPC[ck]=false;
+  for(var yy=0;yy<=ht;yy+=st)for(var xx=-hw;xx<=hw+.1;xx+=Math.max(st,hw)){if(onRoad(d.x+xx,d.y+yy,1)||inWater(d.x+xx,d.y+yy))return FPC[ck]=false}
+  return FPC[ck]=true}
 /* 離 (x,y) 最近的路邊：找 r 公尺內最近的道路，往 (x,y) 那一側退到路寬外 6 公尺；沒有路就回傳 null */
 var RSC={},RSV=-1;
 function roadSide(x,y,r){if(RSV!==RDV){RSC={};RSV=RDV}var ck=x+','+y;if(ck in RSC)return RSC[ck];var best=null,bd=r*r;
   roadsNear(x-r,x+r,y-r,y+r).forEach(function(G){G.r.forEach(function(rd){if(rd.b)return;var p=rd.p;for(var n=1;n<p.length;n++){var a=p[n-1],b=p[n],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx,qy=a[1]+t*dy,d2=(qx-x)*(qx-x)+(qy-y)*(qy-y);if(d2<bd){bd=d2;best=[qx,qy,rd.w]}}})});
-  if(!best)return RSC[ck]=null;var vx=x-best[0],vy=y-best[1],vl=Math.hypot(vx,vy)||1,off=best[2]*MPP/2+6,lx=best[0]+vx/vl*off,ly=best[1]+vy/vl*off;
-  if(nearRoad0(lx,ly,2)||inWater(lx,ly))return RSC[ck]=null;return RSC[ck]=[lx,ly]}
+  if(!best)return RSC[ck]=null;var vx=x-best[0],vy=y-best[1],vl=Math.hypot(vx,vy)||1,off=(best[2]+2)/2*MPP+6,lx=best[0]+vx/vl*off,ly=best[1]+vy/vl*off;
+  if(onRoad(lx,ly,1)||inWater(lx,ly))return RSC[ck]=null;return RSC[ck]=[lx,ly]}
 /* 在不在水裡（水域面：奇偶規則，河中島不算水；河流線：照寬度） */
 function inWater(x,y){if(NRV!==RDV){NRC={};WTC={};NRV=RDV}var ck=x+','+y;if(ck in WTC)return WTC[ck];
   return WTC[ck]=roadsNear(x-10,x+10,y-10,y+10).some(function(G){return G.l.some(function(l){return segNear(l.p,x,y,l.w*MPP+6)})||G.a.some(function(rs){var c=false;rs.forEach(function(p){for(var n=0,m=p.length-1;n<p.length;m=n++){var a=p[n],b=p[m];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1]||1e-9)+a[0])c=!c}});return c})})}
