@@ -278,8 +278,9 @@ service cloud.firestore {
         return ['crystal_' + c, 'ore_' + c, 'orb_' + c];
       }
       // ---- 實境冒險勝利 ----
-      // 兩場至少隔 15 秒;經驗每場最多 1500;素材一種、1~39 個;蛋最多 1 顆;
-      // realK = {p 時段, k 這個時段打倒的怪物點(只能加 1 個、不能重複), m 素材, n 數量, e 蛋(沒掉就是空字串)}
+      // 兩場至少隔 15 秒;經驗每場最多 1500;素材是同一個顏色的結晶、礦石、寶珠,合計 1~30 個;蛋最多 1 顆;
+      // realK = {p 時段, k 這個時段打倒的怪物點(只能加 1 個、不能重複), c 素材顏色, m 各種素材的數量, e 蛋(沒掉就是空字串)}
+      function rMat(om, nm, m, k) { return m.get(k, 0) is int && m.get(k, 0) >= 0 && nm.get(k, 0) == om.get(k, 0) + m.get(k, 0); }
       function realWinOk() {
         let n = request.resource.data;
         let o = resource.data;
@@ -289,18 +290,21 @@ service cloud.firestore {
         let nm = n.get('beastMat', {});
         let oe = o.get('beastEggs', {});
         let ne = n.get('beastEggs', {});
+        let c = rk.c;
+        let m = rk.m;
         return n.realAt == request.time
           && request.time >= o.get('realAt', timestamp.value(0)) + duration.value(15, 's')
           && n.get('exp', 0) is int && n.get('exp', 0) - o.get('exp', 0) >= 0 && n.get('exp', 0) - o.get('exp', 0) <= 1500
-          && rk is map && rk.keys().hasOnly(['p','k','m','n','e']) && rk.p is int && rk.k is list && rk.k.size() <= 400
+          && rk is map && rk.keys().hasOnly(['p','k','c','m','e']) && rk.p is int && rk.k is list && rk.k.size() <= 400
           && (rk.p == ok.p
             ? (rk.k.size() == ok.k.size() + 1 && rk.k[0:ok.k.size()] == ok.k && !(rk.k[ok.k.size()] in ok.k))
             : rk.k.size() == 1)
-          && rk.m in ['crystal_red','ore_red','orb_red','crystal_blue','ore_blue','orb_blue','crystal_yellow','ore_yellow','orb_yellow',
-                      'crystal_teal','ore_teal','orb_teal','crystal_green','ore_green','orb_green','crystal_gold','ore_gold','orb_gold',
-                      'crystal_purple','ore_purple','orb_purple']
-          && rk.n is int && rk.n >= 1 && rk.n <= 39
-          && nm.diff(om).affectedKeys().hasOnly([rk.m]) && nm.get(rk.m, 0) == om.get(rk.m, 0) + rk.n
+          && c in ['red','blue','yellow','teal','green','gold','purple']
+          && m is map && m.keys().hasOnly(['crystal_' + c, 'ore_' + c, 'orb_' + c])
+          && nm.diff(om).affectedKeys().hasOnly(['crystal_' + c, 'ore_' + c, 'orb_' + c])
+          && rMat(om, nm, m, 'crystal_' + c) && rMat(om, nm, m, 'ore_' + c) && rMat(om, nm, m, 'orb_' + c)
+          && m.get('crystal_' + c, 0) + m.get('ore_' + c, 0) + m.get('orb_' + c, 0) >= 1
+          && m.get('crystal_' + c, 0) + m.get('ore_' + c, 0) + m.get('orb_' + c, 0) <= 30
           && (rk.e == ''
             ? ne.diff(oe).affectedKeys().size() == 0
             : (rk.e in ['fire','ice','bolt','wind','leaf','sun','moon'] && ne.diff(oe).affectedKeys().hasOnly([rk.e]) && ne.get(rk.e, 0) == oe.get(rk.e, 0) + 1));
