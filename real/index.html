@@ -47,12 +47,13 @@ var BASEC='#8c7a58';      /* 地面底色：所有地域共用的土色，地域
 var GA=0.14;
 var TREE_A=0.88;          /* 樹、仙人掌、金字塔的不透明度（1 = 完全不透明），後面的人、怪物隱約看得到；點擊不會被擋住 */
 /* 大型裝飾物的高度（畫面像素）：人物約 36 */
-var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
-var SHY={tomb_tree2:4,snow_rock1:2,snow_rock2:3,snow_rock3:3};      /* 陰影往上移幾格（圖的最下面是細根、草，樹幹其實在比較上面） */
+var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,castle_house1:40,castle_house2:40,castle_house3:40,castle_house4:40,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
+var SHY={castle_fountain:9,castle_house1:4,castle_house2:4,castle_house3:4,castle_house4:4,tomb_tree2:4,snow_rock1:2,snow_rock2:3,snow_rock3:3};      /* 陰影往上移幾格（圖的最下面是細根、草，樹幹其實在比較上面） */
 var GAZ={desert:0.5,tomb:0.85,snow:0.7,castle:0.7};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
 var PYR=0.5;              /* 每個 500 公尺的沙漠地域格出現一組金字塔的機率 */              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
 /* 地域（試作版：森林、礦洞、沙漠、墓穴、雪山、王城） */
 var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']},{k:'desert',n:'沙漠',c:'#e8c27a',area:'area03',deco:['cactus1','cactus2','cactus3']},{k:'tomb',n:'墓穴',c:'#6a5878',area:'area04',deco:['tree1','tree2','tree3']},{k:'snow',n:'雪山',c:'#cfe2f5',area:'area05',deco:['tree1','tree2','tree3','tree4']},{k:'castle',n:'王城',c:'#d8c9a8',area:'area06',deco:[]}];
+var PYF=0.3;              /* 每個 500 公尺的王城地域格出現噴泉的機率 */
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
 function h32(){var h=2166136261>>>0;for(var i=0;i<arguments.length;i++){var s=String(arguments[i]);for(var j=0;j<s.length;j++){h^=s.charCodeAt(j);h=Math.imul(h,16777619)>>>0}h^=124;h=Math.imul(h,16777619)>>>0}h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;return h>>>0}
 function r01(){return h32.apply(null,arguments)/4294967296}
@@ -98,6 +99,12 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     /* 小冰晶：大約每 3～4 格 1 個，矮矮的 */
     if(r01('si',sx,sy,PER)<.28){var ik='snow_ice'+(1+h32('sik',sx,sy,PER)%2),ix=(sx+.1+.8*r01('six',sx,sy,PER))*SUB,iy=(sy+.1+.8*r01('siy',sx,sy,PER))*SUB,ii=IM[ik];
       if(ii&&!L.some(function(q){return Math.hypot(q.x-ix,q.y-iy)<15}))L.push({x:ix,y:iy,im:ii,big:ii.height,sh:1,op:1,k:ik})}}
+  if(z.k==='castle'){
+    /* 房子：隔一格才可能有一棟（免得擠在一起），附近 50 公尺內沒有道路才放 */
+    if((sx+sy)%2===0&&r01('ch',sx,sy,PER)<.45){var hk='castle_house'+(1+h32('chk',sx,sy,PER)%4),hi=IM[hk];if(hi)L.push({x:(sx+.3+.4*r01('chx',sx,sy,PER))*SUB,y:(sy+.3+.4*r01('chy',sx,sy,PER))*SUB,im:hi,big:BIGH[hk],sh:1,al:.8,house:1,k:hk})}
+    /* 噴泉：每個王城地域格最多一座 */
+    var per2=ZONE/SUB,pk2=h32('cf',zx,zy,PER)%(per2*per2);
+    if(r01('cfc',zx,zy,PER)<PYF&&sx-zx*per2===pk2%per2&&sy-zy*per2===Math.floor(pk2/per2)){var fi=IM.castle_fountain;if(fi)L.push({x:(sx+.5)*SUB,y:(sy+.5)*SUB,im:fi,big:fi.height,sh:1,op:1,ftn:1,house:1,srx:.52,sry:.3,sa:.22,k:'castle_fountain'})}}
   return L}
 /* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
 function monOf(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
@@ -133,7 +140,7 @@ function draw(now){
   var objs=[],flats=[];MONS=[];
   for(var sx=Math.floor((x0-100)/SUB);sx<=Math.floor((x1+100)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
-    decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr?60:d.big?20:14))return;if(nearRoad(d.x,d.y,d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
+    decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.house?60:d.big?20:14))return;if(nearRoad(d.x,d.y,d.house?50:d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
   flats.forEach(function(o){if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
     cx.save();cx.globalAlpha=a*.25;cx.fillStyle='#4dff7a';cx.beginPath();cx.ellipse(gx,gy,9,5,0,0,Math.PI*2);cx.fill();
@@ -146,7 +153,8 @@ function draw(now){
   objs.forEach(function(q){var o=q.o;
     if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);
       if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);
-        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,.32)';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.op?tw*.6:Math.max(5,tw*.42),o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.op?1:TREE_A;cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);cx.globalAlpha=1}
+        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,'+(o.sa||.32)+')';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.srx?tw*o.srx:o.op?tw*.6:Math.max(5,tw*.42),o.sry?Math.round(th*o.sry):o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.al||(o.op?1:TREE_A);cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);if(o.ftn){/* 噴泉：水面反光慢慢明滅、噴口冒水滴 */var gi=IM.castle_fountain_glint,fx0=Math.round(s[0]-tw/2),fy0=Math.round(s[1]-th);if(gi){cx.globalAlpha=.35+.35*Math.sin(now/500);cx.drawImage(gi,fx0,fy0,tw,th)}
+          for(var q=0;q<4;q++){var t=((now/1100)+q/4)%1,dx=Math.round(Math.sin(q*2.1)*4*t),dy=Math.round(-5*Math.sin(t*Math.PI));cx.globalAlpha=1-t*.6;cx.fillStyle=q%2?'#c8fff4':'#7fe8dc';cx.fillRect(fx0+Math.round(tw*.5)+dx,fy0+3+dy,1,1)}}cx.globalAlpha=1}
       else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
     else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Monsters.scale(o.k)*(o.rare&&Monsters.scale(o.k)===1?1.2:1)/* 跟戰鬥裡一樣的比例（人物 48 格高的畫布＝戰鬥裡的大小） */,w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
@@ -295,7 +303,8 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ['blue','violet','gold','green','pink','silver'].map(function(n){return img(BASE+'real/deco_mine_'+n+'.png').then(function(i){IM['mine_'+n]=i})}),
   ['cactus1','cactus2','cactus3','pyramid1','pyramid2','dune1','dune2','dune3'].map(function(n){return img(BASE+'real/deco_desert_'+n+'.png').then(function(i){IM['desert_'+n]=i})}),
   ['tree1','tree2','tree3','stone1','stone2','stone3','stone4','stone5'].map(function(n){return img(BASE+'real/deco_tomb_'+n+'.png').then(function(i){IM['tomb_'+n]=i})}),
-  ['tree1','tree2','tree3','tree4','rock1','rock2','rock3','ice1','ice2'].map(function(n){return img(BASE+'real/deco_snow_'+n+'.png').then(function(i){IM['snow_'+n]=i})}))).then(function(R){
+  ['tree1','tree2','tree3','tree4','rock1','rock2','rock3','ice1','ice2'].map(function(n){return img(BASE+'real/deco_snow_'+n+'.png').then(function(i){IM['snow_'+n]=i})}),
+  ['house1','house2','house3','house4','fountain','fountain_glint'].map(function(n){return img(BASE+'real/deco_castle_'+n+'.png').then(function(i){IM['castle_'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
   IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
