@@ -163,6 +163,15 @@ button{font:inherit;color:inherit}
 /* ---- 秘境：地圖右下角的門、三間列表、選等級 ---- */
 .portal{position:fixed;bottom:99px;right:max(30px,calc((100vw - 460px)/2 + 30px));z-index:6;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;-webkit-tap-highlight-color:transparent}
 .portal canvas{width:60px;height:60px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(140,90,255,.75)) drop-shadow(0 0 2px rgba(120,240,255,.8))}
+.portal.gate{right:max(102px,calc((100vw - 460px)/2 + 102px))}.portal.gate canvas{filter:drop-shadow(0 0 6px rgba(255,190,240,.75)) drop-shadow(0 0 2px rgba(180,255,240,.85))}.portal.gate span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #c070b0}
+.edrow{display:flex;margin-top:12px}.edm{font:inherit;display:flex;align-items:center;gap:6px;border:0;background:#4a2a12;color:#f0dfb8;font-size:13px;font-weight:900;padding:3px 12px 3px 3px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}.edm canvas,.edp canvas{width:40px;height:40px;image-rendering:pixelated;background:#2a1709;box-shadow:0 0 0 2px #1d1008}
+.edp{display:flex;gap:10px;align-items:flex-start;margin:6px 0 10px}.edp canvas{width:56px;height:56px;flex:none}.edsay{position:relative;flex:1;min-width:0;background:#f4e6c6;color:#2e1d0e;font-size:13px;line-height:1.6;padding:8px 10px;box-shadow:0 0 0 2px #1d1008}.edsay b{display:block;color:#7a3a12;font-size:12px}
+.edbt{display:flex;flex-direction:column;gap:6px}.edbt button{font:inherit;font-size:14px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:0;padding:9px 12px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;text-align:left}.edbt button.bk{background:#6b4a2a;font-size:13px}
+.bcare{max-height:62vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-top:6px}.bcare h4{margin:0;font-size:13px;font-weight:900;color:#4a2a12}.bcare .nb{font-size:12px;color:#5a3a1a}
+.bcl{display:flex;flex-direction:column;gap:6px}.bcr{display:flex;align-items:center;gap:8px;background:rgba(74,42,18,.14);padding:5px 8px;box-shadow:inset 0 0 0 1px rgba(74,42,18,.35)}.bcr img{width:40px;height:40px;image-rendering:pixelated;flex:none}.bcr .t{flex:1;min-width:0;font-size:12px;line-height:1.45}.bcr .t b{font-size:14px;color:#2a1708}
+.bcr button{font:inherit;font-size:12px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:0;padding:5px 9px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;flex:none}.bcr .on{font-size:12px;font-weight:900;color:#fff;background:#2e7a3a;padding:4px 8px;flex:none}
+.bce{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bce div{display:flex;flex-direction:column;align-items:center;font-size:11px;background:rgba(74,42,18,.12);padding:3px 2px}.bce img{width:24px;height:28px;image-rendering:pixelated}.bce .z{opacity:.45}
+.bcm{display:grid;grid-template-columns:24px repeat(3,1fr);gap:3px 4px;align-items:center;font-size:11px}.bcm .hd{text-align:center;font-weight:900;color:#5a3a1a}.bcm .it{display:flex;align-items:center;gap:3px;background:rgba(74,42,18,.12);padding:1px 3px}.bcm img{width:20px;height:20px;image-rendering:pixelated}
 .portal span{font-size:12px;font-weight:900;color:#f2e6ff;background:rgba(18,10,24,.82);padding:0 7px;margin-top:-4px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6a4aa8;text-shadow:1px 1px 0 #000;letter-spacing:.15em}
 .portal:active canvas{transform:translateY(1px)}
 .rfbox{position:relative;width:100%;max-width:380px;background:#1b1520;box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #4b3a66,6px 6px 0 rgba(0,0,0,.5);padding:16px 14px 16px;color:#eadbbd}
@@ -200,7 +209,7 @@ html,body,*{touch-action:manipulation}
  <div class="top"><h1>冒險</h1><span class="tag">測試</span></div>
  <div class="main">
   <div id="loading">讀取資料中…</div>
-  <div id="mapv" hidden><button type="button" class="portal" id="portal" aria-label="秘境"><canvas id="ptc" width="20" height="20"></canvas><span>秘境</span></button><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
+  <div id="mapv" hidden><button type="button" class="portal gate" id="portal2" aria-label="幻境" hidden><canvas id="ptc2" width="20" height="20"></canvas><span>幻境</span></button><button type="button" class="portal" id="portal" aria-label="秘境"><canvas id="ptc" width="20" height="20"></canvas><span>秘境</span></button><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
   <div id="tacv" hidden></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
@@ -216,7 +225,7 @@ html,body,*{touch-action:manipulation}
 </div>
 <script src="../common/doll.js?v=13"></script>
 <script src="../common/npc.js?v=1"></script>
-<script src="../common/story.js?v=4"></script>
+<script src="../common/story.js?v=5"></script>
 <script src="../common/music.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
@@ -3029,7 +3038,8 @@ var ATKV=null;function monAtkV(k){if(!ATKV){ATKV={};if(ENG&&ENG.mon)Object.keys(
 function lastArea(){try{var v=parseInt(localStorage.getItem('adv.lastArea'),10);return v>=0&&v<AREA.length?v:0}catch(e){return 0}}
 function setLastArea(i){try{localStorage.setItem('adv.lastArea',String(i))}catch(e){}}
 var NST=20;/* 每章節關數 */
-function stMax(i){var a=AREAID[i],has={},any=0;(ENG&&ENG.stage||[]).forEach(function(r){if(r.area_id===a){has[parseInt(r.stage,10)]=1;any=1}});if(!any)return NST;var n=0;while(has[n+1])n++;return n}/* 從第 1 關往後連續做好的關數（中間缺一關，後面就算有資料也先鎖著） *//* 這章目前做好幾關（stage_info 有的）：還沒做的關卡鎖住，先上半章也不會打到空關 */
+function stMax(i){var n0=stMax0(i);return i===0&&!demo&&!storyDone('ch1_4')&&cleared(0)<=10?Math.min(n0,10):n0}/* 森林第 11 關起：看完第一章之四才開（已經打過 10 關以上的舊玩家不鎖） */
+function stMax0(i){var a=AREAID[i],has={},any=0;(ENG&&ENG.stage||[]).forEach(function(r){if(r.area_id===a){has[parseInt(r.stage,10)]=1;any=1}});if(!any)return NST;var n=0;while(has[n+1])n++;return n}/* 從第 1 關往後連續做好的關數（中間缺一關，後面就算有資料也先鎖著） *//* 這章目前做好幾關（stage_info 有的）：還沒做的關卡鎖住，先上半章也不會打到空關 */
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
 function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
@@ -3037,9 +3047,9 @@ function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style
 /* 進地圖時捲到最後打的那一章（有光球的區域），放在畫面可見範圍的中間；地圖圖片還沒載完就等載完再捲 */
 function mapFocus(){var img=$('map').querySelector('img');if(!img.complete||!img.naturalHeight){img.addEventListener('load',mapFocus,{once:true});return}if(view!=='map')return;var z=$('zones').children[lastArea()];if(!z){window.scrollTo(0,0);return}
   var tb=document.querySelector('.top'),th=tb?tb.offsetHeight:0,nv=document.querySelector('.tabs'),nh=nv?nv.offsetHeight:90,r=z.getBoundingClientRect(),vis=window.innerHeight-th-nh;window.scrollTo(0,Math.max(0,window.scrollY+r.top-th-Math.max(0,(vis-r.height)/2)))}
-function renderMap(){var h=$('zones');h.textContent='';var la=lastArea(),np=needPrologue();
+function renderMap(){var h=$('zones');h.textContent='';$('portal2').hidden=!(demo||storyDone('ch1_4'));var la=lastArea(),np=needPrologue();
   (function(){var b=el('button','zone vil');b.type='button';b.style.top=(VILLAGE.y0/MAPH*100)+'%';b.style.height=((VILLAGE.y1-VILLAGE.y0)/MAPH*100)+'%';b.setAttribute('aria-label',VILLAGE.n);
-    var zn=el('span','zn',VILLAGE.n);if(STORIES.some(function(x){return !storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));b.appendChild(zn);if(np){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
+    var zn=el('span','zn',VILLAGE.n);if(STORIES.some(function(x){return vOpen(x)&&!storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));b.appendChild(zn);if(np){var o=el('span','orb');o.setAttribute('aria-hidden','true');b.appendChild(o)}
     b.addEventListener('click',openVillage);h.appendChild(b)})();
   AREA.forEach(function(a,i){var b=el('button','zone');b.type='button';b.style.top=(a.y0/MAPH*100)+'%';b.style.height=((a.y1-a.y0)/MAPH*100)+'%';b.setAttribute('aria-label',a.n);
     var zn=el('span','zn',a.n);if(np){b.classList.add('lock');zn.appendChild(el('small',null,i===0?'看完序章後開放':'尚未開放'))}else if(!OPENED(i)){b.classList.add('lock');zn.appendChild(el('small',null,OPEN[i]?'通關'+AREA[i-1].n+'後開放':'尚未開放'))}if(!np&&OPENED(i)&&(ASTORY[i]||[]).some(function(x){return stOpen(i,x)&&!storyDone(x.id)}))zn.appendChild(el('b','vnew','！'));/* 這章有還沒看的劇情 */b.appendChild(zn);if(!np&&(i===la||OPENED(i))){var o=el('span',i===la?'orb':'orb off');o.setAttribute('aria-hidden','true');b.appendChild(o)}/* 最後打的章節：亮綠光球；其他已開放的章節：不亮的米黃色點 */
@@ -3052,7 +3062,8 @@ function openLevels(i){pickA=i;pickL=0;var a=AREA[i],h='<div class="lvbox" role=
 function closeLevels(){$('lvov').hidden=true;$('lvov').innerHTML=''}
 /* ================= 帕拉迪村：劇情列表；新玩家（還沒有任何關卡進度）要先看完序章才能出發 ================= */
 var VILLAGE={n:'帕拉迪村',y0:0,y1:120,lore:'位於古老森林邊緣的一座偏遠人類村莊，但近來森林逐漸出現異變，野獸變得躁動不安，甚至開始襲擊村民。隨著森林深處的威脅日益逼近，這座村莊也逐漸失去了往日的平靜。'};
-var STORIES=[{id:'prologue',t:'序章‧漂流者'}];
+var STORIES=[{id:'prologue',t:'序章‧漂流者'},{id:'ch1_4',t:'第一章之四‧幻境的傳說',need:'ch1_3'}];/* need：看完那段劇情才出現 */
+function vOpen(x){return !x.need||demo||storyDone(x.need)}
 /* 各章劇情：放在該章關卡選單 1～5 關的上方（劇本 assets/data/story/<id>.json） */
 function stOpen(i,x){return cleared(i)>=x.at-1}/* 劇情要打到前一關才出現 */
 var ASTORY={0:[{id:'ch1_1',t:'第一章之一‧變異之始',at:1},{id:'ch1_2',t:'第一章之二‧森林的暴徒',at:10},{id:'ch1_3',t:'第一章之三‧神秘的蛋',at:11}]};/* at：放在第幾關那一排的上方 */
@@ -3061,8 +3072,35 @@ function storyDone(id){var me=MEMB[0]||{};return !!(me.story&&me.story[id])}
 function advAny(){var m=(MEMB[0]&&MEMB[0].adv)||{};return Object.keys(m).some(function(k){return (m[k]|0)>0})}
 function needPrologue(){return !demo&&!storyDone('prologue')&&!advAny()}
 function openVillage(){var h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="'+VILLAGE.n+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>'+VILLAGE.n+'</h2><p class="lore">'+esc(VILLAGE.lore)+'</p><div class="stl">';
-  STORIES.forEach(function(x){h+='<button type="button" class="sti" data-a="story" data-s="'+esc(x.id)+'"><span>'+esc(x.t)+'</span>'+(storyDone(x.id)?'<small>重看</small>':'<em>NEW</em>')+'</button>'});
-  h+='</div></div>';var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
+  STORIES.filter(vOpen).forEach(function(x){h+='<button type="button" class="sti" data-a="story" data-s="'+esc(x.id)+'"><span>'+esc(x.t)+'</span>'+(storyDone(x.id)?'<small>重看</small>':'<em>NEW</em>')+'</button>'});
+  h+='</div>'+(demo||storyDone('prologue')||advAny()?'<div class="edrow"><button type="button" class="edm" data-a="edm"><canvas class="edc" width="32" height="32"></canvas>艾德蒙</button></div>':'')+'</div>';var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false;edPortraits()}
+/* ---- 艾德蒙：談話（遊戲小知識）、照料幻獸（看完第一章之四才有） ---- */
+var EDTIPS=['技能要消耗 SP。每回合會回 1 點，打倒敵人也會回 1 點，最多存 5 點。','選「待機」可以跳過這次行動，多拿 1 點 SP。','秘境每天都會換一間龍之聖殿，打贏可以拿到符文碎片。','不同職業擅長的屬性不一樣，配隊時可以互相補足。','幻獸蛋要在幻境裡走路才能孵化，走滿 2 公里就會破殼。'];/* 之後換成正式的小知識 */
+function edCare(){return demo||storyDone('ch1_4')}
+var edTm=0;function edPortraits(){clearInterval(edTm);var lk=window.NPC&&NPC.look?NPC.look('npc02',false):null,f=document.createElement('canvas');f.width=f.height=48;if(!lk||!window.Doll)return;
+  function dr(){var L=document.querySelectorAll('#lvov .edc');if(!L.length){clearInterval(edTm);return}Doll.draw(f,lk,performance.now());Array.prototype.forEach.call(L,function(c){var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.clearRect(0,0,32,32);x.save();x.translate(32,0);x.scale(-1,1);x.drawImage(f,8,4,32,32,0,0,32,32);x.restore()})}
+  dr();edTm=setInterval(dr,120)}
+function edOpen(say){var h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="艾德蒙"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>艾德蒙</h2><div class="edp"><canvas class="edc" width="32" height="32"></canvas><div class="edsay"><b>艾德蒙</b>'+esc(say||'有什麼事嗎？')+'</div></div><div class="edbt"><button type="button" data-a="edtalk">談話</button>'+(edCare()?'<button type="button" data-a="edcare">照料幻獸</button>':'')+'<button type="button" class="bk" data-a="edbk">返回帕拉迪村</button></div></div>';
+  var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false;edPortraits()}
+var edLast=-1;function edTalk(){var n=EDTIPS.length,i=Math.floor(Math.random()*n);if(n>1&&i===edLast)i=(i+1)%n;edLast=i;edOpen(EDTIPS[i])}
+var EGGN=[['fire','龍蜥蛋'],['ice','牙犬蛋'],['bolt','靈鼠蛋'],['wind','羽禽蛋'],['leaf','角蹄蛋'],['sun','輝獸蛋'],['moon','暗鱗蛋']],EGGC={fire:'紅色',ice:'藍色',bolt:'黃色',wind:'青色',leaf:'綠色',sun:'金色',moon:'紫色'};
+var MCOLB=[['red','紅','fire'],['blue','藍','frost'],['yellow','黃','lightning'],['teal','青','wind'],['green','綠','nature'],['gold','金','light'],['purple','紫','dark']],MKINDB=[['crystal','結晶'],['ore','礦石'],['orb','寶珠']];
+/* 照料幻獸（簡單版）：持有的幻獸（選一隻同行）、孵化中的蛋、蛋與素材數量；餵食、改名、放生之後再做 */
+function edCareView(){var me=MEMB[0]||{},L=me.beasts||[],on=Math.min(me.beastOn|0,Math.max(0,L.length-1)),A='../assets/',h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="照料幻獸"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>照料幻獸</h2><div class="bcare">';
+  h+='<h4>持有的幻獸（'+L.length+'／6）</h4>';if(!L.length)h+='<div class="nb">還沒有幻獸。到幻境裡走路孵蛋吧！</div>';else{h+='<div class="bcl">';L.forEach(function(b,i){var e=window.BattleEngine&&BattleEngine.beast({beasts:[b]}),k=e&&e.k||'',S=BST[k]||{};h+='<div class="bcr"><img src="'+A+'beasts/beast_'+esc(k)+'.png" alt=""><div class="t"><b>'+esc(b.name||'')+'</b><br>'+esc(S.n||'')+'　Lv'+((b.lv|0)||1)+'</div>'+(i===on?'<span class="on">同行中</span>':'<button type="button" data-a="bon" data-i="'+i+'">同行</button>')+'</div>'});h+='</div>'}
+  var ht=me.hatch;if(ht&&ht.egg)h+='<h4>孵化中</h4><div class="bcr"><img src="'+A+'beast/egg_'+esc(ht.egg)+'.png" alt="" style="width:34px;height:40px"><div class="t"><b>'+esc((EGGN.filter(function(x){return x[0]===ht.egg})[0]||[0,''])[1])+'</b><br>已走 '+((ht.m|0)>=2000?'2000':(ht.m|0))+'／2000 公尺</div></div>';
+  var E=me.beastEggs||{};h+='<h4>幻獸蛋</h4><div class="bce">'+EGGN.map(function(x){var n=E[x[0]]|0;return '<div'+(n?'':' class="z"')+'><img src="'+A+'beast/egg_'+x[0]+'.png" alt="">'+x[1]+' ×'+n+'</div>'}).join('')+'</div>';
+  var M=me.beastMat||{};h+='<h4>素材</h4><div class="bcm"><span></span>'+MKINDB.map(function(k){return '<span class="hd">'+k[1]+'</span>'}).join('');MCOLB.forEach(function(c){h+='<span><img src="'+A+'icons/stats/res_'+c[2]+'.png" alt="'+c[1]+'"></span>'+MKINDB.map(function(k){var key=k[0]+'_'+c[0];return '<span class="it"><img src="'+A+'beast/mat_'+key+'.png" alt="">×'+(M[key]|0)+'</span>'}).join('')});h+='</div>';
+  h+='<div class="nb">孵蛋、收集素材：從地圖上的「幻境」入口進去，在現實中走路探索。餵食與進化之後開放。</div></div><div class="edbt" style="margin-top:10px"><button type="button" class="bk" data-a="edbk2">返回</button></div></div>';
+  var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
+function edSetOn(i){var me=MEMB[0];if(!me||!(me.beasts||[])[i])return;me.beastOn=i;edCareView();if(demo)return;withFB(function(FB){FB.updatePlayer({beastOn:i}).catch(function(e){toast('存檔失敗：'+(e&&(e.code||e.message)))})})}
+/* ---- 第一章之四看完：領一顆選的顏色的幻獸蛋（每個帳號一次）；跳過劇情沒選到顏色就另外跳選單 ---- */
+function eggPick(cb){var h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="選擇蛋的顏色"><h2>這枚蛋是什麼顏色的？</h2><p class="lvh">選一個顏色，就會得到那個屬性的幻獸蛋。</p><div class="bce">'+EGGN.map(function(x){return '<div data-a="egk" data-k="'+x[0]+'" style="cursor:pointer"><img src="../assets/beast/egg_'+x[0]+'.png" alt="">'+EGGC[x[0]]+'</div>'}).join('')+'</div></div>';
+  var o=$('lvov');o.innerHTML='<div class="lvbg"></div>'+h;o.hidden=false;eggPick.cb=cb}
+function ch14Done(ch){if(storyDone('ch1_4')){showView('map');return}var k=ch&&ch.egg_v;if(EGGC[k]){ch14Egg(k);return}showView('map');eggPick(ch14Egg)}
+function ch14Egg(k){var me=MEMB[0];closeLevels();if(!me){showView('map');return}var n=((me.beastEggs||{})[k]|0)+1;me.story=Object.assign({},me.story||{});me.story.ch1_4=k;me.beastEggs=Object.assign({},me.beastEggs||{});me.beastEggs[k]=n;
+  var nm=(EGGN.filter(function(x){return x[0]===k})[0]||[0,''])[1];showView('map');toast('得到「'+nm+'」！從地圖上的「幻境」入口進去走路孵化吧');if(demo)return;
+  var f={};f['story.ch1_4']=k;f['beastEggs.'+k]=n;withFB(function(FB){FB.updatePlayer(f).catch(function(e){toast('幻獸蛋存檔失敗：'+(e&&(e.code||e.message)))})})}
 function storySave(f){var me=MEMB[0];if(!me||!Object.keys(f).length)return;if(demo)return;withFB(function(FB){FB.updatePlayer(f).catch(function(e){toast('劇情進度存檔失敗：'+(e&&(e.code||e.message)))})})}
 function storySeen(id){var me=MEMB[0];if(!me||storyDone(id))return;me.story=Object.assign({},me.story||{});me.story[id]=1;var f={};f['story.'+id]=1;storySave(f)}
 /* NPC 加入：解鎖（npcs.<id>.on）；隊伍還有空位（玩家＋NPC 合計 3 位以內）就直接入隊 */
@@ -3074,7 +3112,7 @@ function playStory(id){var me=MEMB[0]||{};if(window.Music)Music.fade(600);
   Story.play({id:id,base:BASE,v:V,name:me.name||'冒險者',hero:look(me),
     battle:function(kind){return kind==='tutorial'?startTutorial():Promise.resolve()},
     onJoin:joinNpc,
-    onDone:function(){storySeen(id);showView('map')}}).catch(function(e){toast('劇情讀取失敗：'+(e&&e.message));showView('map')})}
+    onDone:function(sk,ch){if(id==='ch1_4'){ch14Done(ch);return}storySeen(id);showView('map')}}).catch(function(e){toast('劇情讀取失敗：'+(e&&e.message));showView('map')})}
 /* ---- 序章教學戰：主角＋瑟琳 vs 三隻哥布林；手動操作、依序跳教學提示；輸了直接重打 ---- */
 var TUT=null;
 function startTutorial(){return new Promise(function(res){TUT={res:res,tip:{}};tutStart()})}
@@ -3093,7 +3131,9 @@ function tutEnd(win){if(!TUT)return;var cl=function(){$('bres').hidden=true};cl(
   if(win){tutBox('勝利','哥布林被擊退了！','繼續',function(){var r=TUT.res;TUT=null;closeMenu();if(window.Music)Music.fade(1500);view='map';$('batv').hidden=true;r()/* 不經過 showView：劇情接著播，不要換回地圖音樂 */})}
   else tutBox('瑟琳','「別放棄，再試一次！」','重新挑戰',function(){tutStart()})}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
-  if(a==='lvx')closeLevels();
+  if(a==='lvx'){if($('lvov').querySelector('[data-a="egk"]'))return;closeLevels()}
+  else if(a==='edm'||a==='edbk2')edOpen();else if(a==='edtalk')edTalk();else if(a==='edcare')edCareView();else if(a==='edbk')openVillage();else if(a==='bon')edSetOn(+b.getAttribute('data-i'));
+  else if(a==='egk'){var cb=eggPick.cb;eggPick.cb=null;if(cb)cb(b.getAttribute('data-k'))}
   else if(a==='story'){var sid=b.getAttribute('data-s');closeLevels();playStory(sid)}
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
     $('lvinfo').innerHTML=esc(AREA[pickA].n)+' 第 '+pickL+' 關'+(isBoss(pickA,pickL)?'（Boss）':'');[].forEach.call($('lvov').querySelectorAll('.go'),function(g){g.disabled=false})}
@@ -3151,17 +3191,20 @@ function riftSave(bb,req){if(bb.saved)return;var msg=function(t){var q=$('rsave'
     me.rs=Object.assign({},me.rs||{});Object.keys(req.shards).forEach(function(k){me.rs[k]=(me.rs[k]|0)+req.shards[k]});if(req.best){me.rift=Object.assign({},me.rift||{});me.rift[req.room]=req.best}me.riftDay=req.day;me.riftN=req.n;if(req.migrate)me.runeV=2;
     msg('已存檔');$('rok').disabled=false},function(e){msg('存檔失敗：'+(e&&(e.code||e.message))+(e&&e.why&&e.why.length?'；原因：'+e.why.join('、'):'')+'（碎片沒有寫入，請截圖給開發者）');$('rok').disabled=false})})}
 /* ---- 秘境門（程式畫）：不規則石塊圍成圓，中間發光漩渦 ---- */
-(function(){var c=$('ptc');if(!c)return;var x=c.getContext('2d'),N=20,C=9.5;
+function portalAnim(id,P){var c=$(id);if(!c)return;var x=c.getContext('2d'),N=20,C=9.5;
   function hs(a){var q=Math.sin(a*127.1)*43758.5453;return q-Math.floor(q)}
   var SEG=8,ST=[];for(var i=0;i<SEG;i++)ST.push({ro:8.6+hs(i+1)*1.4,ri:5.6+hs(i+7),sh:hs(i+3)});
   function frame(t){if($('mapv').hidden){requestAnimationFrame(frame);return}x.clearRect(0,0,N,N);var tt=t/1000;
     for(var py=0;py<N;py++)for(var px2=0;px2<N;px2++){var dx=px2+.5-C,dy=py+.5-C,r=Math.sqrt(dx*dx+dy*dy),a=Math.atan2(dy,dx),u=(a/Math.PI/2+1)%1,si=Math.floor(u*SEG),S=ST[si],f=u*SEG-si,col=null,gap=f<.11||f>.97;
-      if(r<S.ri-.35){var v=Math.sin(a*2+r*1.25-tt*3.2)*.5+.5,k=1-r/S.ri,w=v*.65+k*.55;col=w>1?'#f2fdff':w>.82?'#9af0ff':w>.62?'#7a7cff':w>.42?'#6a34c8':w>.24?'#3e1a7a':'#1e0c40'}
-      else if(r<S.ro&&!gap){var lt=-dx-dy,edge=r<S.ri+.6,out=r>S.ro-.8;col=edge?(Math.sin(tt*2.4+si)>0?'#8ff3ff':'#6ad8ff'):out?'#2e2f38':lt>5?'#a7abb6':lt>-2?'#7c808c':'#555863';if(!edge&&S.sh>.6&&Math.abs(f-.5)<.08)col='#3c3e48'}
+      if(r<S.ri-.35){var v=Math.sin(a*2+r*1.25-tt*3.2)*.5+.5,k=1-r/S.ri,w=v*.65+k*.55;col=w>1?P[0]:w>.82?P[1]:w>.62?P[2]:w>.42?P[3]:w>.24?P[4]:P[5]}
+      else if(r<S.ro&&!gap){var lt=-dx-dy,edge=r<S.ri+.6,out=r>S.ro-.8;col=edge?(Math.sin(tt*2.4+si)>0?P[6]:P[7]):out?'#2e2f38':lt>5?'#a7abb6':lt>-2?'#7c808c':'#555863';if(!edge&&S.sh>.6&&Math.abs(f-.5)<.08)col='#3c3e48'}
       else if(r<S.ro&&gap&&r>S.ri-.3)col='#1a1b22';
       if(col){x.fillStyle=col;x.fillRect(px2,py,1,1)}}
     requestAnimationFrame(frame)}
-  requestAnimationFrame(frame)})();
+  requestAnimationFrame(frame)}
+portalAnim('ptc',['#f2fdff','#9af0ff','#7a7cff','#6a34c8','#3e1a7a','#1e0c40','#8ff3ff','#6ad8ff']);/* 秘境：藍紫漩渦 */
+portalAnim('ptc2',['#ffffff','#fff3c0','#ffc8ee','#ff8ad0','#c050b0','#5a1a6a','#ffe9a0','#9af0d8']);/* 幻境：白、粉、青、紫的虹彩漩渦 */
+$('portal2').addEventListener('click',function(){location.href='../real/index.html'});/* 幻境 = 實境冒險 */
 /* ---- 秘境列表、選等級 ---- */
 var RHEAD={};/* 龍頭：首領圖左上方（脖子以上）裁一塊；[x0,y0,x1,y1,放大倍率,圓形遮罩,要挖掉的小方塊（原圖座標）] */
 var HEADBOX={fdragon:[0,14,31,46,2.5,0,[[17,14,28,18],[23,18,24,19]]],wdragon:[26,4,60,42,2.4,1],idragon:[55,5,82,40,2.6,1],dragon:[16,0,50,31,2.5],ldragon:[24,2,54,36,2.3,1],udragon:[0,30,32,58,2.5],hdragon:[31,2,71,52,1.65,1],sdragon:[0,0,28,30,2.6]};

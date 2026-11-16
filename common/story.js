@@ -4,7 +4,7 @@
      name:玩家姓名, hero:主角外觀（Doll.draw 用的 look），
      battle:function(kind){ return Promise }  // 劇本走到 ["battle",kind]：隱藏劇情、交給頁面打戰鬥，打贏後 resolve
      onJoin:function(npcId){}                // ["join",npc01]
-     onDone:function(skipped){}              // 播完或跳過
+     onDone:function(skipped,ch){}           // 播完或跳過；ch = 劇本 ["choice",key,…] 選到的值 {key:標籤, key_v:值}
    })
    需要先載入 common/doll.js、common/npc.js（NPC.load 完成）；有 common/music.js 就會放音樂。 */
 (function(g){
@@ -31,6 +31,11 @@ var CSS='.sty{position:fixed;inset:0;z-index:9000;background:#0b0a0d;color:#ece4
 '.sty-cf{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}'+
 '.sty-cf>div{background:#0c0a09;border:3px solid #6e4528;box-shadow:0 0 0 2px #2a1709,inset 0 0 0 2px #3d2414;padding:16px 18px;max-width:320px;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.6}'+
 '.sty-cf .r{display:flex;gap:8px;justify-content:flex-end}.sty-cf button{font:inherit;font-size:13px;color:#ece4d6;background:#3d2414;border:2px solid #6e4528;padding:5px 14px;cursor:pointer}'+
+'.sty-ch{position:fixed;inset:0;z-index:9050;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;cursor:default}'+
+'.sty-ch>div{background:#0c0a09;border:3px solid #6e4528;box-shadow:0 0 0 2px #2a1709,inset 0 0 0 2px #3d2414;padding:14px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:10px}'+
+'.sty-ch h4{margin:0;font-size:14px;color:#e7c26b;text-align:center;letter-spacing:.06em}.sty-ch .g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}'+
+'.sty-ch button{font:inherit;font-size:12px;color:#ece4d6;background:#2a1709;border:2px solid #6e4528;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}.sty-ch button:hover,.sty-ch button:focus-visible{border-color:#e7c26b;outline:none}'+
+'.sty-ch img{width:32px;height:38px;image-rendering:pixelated}'+
 '@media (prefers-reduced-motion:reduce){.sty-nx{animation:none}}';
 var SW=418,SH=235,BANDH=140,B4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
 var FR=['#5a1e12','#8c3418','#c0561f','#e08030','#f2aa4c','#ffd27e','#fff0c4'];
@@ -85,9 +90,18 @@ function run(o,doc,IMG){return new Promise(function(done){
     if(weather==='storm'&&cam<0&&scene==='black'&&t>nextBolt){bolt=t;nextBolt=t+2600+Math.random()*4200}
     if(bolt&&cam<0&&scene==='black'){var dt=t-bolt,a=0;if(dt<90)a=.85;else if(dt<150)a=.15;else if(dt<230)a=.6;else if(dt<700)a=.6*(1-(dt-230)/470);if(a>0){cx.fillStyle='rgba(200,210,235,'+a+')';cx.fillRect(0,0,SW,SH);if(ship)drawShip(Math.min(1,a*1.6))}}
     if(scene!=='house'){stepRain();drawRain(rainAmt)}
-    picA+=((picOn?1:0)-picA)*.08;if(pic&&picA>.01){var pw=pic.width*3,ph=pic.height*3,px=Math.round(SW/2-pw/2),py=Math.round(SH*.42-ph/2+Math.sin(t/700)*2),gl=.55+.25*Math.sin(t/480),gr=cx.createRadialGradient(SW/2,py+ph/2,4,SW/2,py+ph/2,pw*1.1);
+    picA+=((picOn?1:0)-picA)*.08;if(pic==='@portal'&&picA>.01)drawPortal(t,picA);else if(pic&&picA>.01){var pw=pic.width*3,ph=pic.height*3,px=Math.round(SW/2-pw/2),py=Math.round(SH*.42-ph/2+Math.sin(t/700)*2),gl=.55+.25*Math.sin(t/480),gr=cx.createRadialGradient(SW/2,py+ph/2,4,SW/2,py+ph/2,pw*1.1);
       gr.addColorStop(0,'rgba(235,240,250,'+(.35*gl*picA)+')');gr.addColorStop(1,'rgba(235,240,250,0)');cx.fillStyle=gr;cx.fillRect(px-pw,py-ph,pw*3,ph*3);cx.save();cx.globalAlpha=picA;cx.imageSmoothingEnabled=false;cx.drawImage(pic,px,py,pw,ph);cx.restore()}/* pic：畫面中央的圖（例如神秘的蛋），帶微弱光暈 */
     if(fadeA>0){cx.fillStyle='rgba(0,0,0,'+fadeA+')';cx.fillRect(0,0,SW,SH)}}
+  /* 幻境入口（程式畫）：一圈虹彩光環，中間是慢慢旋轉的白、金、粉、紫漩渦（跟地圖上的幻境門同色系） */
+  var PTC=mk(48,48),ptx=PTC.getContext('2d');
+  function drawPortal(t,a){var N=48,C=24,tt=t/1000;ptx.clearRect(0,0,N,N);var op=Math.min(1,a);for(var y=0;y<N;y++)for(var x=0;x<N;x++){var dx=x+.5-C,dy=(y+.5-C)*1.15,r=Math.sqrt(dx*dx+dy*dy),an=Math.atan2(dy,dx),R=21*Math.min(1,.35+op*.65),col=null;
+      if(r<R-2){var v=Math.sin(an*3+r*.42-tt*2.6)*.5+.5,k=1-r/R,wv=v*.6+k*.6;col=wv>1.02?'#ffffff':wv>.86?'#fff3c0':wv>.7?'#ffc8ee':wv>.55?'#ff8ad0':wv>.4?'#c050b0':wv>.25?'#5a1a6a':'#2a0a3a'}
+      else if(r<R){var hu=(an/Math.PI/2+tt*.15)%1;col=hu<.25?'#fff3b0':hu<.5?'#b8f4ff':hu<.75?'#ffd0f0':'#d8c0ff'}
+      if(col){ptx.fillStyle=col;ptx.fillRect(x,y,1,1)}}
+    var px=Math.round(SW/2-48),py=Math.round(SH*.42-48),gr=cx.createRadialGradient(SW/2,SH*.42,6,SW/2,SH*.42,80);gr.addColorStop(0,'rgba(255,220,245,'+(.45*a)+')');gr.addColorStop(1,'rgba(255,180,230,0)');cx.fillStyle=gr;cx.fillRect(SW/2-90,SH*.42-90,180,180);
+    cx.save();cx.globalAlpha=a;cx.drawImage(PTC,px,py,96,96);cx.restore();
+    for(var i=0;i<14;i++){var l=((t/1000*.6+i*.37)%1),aa=i/14*6.283+t/2400,rr=44+l*18;cx.fillStyle=i%3?'rgba(255,240,255,'+(a*(1-l))+')':'rgba(180,240,255,'+(a*(1-l))+')';cx.fillRect(Math.round(SW/2+Math.cos(aa)*rr),Math.round(SH*.42+Math.sin(aa)*rr*.85),1,1)}}
   function portrait(ctx,lk,t,flip){ctx.clearRect(0,0,32,32);if(!lk||!g.Doll)return;Doll.draw(f48,lk,t);ctx.save();if(flip){ctx.translate(32,0);ctx.scale(-1,1)}ctx.drawImage(f48,8,4,32,32,0,0,32,32);ctx.restore()}
   var heroLook=o.hero?Object.assign({},o.hero,{weapon:null,shield:null,halo:[]}):null,npcLook={};
   function lookOf(id){if(!(id in npcLook))npcLook[id]=g.NPC?NPC.look(id,false):null;return npcLook[id]}
@@ -115,13 +129,14 @@ function run(o,doc,IMG){return new Promise(function(done){
     while(pc<STEPS.length&&alive){var s=STEPS[pc],op=s[2]||{};
       if(s[0]==='mark'||s[0]==='start'){pc++;continue}
       if(s[0]==='scene'){scene=s[1];cam=-1;setWeather(op.weather);rainAmt=rainTarget;pc++;continue}
-      if(s[0]==='pic'){if(s[1]&&IMG[s[1]]){pic=IMG[s[1]];picOn=true}else picOn=false;pc++;continue}
+      if(s[0]==='pic'){if(s[1]==='@portal'){pic='@portal';picOn=true}else if(s[1]&&IMG[s[1]]){pic=IMG[s[1]];picOn=true}else picOn=false;pc++;continue}
+      if(s[0]==='choice'){showBox(false);hideNarr();busy=true;askChoice(s[1],op).then(function(){busy=false;pc++;next()});return}
       if(s[0]==='bgm'){if(M)M.play(s[1],s[2]||1500);pc++;continue}
       if(s[0]==='bgmfade'){if(M)M.fade(s[1]||1500);pc++;continue}
       if(s[0]==='join'){if(o.onJoin)o.onJoin(s[1]);pc++;continue}
-      if(s[0]==='stage'){showBox(false);if('ship' in op)ship=op.ship;if(op.bolt)setTimeout(function(){bolt=performance.now()},350);showNarr(String(s[1]));waiting=true;return}
-      if(s[0]==='notice'){showBox(false);showNarr('✦ '+s[1]+' ✦',true);waiting=true;return}
-      if(s[0]==='say'){hideNarr();showBox(true);speaker(s[1],String(s[2]).replace(/\{name\}/g,NM));waiting=true;return}
+      if(s[0]==='stage'){showBox(false);if('ship' in op)ship=op.ship;if(op.bolt)setTimeout(function(){bolt=performance.now()},350);showNarr(fill(String(s[1])));waiting=true;return}
+      if(s[0]==='notice'){showBox(false);showNarr('✦ '+fill(String(s[1]))+' ✦',true);waiting=true;return}
+      if(s[0]==='say'){hideNarr();showBox(true);speaker(s[1],fill(String(s[2])));waiting=true;return}
       if(s[0]==='pan'){busy=true;hideNarr();sleep(600).then(function(){ship=false;var H=SH+BANDH;return anim(4200,function(u){var e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;cam=Math.round(e*H);rainAmt=1-(1-.28)*e})}).then(function(){scene='village';cam=-1;setWeather('drizzle');rainAmt=rainTarget;busy=false;pc++;next()});return}
       if(s[0]==='fade'){fadeTo(s[1],op).then(function(){pc++;next()});return}
       if(s[0]==='xfade'){busy=true;showBox(false);xfFrom=scene;scene=s[1];anim(s[2]||3000,function(u){xfA=1-u}).then(function(){xfFrom=null;busy=false;pc++;next()});return}
@@ -129,8 +144,13 @@ function run(o,doc,IMG){return new Promise(function(done){
       if(s[0]==='end')break;
       pc++}
     finish(false)}
+  /* 劇本變數：{name} 玩家名字、{key} = ["choice",key] 選到的標籤 */
+  var CH={};function fill(x){return x.replace(/\{(\w+)\}/g,function(m,k){return k==='name'?NM:CH[k]!=null?CH[k]:m})}
+  function askChoice(key,op){return new Promise(function(res){var ov=el('div','sty-ch'),bx2=el('div'),g2=el('div','g');if(op.title)bx2.appendChild(el('h4',null,op.title));
+    (op.opts||[]).forEach(function(c){var b=el('button');b.type='button';if(c[2]){var im=el('img');im.src=(o.base||'../assets/')+c[2];im.alt='';b.appendChild(im)}b.appendChild(el('span',null,c[1]));b.addEventListener('click',function(ev){ev.stopPropagation();CH[key]=c[1];CH[key+'_v']=c[0];ov.remove();res()});g2.appendChild(b)});
+    bx2.appendChild(g2);ov.appendChild(bx2);ov.addEventListener('click',function(ev){ev.stopPropagation()});root.appendChild(ov)})}
   function advance(){if(busy||!waiting)return;if(pend.length){line.textContent=pend.shift();return}waiting=false;pc++;next()}
-  function finish(skipped){if(!alive)return;alive=false;root.remove();if(o.onDone)o.onDone(!!skipped);done(!!skipped)}
+  function finish(skipped){if(!alive)return;alive=false;root.remove();if(o.onDone)o.onDone(!!skipped,CH);done(!!skipped)}
   /* 劇情中點畫面任何地方都能前進（跳過按鈕與確認視窗除外） */
   root.addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('.sty-skip,.sty-cf'))return;advance()});
   function onKey(ev){if(!alive){document.removeEventListener('keydown',onKey);return}if(root.hidden)return;if(ev.key==='Enter'||ev.key===' '){if(ev.target&&ev.target.closest&&ev.target.closest('.sty-skip,.sty-cf'))return;ev.preventDefault();advance()}}
