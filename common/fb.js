@@ -278,7 +278,7 @@ const FB = {
     const p = await FB.myFresh(); if (!p) throw new Error('no-player'); const f = fn(p); if (!f) throw new Error('bad-op');
     await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f; },
   // 孵化送的一次屬性：還沒領過（沒有 fr）的幻獸，9 項裡平均隨機加 3 格（同一項可重複，滿 15 格的不會抽到）；回傳 [加了哪幾項的 key]
-  async beastFree() { const got = []; await FB.beastEdit(p => { const L = (p.beasts || []).slice(), i = L.findIndex(b => b && !b.fr); if (i < 0) return null;
+  async beastFree() { const got = []; await FB.beastEdit(p => { const L = (p.beasts || []).slice(), i = L.findIndex(b => b && !b.fr && !b.ev); if (i < 0) return null;
       const K = ['atk','dmg','crit','red','hp','res','eva','cdmg','ores'], st = Object.assign({}, L[i].st || {});
       for (let r = 0; r < 3; r++) { const open = K.filter(k => (st[k] | 0) < 15); if (!open.length) return null; const k = open[Math.floor(Math.random() * open.length)]; st[k] = (st[k] | 0) + 1; got.push(k); }
       L[i] = Object.assign({}, L[i], { st, fr: 1 }); got.unshift(i); return { beasts: L, bOp: { t: 'free', i } }; }); return got; },

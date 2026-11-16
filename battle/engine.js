@@ -80,12 +80,18 @@
   var BSTK = { fire: 'fire', ice: 'frost', bolt: 'lightning', wind: 'wind', leaf: 'nature', sun: 'light', moon: 'dark', frost: 'frost', lightning: 'lightning', nature: 'nature', light: 'light', dark: 'dark' };
   var BLEARN = [[1, 0], [6, 2], [12, 3], [18, 1]]; /* [等級, 技能順序 0～3] */
   var BCAP = { atk: 0.10, dmg: 0.15, crit: 0.10, red: 0.15, hp: 0.20, res: 0.30, eva: 0.08, cdmg: 1, ores: 0.10 }, BSTEP = 15, BCH = 0.25;
+  /* 成熟體：b.ev = 'atk'|'def'|'sup'（進化時抽到的型），b.mo = 成熟體四招的學習順序；技能編號 0～3 = 幼年體、4～7 = 成熟體（4 + beast_info 的順序） */
   function beastOf(p) {
     var L = p && Array.isArray(p.beasts) ? p.beasts : [], b = p && p.beastOn === -1 ? null : L[p && p.beastOn | 0] || L[0];/* beastOn：照料幻獸裡選的同行幻獸（-1 = 卸下） */ if (!b || !BSTK[b.sp]) return null;
-    var lv = clamp(b.lv | 0 || 1, 1, 20), got = BLEARN.filter(function (x) { return lv >= x[0] }).map(function (x) { return x[1] });
+    var lv = clamp(b.lv | 0 || 1, 1, 20), ev = ['atk', 'def', 'sup'].indexOf(b.ev) >= 0 ? b.ev : '', base = BSTK[b.sp], got;
+    if (ev) { var mo = Array.isArray(b.mo) && b.mo.length === 4 ? b.mo : [0, 1, 2, 3], n = 1 + (lv >= 6) + (lv >= 12) + (lv >= 18); got = [0, 1, 2, 3].concat(mo.slice(0, n).map(function (x) { return 4 + x })) }
+    else got = BLEARN.filter(function (x) { return lv >= x[0] }).map(function (x) { return x[1] });
     var sk = (Array.isArray(b.sk) ? b.sk : []).filter(function (i, n, a) { return got.indexOf(i) >= 0 && a.indexOf(i) === n }).slice(0, 2); if (!sk.length) sk = got.slice(-2);
-    return { k: BSTK[b.sp], name: b.name || '幻獸', lv: lv, st: b.st || {}, sk: sk, learned: got };
+    return { k: ev ? base + '_' + ev : base, base: base, ev: ev, name: b.name || '幻獸', lv: lv, st: b.st || {}, sk: sk, learned: got, cap: ev ? BSTEP * 2 : BSTEP };
   }
+  /* 第 i 招的技能 id 與畫面用的 [幻獸 key, 招式順序] */
+  function bsid(b, i) { return i >= 4 ? 'bst_' + b.base + '_' + b.ev + '_' + (i - 3) : 'bst_' + (b.base || b.k) + '_' + (i + 1) }
+  function bvis(b, i) { return i >= 4 ? [b.base + '_' + b.ev, i - 4] : [b.base || b.k, i] }
   function player(p, D, opt) {
     opt = opt || {};
     var jl = p.jobLv || {}, lv = Math.max(1, p.lv | 0 || 1), sv = p.skills || {}, ws = D.wbyname[p.weapon] || '';
@@ -147,10 +153,10 @@
     /* 羊之新生：減傷 × v1 加成為增傷，轉換來的加成最多 v2 */
     /* 幻獸：屬性加成直接加進主人的基礎數值（NPC 沒有幻獸） */
     var bst = p.npcLearn ? null : beastOf(p);
-    if (bst) { u.bst = bst; var bf = function (k) { return clamp(Number(bst.st[k]) || 0, 0, BSTEP) / BSTEP * BCAP[k] };
+    if (bst) { u.bst = bst; var bf = function (k) { return clamp(Number(bst.st[k]) || 0, 0, bst.cap || BSTEP) / BSTEP * BCAP[k] };/* 每格效果幼年、成熟都一樣，成熟體最多 30 格 */
       if (u.b.patk >= u.b.matk) u.b.patk = Math.round(u.b.patk * (1 + bf('atk'))); else u.b.matk = Math.round(u.b.matk * (1 + bf('atk')));
       u.b.pdmg += bf('dmg'); u.b.mdmg += bf('dmg'); u.b.crit += bf('crit'); u.b.pred += bf('red'); u.b.mred += bf('red'); u.b.mhp = Math.round(u.b.mhp * (1 + bf('hp'))); u.b.eva += bf('eva'); u.b.cdmg += bf('cdmg');
-      ELS.forEach(function (e) { u.b.res[e] = (u.b.res[e] || 0) + (e === bst.k ? bf('res') : bf('ores')) }) }
+      ELS.forEach(function (e) { u.b.res[e] = (u.b.res[e] || 0) + (e === (bst.base || bst.k) ? bf('res') : bf('ores')) }) }
     if (rOn('rune24')) { var k24 = RV(D, 'rune24', 0, 1, rlv), c24 = RV(D, 'rune24', 1, 9, rlv); u.b.pdmg += Math.min(Math.min(u.b.pred, 0.8) * k24, c24); u.b.mdmg += Math.min(Math.min(u.b.mred, 0.8) * k24, c24) }
     return u;
   }
@@ -699,11 +705,11 @@
     }
     function beastTurn(u) {
       if (!u.bst || u.side !== 'p' || u.dead || u.undead || banished(u) || !foes(u).length || RND() >= (opt.beastCh != null ? opt.beastCh : BCH)) return;
-      var b = u.bst, L = b.sk.filter(function (i) { var k0 = D.SK['bst_' + b.k + '_' + (i + 1)]; return k0 && !(k0.t === 'self' && u.st.some(function (q) { return q.n === k0.n && !q.paused })) }) /* 守護還在身上就放另一招 */, idx = pickOne(L.length ? L : b.sk), sk = D.SK['bst_' + b.k + '_' + (idx + 1)]; if (!sk) return;
+      var b = u.bst, L = b.sk.filter(function (i) { var k0 = D.SK[bsid(b, i)]; return k0 && !(k0.t === 'self' && u.st.some(function (q) { return q.n === k0.n && !q.paused })) }) /* 守護還在身上就放另一招 */, idx = pickOne(L.length ? L : b.sk), sk = D.SK[bsid(b, idx)]; if (!sk) return;
       var self = sk.t === 'self', px = bproxy(u, self), hiM = stat(u, 'matk') > stat(u, 'patk');
       if (sk.parts && sk.parts.length) { var k2 = {}; Object.keys(sk).forEach(function (q) { k2[q] = sk[q] }); k2.parts = sk.parts.map(function (q) { return { d: hiM ? 'm' : 'p', e: q.e, r: q.r } }); sk = k2 }
       var tg = self ? [u] : pickTargets(px, sk, false, false); if (!tg.length) return;
-      var e = line({ side: 'p', a: u.i, bst: [b.k, idx], ty: sk.ty, txt: b.name + '（幻獸）使用「' + sk.n + '」' }); nowAct = null;
+      var e = line({ side: 'p', a: u.i, bst: bvis(b, idx), ty: sk.ty, txt: b.name + '（幻獸）使用「' + sk.n + '」' }); nowAct = null;
       doSkill(px, sk, tg, e); delete e._rq; delete e._th; delete e._rn; /* 反擊、反彈、符文都不算幻獸的 */
       if (self) { e.tg = []; e.hl = [u.i] }
       flushSt(e); flushRel(e); e.hp = hpSnap(); flushBoom();
@@ -959,7 +965,7 @@
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
         /* 吸血 */
         var ls = sv(u, 'lifesteal') + auraVal(u, 'lifesteal') + (u.runes.indexOf('rune10') >= 0 ? RV(D, 'rune10', 0, 0.25, u) : 0); u.special.forEach(function (s) { if (s.k === 'lifesteal') ls += s.v }); if (bonus.lifesteal) ls += num(bonus.lifesteal.value); /* 單一技能自帶吸血（噬咬） */
-        if (ls > 0 && totalDmg > 0 && !u.dead) { NC = { ls: 1 }; var g = heal(u, u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
+        if (ls > 0 && totalDmg > 0 && !u.dead) { NC = { ls: 1 }; var g = heal(u, u.owner || u, totalDmg * ls, null, true); if (g) { e.txt += '，吸收 ' + g + ' 生命'; addStat(e, u, 'heal', g, '吸血'); e.ls = 1 /* 畫面：血氣從被打的人流回攻擊者 */ } }
         /* 熊之力量：濺射 */
         if (u.runes.indexOf('rune22') >= 0 && totalDmg > 0) { var bAmt = Math.round(totalDmg * RV(D, 'rune22', 0, 0.3, u));
           rq(e, 'rune22', function (r) { var hitT = []; foes(u).forEach(function (t) { if (banished(t)) return; var sp = hurt(t, bAmt, u); addStat(r, u, 'dmg', sp, '熊之力量'); addStat(r, t, 'taken', sp, u.name + ' 熊之力量'); if (sp > 0) hitT.push(t); checkDeath(t, r) }); if (!hitT.length) return false; r.txt = u.name + ' 的「熊之力量」：' + hitT.length + ' 個敵人各受到 ' + bAmt + ' 真實傷害'; fxOn(r, 'bear', u, hitT) }) }
@@ -968,7 +974,7 @@
         /* 一般狀態（每個目標擲一次） */
         effs.forEach(function (r) {
           if (r.effect_kind !== 'status' || r.condition === 'per_hit') return;
-          if (r.target === 'self') applyStatus(u, u, r.status_name, r.turns, r.apply_chance, e);
+          if (r.target === 'self') { var su = u.owner || u; applyStatus(su, su, r.status_name, r.turns, r.apply_chance, e) }/* 幻獸的招：加在主人身上 */
           else if (r.target === 'ally_all') friends(u).forEach(function (f) { applyStatus(u, f, r.status_name, r.turns, r.apply_chance, e) }); /* 傷害技順便替自己全隊上增益（神聖輝煌） */
           else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
         });
@@ -1026,6 +1032,10 @@
         nu.i = M.length; nu.hp = nu.b.mhp; nu.st = []; nu.cy = Math.floor(RND() * nu.cycle.length); nu.dead = false; nu.used = {}; nu.flags = {}; nu.dragon = 0; nu.summoned = true;
         M.push(nu); U.push(nu); e.summon = (e.summon || []).concat(nu.i); e.txt += '，召喚了 ' + nu.name;
       });
+      /* 幻獸：主人 SP +n（value = 數字，或 r0-2 = 隨機 0～2）、主人技能冷卻歸零 */
+      effs.forEach(function (r) { var o = u.owner || u;
+        if (r.effect_kind === 'sp_gain' && SPM && o.side === 'p') { var n0 = String(r.value).trim() === 'r0-2' ? Math.floor(RND() * 3) : (num(r.value) | 0), s0 = o.sp | 0; o.sp = Math.min(SPMAX, s0 + n0); if (o.sp > s0) { numAdd(o, o.sp - s0, 'sp'); e.txt += '，' + o.name + ' SP +' + (o.sp - s0) } }
+        if (r.effect_kind === 'cd_reset' && o.cd) { o.cd = {}; e.txt += '，' + o.name + ' 的技能冷卻歸零' } });
       NC = null; /* 額外治療列（生命脈衝、至高打擊、奉獻詩歌…）；target 填 target = 跟技能同一個目標（堅毅禱言、意志禱言） */
       effs.forEach(function (r) {
         if (r.effect_kind !== 'heal') return;

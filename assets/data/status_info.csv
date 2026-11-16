@@ -257,3 +257,154 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 暗靈守護,buff,crit_damage_rate,0.2,,,,
 影之詛咒,debuff,p_atk_rate,-0.15,,,,物理、魔法攻擊力 −15%
 影之詛咒,debuff,m_atk_rate,-0.15,,,,
+焰嵐,debuff,fire_res_rate,-0.2,,,,火焰抗性 −20%
+火焰龍印,buff,p_damage_rate,0.2,,,,物理、魔法增傷 +20%
+火焰龍印,buff,m_damage_rate,0.2,,,,
+炎龍鱗甲,buff,fire_res_rate,0.4,,,,火焰抗性 +40%、其他屬性抗性 +10%、物理與魔法減傷 +10%
+炎龍鱗甲,buff,frost_res_rate,0.1,,,,
+炎龍鱗甲,buff,lightning_res_rate,0.1,,,,
+炎龍鱗甲,buff,wind_res_rate,0.1,,,,
+炎龍鱗甲,buff,nature_res_rate,0.1,,,,
+炎龍鱗甲,buff,light_res_rate,0.1,,,,
+炎龍鱗甲,buff,dark_res_rate,0.1,,,,
+炎龍鱗甲,buff,p_reduce_rate,0.1,,,,
+炎龍鱗甲,buff,m_reduce_rate,0.1,,,,
+燃血,buff,hot,0.02,mhp,,,每回合回復最大生命 2%
+龍吼,debuff,p_atk_rate,-0.1,,,,物理、魔法攻擊力 −10%
+龍吼,debuff,m_atk_rate,-0.1,,,,
+幻火,debuff,eva_rate,-0.15,,,,閃避 −15%、受到的傷害 +10%
+幻火,debuff,dmg_taken_rate,0.1,,,,
+晶爍,debuff,hit_rate,-0.2,,,,命中 −20%
+霓虹,buff,eva_rate,0.2,,,,閃避 +20%、所有屬性抗性 +15%
+霓虹,buff,fire_res_rate,0.15,,,,
+霓虹,buff,frost_res_rate,0.15,,,,
+霓虹,buff,lightning_res_rate,0.15,,,,
+霓虹,buff,wind_res_rate,0.15,,,,
+霓虹,buff,nature_res_rate,0.15,,,,
+霓虹,buff,light_res_rate,0.15,,,,
+霓虹,buff,dark_res_rate,0.15,,,,
+凜冬,debuff,eva_rate,-0.1,,,,閃避 −10%、冰霜抗性 −20%
+凜冬,debuff,frost_res_rate,-0.2,,,,
+霜刃術,buff,p_atk_rate,0.15,,,,物理、魔法攻擊力 +15%
+霜刃術,buff,m_atk_rate,0.15,,,,
+霜晶庇護,buff,frost_res_rate,0.4,,,,冰霜抗性 +40%、物理與魔法減傷 +10%
+霜晶庇護,buff,p_reduce_rate,0.1,,,,
+霜晶庇護,buff,m_reduce_rate,0.1,,,,
+冰牆,buff,shield,1.5,m_atk,,,護盾（主人主要攻擊力 150%）、冰霜抗性 +20%
+冰牆,buff,frost_res_rate,0.2,,,,
+狐火極光,buff,fire_res_rate,0.1,,,,所有屬性抗性 +10%
+狐火極光,buff,frost_res_rate,0.1,,,,
+狐火極光,buff,lightning_res_rate,0.1,,,,
+狐火極光,buff,wind_res_rate,0.1,,,,
+狐火極光,buff,nature_res_rate,0.1,,,,
+狐火極光,buff,light_res_rate,0.1,,,,
+狐火極光,buff,dark_res_rate,0.1,,,,
+狐化身,buff,hit_block,1,,,,抵擋下一次攻擊
+萬雷,debuff,lightning_res_rate,-0.2,,,,雷電抗性 −20%
+電療,buff,hit_rate,0.15,,,,命中 +15%
+磁晶壁,buff,lightning_res_rate,0.3,,,,雷電抗性 +30%、不會被施加新的負面狀態
+磁晶壁,buff,debuff_block,,,,,
+磁爆,debuff,dmg_taken_rate,0.15,,,,受到的傷害 +15%
+磁極偏轉,buff,hit_block,2,,,,抵擋 2 次攻擊，期間不會被施加新的負面狀態
+電漿過載,buff,speed,3,,,,速度 +3、物理與魔法攻擊力 +15%
+電漿過載,buff,p_atk_rate,0.15,,,,
+電漿過載,buff,m_atk_rate,0.15,,,,
+光速連攜,buff,p_damage_rate,0.25,,,,物理、魔法增傷 +25%
+光速連攜,buff,m_damage_rate,0.25,,,,
+靜電鍍膜,buff,p_reduce_rate,0.1,,,,物理與魔法減傷 +10%、雷電抗性 +30%
+靜電鍍膜,buff,m_reduce_rate,0.1,,,,
+靜電鍍膜,buff,lightning_res_rate,0.3,,,,
+疾風迅影,buff,eva_rate,0.1,,,,閃避 +10%、暴擊率 +10%、命中 +15%
+疾風迅影,buff,crit_rate,0.1,,,,
+疾風迅影,buff,hit_rate,0.15,,,,
+暴風追擊,buff,p_atk_rate,0.1,,,,物理、魔法攻擊力 +10%
+暴風追擊,buff,m_atk_rate,0.1,,,,
+蒼穹羽盾,buff,p_reduce_rate,0.1,,,,物理與魔法減傷 +10%、護盾（主人主要攻擊力 120%）
+蒼穹羽盾,buff,m_reduce_rate,0.1,,,,
+蒼穹羽盾,buff,shield,1.2,m_atk,,,
+風壁庇護,buff,wind_res_rate,0.3,,,,疾風抗性 +30%、物理與魔法減傷 +10%
+風壁庇護,buff,p_reduce_rate,0.1,,,,
+風壁庇護,buff,m_reduce_rate,0.1,,,,
+風壓,debuff,p_atk_rate,-0.1,,,,物理、魔法攻擊力 −10%、速度 −2
+風壓,debuff,m_atk_rate,-0.1,,,,
+風壓,debuff,speed,-2,,,,
+順風,buff,speed,4,,,,速度 +4
+風眼,debuff,fire_res_rate,-0.1,,,,所有屬性抗性、物理與魔法減傷 −10%
+風眼,debuff,frost_res_rate,-0.1,,,,
+風眼,debuff,lightning_res_rate,-0.1,,,,
+風眼,debuff,wind_res_rate,-0.1,,,,
+風眼,debuff,nature_res_rate,-0.1,,,,
+風眼,debuff,light_res_rate,-0.1,,,,
+風眼,debuff,dark_res_rate,-0.1,,,,
+風眼,debuff,p_reduce_rate,-0.1,,,,
+風眼,debuff,m_reduce_rate,-0.1,,,,
+靈羽共鳴,buff,crit_rate,0.1,,,,暴擊率 +10%
+嵐光祝禱,buff,hot,0.05,mhp,,,每回合回復最大生命 5%、物理與魔法攻擊力 +10%
+嵐光祝禱,buff,p_atk_rate,0.1,,,,
+嵐光祝禱,buff,m_atk_rate,0.1,,,,
+野性生機,buff,hot,0.04,mhp,,,每回合回復最大生命 4%、物理與魔法增傷 +15%
+野性生機,buff,p_damage_rate,0.15,,,,
+野性生機,buff,m_damage_rate,0.15,,,,
+古木壁壘,buff,shield,2.0,m_atk,,,護盾（主人主要攻擊力 200%）、自然抗性 +30%
+古木壁壘,buff,nature_res_rate,0.3,,,,
+晶壁,buff,m_reduce_rate,0.25,,,,魔法減傷 +25%
+晶角共鳴,buff,p_damage_rate,0.5,,,,物理、魔法增傷 +50%
+晶角共鳴,buff,m_damage_rate,0.5,,,,
+翡晶化,debuff,stun,,,,,不能行動、受到的傷害 +30%
+翡晶化,debuff,dmg_taken_rate,0.3,,,,
+審判,debuff,light_res_rate,-0.2,,,,光明抗性 −20%
+聖護光刃,buff,p_atk_rate,0.3,,,,物理、魔法攻擊力 +30%、護盾（主人主要攻擊力 60%）
+聖護光刃,buff,m_atk_rate,0.3,,,,
+聖護光刃,buff,shield,0.6,m_atk,,,
+聖翼結界,buff,light_res_rate,0.4,,,,光明抗性 +40%、不會被施加新的負面狀態
+聖翼結界,buff,debuff_block,,,,,
+不屈聖護,buff,p_reduce_rate,0.3,,,,物理、魔法減傷 +30%
+不屈聖護,buff,m_reduce_rate,0.3,,,,
+日冕祝福,buff,p_atk_rate,0.1,,,,物理、魔法攻擊力 +10%、物理與魔法減傷 +10%
+日冕祝福,buff,m_atk_rate,0.1,,,,
+日冕祝福,buff,p_reduce_rate,0.1,,,,
+日冕祝福,buff,m_reduce_rate,0.1,,,,
+星界聖詠,buff,p_atk_rate,0.08,,,,攻擊、減傷、閃避、暴擊率 +8%，暴擊傷害 +30%，全抗性 +10%
+星界聖詠,buff,m_atk_rate,0.08,,,,
+星界聖詠,buff,p_reduce_rate,0.08,,,,
+星界聖詠,buff,m_reduce_rate,0.08,,,,
+星界聖詠,buff,speed,1,,,,
+星界聖詠,buff,eva_rate,0.08,,,,
+星界聖詠,buff,crit_rate,0.08,,,,
+星界聖詠,buff,crit_damage_rate,0.3,,,,
+星界聖詠,buff,fire_res_rate,0.1,,,,
+星界聖詠,buff,frost_res_rate,0.1,,,,
+星界聖詠,buff,lightning_res_rate,0.1,,,,
+星界聖詠,buff,wind_res_rate,0.1,,,,
+星界聖詠,buff,nature_res_rate,0.1,,,,
+星界聖詠,buff,light_res_rate,0.1,,,,
+星界聖詠,buff,dark_res_rate,0.1,,,,
+微光再生,buff,hot,0.03,mhp,,,每回合回復最大生命 3%
+星儀異象,buff,p_reduce_rate,0.8,,,,受到的物理、魔法傷害大幅減少，不會被施加新的負面狀態
+星儀異象,buff,m_reduce_rate,0.8,,,,
+星儀異象,buff,debuff_block,,,,,
+腐蝕毒霧,debuff,dark_res_rate,-0.2,,,,黑暗抗性 −20%、物理與魔法減傷 −15%
+腐蝕毒霧,debuff,p_reduce_rate,-0.15,,,,
+腐蝕毒霧,debuff,m_reduce_rate,-0.15,,,,
+深淵狂契,buff,p_atk_rate,0.35,,,,攻擊力 +35%、暴擊傷害 +40%、減傷 −15%
+深淵狂契,buff,m_atk_rate,0.35,,,,
+深淵狂契,buff,crit_damage_rate,0.4,,,,
+深淵狂契,buff,p_reduce_rate,-0.15,,,,
+深淵狂契,buff,m_reduce_rate,-0.15,,,,
+九幽龍鱗盾,buff,p_reduce_rate,0.2,,,,物理與魔法減傷 +20%
+九幽龍鱗盾,buff,m_reduce_rate,0.2,,,,
+黃泉鬼咒,debuff,p_atk_rate,-0.15,,,,攻擊力、防禦力 −15%
+黃泉鬼咒,debuff,m_atk_rate,-0.15,,,,
+黃泉鬼咒,debuff,p_reduce_rate,-0.15,,,,
+黃泉鬼咒,debuff,m_reduce_rate,-0.15,,,,
+星夜掠奪,debuff,p_atk_rate,-0.15,,,,物理、魔法攻擊力 −15%
+星夜掠奪,debuff,m_atk_rate,-0.15,,,,
+星夜之力,buff,p_atk_rate,0.15,,,,物理、魔法攻擊力 +15%
+星夜之力,buff,m_atk_rate,0.15,,,,
+暗金星輝,buff,p_atk_rate,0.2,,,,攻擊力 +20%、暴擊率 +15%、黑暗抗性 +30%
+暗金星輝,buff,m_atk_rate,0.2,,,,
+暗金星輝,buff,crit_rate,0.15,,,,
+暗金星輝,buff,dark_res_rate,0.3,,,,
+黑曜七星,buff,p_reduce_rate,0.2,,,,物理與魔法減傷 +20%、不會被施加新的負面狀態
+黑曜七星,buff,m_reduce_rate,0.2,,,,
+黑曜七星,buff,debuff_block,,,,,
