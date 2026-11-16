@@ -74,7 +74,7 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 /* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵（樹變大後稍微稀疏：大多 0～1），礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
-function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
+function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:z.k==='tomb'?[0,0,0,1,2][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
     if(big&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹（仙人掌）不要疊在一起 */
     L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0,sh:big,k:z.k+'_'+kind})}
