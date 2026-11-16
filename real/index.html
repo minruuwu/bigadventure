@@ -81,7 +81,7 @@ var ZONE=500;            /* 地域格 500 公尺 */
 var SUB=100;             /* 怪物、裝飾物的小格 100 公尺 */
 var SPAWN=0.25;           /* 每個小格有一群怪的機率 */
 var MLV=50;               /* 怪物等級上下浮動幾級（最低 1 級） */
-var REACH=100;            /* 可以打的距離（公尺） */
+var REACH=150;            /* 可以打的距離（公尺） */
 var MROAD=90;             /* 怪物只生在路邊：離路邊超過這麼多公尺的，挪到最近那條路的路邊 */
 var WALK=6,FAST=40;      /* 模擬走路的速度（公尺／秒，比真實快一點方便測試）；快速移動 */
 var HOME=[24.8015,120.9718];/* 預設起點：新竹市 */
@@ -226,7 +226,7 @@ function draw(now){
     else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Monsters.scale(o.k)*(o.rare&&Monsters.scale(o.k)===1?1.2:1)/* 跟戰鬥裡一樣的比例（人物 48 格高的畫布＝戰鬥裡的大小） */,w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
       if(o.rare){cx.save();cx.globalAlpha=.35+.2*Math.sin(now/300);cx.fillStyle='#ffd34a';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]-h/2-lf),w*.7,h*.6,0,0,Math.PI*2);cx.fill();cx.restore()}
-      var mi=src&&imgFor(src);if(mi&&mi.complete&&mi.naturalWidth)cx.drawImage(mi,Math.round(s2[0]-w/2),Math.round(s2[1]-h-lf),w,h);o.box=[s2[0]-w/2,s2[1]-h-lf,w,h]}
+      var mi=src&&imgFor(src);if(mi&&mi.complete&&mi.naturalWidth){/* 偶爾轉身：每隻怪每 3～7 秒擲一次要面向左還是右 */var fq=o.ph/1000,fp=3000+fq*4000,fs=Math.floor((now+fq*9000)/fp),fr=Math.sin(fs*12.9898+fq*78.233)*43758.5453;fr-=Math.floor(fr);var mx0=Math.round(s2[0]-w/2),my0=Math.round(s2[1]-h-lf);if(fr<.5){cx.save();cx.translate(mx0*2+w,0);cx.scale(-1,1);cx.drawImage(mi,mx0,my0,w,h);cx.restore()}else cx.drawImage(mi,mx0,my0,w,h)}o.box=[s2[0]-w/2,s2[1]-h-lf,w,h]}
     else if(doll){Doll.draw(doll,P.look,now);var cxp=Math.round(W/2-24),cyp=Math.round(H/2-44);/* 人物圖本身已經畫了腳下的影子，這裡不再另外畫 */
       var bob=me.mv?Math.round(Math.abs(Math.sin(now/120))*-1):0;cx.save();if(me.face<0){cx.translate(cxp*2+48,0);cx.scale(-1,1)}cx.drawImage(doll,cxp,cyp+bob);cx.restore()}});
   /* 文字層（高解析度）：怪物的隻數、等級 */
