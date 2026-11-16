@@ -81,7 +81,7 @@
   var BLEARN = [[1, 0], [6, 2], [12, 3], [18, 1]]; /* [等級, 技能順序 0～3] */
   var BCAP = { atk: 0.10, dmg: 0.15, crit: 0.10, red: 0.15, hp: 0.20, res: 0.30, eva: 0.08, cdmg: 1, ores: 0.10 }, BSTEP = 15, BCH = 0.25;
   function beastOf(p) {
-    var L = p && Array.isArray(p.beasts) ? p.beasts : [], b = L[p && p.beastOn | 0] || L[0];/* beastOn：照料幻獸裡選的同行幻獸 */ if (!b || !BSTK[b.sp]) return null;
+    var L = p && Array.isArray(p.beasts) ? p.beasts : [], b = p && p.beastOn === -1 ? null : L[p && p.beastOn | 0] || L[0];/* beastOn：照料幻獸裡選的同行幻獸（-1 = 卸下） */ if (!b || !BSTK[b.sp]) return null;
     var lv = clamp(b.lv | 0 || 1, 1, 20), got = BLEARN.filter(function (x) { return lv >= x[0] }).map(function (x) { return x[1] });
     var sk = (Array.isArray(b.sk) ? b.sk : []).filter(function (i, n, a) { return got.indexOf(i) >= 0 && a.indexOf(i) === n }).slice(0, 2); if (!sk.length) sk = got.slice(-2);
     return { k: BSTK[b.sp], name: b.name || '幻獸', lv: lv, st: b.st || {}, sk: sk, learned: got };

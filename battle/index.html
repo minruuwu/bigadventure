@@ -167,8 +167,17 @@ button{font:inherit;color:inherit}
 .edrow{display:flex;margin-top:12px}.edm{font:inherit;display:flex;align-items:center;gap:6px;border:0;background:#4a2a12;color:#f0dfb8;font-size:13px;font-weight:900;padding:3px 12px 3px 3px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}.edm canvas,.edp canvas{width:64px;height:48px;image-rendering:pixelated;background:#2a1709;box-shadow:0 0 0 2px #1d1008}
 .edp{display:flex;gap:10px;align-items:flex-start;margin:6px 0 10px}.edp canvas{width:96px;height:72px;flex:none}.edsay{position:relative;flex:1;min-width:0;background:#f4e6c6;color:#2e1d0e;font-size:13px;line-height:1.6;padding:8px 10px;box-shadow:0 0 0 2px #1d1008}.edsay b{display:block;color:#7a3a12;font-size:12px}
 .edbt{display:flex;flex-direction:column;gap:6px}.edbt button{font:inherit;font-size:14px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:0;padding:9px 12px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;text-align:left}.edbt button.bk{background:#6b4a2a;font-size:13px}
-.bcare{display:flex;flex-direction:column;gap:10px;margin-top:6px}.bcare h4{margin:0;font-size:13px;font-weight:900;color:#4a2a12}.bcare .nb{font-size:12px;color:#5a3a1a}
-.bcl{display:flex;flex-direction:column;gap:6px}.bcr{display:flex;align-items:center;gap:8px;background:rgba(74,42,18,.14);padding:5px 8px;box-shadow:inset 0 0 0 1px rgba(74,42,18,.35)}.bcr img{width:40px;height:40px;image-rendering:pixelated;flex:none}.bcr .t{flex:1;min-width:0;font-size:12px;line-height:1.45}.bcr .t b{font-size:14px;color:#2a1708}
+.bcare{display:flex;flex-direction:column;gap:10px;margin-top:6px}.bcare h4,.bdv h4{margin:0;font-size:13px;font-weight:900;color:#4a2a12}.bdv h4{margin:10px 0 6px}.bcare .nb,.bdv .nb{font-size:12px;line-height:1.5;color:#5a3a1a}
+.bcl{display:flex;flex-direction:column;gap:6px}.bsl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.bs{font:inherit;display:flex;flex-direction:column;align-items:center;gap:1px;background:rgba(74,42,18,.16);border:0;box-shadow:inset 0 0 0 2px rgba(74,42,18,.4);padding:6px 2px;cursor:pointer;color:#2e1d0e;min-width:0}.bs img{width:44px;height:44px;image-rendering:pixelated}.bs b{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bs small{font-size:11px;color:#5a3a1a}.bs.on{box-shadow:inset 0 0 0 2px #2e7a3a;background:rgba(46,122,58,.15)}.bs.z{cursor:default;min-height:74px;justify-content:center;color:#8a6a45;font-size:12px}
+.bdh{display:flex;gap:12px;align-items:center;margin-bottom:8px}.bdh>img{width:84px;height:84px;image-rendering:pixelated;background:rgba(74,42,18,.15);box-shadow:inset 0 0 0 2px rgba(74,42,18,.35);flex:none;animation:bbob 1.6s ease-in-out infinite}.bdh h2{margin:0;font-size:18px}.bdh .on{font-size:11px;color:#fff;background:#2e7a3a;padding:1px 6px;vertical-align:middle}.blv{font-size:13px;margin-top:2px}.blv b{font-size:17px}
+@keyframes bbob{50%{transform:translateY(-3px)}}@media (prefers-reduced-motion:reduce){.bdh>img{animation:none}}
+.bmsg{background:#f4e6c6;box-shadow:0 0 0 2px #1d1008;padding:6px 10px;font-size:13px;font-weight:700;color:#2e5a1a;margin:4px 0 8px}
+.bren{display:flex;gap:6px;margin:4px 0 8px}.bren input{flex:1;min-width:0;font:inherit;padding:6px 8px;border:0;box-shadow:inset 0 0 0 2px #8a6a3a;background:#fff8e6;color:#3b2713}.bren button{font:inherit;font-size:13px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:0;padding:6px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008}.bren .bk{background:#6b4a2a}
+.bst{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:12px;margin-bottom:6px}.bst .bar{height:8px;background:rgba(74,42,18,.22);box-shadow:inset 0 0 0 1px rgba(74,42,18,.4)}.bst .bar i{display:block;height:100%}.bst .bar i.atk{background:#c8452a}.bst .bar i.def{background:#3a7ac8}.bst .bar i.sup{background:#2e9a5a}.bst .v{text-align:right;font-weight:900}.bst .v small{display:block;font-weight:400;font-size:10px;color:#5a3a1a}
+.bsk{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}.bk2{font:inherit;text-align:left;background:rgba(74,42,18,.12);border:0;box-shadow:inset 0 0 0 2px rgba(74,42,18,.35);padding:6px 9px;cursor:pointer;color:#2e1d0e;display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline}.bk2 b{font-size:13px}.bk2 em{font-style:normal;font-size:11px;font-weight:900;color:#7a3a12}.bk2 small{flex-basis:100%;font-size:11px;line-height:1.45;color:#4a3020}.bk2.on{box-shadow:inset 0 0 0 2px #2e7a3a;background:rgba(46,122,58,.15)}.bk2.on em{color:#2e7a3a}.bk2:disabled{opacity:.5;cursor:default}
+.bfd{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px}.bfd button{font:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;background:#4a2a12;color:#f0dfb8;border:0;box-shadow:0 0 0 2px #1d1008;padding:6px 2px;cursor:pointer}.bfd button:disabled{opacity:.45;cursor:default}.bfd b{font-size:14px}.bfd span{display:flex;align-items:center;gap:2px;font-size:11px}.bfd img{width:18px;height:18px;image-rendering:pixelated}.bfd small{font-size:10px;opacity:.85}
+.bbt{margin-top:12px}.edbt button.dg{background:#8a2a1a}
+.bcr{display:flex;align-items:center;gap:8px;background:rgba(74,42,18,.14);padding:5px 8px;box-shadow:inset 0 0 0 1px rgba(74,42,18,.35)}.bcr img{width:40px;height:40px;image-rendering:pixelated;flex:none}.bcr .t{flex:1;min-width:0;font-size:12px;line-height:1.45}.bcr .t b{font-size:14px;color:#2a1708}
 .bcr button{font:inherit;font-size:12px;font-weight:900;color:#f0dfb8;background:#4a2a12;border:0;padding:5px 9px;cursor:pointer;box-shadow:0 0 0 2px #1d1008;flex:none}.bcr .on{font-size:12px;font-weight:900;color:#fff;background:#2e7a3a;padding:4px 8px;flex:none}
 .bce{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.bce div{display:flex;flex-direction:column;align-items:center;font-size:11px;background:rgba(74,42,18,.12);padding:3px 2px}.bce img{width:24px;height:28px;image-rendering:pixelated}.bce .z{opacity:.45}
 .bcm{display:grid;grid-template-columns:24px repeat(3,1fr);gap:3px 4px;align-items:center;font-size:11px}.bcm .hd{text-align:center;font-weight:900;color:#5a3a1a}.bcm .it{display:flex;align-items:center;gap:3px;background:rgba(74,42,18,.12);padding:1px 3px}.bcm img{width:20px;height:20px;image-rendering:pixelated}
@@ -3091,14 +3100,50 @@ var edLast=-1;function edTalk(){var n=EDTIPS.length,i=Math.floor(Math.random()*n
 var EGGN=[['fire','龍蜥蛋'],['ice','牙犬蛋'],['bolt','靈鼠蛋'],['wind','羽禽蛋'],['leaf','角蹄蛋'],['sun','輝獸蛋'],['moon','暗鱗蛋']],EGGC={fire:'紅色',ice:'藍色',bolt:'黃色',wind:'青色',leaf:'綠色',sun:'金色',moon:'紫色'};
 var MCOLB=[['red','紅','fire'],['blue','藍','frost'],['yellow','黃','lightning'],['teal','青','wind'],['green','綠','nature'],['gold','金','light'],['purple','紫','dark']],MKINDB=[['crystal','結晶'],['ore','礦石'],['orb','寶珠']];
 /* 照料幻獸（簡單版）：持有的幻獸（選一隻同行）、孵化中的蛋、蛋與素材數量；餵食、改名、放生之後再做 */
-function edCareView(){var me=MEMB[0]||{},L=me.beasts||[],on=Math.min(me.beastOn|0,Math.max(0,L.length-1)),A='../assets/',h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="照料幻獸"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>照料幻獸</h2><div class="bcare">';
-  h+='<h4>持有的幻獸（'+L.length+'／6）</h4>';if(!L.length)h+='<div class="nb">還沒有幻獸。到幻境裡走路孵蛋吧！</div>';else{h+='<div class="bcl">';L.forEach(function(b,i){var e=window.BattleEngine&&BattleEngine.beast({beasts:[b]}),k=e&&e.k||'',S=BST[k]||{};h+='<div class="bcr"><img src="'+A+'beasts/beast_'+esc(k)+'.png" alt=""><div class="t"><b>'+esc(b.name||'')+'</b><br>'+esc(S.n||'')+'　Lv'+((b.lv|0)||1)+'</div>'+(i===on?'<span class="on">同行中</span>':'<button type="button" data-a="bon" data-i="'+i+'">同行</button>')+'</div>'});h+='</div>'}
-  var ht=me.hatch;if(ht&&ht.egg)h+='<h4>孵化中</h4><div class="bcr"><img src="'+A+'beast/egg_'+esc(ht.egg)+'.png" alt="" style="width:34px;height:40px"><div class="t"><b>'+esc((EGGN.filter(function(x){return x[0]===ht.egg})[0]||[0,''])[1])+'</b><br>已走 '+((ht.m|0)>=2000?'2000':(ht.m|0))+'／2000 公尺</div></div>';
+/* ---- 照料幻獸：上面六格（持有的幻獸，點了看明細），下面是孵化中的蛋、蛋與素材數量 ---- */
+var BSTAT=[['atk','攻擊力',.10,'atk'],['dmg','增傷',.15,'atk'],['crit','暴擊率',.10,'atk'],['red','減傷',.15,'def'],['hp','生命力',.20,'def'],['res','本屬性抗性',.30,'def'],['eva','閃避率',.08,'sup'],['cdmg','暴擊傷害',1,'sup'],['ores','其他屬性抗性',.10,'sup']];
+var BDIR=[['atk','攻擊','crystal','結晶'],['def','生存','ore','礦石'],['sup','輔助','orb','寶珠']],BLRN=[[1,0],[6,2],[12,3],[18,1]],BEGGCOL={fire:'red',ice:'blue',bolt:'yellow',wind:'teal',leaf:'green',sun:'gold',moon:'purple'};
+var BINFO=null;function binfoLoad(cb){if(BINFO){cb();return}getCSV('beast_info.csv').then(function(r){BINFO={};(r||[]).forEach(function(q){BINFO[q.beast_id]=q});cb()},function(){BINFO={};cb()})}
+function bkOf(b){var e=window.BattleEngine&&BattleEngine.beast({beasts:[b]});return e&&e.k||''}
+function bOnIdx(me){var L=me.beasts||[];if(me.beastOn===-1)return -1;var i=me.beastOn|0;return i<L.length?i:0}
+function edCareView(){var me=MEMB[0]||{},L=me.beasts||[],on=bOnIdx(me),A='../assets/',h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="照料幻獸"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button><h2>照料幻獸</h2><div class="bcare">';
+  h+='<h4>持有的幻獸（'+L.length+'／6）</h4><div class="bsl">';for(var i=0;i<6;i++){var b=L[i];if(b){var k=bkOf(b);h+='<button type="button" class="bs'+(i===on?' on':'')+'" data-a="bdet" data-i="'+i+'"><img src="'+A+'beasts/beast_'+esc(k)+'.png" alt=""><b>'+esc(b.name||'')+'</b><small>Lv'+((b.lv|0)||1)+(i===on?'・同行':'')+'</small></button>'}else h+='<div class="bs z"><span>空</span></div>'}h+='</div>';
+  if(!L.length)h+='<div class="nb">還沒有幻獸。到幻境裡走路孵蛋吧！</div>';
+  var ht=me.hatch;if(ht&&ht.egg)h+='<h4>孵化中</h4><div class="bcr"><img src="'+A+'beast/egg_'+esc(ht.egg)+'.png" alt="" style="width:34px;height:40px"><div class="t"><b>'+esc((EGGN.filter(function(x){return x[0]===ht.egg})[0]||[0,''])[1])+'</b><br>已走 '+Math.min(2000,ht.m|0)+'／2000 公尺</div></div>';
   var E=me.beastEggs||{};h+='<h4>幻獸蛋</h4><div class="bce">'+EGGN.map(function(x){var n=E[x[0]]|0;return '<div'+(n?'':' class="z"')+'><img src="'+A+'beast/egg_'+x[0]+'.png" alt="">'+x[1]+' ×'+n+'</div>'}).join('')+'</div>';
   var M=me.beastMat||{};h+='<h4>素材</h4><div class="bcm"><span></span>'+MKINDB.map(function(k){return '<span class="hd">'+k[1]+'</span>'}).join('');MCOLB.forEach(function(c){h+='<span><img src="'+A+'icons/stats/res_'+c[2]+'.png" alt="'+c[1]+'"></span>'+MKINDB.map(function(k){var key=k[0]+'_'+c[0];return '<span class="it"><img src="'+A+'beast/mat_'+key+'.png" alt="">×'+(M[key]|0)+'</span>'}).join('')});h+='</div>';
-  h+='<div class="nb">孵蛋、收集素材：從地圖上的「幻境」入口進去，在現實中走路探索。餵食與進化之後開放。</div></div><div class="edbt" style="margin-top:10px"><button type="button" class="bk" data-a="edbk2">返回</button></div></div>';
+  h+='<div class="nb">孵蛋、收集素材：從地圖上的「幻境」入口進去，在現實中走路探索。</div></div><div class="edbt" style="margin-top:10px"><button type="button" class="bk" data-a="edbk2">返回</button></div></div>';
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
-function edSetOn(i){var me=MEMB[0];if(!me||!(me.beasts||[])[i])return;me.beastOn=i;edCareView();if(demo)return;withFB(function(FB){FB.updatePlayer({beastOn:i}).catch(function(e){toast('存檔失敗：'+(e&&(e.code||e.message)))})})}
+/* 幻獸明細：屬性、技能（選兩招裝備）、餵養、同行／卸下、改名、放生 */
+var BDV={i:0,msg:'',ren:false,rel:0};
+function edBeast(i,keep){var me=MEMB[0]||{},L=me.beasts||[],b=L[i];if(!b){edCareView();return}if(!keep)BDV={i:i,msg:'',ren:false,rel:0};BDV.i=i;
+  binfoLoad(function(){var k=bkOf(b),S=BST[k]||{},I=BINFO[k]||{},lv=Math.max(1,b.lv|0||1),st=b.st||{},on=bOnIdx(me)===i,A='../assets/',col=BEGGCOL[b.sp]||'red',M=me.beastMat||{},got=BLRN.filter(function(x){return lv>=x[0]}).map(function(x){return x[1]});
+    var eq=(Array.isArray(b.sk)?b.sk:[]).filter(function(s){return got.indexOf(s)>=0}).slice(0,2);if(!eq.length)eq=got.slice(-2);
+    var h='<div class="lvbox bdv" role="dialog" aria-modal="true" aria-label="'+esc(b.name||'幻獸')+'"><button class="x" type="button" data-a="lvx" aria-label="關閉">✕</button>';
+    h+='<div class="bdh"><img src="'+A+'beasts/beast_'+esc(k)+'.png" alt=""><div><h2>'+esc(b.name||'')+(on?' <span class="on">同行中</span>':'')+'</h2><div class="nb">'+esc(S.n||'')+'・'+esc(I.race||'')+'・'+esc(I.element||'')+'・'+esc(I.stage||'幼年體')+'</div><div class="blv">Lv <b>'+lv+'</b>／20</div></div></div>';
+    if(BDV.ren)h+='<div class="bren"><input id="bnm" maxlength="8" value="'+esc(b.name||'')+'"><button type="button" data-a="bnmok">確定</button><button type="button" class="bk" data-a="bnmx">取消</button></div>';
+    if(BDV.msg)h+='<div class="bmsg">'+BDV.msg+'</div>';
+    h+='<h4>屬性</h4><div class="bst">';BSTAT.forEach(function(q){var n=Math.max(0,Math.min(15,st[q[0]]|0)),v=n/15*q[2]*100;h+='<span class="l">'+q[1]+'</span><span class="bar"><i class="'+q[3]+'" style="width:'+(n/15*100)+'%"></i></span><span class="v">+'+(Math.round(v*10)/10)+'%<small>'+n+'／15</small></span>'});h+='</div>';
+    h+='<h4>技能（點選裝備兩招）</h4><div class="bsk">';[0,1,2,3].forEach(function(s){var need=(BLRN.filter(function(x){return x[1]===s})[0]||[1])[0],ok=lv>=need,eon=eq.indexOf(s)>=0,nm=(S.sk&&S.sk[s]&&S.sk[s][0])||'',dj=[1,2,3,4].filter(function(j){return I['skill_'+j]===nm})[0],ds=dj?I['skill_'+dj+'_desc']||'':'';/* beast_info 的技能欄順序跟引擎不同，用名字對說明 */
+      h+='<button type="button" class="bk2'+(eon?' on':'')+'"'+(ok?' data-a="bsk" data-s="'+s+'"':' disabled')+'><b>'+esc(nm)+'</b>'+(eon?'<em>裝備中</em>':ok?'':'<em>Lv'+need+' 學會</em>')+'<small>'+esc(ds)+'</small></button>'});h+='</div>';
+    var cost=10+5*(lv-1);h+='<h4>餵養（升 1 級，屬性隨機 +3 格）</h4>';if(lv>=20)h+='<div class="nb">已經 Lv20，進化之後開放。</div>';else{h+='<div class="bfd">';BDIR.forEach(function(d){var key=d[2]+'_'+col,have=M[key]|0;h+='<button type="button" data-a="bfeed" data-d="'+d[0]+'"'+(have<cost?' disabled':'')+'><b>'+d[1]+'</b><span><img src="'+A+'beast/mat_'+key+'.png" alt="">'+d[3]+' ×'+cost+'</span><small>持有 '+have+'</small></button>'});h+='</div><div class="nb">選的方向有 7 成機率加在：'+BDIR.map(function(d){return d[1]+'＝'+BSTAT.filter(function(q){return q[3]===d[0]}).map(function(q){return q[1]}).join('、')}).join('；')+'</div>'}
+    h+='<div class="edbt bbt">'+(on?'<button type="button" data-a="boff">卸下（不帶幻獸）</button>':'<button type="button" data-a="bon" data-i="'+i+'">同行（帶這隻出戰）</button>')+'<button type="button" data-a="bren">改名</button>'+
+      (BDV.rel===0?'<button type="button" class="dg" data-a="brel">放生</button>':BDV.rel===1?'<button type="button" class="dg" data-a="brel">確定要放生「'+esc(b.name||'')+'」嗎？再按一次</button>':'<button type="button" class="dg" data-a="brel">最後確認：放生後無法復原，素材也不會退還</button>')+
+      '<button type="button" class="bk" data-a="edcare">返回照料幻獸</button></div></div>';
+    var o=$('lvov'),y=o.scrollTop;o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false;if(keep)o.scrollTop=y;var nm=$('bnm');if(nm)nm.focus()})}
+/* 寫入照料幻獸的變動：fn(最新的玩家資料) 回傳要寫的欄位；示範模式只改畫面 */
+function bWrite(fn,after){var me=MEMB[0];if(!me)return;if(demo){var f=fn(me);if(f){Object.keys(f).forEach(function(k){if(k.indexOf('.')<0)me[k]=f[k];else{var p=k.split('.');me[p[0]]=Object.assign({},me[p[0]]||{});me[p[0]][p[1]]=f[k]}});after&&after(f)}return}
+  withFB(function(FB){FB.beastEdit(fn).then(function(f){Object.keys(f).forEach(function(k){if(k.indexOf('.')<0)me[k]=f[k];else{var p=k.split('.');me[p[0]]=Object.assign({},me[p[0]]||{});me[p[0]][p[1]]=f[k]}});after&&after(f)},function(e){toast('存檔失敗：'+(e&&(e.code||e.message)));edBeast(BDV.i,true)})})}
+function bFeed(d){var i=BDV.i;var rolled=[];bWrite(function(p){var L=(p.beasts||[]).slice(),b=L[i];if(!b)return null;var lv=Math.max(1,b.lv|0||1);if(lv>=20)return null;var key=BDIR.filter(function(x){return x[0]===d})[0][2]+'_'+(BEGGCOL[b.sp]||'red'),cost=10+5*(lv-1),have=(p.beastMat||{})[key]|0;if(have<cost)return null;
+    var st=Object.assign({},b.st||{});rolled=[];for(var r=0;r<3;r++){var open=BSTAT.filter(function(q){return (st[q[0]]|0)<15}),F=open.filter(function(q){return q[3]===d}),O=open.filter(function(q){return q[3]!==d});if(!open.length)return null;var pool=F.length&&(!O.length||Math.random()<.7)?F:O,q=pool[Math.floor(Math.random()*pool.length)];st[q[0]]=(st[q[0]]|0)+1;rolled.push(q[1])}
+    var nb=Object.assign({},b,{lv:lv+1,st:st});L[i]=nb;var bm=Object.assign({},p.beastMat||{});bm[key]=have-cost;return{beasts:L,beastMat:bm,bOp:{t:'feed',i:i,k:key}}},
+  function(){var c={};rolled.forEach(function(n){c[n]=(c[n]|0)+1});BDV.msg='升到 Lv'+(((MEMB[0].beasts||[])[i]||{}).lv|0)+'！'+Object.keys(c).map(function(n){return n+' +'+c[n]}).join('、');toast(BDV.msg);edBeast(i,true)})}
+function bSkill(s){var i=BDV.i,me=MEMB[0],b=(me.beasts||[])[i];if(!b)return;var lv=Math.max(1,b.lv|0||1),got=BLRN.filter(function(x){return lv>=x[0]}).map(function(x){return x[1]}),eq=(Array.isArray(b.sk)?b.sk:[]).filter(function(x){return got.indexOf(x)>=0}).slice(0,2);if(!eq.length)eq=got.slice(-2);
+  var j=eq.indexOf(s);if(j>=0){if(eq.length<2)return;eq.splice(j,1)}else{if(eq.length>=2)eq.shift();eq.push(s)}
+  bWrite(function(p){var L=(p.beasts||[]).slice();if(!L[i])return null;L[i]=Object.assign({},L[i],{sk:eq});return{beasts:L,bOp:{t:'sk',i:i}}},function(){BDV.msg='';edBeast(i,true)})}
+function bRename(){var i=BDV.i,v=String(($('bnm')||{}).value||'').trim().slice(0,8);if(!v){toast('名字要 1～8 個字');return}bWrite(function(p){var L=(p.beasts||[]).slice();if(!L[i])return null;L[i]=Object.assign({},L[i],{name:v});return{beasts:L,bOp:{t:'name',i:i}}},function(){BDV.ren=false;BDV.msg='改名為「'+esc(v)+'」';edBeast(i,true)})}
+function bRelease(){if(BDV.rel<2){BDV.rel++;edBeast(BDV.i,true);return}var i=BDV.i,nm='';bWrite(function(p){var L=(p.beasts||[]).slice();if(!L[i])return null;nm=L[i].name||'';L.splice(i,1);var on=p.beastOn===-1?-1:(p.beastOn|0),f={beasts:L,bOp:{t:'del',i:i}};var no=on===i?-1:on>i?on-1:on;if(no>=L.length)no=-1;if(no!==(p.beastOn==null?0:p.beastOn))f.beastOn=no;return f},function(){toast('「'+nm+'」回到幻境去了');edCareView()})}
+function edSetOn(i){var me=MEMB[0];if(!me||(i>=0&&!(me.beasts||[])[i]))return;me.beastOn=i;BDV.msg=i<0?'已卸下，戰鬥中不會帶幻獸':'這隻現在跟著你一起戰鬥';edBeast(i<0?BDV.i:i,true);if(demo)return;withFB(function(FB){FB.updatePlayer({beastOn:i}).catch(function(e){toast('存檔失敗：'+(e&&(e.code||e.message)))})})}
 /* ---- 第一章之四看完：領一顆選的顏色的幻獸蛋（每個帳號一次）；跳過劇情沒選到顏色就另外跳選單 ---- */
 function eggPick(cb){var h='<div class="lvbox" role="dialog" aria-modal="true" aria-label="選擇蛋的顏色"><h2>這枚蛋是什麼顏色的？</h2><p class="lvh">選一個顏色，就會得到那個屬性的幻獸蛋。</p><div class="bce">'+EGGN.map(function(x){return '<div data-a="egk" data-k="'+x[0]+'" style="cursor:pointer"><img src="../assets/beast/egg_'+x[0]+'.png" alt="">'+EGGC[x[0]]+'</div>'}).join('')+'</div></div>';
   var o=$('lvov');o.innerHTML='<div class="lvbg"></div>'+h;o.hidden=false;eggPick.cb=cb}
@@ -3137,7 +3182,7 @@ function tutEnd(win){if(!TUT)return;var cl=function(){$('bres').hidden=true};cl(
   else tutBox('瑟琳','「別放棄，再試一次！」','重新挑戰',function(){tutStart()})}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx'){if($('lvov').querySelector('[data-a="egk"]'))return;closeLevels()}
-  else if(a==='edm'||a==='edbk2')edOpen();else if(a==='edtalk')edTalk();else if(a==='edcare')edCareView();else if(a==='edbk')openVillage();else if(a==='bon')edSetOn(+b.getAttribute('data-i'));
+  else if(a==='edm'||a==='edbk2')edOpen();else if(a==='edtalk')edTalk();else if(a==='edcare')edCareView();else if(a==='edbk')openVillage();else if(a==='bon')edSetOn(+b.getAttribute('data-i'));else if(a==='boff')edSetOn(-1);else if(a==='bdet')edBeast(+b.getAttribute('data-i'));else if(a==='bfeed')bFeed(b.getAttribute('data-d'));else if(a==='bsk')bSkill(+b.getAttribute('data-s'));else if(a==='bren'){BDV.ren=true;edBeast(BDV.i,true)}else if(a==='bnmx'){BDV.ren=false;edBeast(BDV.i,true)}else if(a==='bnmok')bRename();else if(a==='brel')bRelease();
   else if(a==='egk'){var cb=eggPick.cb;eggPick.cb=null;if(cb)cb(b.getAttribute('data-k'))}
   else if(a==='story'){var sid=b.getAttribute('data-s');closeLevels();playStory(sid)}
   else if(a==='lv'){pickL=+b.getAttribute('data-l');[].forEach.call($('lvov').querySelectorAll('.lv'),function(x){x.classList.toggle('on',x===b)});var r=stageReward(pickA,pickL);
@@ -3175,7 +3220,7 @@ function riftMons(rf){var R=RIFTS[rf.i],g=Math.max(1,Math.round(rf.lv/3)),out=[]
   var mk=function(r){var m=BattleEngine.monster(r,g,ENG);m.b.mhp=Math.round(m.b.mhp*sc.hs);m.b.patk=Math.round(m.b.patk*sc.as);m.b.matk=Math.round(m.b.matk*sc.as);m.stg=g;m.hs=sc.hs;m.as=sc.as;return m};
   if(R.young&&ENG.mon[R.young])for(var q=0;q<2;q++){var y=mk(ENG.mon[R.young]);y.name+=' '+'AB'[q];out.push(y)}
   out.push(mk(ENG.mon[R.boss]));return out}
-function battleTitle(b){if(b&&b.tut)return '帕拉迪村‧夜襲';if(b&&b.rift){var R=RIFTS[b.rift.i]||{};return '秘境・'+(R.n||'')+'　Lv'+b.rift.lv}return AREA[b.a].n+'　第 '+b.l+' 關'+(isBoss(b.a,b.l)?'（Boss）':'')}
+function battleTitle(b){if(b&&b.tut)return '帕拉迪村‧夜襲';if(b&&b.real)return '幻境・'+(b.real.zn||'')+'　Lv'+b.real.lv+(b.real.rare?'（王）':'');if(b&&b.rift){var R=RIFTS[b.rift.i]||{};return '秘境・'+(R.n||'')+'　Lv'+b.rift.lv}return AREA[b.a].n+'　第 '+b.l+' 關'+(isBoss(b.a,b.l)?'（Boss）':'')}
 /* 背景比畫面寬：置中、不捲動 */
 function riftCenter(){if(!B||!B.rift)return;var fw=frame.clientWidth,tw=tileW();off=Math.max(0,(tw-fw)/2)}
 /* 掉落：基本 2 片，每高一階（10 級）多 15% 機率再掉 1 片，超過 100% 的部分必掉；每片各自從這間的符文池抽 */
@@ -3407,12 +3452,12 @@ function startBattle(a,l){if(!RF)setLastArea(a);if(window.Music)Music.play(!RF&&
 function autoPref(){try{return localStorage.getItem('adv.autoBattle')==='1'}catch(e){return false}}
 function setAutoPref(v){try{localStorage.setItem('adv.autoBattle',v?'1':'0')}catch(e){}}
 var LV=null;/* 手動戰鬥的狀態：S = 引擎、mp = 動畫轉換、order/qi = 這回合的行動順序、wait = 等誰選、auto = 整隊自動 */
-function startLive(a,l,auto,opt){opt=opt||{};if(!RF&&!opt.tut)setLastArea(a);PARTS=[];curClear();
+function startLive(a,l,auto,opt){opt=opt||{};if(!RF&&!opt.tut&&!opt.real)setLastArea(a);PARTS=[];curClear();
   var CR=opt.crew||crewOf(RF),allies=CR.length-1,P=CR.map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
   var M=opt.mons||(RF?riftMons(RF):BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length)),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
-  if(window.Music)Music.play(!opt.tut&&!RF&&isBoss(a,l)?'boss':'battle',800);
+  if(window.Music)Music.play(opt.real?(opt.real.rare?'boss':'battle'):!opt.tut&&!RF&&isBoss(a,l)?'boss':'battle',800);
   B={live:true,ev:mp.ev,mons:ms,pkl:mp.pkl,psw:mp.psw,pko:{},mko:mp.mko,res:null,end:1e15,a:a,l:l,rift:RF?Object.assign({},RF):null,
-    mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true,tut:!!opt.tut,tutCrew:opt.crew||null};
+    mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true,tut:!!opt.tut,tutCrew:opt.crew||null,real:opt.real||null};
   B.wall=Date.now();B.hp0=B.hpNow;B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   LV={S:S,P:P,M:M,mp:mp,n:0,order:[],qi:0,wait:null,auto:!!auto,b:B};
   showView('battle');var bh=$('bhead');bh.textContent=battleTitle(B);var tg=el('button','atg');tg.type='button';tg.id='atg';tg.addEventListener('click',function(){setLiveAuto(!LV.auto)});bh.appendChild(tg);setLiveAuto(LV.auto,true);
@@ -3511,7 +3556,7 @@ function powerOf(p){var t=Math.max(1,p.lv|0||1),j=p.jobLv||{};Object.keys(j).for
 function lvDecay(a,l){var me=MEMB[0];if(!me)return null;var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l),rec=(r&&parseInt(r.level,10))||3*l,pw=powerOf(me),ov=pw-rec;
   if(ov<REW.step)return null;var m=Math.max(REW.floor,1-Math.floor(ov/REW.step)*REW.cut);m=Math.round(m*100)/100;return m<1?{pw:pw,rec:rec,ov:ov,m:m}:null}
 function lvTxt(q){return q?'<br><small>戰力 '+q.pw+'，超過第 '+q.l+' 關建議等級 '+q.ov+' 級，獎勵 ×'+Math.round(q.m*100)+'%</small>':''}
-function makeReq(b){if(b.res!=='win')return null;if(b.rift)return riftReq(b);var r=stageReward(b.a,b.l),bx=[],sp=(b.lead&&b.lead.special)||[];
+function makeReq(b){if(b.res!=='win')return null;if(b.rift)return riftReq(b);if(b.real)return realReq(b);var r=stageReward(b.a,b.l),bx=[],sp=(b.lead&&b.lead.special)||[];
   function roll(k){var x=sp.filter(function(q){return q.k===k})[0];return x&&Math.random()<x.ch?x:null}
   /* 依敵人數量增減（3 隻為基準，每多一隻 +1/3、每少一隻 −1/4），再乘 0.9～1.1 的亂數；經驗、鍛造石各擲一次。王關不看數量，只乘亂數 */
   var hasBoss=(b.mons||[]).some(function(m){return m.boss}),nm=hasBoss?3:((b.mons&&b.mons.length)||3),cm=nm>=3?nm/3:1-(3-nm)/4,vary=function(v){return Math.max(1,Math.round(v*cm*(0.9+Math.random()*0.2)))};
@@ -3523,14 +3568,33 @@ function makeReq(b){if(b.res!=='win')return null;if(b.rift)return riftReq(b);var
   return{area:AREAID[b.a],stage:b.l,exp:exp,stones:st,cookie:Math.random()<0.01,clear:newClear,name:me.name,share:share,bx:bx,lvi:lvi?Object.assign(lvi,{l:b.l}):null}}
 /* ---- 戰鬥暫存：切到別頁再回來時接著播（離開期間戰鬥照樣進行）；只存在這台裝置，不碰資料庫 ---- */
 var CURK='adv.cur',KEEP=30*60*1000;
-function curSave(){if(!B||B.tut)return;/* 教學戰不存暫存 */try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,rift:B.rift||null,ev:B.ev,mons:B.mons,pkl:B.pkl,psw:B.psw,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
+function curSave(){if(!B||B.tut)return;/* 教學戰不存暫存 */try{localStorage.setItem(CURK,JSON.stringify({uid:MEMB[0]&&MEMB[0].uid,wall:B.wall,a:B.a,l:B.l,rift:B.rift||null,real:B.real||null,ev:B.ev,mons:B.mons,pkl:B.pkl,psw:B.psw,mko:B.mko,res:B.res,end:B.end,mhpP:B.mhpP,mhpM:B.mhpM,hp0:B.hp0,req:B.req,saved:!!B.saved}))}catch(e){}}
 function curClear(){try{localStorage.removeItem(CURK)}catch(e){}}
 function curLoad(){try{var o=JSON.parse(localStorage.getItem(CURK)||'null');if(!o||!o.wall||Date.now()-o.wall>KEEP||!MEMB[0]||o.uid!==MEMB[0].uid){curClear();return null}return o}catch(e){return null}}
 function lastAdv(){try{return parseInt(localStorage.getItem('adv.last'),10)||0}catch(e){return 0}}
 function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}}
+/* ================= 幻境（實境冒險）的戰鬥：幻境頁點怪物 → 帶著 sessionStorage 的 real.fight 來這裡打 =================
+   獎勵：經驗 = 主線等級最接近的關卡 × 30%（照敵人數量增減、0.9～1.1 亂數）；素材 = 該地域顏色、三種隨機一種，一般 5～20、王 20～39；
+   蛋：王必掉該地域的蛋，一般 1%；打倒的怪物點記在 realK（這個 3 小時時段內不再出現） */
+var REALC={area01:['green','leaf'],area02:['yellow','bolt'],area03:['teal','wind'],area04:['purple','moon'],area05:['blue','ice'],area06:['gold','sun'],area07:['red','fire']},REALX=0.3;
+function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try{o=JSON.parse(sessionStorage.getItem('real.fight')||'null');sessionStorage.removeItem('real.fight')}catch(e){}
+  if(!o||!o.mons||!o.mons.length||!MEMB[0]){if(o===null)location.href='../real/index.html';return}var a=Math.max(0,AREAID.indexOf(o.area)),stg=Math.max(1,Math.round((o.lv|0)/3));
+  var M=o.mons.map(function(id){var r=ENG.mon[id];return r?BattleEngine.monster(r,stg,ENG):null}).filter(Boolean);if(!M.length){toast('怪物資料讀不到');return}
+  startLive(a,1,autoPref(),{mons:M,real:o})}
+function realExpBase(lv,boss){var best=null,bd=1e9;(ENG.stage||[]).forEach(function(r){if((r.boss==='1')!==!!boss)return;var rec=parseInt(r.level,10)||3*(parseInt(r.stage,10)||1),d=Math.abs(rec-lv);if(d<bd){bd=d;best=r}});return best?parseInt(best.exp,10)||0:20}
+function realReq(b){var o=b.real,c=REALC[o.area]||REALC.area01,n=o.mons.length,cm=o.rare?1:n>=3?n/3:1-(3-n)/4;
+  var exp=Math.max(1,Math.round(realExpBase(o.lv|0,o.rare)*REALX*cm*(0.9+Math.random()*0.2))),kind=['crystal','ore','orb'][Math.floor(Math.random()*3)],cnt=o.rare?20+Math.floor(Math.random()*20):5+Math.floor(Math.random()*16);
+  return{real:true,id:o.id,p:o.p,exp:Math.min(1500,exp),mat:kind+'_'+c[0],n:cnt,egg:o.rare||Math.random()<0.01?c[1]:''}}
+function realResult(w){var me=MEMB[0];if(!w){$('rtxt').innerHTML='這場沒有獎勵。怪物還在原地，可以再挑戰。';curClear();return}
+  var req=B.req||(B.req=makeReq(B)),ki=(MKINDB.filter(function(k){return req.mat.indexOf(k[0]+'_')===0})[0]||[0,''])[1],cc=(MCOLB.filter(function(c){return req.mat.slice(req.mat.indexOf('_')+1)===c[0]})[0]||[0,''])[1],en=req.egg?(EGGN.filter(function(x){return x[0]===req.egg})[0]||[0,''])[1]:'';
+  $('rtxt').innerHTML='獲得 經驗 <b>'+req.exp+'</b>、<img src="../assets/beast/mat_'+esc(req.mat)+'.png" alt="" style="width:18px;height:18px;image-rendering:pixelated;vertical-align:-3px">'+cc+'色'+ki+' <b>×'+req.n+'</b>'+(en?'<br>🥚 得到「'+en+'」！':'')+'<br><small>幻境的經驗是一般關卡的 30%</small><br><small id="rsave">'+(B.saved?'已存檔':'獎勵寫入中…')+'</small>';
+  if(B.saved)return;var bb=B,msg=function(t){var q=$('rsave');if(q)q.textContent=t};if(demo){msg('示範模式：不寫入');return}$('rok').disabled=true;
+  var tries=0;(function put(){tries++;withFB(function(FB){FB.realWin(req).then(function(){bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.beastMat=Object.assign({},me.beastMat||{});me.beastMat[req.mat]=(me.beastMat[req.mat]|0)+req.n;if(req.egg){me.beastEggs=Object.assign({},me.beastEggs||{});me.beastEggs[req.egg]=(me.beastEggs[req.egg]|0)+1}msg('已存檔');$('rok').disabled=false},
+    function(e){if(e&&e.code==='already'){bb.saved=true;msg('這組怪物已經打倒過了（沒有重複給獎勵）');$('rok').disabled=false;return}if(tries<3&&e&&e.code==='permission-denied'){msg('跟上一場隔太近，稍等一下自動存檔…');setTimeout(put,16000);return}msg('存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入，請截圖給開發者）');$('rok').disabled=false})})})()}
 function showResult(){if(B&&B.tut){tutEnd(B.res==='win');return}var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
   var box=$('bres');box.hidden=false;$('rok').disabled=false;
   if(B.rift){riftResult(w);return}
+  if(B.real){realResult(w);return}
   if(!w){$('rtxt').innerHTML='這場沒有獎勵，下次再挑戰吧。';curClear();$('frame').scrollIntoView({block:'nearest',behavior:'smooth'});return}
   var req=B.req||(B.req=makeReq(B)),me=MEMB[0],mail=req.share||[];
   var h='獲得 經驗 <b>'+req.exp+'</b>、鍛造石 <b>'+req.stones+'</b>'+(req.cookie?'、寵物餅乾 <b>1</b>':'')+(req.bx&&req.bx.length?'<br><small>'+req.bx.join('、')+'</small>':'')+lvTxt(req.lvi)+
@@ -3558,9 +3622,9 @@ function saveWin(bb,req,ui){
       ui.msg('存檔被擋，正在找出是哪一部分被擋（約 20 秒）…');r2[st[0]]=st[0]==='share'?[]:st[0]==='cookie'?false:0;cut.push(st[1]);
       setTimeout(function(){FB.advWin(r2).then(function(){setLastAdv(Date.now());bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.stones=(me.stones|0)+req.stones;
         ui.msg('經驗、鍛造石已存檔；被擋下沒存到：'+cut.join('、')+'（請截圖給開發者）');ui.lock(false)},function(){tryCut()})},21500)})()})})})}setTimeout(put,wait)}
-$('rok').addEventListener('click',function(){curClear();showView('map')});
+$('rok').addEventListener('click',function(){var rl=B&&B.real;curClear();if(rl){location.href='../real/index.html';return}showView('map')});/* 幻境的戰鬥：確認後回到幻境 */
 /* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
-function resume(o){if(!o.rift)setLastArea(o.a);PARTS=[];B={rift:o.rift||null,ev:o.ev,mons:o.mons,pkl:o.pkl||{},psw:o.psw||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
+function resume(o){if(!o.rift&&!o.real)setLastArea(o.a);PARTS=[];B={rift:o.rift||null,real:o.real||null,ev:o.ev,mons:o.mons,pkl:o.pkl||{},psw:o.psw||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
   B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=battleTitle(B);$('log').textContent='';$('bres').hidden=true;
   setBG(B.rift?'R':AREA[o.a].bg);riftCenter();build();B.t0=performance.now()-(Date.now()-o.wall);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
@@ -3694,7 +3758,7 @@ function npcMembers(me){if(!window.NPC)return[];return (me.npcParty||[]).filter(
 function start(me,mem){
   MEMB=[me].concat(npcMembers(me)).concat(mem);NavIcons.setPlayer(me);
   Music.init(BASE);$('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試入口（選關預設戰棋）':'');
-  $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o)}
+  $('loading').remove();renderTabs();showView('map');var o=curLoad();if(o)resume(o);else realBoot()}
 /* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
 var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
@@ -3723,7 +3787,7 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
     dm.forEach(function(q,i){var j=JS[i];q.jobSn=j;q.job=parseInt(j.slice(3),10)-1;q.lv=40;q.jobLv={};q.jobLv[j]=20;EX[i].forEach(function(x){q.jobLv[x]=30});
       var mine=Object.keys(ENG.SK).map(function(k){return ENG.SK[k]}).filter(function(k){return k.kind==='combat'&&k.j===j&&k.lv<=20}).map(function(k){return k.id});
       q.skills={combat:mine.slice(0,4),extra:EX[i].slice()}});start(dm[0],dm.slice(1));return}
-  if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});start(d[0],d.slice(1));return}
+  if(demo){var d=demoPlayers();[95,65,35].forEach(function(lv,i){var q=d[i],k=q&&WBYNAME[q.weapon];if(k){q.weapons=q.weapons||{};q.weapons[k]={lv:lv,ench:['rune01','rune10','rune05']}}});if(d[0]&&!d[0].beasts){d[0].beasts=[{sp:'fire',name:'小紅',at:1,lv:7,st:{atk:4,dmg:3,crit:2,hp:2,red:1,eva:1,ores:2,res:2,cdmg:1}},{sp:'moon',name:'小紫',at:2}];d[0].beastMat={crystal_red:120,ore_red:15,orb_red:60};d[0].beastEggs={leaf:1}}/* 示範模式：給兩隻幻獸試照料幻獸 */start(d[0],d.slice(1));return}
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){
     var me=Object.assign({uid:who.user.uid},who.player),pu=(me.party||[]).slice(0,3);
     return Promise.all([FB.getPlayers(pu),FB.difficultyGet?FB.difficultyGet().catch(function(){return null}):null,FB.rewardGet?FB.rewardGet().catch(function(){return null}):null,FB.riftMulGet?FB.riftMulGet().catch(function(){return null}):null]).then(function(R){if(R[1])ENG.mul=R[1];if(R[3])RMUL=R[3];/* 秘境專用倍率（管理後台） */if(R[2])REW=R[2];/* 獎勵等級遞減（管理後台） *//* 怪物強度倍率（管理後台） */start(me,(R[0]||[]).filter(Boolean));res()})})})})

@@ -178,7 +178,7 @@ function monOf0(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Mat
   var mx=(sx+.2+.6*r01('mx',sx,sy,PER))*SUB,my=(sy+.2+.6*r01('my',sx,sy,PER))*SUB;
   /* 只生在路邊：離路邊 MROAD 公尺內（又不在路上、水裡）就留著，太遠就挪到 250 公尺內最近那條路的路邊；附近沒路就不生 */
   if(!(onRoad(mx,my,MROAD)&&!onRoad(mx,my,2)&&!inWater(mx,my))){var rp=roadSide(mx,my,250);if(!rp)return null;mx=rp[0];my=rp[1]}
-  return{id:sx+','+sy,x:mx,y:my,k:m.sprite,n:m.monster_name.split('‧')[0],lv:lv,cnt:rare?1:2+h32('mc',sx,sy,PER)%3,z:z,rare:!!rare,ph:h32('mp',sx,sy)%1000}}
+  return{id:sx+','+sy,mid:id,x:mx,y:my,k:m.sprite,n:m.monster_name.split('‧')[0],lv:lv,cnt:rare?1:2+h32('mc',sx,sy,PER)%3,z:z,rare:!!rare,ph:h32('mp',sx,sy)%1000}}
 /* ---- 狀態 ---- */
 var cv=$('map'),cx=cv.getContext('2d'),ov=$('ov'),ox=ov.getContext('2d'),S=2,W=0,H=0,DPR=1;
 var me={x:0,y:0,face:1,mv:0},gps=false,gpsId=null,fast=false,keys={},drag=null,sel=null,lastT=0,pat={},doll=null,MONS=[];
@@ -207,7 +207,7 @@ function draw(now){
   /* 裝飾物、怪物、自己：依畫面上下排序（下面的蓋住上面的） */
   var objs=[],flats=[];MONS=[];
   for(var sx=Math.floor((x0-100)/SUB);sx<=Math.floor((x1+100)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
-    var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
+    var mo=monOf(sx,sy);if(mo&&(inWater(mo.x,mo.y)||killed(mo.id)))mo=null;/* 這個時段打倒過的不再出現 *//* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
     decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.ftn?60:d.house?30:d.big?20:d.lamp?14:14))return;if(!clearOf(d))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
   flats.forEach(function(o){if(o.spark){var g2=scr(o.x,o.y);cx.save();for(var q=0;q<4;q++){var t=((now/1800)+o.ph+q/4)%1;cx.globalAlpha=(1-t)*.9;cx.fillStyle=t<.4?'#ffd27a':'#ff7a30';cx.fillRect(Math.round(g2[0]+Math.sin(t*7+q*2+o.ph)*3+(q-1.5)*3),Math.round(g2[1]-t*18),1,1)}cx.restore();return}if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
@@ -437,8 +437,14 @@ function hud(now){var z=zoneAt(Math.floor(me.x/ZONE),Math.floor(me.y/ZONE));$('z
   $('pd').textContent=('0'+st).slice(-2)+':00–'+('0'+(st+3)%24).slice(-2)+':00　'+hh+':'+('0'+mm).slice(-2)+':'+('0'+ss).slice(-2)+' 後換一批';
   if(p!==PER){PER=p;sel=null;$('pn').hidden=true}}
 /* ---- 怪物資訊 ---- */
+/* 打倒的怪物點：帳號裡的 realK = {p 時段, k 怪物點清單} */
+function killed(id){var p=meP(),k=p&&p.realK;return !!(k&&k.p===PER&&(k.k||[]).indexOf(id)>=0)}
+/* 開戰：代表怪＋同地域的其他怪（照怪物點固定），王只有一隻；帶著資料到冒險頁打，打完回來 */
+function lineup(o){if(o.rare)return[o.mid];var pool=(POOL[o.z.area]||{}).norm||[o.mid],L=[o.mid];for(var i=1;i<o.cnt;i++){var sx=+o.id.split(',')[0],sy=+o.id.split(',')[1];L.push(pool[h32('mq'+i,sx,sy,PER)%pool.length]||o.mid)}return L}
+function fight(o){if(!meP()){toastMsg('要先登入才能戰鬥');return}if(killed(o.id)){toastMsg('這組怪物已經打倒了');return}
+  try{sessionStorage.setItem('real.fight',JSON.stringify({id:o.id,p:PER,mons:lineup(o),lv:o.lv,area:o.z.area,zn:o.z.n,rare:o.rare}))}catch(e){toastMsg('瀏覽器不允許暫存，沒辦法開戰');return}save();location.href='../battle/index.html?real=1'}
 function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');
-  pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" disabled>'+(ok?'戰鬥（試作版尚未開放）':'太遠了')+'</button></div>';pn.hidden=false}
+  pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" data-a="go"'+(ok?'':' disabled')+'>'+(ok?'戰鬥':'太遠了')+'</button></div><p style="font-size:11px;margin:6px 0 0">打贏可得經驗（一般關卡的 30%）、'+o.z.n+'的素材'+(o.rare?'，王必掉一顆幻獸蛋':'，1% 機率掉幻獸蛋')+'</p>';pn.hidden=false}
 $('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};
 var DEV=/[?&]dev=1/.test(location.search);if(DEV){$('devb').hidden=false;$('tip').hidden=false}else $('bBag').style.bottom='calc(env(safe-area-inset-bottom) + 14px)';/* ?dev=1：測試用，保留 GPS 開關、快速移動、回到起點與拖曳走路 */
 /* 下方的返回傳送門：跟冒險地圖上的幻境門同一個紫色星芒 */
@@ -453,7 +459,7 @@ function starGate(x,N,tt){var C=N/2,R=N*.47,img=x.createImageData(N,N),d=img.dat
   x.putImageData(img,0,0);
   for(var j=0;j<6;j++){var tw=Math.max(0,Math.sin(tt*2+j*1.7));if(tw<.3)continue;var h1=Math.sin((j+2)*127.1)*43758.5453,h2=Math.sin((j+9)*127.1)*43758.5453,px=Math.floor((h1-Math.floor(h1))*N),py=Math.floor((h2-Math.floor(h2))*N);if(sd(px-C,py-C,R)<1.3)continue;x.fillStyle=j%2?'rgba(170,255,240,'+tw+')':'rgba(255,255,255,'+tw+')';x.fillRect(px,py,1,1)}}/* 周圍忽亮忽滅的小星點 */
 (function(){var c=$('bkc'),x=c.getContext('2d');(function f(t){starGate(x,24,t/1000);requestAnimationFrame(f)})(0)})();
-$('pn').addEventListener('click',function(e){if(e.target.closest('[data-a="x"]')){$('pn').hidden=true;sel=null}});
+$('pn').addEventListener('click',function(e){if(e.target.closest('[data-a="x"]')){$('pn').hidden=true;sel=null}else if(e.target.closest('[data-a="go"]')&&sel){var d=Math.hypot(sel.x-me.x,sel.y-me.y);if(d<=REACH)fight(sel)}});
 /* ---- 操作：按住拖曳走路（像搖桿）、方向鍵、點怪物 ---- */
 cv.addEventListener('pointerdown',function(e){if(!$('bag').hidden){$('bag').hidden=true;return}var px=e.clientX/S,py=e.clientY/S,hit=null;MONS.forEach(function(o){if(o.box&&px>=o.box[0]-4&&px<=o.box[0]+o.box[2]+4&&py>=o.box[1]-8&&py<=o.box[1]+o.box[3]+2)hit=o});
   if(hit){showMon(hit);return}drag={x:e.clientX,y:e.clientY,dx:0,dy:0,id:e.pointerId};cv.setPointerCapture(e.pointerId)});
