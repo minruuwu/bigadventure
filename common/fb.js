@@ -248,6 +248,18 @@ const FB = {
     }));
     mePatch({ chatAt: Date.now() });
   },
+  // ---- 幻獸孵蛋(實境頁)：beastEggs、hatch {egg, m}、beasts [{sp, name, at}]；規則在 firestore.rules 的 beastOk ----
+  async beastHatchStart(egg) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
+    const p = await FB.myFresh(); if (!p) throw new Error('no-player'); if (p.hatch) throw new Error('busy');
+    if ((p.beasts || []).length >= 6) throw new Error('full'); const n = ((p.beastEggs || {})[egg]) | 0; if (n < 1) throw new Error('no-egg');
+    const f = {}; f['beastEggs.' + egg] = n - 1; f.hatch = { egg, m: 0 }; await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f; },
+  async beastHatchStep(m) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
+    const f = { 'hatch.m': Math.min(2000, Math.round(m)) }; await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f['hatch.m']; },
+  async beastHatchDone(name) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
+    const p = await FB.myFresh(); if (!p || !p.hatch || (p.hatch.m || 0) < 2000) throw new Error('not-ready');
+    const b = { sp: p.hatch.egg, name: String(name || '').trim().slice(0, 8), at: Date.now() }; if (!b.name) throw new Error('no-name');
+    const nb = (p.beasts || []).concat([b]); await tmo(updateDoc(doc(db, 'players', u.uid), { hatch: deleteField(), beasts: nb }));
+    const c = meGet(); if (c) { delete c.player.hatch; c.player.beasts = nb; try { localStorage.setItem(ME_KEY, JSON.stringify(c)); } catch (e) {} } return b; },
   async updatePlayer(fields) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in'); await tmo(updateDoc(doc(db, 'players', u.uid), fields)); mePatch(fields); },
   // Rename: names must stay unique; at most 3 renames; the old name is released after success.
   async renamePlayer(newName) {

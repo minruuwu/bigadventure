@@ -33,6 +33,26 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .bag .mats .it{display:flex;align-items:center;gap:4px;background:rgba(90,58,24,.12);padding:2px 4px}
 .bag .mats .it span{width:24px;height:24px;display:flex;align-items:center;justify-content:center}
 .bag .mats .it img{max-width:24px;max-height:24px;image-rendering:pixelated}
+.bag .eggs .eg{position:relative;cursor:pointer;padding:3px 0 2px}.bag .eggs .eg.z img{opacity:.35}
+.bag .eggs .eg.on::before{content:'';position:absolute;left:50%;top:1px;width:34px;height:34px;margin-left:-17px;border-radius:50%;background:conic-gradient(rgba(255,215,90,0) 0 62%,#ffd45a 76%,#fff4c4 82%,#ffd45a 88%,rgba(255,215,90,0) 100%);animation:hspin 1.4s linear infinite;filter:blur(.6px)}
+.bag .eggs .eg.on img{position:relative;filter:drop-shadow(0 0 3px #ffd45a)}
+.bag .eggs .eg .tag{position:absolute;left:-2px;right:-2px;top:12px;background:linear-gradient(#e7b53b,#b07d15);color:#fff8de;font-size:9px;font-weight:700;letter-spacing:.1em;transform:rotate(-14deg);box-shadow:0 1px 0 #5a3a08;pointer-events:none}
+@keyframes hspin{to{transform:rotate(360deg)}}
+.nest{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 54px);width:96px;padding:4px 4px 6px;background:rgba(18,12,8,.6);box-shadow:0 0 0 2px #080503;cursor:pointer;text-align:center}
+.nest[hidden]{display:none}
+.nest .nw{position:relative;width:88px;height:84px;margin:0 auto}
+.nest .nb{position:absolute;left:0;bottom:0;width:88px;image-rendering:pixelated}
+.nest .ne{position:absolute;left:50%;bottom:22px;width:42px;margin-left:-21px;image-rendering:pixelated;transform-origin:50% 90%;animation:nwob var(--wd,4s) ease-in-out infinite}
+.nest.full .ne{animation:nhop .55s ease-in-out infinite,nglow 1.2s ease-in-out infinite}
+@keyframes nwob{0%,55%,100%{transform:rotate(0)}65%{transform:rotate(-9deg)}75%{transform:rotate(8deg)}85%{transform:rotate(-5deg)}93%{transform:rotate(3deg)}}
+@keyframes nhop{0%,100%{transform:translateY(0)}45%{transform:translateY(-12px)}}
+@keyframes nglow{0%,100%{filter:drop-shadow(0 0 2px #ffd45a) drop-shadow(0 0 5px #ffb820)}50%{filter:drop-shadow(0 0 5px #fff1a8) drop-shadow(0 0 10px #ffc83a)}}
+.nest .bar{height:6px;background:#2a1708;box-shadow:inset 0 0 0 1px #5a3a18;margin:2px 2px 0}.nest .bar i{display:block;height:100%;background:linear-gradient(#9be27a,#4c9a32)}
+.nest.full .bar i{background:linear-gradient(#ffe68a,#d79a16)}
+.nest small{display:block;font-size:10px;color:#eadbbd;margin-top:2px}
+.nest.full small{color:#ffe28a;font-weight:700}
+.pn .hb{display:block;width:72px;height:72px;margin:6px auto;image-rendering:pixelated;object-fit:contain}
+.pn input{font:inherit;width:100%;padding:6px 8px;margin-top:6px;border:0;box-shadow:inset 0 0 0 2px #8a6a3a;background:#fff8e6;color:#3b2713}
 .bag .x{position:absolute;top:6px;right:6px;width:28px;height:28px;padding:0;font:inherit;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;box-shadow:0 0 0 2px #1d1008;cursor:pointer}
 #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#120c08;font-size:15px}
 </style></head><body>
@@ -43,9 +63,12 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <div class="pn" id="pn" hidden></div>
 <button type="button" class="bagb" id="bBag" title="行囊"><img src="../assets/real/bag.png" alt="行囊"></button>
 <div class="bag" id="bag" hidden></div>
+<div id="tst" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 84px);transform:translateX(-50%);max-width:86%;font-size:13px;background:rgba(18,12,8,.88);color:#f6e8c0;padding:6px 10px;box-shadow:0 0 0 2px #5a3a18;z-index:9;pointer-events:none"></div>
+<div class="nest" id="nest" hidden title="孵化中的蛋"><div class="nw"><img class="nb" src="../assets/beast/nest.png" alt=""><img class="ne" id="nestEgg" alt=""></div><div class="bar"><i id="nestBar"></i></div><small id="nestTxt"></small></div>
 <div id="rdm" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);font-size:12px;background:rgba(18,12,8,.8);padding:3px 8px;pointer-events:none"></div>
 <div style="position:fixed;right:4px;top:calc(env(safe-area-inset-top) + 50px);font-size:9px;color:rgba(255,255,255,.75);text-shadow:0 0 2px #000;pointer-events:none">© OpenStreetMap contributors</div>
 <div id="load">讀取中…</div>
+<script type="module" src="../common/fb.js?v=43"></script>
 <script src="../common/monsters.js?v=84"></script>
 <script src="../common/doll.js?v=12"></script>
 <script>
@@ -213,14 +236,57 @@ function draw(now){
   drawClouds(now)}
 /* ---- 行囊：看各種幻獸蛋和素材有幾個（資料之後由地圖戰鬥寫進玩家資料：player.beastEggs、player.beastMat） ---- */
 var EGGS=[['fire','龍蜥蛋'],['ice','牙犬蛋'],['bolt','靈鼠蛋'],['wind','羽禽蛋'],['leaf','角蹄蛋'],['sun','輝獸蛋'],['moon','暗鱗蛋']];
+/* 孵出來的幻獸：圖（assets/beasts）和預設名字（顏色＋種族） */
+var BEAST={fire:['fire','紅龍蜥'],ice:['frost','藍牙犬'],bolt:['lightning','黃靈鼠'],wind:['wind','青羽禽'],leaf:['nature','綠角蹄'],sun:['light','金輝獸'],moon:['dark','紫暗鱗']};
+var HATCH_M=2000,BEAST_MAX=6;/* 孵一顆蛋要走 2 公里；幻獸最多 6 隻 */
 var MCOL=[['red','紅','火','fire'],['blue','藍','冰','frost'],['yellow','黃','雷','lightning'],['teal','青','風','wind'],['green','綠','自然','nature'],['gold','金','光','light'],['purple','紫','暗','dark']];/* 最後一欄：元素圖示 assets/icons/stats/res_*.png */
 var MKIND=[['crystal','結晶','攻擊'],['ore','礦石','生存'],['orb','寶珠','輔助']];
-function bagData(){try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null'),p=c&&c.player||{};return{e:p.beastEggs||{},m:p.beastMat||{}}}catch(e){return{e:{},m:{}}}}
+function meP(){try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null');return c&&c.player||null}catch(e){return null}}
+function bagData(){var p=meP()||{};return{e:p.beastEggs||{},m:p.beastMat||{},h:p.hatch||null,b:p.beasts||[]}}
 function openBag(){var d=bagData(),B='../assets/beast/',h='<button type="button" class="x" id="bagX" aria-label="關閉">✕</button><h3><img src="../assets/real/bag.png" alt="">行囊</h3>';
-  h+='<h4>幻獸蛋</h4><div class="eggs">'+EGGS.map(function(e){return '<div><img src="'+B+'egg_'+e[0]+'.png" alt="">'+e[1]+'<b>×'+(d.e[e[0]]|0)+'</b></div>'}).join('')+'</div>';
+  h+='<h4>幻獸蛋（點一顆開始孵化）</h4><div class="eggs">'+EGGS.map(function(e){var on=d.h&&d.h.egg===e[0],n=d.e[e[0]]|0;return '<div class="eg'+(on?' on':'')+(!n&&!on?' z':'')+'" data-egg="'+e[0]+'"><img src="'+B+'egg_'+e[0]+'.png" alt="">'+(on?'<span class="tag">孵化中</span>':'')+e[1]+'<b>×'+n+'</b></div>'}).join('')+'</div>';
   h+='<h4>素材</h4><div class="mats"><span></span>'+MKIND.map(function(k){return '<span class="hd">'+k[1]+'</span>'}).join('');
   MCOL.forEach(function(c){h+='<span class="cl" title="'+c[2]+'"><img src="../assets/icons/stats/res_'+c[3]+'.png" alt="'+c[2]+'"></span>'+MKIND.map(function(k){var key=k[0]+'_'+c[0];return '<span class="it" title="'+c[1]+'色'+k[1]+'"><span><img src="'+B+'mat_'+key+'.png" alt=""></span>×'+(d.m[key]|0)+'</span>'}).join('')});
-  h+='</div>';var el=$('bag');el.innerHTML=h;el.hidden=false;$('bagX').onclick=function(){el.hidden=true}}
+  h+='</div>';var el=$('bag');el.innerHTML=h;el.hidden=false;$('bagX').onclick=function(){el.hidden=true};
+  Array.prototype.forEach.call(el.querySelectorAll('.eg'),function(x){x.onclick=function(){askHatch(x.getAttribute('data-egg'))}})}
+function ename(k){for(var i=0;i<EGGS.length;i++)if(EGGS[i][0]===k)return EGGS[i][1];return k}
+function pnShow(h){var p=$('pn');$('bag').hidden=true;p.style.zIndex=8;p.innerHTML='<button type="button" class="x" id="pnX">✕</button>'+h;p.hidden=false;$('pnX').onclick=function(){p.hidden=true}}
+function fbErr(e){var c=e&&(e.message||e.code)||'';return c==='not-signed-in'?'請先在首頁登入。':c==='full'?'幻獸已滿 '+BEAST_MAX+' 隻，不能再孵。':c==='busy'?'已經有一顆蛋在孵化中。':c==='no-egg'?'沒有這顆蛋。':'存檔失敗，請稍後再試（'+c+'）'}
+function askHatch(k){var d=bagData();
+  if(d.h){if(d.h.egg!==k)toastMsg('「'+ename(d.h.egg)+'」孵化中，孵化成功前不能更換。');return}
+  if(!(d.e[k]|0))return toastMsg('還沒有'+ename(k)+'。');
+  if(d.b.length>=BEAST_MAX)return toastMsg('幻獸已滿 '+BEAST_MAX+' 隻，不能再孵。');
+  pnShow('<h3>開始孵化</h3><img class="hb" src="../assets/beast/egg_'+k+'.png" alt=""><p>確定要孵化這顆「'+ename(k)+'」嗎？</p><p style="color:#9a2a10;font-weight:700">⚠ 孵化成功前，不能更換成其他蛋。</p><p style="font-size:12px">開著 GPS 實際走 2 公里就會孵化。</p><div class="row"><button type="button" id="hNo">取消</button><button type="button" id="hOk">確定孵化</button></div>');
+  $('hNo').onclick=function(){$('pn').hidden=true};
+  $('hOk').onclick=function(){var b=this;b.disabled=true;if(!window.FB)return toastMsg('連線還沒準備好，請稍後再試。');
+    FB.beastHatchStart(k).then(function(){$('pn').hidden=true;pend=0;savePend();nestUpd();if(!$('bag').hidden)openBag()},function(e){b.disabled=false;toastMsg(fbErr(e))})}}
+function toastMsg(t){var r=$('tst');r.textContent=t;r.hidden=false;clearTimeout(toastMsg.t);toastMsg.t=setTimeout(function(){r.hidden=true},2600)}
+/* ---- 孵化：地圖左上的鳥巢、走路距離 ---- */
+var pend=0;try{pend=+localStorage.getItem('real.hatch.pend')||0}catch(e){}
+function savePend(){try{localStorage.setItem('real.hatch.pend',String(pend))}catch(e){}}
+function hatchM(){var h=bagData().h;return h?Math.min(HATCH_M,(h.m||0)+pend):0}
+function nestUpd(){var h=bagData().h,n=$('nest');if(!h){n.hidden=true;return}n.hidden=false;var m=hatchM(),r=m/HATCH_M,full=m>=HATCH_M;
+  $('nestEgg').src='../assets/beast/egg_'+h.egg+'.png';n.classList.toggle('full',full);$('nestBar').style.width=Math.round(r*100)+'%';
+  $('nestTxt').textContent=full?'點我孵化！':(m/1000).toFixed(2)+' / '+(HATCH_M/1000).toFixed(1)+' km';
+  $('nestEgg').style.setProperty('--wd',(4-2.8*r).toFixed(2)+'s')}
+var syncing=false;
+function hatchSync(force){var h=bagData().h;if(!h||syncing||!window.FB||!FB.user())return;var m=Math.min(HATCH_M,(h.m||0)+pend);
+  if(m<=(h.m||0))return;if(!force&&pend<100&&m<HATCH_M)return;var step=Math.min(m,(h.m||0)+600);syncing=true;
+  FB.beastHatchStep(step).then(function(v){pend=Math.max(0,pend-(v-(h.m||0)));savePend();syncing=false;nestUpd();if(pend>=100||((bagData().h||{}).m||0)+pend>=HATCH_M&&pend>0)hatchSync()},function(){syncing=false})}
+/* GPS 每次定位：精準度 35 公尺內、一次 4～120 公尺、速度每秒 4.5 公尺內才算走路（拖曳、快速移動、GPS 亂跳都不算） */
+var lastFix=null;
+function gpsStep(x,y,acc){var t=Date.now();if(acc>35){return}if(!lastFix){lastFix={x:x,y:y,t:t};return}var dd=Math.hypot(x-lastFix.x,y-lastFix.y),dt=(t-lastFix.t)/1000;
+  if(dd<4)return;if(dd<=120&&dt>0&&dd/dt<=4.5&&bagData().h&&hatchM()<HATCH_M){pend+=dd;savePend();nestUpd();hatchSync()}lastFix={x:x,y:y,t:t}}
+$('nest').onclick=function(){var h=bagData().h;if(!h)return;if(hatchM()<HATCH_M){openBag();return}
+  if(pend>0&&((h.m||0)<HATCH_M)){hatchSync(true);return toastMsg('同步孵化進度中，再點一次…')}
+  var bs=BEAST[h.egg];pnShow('<h3>🎉 孵化成功！</h3><img class="hb" src="../assets/beasts/beast_'+bs[0]+'.png" alt=""><p>「'+ename(h.egg)+'」孵出了<b>'+bs[1]+'</b>！幫牠取個名字吧（最多 8 個字）：</p><input id="hName" maxlength="8" value="'+bs[1]+'"><div class="row"><button type="button" id="hDone">確定</button></div>');
+  $('hDone').onclick=function(){var b=this,nm=Array.from(($('hName').value||'').trim()).slice(0,8).join('');if(!nm)return toastMsg('請輸入名字。');b.disabled=true;
+    FB.beastHatchDone(nm).then(function(){$('pn').hidden=true;pend=0;savePend();nestUpd();toastMsg('「'+nm+'」加入了你的幻獸！之後可以到帕拉迪村找艾德蒙。')},function(e){b.disabled=false;toastMsg(fbErr(e))})}};
+window.addEventListener('fb-player-updated',function(){nestUpd()});
+/* 進頁面時跟伺服器拿一次最新的玩家資料（蛋、孵化進度），再補上還沒同步的距離 */
+function fbInit(){FB.ready.then(function(u){if(!u)return;FB.myFresh().then(function(){nestUpd();hatchSync()},function(){})})}
+if(window.FB)fbInit();else window.addEventListener('fb-ready',fbInit);
+nestUpd();
 $('bBag').onclick=function(e){e.stopPropagation();if($('bag').hidden)openBag();else $('bag').hidden=true};
 $('bag').addEventListener('pointerdown',function(e){e.stopPropagation()});
 /* ---- 天上的雲：從左上往右下飄過，疊在最上層（連怪物等級標籤也蓋過），半透明；偶爾一小群一起飄來 ---- */
@@ -380,7 +446,7 @@ $('bFast').onclick=function(){fast=!fast;this.textContent='快速移動：'+(fas
 $('bHome').onclick=function(){try{localStorage.removeItem('real.pos')}catch(e){}var m=toM(HOME[0],HOME[1]);me.x=m[0];me.y=m[1];save()};
 $('bGps').onclick=function(){var b=this;if(gps){gps=false;if(gpsId!=null)navigator.geolocation.clearWatch(gpsId);gpsId=null;b.textContent='GPS：關';b.classList.remove('on');return}
   if(!navigator.geolocation){alert('這個瀏覽器不支援定位');return}b.textContent='GPS：定位中…';
-  gpsId=navigator.geolocation.watchPosition(function(p){var m=toM(p.coords.latitude,p.coords.longitude);if(m[0]!==me.x)me.face=m[0]<me.x?-1:1;me.mv=gps&&Math.hypot(m[0]-me.x,m[1]-me.y)>.5?1:0;me.x=m[0];me.y=m[1];gps=true;b.textContent='GPS：開（±'+Math.round(p.coords.accuracy)+'m）';b.classList.add('on');save()},
+  gpsId=navigator.geolocation.watchPosition(function(p){var m=toM(p.coords.latitude,p.coords.longitude);if(m[0]!==me.x)me.face=m[0]<me.x?-1:1;me.mv=gps&&Math.hypot(m[0]-me.x,m[1]-me.y)>.5?1:0;me.x=m[0];me.y=m[1];gpsStep(m[0],m[1],p.coords.accuracy);gps=true;b.textContent='GPS：開（±'+Math.round(p.coords.accuracy)+'m）';b.classList.add('on');save()},
     function(err){gps=false;b.textContent='GPS：關';b.classList.remove('on');alert(err.code===1?'沒有允許使用位置。請到瀏覽器或手機設定裡，允許這個網站使用位置後再試一次。':'定位失敗：'+err.message)},{enableHighAccuracy:true,maximumAge:2000,timeout:20000})};
 /* ---- 主迴圈 ---- */
 function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;

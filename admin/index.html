@@ -106,6 +106,10 @@ function body(p){var jsn=JSEL[p.uid]||(JOBS[0]&&JOBS[0].u_sn),jl=((p.jobLv||{})[
   var wsn=WSEL[p.uid]||(WPN[0]&&WPN[0].u_sn),wd=((p.weapons||{})[wsn])||{};
   h+='<h3>武器等級與外觀階</h3><div class="rw"><select id="ws-'+p.uid+'" data-a="wsel">'+WPN.map(function(w){return '<option value="'+w.u_sn+'"'+(w.u_sn===wsn?' selected':'')+'>'+esc(w.weapon_name)+'</option>'}).join('')+'</select></div><div class="rw"><label>Lv</label><input type="number" min="1" step="1" id="wl-'+p.uid+'" value="'+Math.max(1,wd.lv|0||1)+'"><label>外觀階</label><input type="number" min="1" max="4" step="1" id="wt-'+p.uid+'" value="'+Math.min(4,Math.max(1,wd.stage|0||1))+'"><button type="button" data-a="wpn">儲存</button></div>';
   h+=runeBox(p);
+  var EG=[['fire','龍蜥蛋'],['ice','牙犬蛋'],['bolt','靈鼠蛋'],['wind','羽禽蛋'],['leaf','角蹄蛋'],['sun','輝獸蛋'],['moon','暗鱗蛋']],be=p.beastEggs||{},bh=p.hatch;
+  h+='<h3>幻獸蛋（測試用）</h3><div class="rw" style="flex-wrap:wrap">'+EG.map(function(e){return '<button type="button" data-a="egg" data-id="'+e[0]+'">'+e[1]+' ×'+(be[e[0]]|0)+'　+1</button>'}).join('')+'</div>'+
+    '<div class="rw"><label>孵化中</label><span>'+(bh?esc((EG.filter(function(e){return e[0]===bh.egg})[0]||[0,bh.egg])[1])+'　'+Math.round(bh.m||0)+' / 2000 公尺':'沒有')+'</span>'+(bh?'<button type="button" data-a="hfull">進度設滿</button>':'')+'</div>'+
+    '<div class="rw"><label>幻獸</label><span>'+((p.beasts||[]).map(function(b){return esc(b.name)}).join('、')||'沒有')+'</span><button type="button" data-a="breset">清掉孵化中與幻獸</button></div>';
   h+='<h3>一鍵重置</h3><div class="rw"><button type="button" data-a="reset" class="danger">重置角色進度</button><span class="note">人物 Lv1、經驗 0、所有武器 Lv1（含淬火、附魔、外觀階）、鍛造石 0、職業回戰士且等級歸 0、配點歸 0、技能配置清空、冒險關卡進度歸零</span></div>';
   return h+'<p class="note" id="wn-'+p.uid+'"></p></div>'}
 /* 符文等級：rs.<符文id> 存碎片累積數，等級由碎片數換算（1,2,3,5,8,12,18,25,35,50 片升一級）
@@ -150,6 +154,9 @@ document.addEventListener('click',function(e){var b=e.target.closest('[data-a]')
     var j1=JOBS.filter(function(x){return x.u_sn==='job01'})[0],ok1=function(n){var w=WPN.filter(function(x){return x.weapon_name===n})[0];return !!(j1&&w&&String(j1['usable_'+String(w.weapon_e_name||'').toLowerCase()]||'').trim()==='1')};
     if(!ok1(p.weapon)){var dw=j1&&WPN.filter(function(x){return x.u_sn===j1.default_weapon})[0];fr.weapon=dw?dw.weapon_name:'劍'}
     fr.outfit=null;WPN.forEach(function(w){if(!w.u_sn)return;fr['weapons.'+w.u_sn+'.lv']=1;fr['weapons.'+w.u_sn+'.stage']=1;fr['weapons.'+w.u_sn+'.pts']=[0,0,0];fr['weapons.'+w.u_sn+'.ench']=[]});save(u,fr,'已重置「'+(p.name||'')+'」');return}
+  if(a==='egg'){var ek=b.getAttribute('data-id'),fe={};fe['beastEggs.'+ek]=((p.beastEggs||{})[ek]|0)+1;save(u,fe,'已送 1 顆蛋');return}
+  if(a==='hfull'){save(u,{'hatch.m':2000},'孵化進度已設滿');return}
+  if(a==='breset'){if(!confirm('確定清掉「'+(p.name||'')+'」的孵化中與所有幻獸？'))return;save(u,{hatch:null,beasts:[]},'已清掉孵化中與幻獸');return}
   if(a==='ckset'){var v=num('ck-'+u,0);if(v==null)return toast('請輸入 0 以上的整數',1);save(u,{cookies:v},'餅乾已設成 '+v)}
   else if(a==='ckadd'){var d=num('ca-'+u,1);if(d==null)return toast('請輸入 1 以上的整數',1);var nv=(p.cookies|0)+d;save(u,{cookies:nv},'餅乾 +'+d+'，現在 '+nv)}
   else if(a==='skset'){var v2=num('sk-'+u,0);if(v2==null)return toast('請輸入 0 以上的整數',1);save(u,{stones:v2},'鍛造石已設成 '+v2)}
