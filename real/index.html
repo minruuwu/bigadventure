@@ -18,6 +18,22 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .pn[hidden]{display:none}
 .pn h3{margin:0 0 4px;font-size:16px}.pn p{margin:2px 0;font-size:13px}.pn .row{display:flex;gap:8px;margin-top:10px}.pn .row button{flex:1}
 .pn button:disabled{opacity:.5}.pn .x{position:absolute;top:6px;right:6px;min-width:0;width:28px;height:28px;padding:0}
+.bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 136px);width:52px;height:52px;padding:0;border:0;background:rgba(18,12,8,.72);box-shadow:0 0 0 2px #1d1008,inset 0 0 0 1px #5a3a18;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bagb img{width:42px;height:auto;image-rendering:pixelated}
+.bag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:translateX(-50%);width:min(360px,calc(100% - 16px));max-height:calc(100% - 120px);overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:5}
+.bag[hidden]{display:none}
+.bag h3{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:6px}.bag h3 img{width:24px;image-rendering:pixelated}
+.bag h4{margin:10px 0 4px;font-size:13px;color:#6b4a2a;border-bottom:1px dashed #b08a5a;padding-bottom:2px}
+.bag .eggs{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:10px}
+.bag .eggs img{width:26px;image-rendering:pixelated;display:block;margin:0 auto 1px}
+.bag .eggs b{display:block;font-size:12px}
+.bag .mats{display:grid;grid-template-columns:44px repeat(3,1fr);gap:3px 4px;align-items:center;font-size:12px}
+.bag .mats .hd{font-size:11px;color:#6b4a2a;text-align:center}
+.bag .mats .cl{font-size:11px;font-weight:700}
+.bag .mats .it{display:flex;align-items:center;gap:4px;background:rgba(90,58,24,.12);padding:2px 4px}
+.bag .mats .it span{width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.bag .mats .it img{max-width:24px;max-height:24px;image-rendering:pixelated}
+.bag .x{position:absolute;top:6px;right:6px;width:28px;height:28px;padding:0;font:inherit;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;box-shadow:0 0 0 2px #1d1008;cursor:pointer}
 #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#120c08;font-size:15px}
 </style></head><body>
 <canvas id="map"></canvas><canvas id="ov"></canvas>
@@ -25,6 +41,8 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <div class="tip" id="tip" title="點一下收起">試作版：在地圖上按住拖曳就能走路（電腦可用方向鍵）。打開「GPS」改用手機定位。怪物點了可以看資訊，先不能打。</div>
 <div class="btns"><button type="button" id="bGps">GPS：關</button><button type="button" id="bFast">快速移動：關</button><button type="button" id="bHome">回到起點</button></div>
 <div class="pn" id="pn" hidden></div>
+<button type="button" class="bagb" id="bBag" title="行囊"><img src="../assets/real/bag.png" alt="行囊"></button>
+<div class="bag" id="bag" hidden></div>
 <div id="rdm" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);font-size:12px;background:rgba(18,12,8,.8);padding:3px 8px;pointer-events:none"></div>
 <div style="position:fixed;right:4px;top:calc(env(safe-area-inset-top) + 50px);font-size:9px;color:rgba(255,255,255,.75);text-shadow:0 0 2px #000;pointer-events:none">© OpenStreetMap contributors</div>
 <div id="load">讀取中…</div>
@@ -193,6 +211,18 @@ function draw(now){
   MONS.forEach(function(o){if(!o.box)return;var bx=(o.box[0]+o.box[2]/2)*S,by=o.box[1]*S-4,t='Lv'+o.lv+(o.cnt>1?' ×'+o.cnt:''),tw=ox.measureText(t).width+8;
     ox.fillStyle=o===sel?'rgba(154,58,42,.95)':'rgba(18,12,8,.78)';ox.fillRect(bx-tw/2,by-14,tw,15);ox.fillStyle=Math.hypot(o.x-me.x,o.y-me.y)<=REACH?'#9cf08a':'#f0e2c4';ox.fillText(t,bx,by-3)});
   drawClouds(now)}
+/* ---- 行囊：看各種幻獸蛋和素材有幾個（資料之後由地圖戰鬥寫進玩家資料：player.beastEggs、player.beastMat） ---- */
+var EGGS=[['fire','龍蜥蛋'],['ice','牙犬蛋'],['bolt','靈鼠蛋'],['wind','羽禽蛋'],['leaf','角蹄蛋'],['sun','輝獸蛋'],['moon','暗鱗蛋']];
+var MCOL=[['red','紅','火'],['blue','藍','冰'],['yellow','黃','雷'],['teal','青','風'],['green','綠','自然'],['gold','金','光'],['purple','紫','暗']];
+var MKIND=[['crystal','結晶','攻擊'],['ore','礦石','生存'],['orb','寶珠','輔助']];
+function bagData(){try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null'),p=c&&c.player||{};return{e:p.beastEggs||{},m:p.beastMat||{}}}catch(e){return{e:{},m:{}}}}
+function openBag(){var d=bagData(),B='../assets/beast/',h='<button type="button" class="x" id="bagX" aria-label="關閉">✕</button><h3><img src="../assets/real/bag.png" alt="">行囊</h3>';
+  h+='<h4>幻獸蛋</h4><div class="eggs">'+EGGS.map(function(e){return '<div><img src="'+B+'egg_'+e[0]+'.png" alt="">'+e[1]+'<b>×'+(d.e[e[0]]|0)+'</b></div>'}).join('')+'</div>';
+  h+='<h4>素材</h4><div class="mats"><span></span>'+MKIND.map(function(k){return '<span class="hd">'+k[1]+'<br>（'+k[2]+'）</span>'}).join('');
+  MCOL.forEach(function(c){h+='<span class="cl">'+c[1]+'・'+c[2]+'</span>'+MKIND.map(function(k){var key=k[0]+'_'+c[0];return '<span class="it" title="'+c[1]+'色'+k[1]+'"><span><img src="'+B+'mat_'+key+'.png" alt=""></span>×'+(d.m[key]|0)+'</span>'}).join('')});
+  h+='</div>';var el=$('bag');el.innerHTML=h;el.hidden=false;$('bagX').onclick=function(){el.hidden=true}}
+$('bBag').onclick=function(e){e.stopPropagation();if($('bag').hidden)openBag();else $('bag').hidden=true};
+$('bag').addEventListener('pointerdown',function(e){e.stopPropagation()});
 /* ---- 天上的雲：從左上往右下飄過，疊在最上層（連怪物等級標籤也蓋過），半透明；偶爾一小群一起飄來 ---- */
 var CLOUD_A=0.4,CLOUD_V=6,CLOUD_CELL=700;/* 不透明度、風速（公尺／秒）、每 700 公尺見方一格 */
 function drawClouds(now){var d=now/1000*CLOUD_V/Math.SQRT2,dx=d,dy=-d,/* 往東南（畫面右下）飄 */
@@ -341,7 +371,7 @@ function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=
 $('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};
 $('pn').addEventListener('click',function(e){if(e.target.closest('[data-a="x"]')){$('pn').hidden=true;sel=null}});
 /* ---- 操作：按住拖曳走路（像搖桿）、方向鍵、點怪物 ---- */
-cv.addEventListener('pointerdown',function(e){var px=e.clientX/S,py=e.clientY/S,hit=null;MONS.forEach(function(o){if(o.box&&px>=o.box[0]-4&&px<=o.box[0]+o.box[2]+4&&py>=o.box[1]-8&&py<=o.box[1]+o.box[3]+2)hit=o});
+cv.addEventListener('pointerdown',function(e){if(!$('bag').hidden){$('bag').hidden=true;return}var px=e.clientX/S,py=e.clientY/S,hit=null;MONS.forEach(function(o){if(o.box&&px>=o.box[0]-4&&px<=o.box[0]+o.box[2]+4&&py>=o.box[1]-8&&py<=o.box[1]+o.box[3]+2)hit=o});
   if(hit){showMon(hit);return}drag={x:e.clientX,y:e.clientY,dx:0,dy:0,id:e.pointerId};cv.setPointerCapture(e.pointerId)});
 cv.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.id)return;drag.dx=e.clientX-drag.x;drag.dy=e.clientY-drag.y});
 ['pointerup','pointercancel'].forEach(function(t){cv.addEventListener(t,function(e){if(drag&&e.pointerId===drag.id)drag=null})});
