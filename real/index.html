@@ -10,6 +10,7 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(18,12,8,.82);padding:7px 10px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #5a3a18}
 .bar b{font-size:15px;letter-spacing:.06em}.bar small{color:#b09a74;font-size:11px}
 .zn{display:flex;align-items:center;gap:6px}.zn i{width:12px;height:12px;display:inline-block;box-shadow:0 0 0 2px #080503}
+[hidden]{display:none!important}
 .btns{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column;gap:8px}
 .btns button,.pn button{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;min-width:92px}
 .btns button.on{background:#2f6a2a;box-shadow:0 0 0 2px #0a2408,inset 0 2px 0 #4f9a46}
@@ -18,6 +19,8 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .pn[hidden]{display:none}
 .pn h3{margin:0 0 4px;font-size:16px}.pn p{margin:2px 0;font-size:13px}.pn .row{display:flex;gap:8px;margin-top:10px}.pn .row button{flex:1}
 .pn button:disabled{opacity:.5}.pn .x{position:absolute;top:6px;right:6px;min-width:0;width:28px;height:28px;padding:0}
+.back{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 8px);display:flex;flex-direction:column;align-items:center;text-decoration:none;z-index:5;-webkit-tap-highlight-color:transparent}.back canvas{width:64px;height:64px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(170,90,255,.7))}.back span{font-size:12px;font-weight:900;color:#f2e6ff;background:rgba(18,10,24,.85);padding:0 8px;margin-top:-8px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #9a5ae0;letter-spacing:.15em}
+.gpsb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px}.gpsb[hidden]{display:none}.gpsb>div{background:#e8d4a8;color:#3b2713;max-width:320px;padding:16px 16px 14px;box-shadow:0 0 0 3px #4a2a12,6px 6px 0 rgba(0,0,0,.5);font-size:14px;line-height:1.6}.gpsb h3{margin:0 0 6px;font-size:16px}.gpsb p{margin:0 0 12px}.gpsb .r{display:flex;gap:8px;flex-wrap:wrap}.gpsb button,.gpsb a{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 12px;cursor:pointer;text-decoration:none;box-shadow:0 0 0 2px #1d1008}
 .bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 136px);width:52px;height:52px;padding:0;border:0;background:rgba(18,12,8,.72);box-shadow:0 0 0 2px #1d1008,inset 0 0 0 1px #5a3a18;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .bagb img{width:42px;height:auto;image-rendering:pixelated}
 .bag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:translateX(-50%);width:min(360px,calc(100% - 16px));max-height:calc(100% - 120px);overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:5}
@@ -58,8 +61,10 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 </style></head><body>
 <canvas id="map"></canvas><canvas id="ov"></canvas>
 <div class="hud"><div class="bar"><span class="zn"><i id="zc"></i><b id="zn">—</b></span><small id="pd"></small></div></div>
-<div class="tip" id="tip" title="點一下收起">試作版：在地圖上按住拖曳就能走路（電腦可用方向鍵）。打開「GPS」改用手機定位。怪物點了可以看資訊，先不能打。</div>
-<div class="btns"><button type="button" id="bGps">GPS：關</button><button type="button" id="bFast">快速移動：關</button><button type="button" id="bHome">回到起點</button></div>
+<div class="tip" id="tip" title="點一下收起" hidden>測試模式：按住拖曳或方向鍵可以走路。</div>
+<div class="btns" id="devb" hidden><button type="button" id="bGps">GPS：關</button><button type="button" id="bFast">快速移動：關</button><button type="button" id="bHome">回到起點</button></div>
+<a class="back" id="bBack" href="../battle/index.html" aria-label="返回原本的世界"><canvas id="bkc" width="24" height="24"></canvas><span>返回</span></a>
+<div class="gpsb" id="gpsb" hidden><div><h3>需要開啟定位</h3><p id="gpsm"></p><div class="r"><button type="button" id="gpsR">重新嘗試</button><a href="../battle/index.html">返回原本的世界</a></div></div></div>
 <div class="pn" id="pn" hidden></div>
 <button type="button" class="bagb" id="bBag" title="行囊"><img src="../assets/real/bag.png" alt="行囊"></button>
 <div class="bag" id="bag" hidden></div>
@@ -435,6 +440,19 @@ function hud(now){var z=zoneAt(Math.floor(me.x/ZONE),Math.floor(me.y/ZONE));$('z
 function showMon(o){sel=o;var d=Math.round(Math.hypot(o.x-me.x,o.y-me.y)),ok=d<=REACH,pn=$('pn');
   pn.innerHTML='<button class="x" type="button" data-a="x">✕</button><h3>'+(o.rare?'★ ':'')+o.n+(o.cnt>1?' 等 '+o.cnt+' 隻':'')+'</h3><p>地域：'+o.z.n+'　等級約 Lv'+o.lv+'</p><p>'+(ok?'在範圍內，可以挑戰！':'還差 <b>'+(d-REACH)+'</b> 公尺（距離 '+d+' 公尺）')+'</p><div class="row"><button type="button" disabled>'+(ok?'戰鬥（試作版尚未開放）':'太遠了')+'</button></div>';pn.hidden=false}
 $('tip').style.pointerEvents='auto';$('tip').onclick=function(){this.remove()};
+var DEV=/[?&]dev=1/.test(location.search);if(DEV){$('devb').hidden=false;$('tip').hidden=false}else $('bBag').style.bottom='calc(env(safe-area-inset-bottom) + 14px)';/* ?dev=1：測試用，保留 GPS 開關、快速移動、回到起點與拖曳走路 */
+/* 下方的返回傳送門：跟冒險地圖上的幻境門同一個紫色星芒 */
+function starGate(x,N,tt){var C=N/2,R=N*.47,img=x.createImageData(N,N),d=img.data,br=.82+.18*Math.sin(tt*Math.PI),fl=Math.pow(Math.max(0,Math.sin(tt*5.3)),12),cl=1+fl*.35,w=N>40?1.2:.7;
+  function sd(dx,dy,Rr){var ax=Math.abs(dx)/Rr,ay=Math.abs(dy)/Rr;return Math.pow(Math.pow(ax,.62)+Math.pow(ay,.62),1/.62)}/* < 1：在四芒星裡 */
+  for(var y=0;y<N;y++)for(var X=0;X<N;X++){var dx=X+.5-C,dy=y+.5-C,s=sd(dx,dy,R*br),r=0,g=0,b=0,a=0;
+    if(s<1){r=40+s*60;g=10+s*20;b=80+s*110;a=255;if(s>.8){r=170;g=90;b=255}if(s>.9){r=215;g=160;b=255}}
+    else{var s2=sd(dx,dy,R*br*1.25);if(s2<1){r=150;g=70;b=230;a=Math.round((1-s2)*200*br)}else{var s3=sd(dx,dy,R*1.5);if(s3<1){r=120;g=50;b=200;a=Math.round((1-s3)*110)}}}/* 外面兩層淡紫光暈 */
+    var ax=Math.abs(dx),ay=Math.abs(dy),L=R*.95*cl;if((ay<w&&ax<L)||(ax<w&&ay<L*.8)){var t=1-Math.max(ax/L,ay/(L*.8)),m=Math.min(1,t*1.4);r+=(255-r)*m;g+=(240-g)*m;b+=(255-b)*m;a=Math.max(a,Math.round(255*Math.min(1,t*2)))}/* 中間白十字 */
+    var cg=Math.max(0,1-Math.sqrt(dx*dx+dy*dy)/(N*.12*cl));if(cg>0){r+=(255-r)*cg;g+=(255-g)*cg;b+=(255-b)*cg;a=Math.max(a,Math.round(255*cg))}
+    var i=(y*N+X)*4;d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=a}
+  x.putImageData(img,0,0);
+  for(var j=0;j<6;j++){var tw=Math.max(0,Math.sin(tt*2+j*1.7));if(tw<.3)continue;var h1=Math.sin((j+2)*127.1)*43758.5453,h2=Math.sin((j+9)*127.1)*43758.5453,px=Math.floor((h1-Math.floor(h1))*N),py=Math.floor((h2-Math.floor(h2))*N);if(sd(px-C,py-C,R)<1.3)continue;x.fillStyle=j%2?'rgba(170,255,240,'+tw+')':'rgba(255,255,255,'+tw+')';x.fillRect(px,py,1,1)}}/* 周圍忽亮忽滅的小星點 */
+(function(){var c=$('bkc'),x=c.getContext('2d');(function f(t){starGate(x,24,t/1000);requestAnimationFrame(f)})(0)})();
 $('pn').addEventListener('click',function(e){if(e.target.closest('[data-a="x"]')){$('pn').hidden=true;sel=null}});
 /* ---- 操作：按住拖曳走路（像搖桿）、方向鍵、點怪物 ---- */
 cv.addEventListener('pointerdown',function(e){if(!$('bag').hidden){$('bag').hidden=true;return}var px=e.clientX/S,py=e.clientY/S,hit=null;MONS.forEach(function(o){if(o.box&&px>=o.box[0]-4&&px<=o.box[0]+o.box[2]+4&&py>=o.box[1]-8&&py<=o.box[1]+o.box[3]+2)hit=o});
@@ -444,13 +462,16 @@ cv.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.id)re
 addEventListener('keydown',function(e){keys[e.key]=1});addEventListener('keyup',function(e){keys[e.key]=0});
 $('bFast').onclick=function(){fast=!fast;this.textContent='快速移動：'+(fast?'開':'關');this.classList.toggle('on',fast)};
 $('bHome').onclick=function(){try{localStorage.removeItem('real.pos')}catch(e){}var m=toM(HOME[0],HOME[1]);me.x=m[0];me.y=m[1];save()};
+function gpsBlock(m){$('gpsm').textContent=m;$('gpsb').hidden=false}
+$('gpsR').onclick=function(){$('gpsb').hidden=true;if(gps||gpsId!=null){if(gpsId!=null)navigator.geolocation.clearWatch(gpsId);gpsId=null;gps=false}$('bGps').onclick()};
 $('bGps').onclick=function(){var b=this;if(gps){gps=false;if(gpsId!=null)navigator.geolocation.clearWatch(gpsId);gpsId=null;b.textContent='GPS：關';b.classList.remove('on');return}
-  if(!navigator.geolocation){alert('這個瀏覽器不支援定位');return}b.textContent='GPS：定位中…';
+  if(!navigator.geolocation){if(DEV)alert('這個瀏覽器不支援定位');else gpsBlock('這個瀏覽器不支援定位，沒辦法在幻境裡探索。你只能返回原本的世界。');return}b.textContent='GPS：定位中…';
   gpsId=navigator.geolocation.watchPosition(function(p){var m=toM(p.coords.latitude,p.coords.longitude);if(m[0]!==me.x)me.face=m[0]<me.x?-1:1;me.mv=gps&&Math.hypot(m[0]-me.x,m[1]-me.y)>.5?1:0;me.x=m[0];me.y=m[1];gpsStep(m[0],m[1],p.coords.accuracy);gps=true;b.textContent='GPS：開（±'+Math.round(p.coords.accuracy)+'m）';b.classList.add('on');save()},
-    function(err){gps=false;b.textContent='GPS：關';b.classList.remove('on');alert(err.code===1?'沒有允許使用位置。請到瀏覽器或手機設定裡，允許這個網站使用位置後再試一次。':'定位失敗：'+err.message)},{enableHighAccuracy:true,maximumAge:2000,timeout:20000})};
+    function(err){if(!DEV&&err.code!==1){toastMsg('定位訊號不穩，繼續定位中…');return}/* 逾時、暫時抓不到：watchPosition 會繼續試 */gps=false;b.textContent='GPS：關';b.classList.remove('on');if(gpsId!=null)navigator.geolocation.clearWatch(gpsId);gpsId=null;var m=err.code===1?'幻境要靠你在現實中走路探索，一定要開啟定位才能進行。請到瀏覽器或手機設定裡，允許這個網站使用位置，再按「重新嘗試」；不開定位的話，你只能返回原本的世界。':'定位失敗：'+err.message;if(DEV)alert(m);else gpsBlock(m)},{enableHighAccuracy:true,maximumAge:2000,timeout:20000})};
+if(!DEV){toastMsg('定位中…');$('bGps').onclick()}/* 一般玩家：一進來就開 GPS */
 /* ---- 主迴圈 ---- */
 function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
-  if(!gps){var vx=0,vy=0;if(drag){var L=Math.hypot(drag.dx,drag.dy);if(L>12){vx=drag.dx/L;vy=-drag.dy/L}}
+  if(!gps&&DEV){var vx=0,vy=0;if(drag){var L=Math.hypot(drag.dx,drag.dy);if(L>12){vx=drag.dx/L;vy=-drag.dy/L}}
     if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy+=1;if(keys.ArrowDown||keys.s)vy-=1;
     var l2=Math.hypot(vx,vy);if(l2>0){vx/=l2;vy/=l2;var sp=fast?FAST:WALK;me.x+=vx*sp*dt;me.y+=vy*sp*dt;if(vx)me.face=vx<0?-1:1;me.mv=1;if(Math.random()<.02)save()}else me.mv=0}
   hud(t);draw(t);if(sel&&!$('pn').hidden&&Math.random()<.1)showMon(sel);requestAnimationFrame(tick)}
