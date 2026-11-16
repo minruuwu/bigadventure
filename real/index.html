@@ -105,6 +105,8 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     /* 行道樹：借用森林的 3 種樹，每格 2.5 成機率 1 棵，不跟房子擠在一起 */
     if(r01('ct',sx,sy,PER)<.25){var tk='forest_'+['pine','oak','acacia'][h32('ctk',sx,sy,PER)%3],tx2=(sx+.1+.8*r01('ctx',sx,sy,PER))*SUB,ty2=(sy+.1+.8*r01('cty',sx,sy,PER))*SUB;
       if(IM[tk]&&!L.some(function(q){return Math.hypot(q.x-tx2,q.y-ty2)<40}))L.push({x:tx2,y:ty2,im:IM[tk],big:BIGH[tk],sh:1,k:tk})}
+    /* 街燈：每格 4 成機率，在附近道路的路邊立一支 */
+    if(r01('cl',sx,sy,PER)<.4){var lp=roadSide((sx+.15+.7*r01('clx',sx,sy,PER))*SUB,(sy+.15+.7*r01('cly',sx,sy,PER))*SUB,45);if(lp&&IM.castle_lamp)L.push({x:lp[0],y:lp[1],im:IM.castle_lamp,big:IM.castle_lamp.height,sh:1,op:1,lamp:1,srx:.3,sry:.07,k:'castle_lamp'})}
     /* 噴泉：每個王城地域格最多一座 */
     var per2=ZONE/SUB,pk2=h32('cf',zx,zy,PER)%(per2*per2);
     if(r01('cfc',zx,zy,PER)<PYF&&sx-zx*per2===pk2%per2&&sy-zy*per2===Math.floor(pk2/per2)){var fi=IM.castle_fountain;if(fi)L.push({x:(sx+.5)*SUB,y:(sy+.5)*SUB,im:fi,big:fi.height,sh:1,op:1,ftn:1,house:1,srx:.52,sry:.3,sa:.22,k:'castle_fountain'})}}
@@ -143,7 +145,7 @@ function draw(now){
   var objs=[],flats=[];MONS=[];
   for(var sx=Math.floor((x0-100)/SUB);sx<=Math.floor((x1+100)/SUB);sx++)for(var sy=Math.floor((y0-60)/SUB);sy<=Math.floor((y1+30)/SUB);sy++){
     var mo=monOf(sx,sy);if(mo&&inWater(mo.x,mo.y))mo=null;/* 怪物不會出現在水上 */if(mo){MONS.push(mo);objs.push({t:'m',o:mo,y:mo.y})}
-    decoOf(sx,sy).forEach(function(d){if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.house?60:d.big?20:14))return;if(nearRoad(d.x,d.y,d.house?50:d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
+    decoOf(sx,sy).forEach(function(d){if(d.lamp){if(!(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<14))objs.push({t:'d',o:d,y:d.y});return}if(d.flat){if(!nearRoad(d.x,d.y,9))flats.push(d);return}if(mo&&Math.hypot(d.x-mo.x,d.y-mo.y)<(d.pyr||d.house?60:d.big?20:14))return;if(nearRoad(d.x,d.y,d.house?50:d.pyr?45:d.big?12:9))return;objs.push({t:'d',o:d,y:d.y})})}
   /* 平貼在地上的東西（石塊路）先畫，不參與遮擋 */
   flats.forEach(function(o){if(o.glow){var g=scr(o.x,o.y),gx=Math.round(g[0]),gy=Math.round(g[1]),a=.45+.4*Math.sin(now/700+o.ph);
     cx.save();cx.globalAlpha=a*.25;cx.fillStyle='#4dff7a';cx.beginPath();cx.ellipse(gx,gy,9,5,0,0,Math.PI*2);cx.fill();
@@ -156,7 +158,8 @@ function draw(now){
   objs.forEach(function(q){var o=q.o;
     if(q.t==='d'){if(!o.im)return;var s=scr(o.x,o.y);
       if(o.big){/* 樹、仙人掌、金字塔：放大到設定的高度（保持原本長寬比），稍微透明 */var th=o.big,tw=Math.round(o.im.width*th/o.im.height);
-        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,'+(o.sa||.32)+')';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.srx?tw*o.srx:o.op?tw*.6:Math.max(5,tw*.42),o.sry?Math.round(th*o.sry):o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.al||(o.op?1:TREE_A);cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);if(o.ftn){/* 噴泉：水面反光慢慢明滅、噴口冒水滴 */var gi=IM.castle_fountain_glint,fx0=Math.round(s[0]-tw/2),fy0=Math.round(s[1]-th);if(gi){cx.globalAlpha=.35+.35*Math.sin(now/500);cx.drawImage(gi,fx0,fy0,tw,th)}
+        if(o.sh){/* 樹、仙人掌、金字塔、墓碑：腳下一圈陰影 */cx.fillStyle='rgba(0,0,0,'+(o.sa||.32)+')';cx.beginPath();cx.ellipse(Math.round(s[0]),Math.round(s[1]-(SHY[o.k]||0)*th/o.im.height),o.srx?tw*o.srx:o.op?tw*.6:Math.max(5,tw*.42),o.sry?Math.round(th*o.sry):o.op?Math.max(2,Math.round(th*.2)):Math.max(2,Math.round(th*.09)),0,0,Math.PI*2);cx.fill()}cx.globalAlpha=o.al||(o.op?1:TREE_A);cx.drawImage(o.im,Math.round(s[0]-tw/2),Math.round(s[1]-th),tw,th);if(o.lamp){/* 街燈：燈籠外一圈暖黃的光，輕輕閃 */var lx0=Math.round(s[0]-tw/2),ly0=Math.round(s[1]-th);cx.globalCompositeOperation='lighter';cx.globalAlpha=.22+.08*Math.sin(now/260+o.x);cx.fillStyle='#ffc860';cx.beginPath();cx.ellipse(lx0+15,ly0+12,6,6,0,0,Math.PI*2);cx.fill();cx.globalAlpha*=.6;cx.beginPath();cx.ellipse(lx0+15,ly0+12,10,9,0,0,Math.PI*2);cx.fill();cx.globalCompositeOperation='source-over'}
+          if(o.ftn){/* 噴泉：水面反光慢慢明滅、噴口冒水滴 */var gi=IM.castle_fountain_glint,fx0=Math.round(s[0]-tw/2),fy0=Math.round(s[1]-th);if(gi){cx.globalAlpha=.35+.35*Math.sin(now/500);cx.drawImage(gi,fx0,fy0,tw,th)}
           for(var q=0;q<4;q++){var t=((now/1100)+q/4)%1,dx=Math.round(Math.sin(q*2.1)*4*t),dy=Math.round(-5*Math.sin(t*Math.PI));cx.globalAlpha=1-t*.6;cx.fillStyle=q%2?'#c8fff4':'#7fe8dc';cx.fillRect(fx0+Math.round(tw*.5)+dx,fy0+3+dy,1,1)}}cx.globalAlpha=1}
       else cx.drawImage(o.im,Math.round(s[0]-o.im.width/2),Math.round(s[1]-o.im.height))}
     else if(q.t==='m'){var s2=scr(o.x,o.y),src=Monsters.src(o.k,now,o.ph),sz=Monsters.size(o.k),k=Monsters.scale(o.k)*(o.rare&&Monsters.scale(o.k)===1?1.2:1)/* 跟戰鬥裡一樣的比例（人物 48 格高的畫布＝戰鬥裡的大小） */,w=Math.round(sz[0]*k),h=Math.round(sz[1]*k),lf=Math.round((Monsters.lift(o.k,now,o.ph)||0)*k);
@@ -253,6 +256,12 @@ function nearRoad(x,y,r){if(NRV!==RDV){NRC={};WTC={};NRV=RDV}var ck=x+','+y;if(c
 function segNear(p,x,y,rr){for(var n=1;n<p.length;n++){var a=p[n-1],b=p[n];if(Math.max(a[0],b[0])<x-rr||Math.min(a[0],b[0])>x+rr||Math.max(a[1],b[1])<y-rr||Math.min(a[1],b[1])>y+rr)continue;
   var dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx-x,qy=a[1]+t*dy-y;if(qx*qx+qy*qy<rr*rr)return true}return false}
 function nearRoad0(x,y,r){return roadsNear(x-r,x+r,y-r,y+r).some(function(G){return G.r.some(function(rd){return segNear(rd.p,x,y,r+rd.w*MPP)})})}
+/* 離 (x,y) 最近的路邊：找 r 公尺內最近的道路，往 (x,y) 那一側退到路寬外 6 公尺；沒有路就回傳 null */
+var RSC={},RSV=-1;
+function roadSide(x,y,r){if(RSV!==RDV){RSC={};RSV=RDV}var ck=x+','+y;if(ck in RSC)return RSC[ck];var best=null,bd=r*r;
+  roadsNear(x-r,x+r,y-r,y+r).forEach(function(G){G.r.forEach(function(rd){if(rd.b)return;var p=rd.p;for(var n=1;n<p.length;n++){var a=p[n-1],b=p[n],dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/l2)),qx=a[0]+t*dx,qy=a[1]+t*dy,d2=(qx-x)*(qx-x)+(qy-y)*(qy-y);if(d2<bd){bd=d2;best=[qx,qy,rd.w]}}})});
+  if(!best)return RSC[ck]=null;var vx=x-best[0],vy=y-best[1],vl=Math.hypot(vx,vy)||1,off=best[2]*MPP/2+6,lx=best[0]+vx/vl*off,ly=best[1]+vy/vl*off;
+  if(nearRoad0(lx,ly,2)||inWater(lx,ly))return RSC[ck]=null;return RSC[ck]=[lx,ly]}
 /* 在不在水裡（水域面：奇偶規則，河中島不算水；河流線：照寬度） */
 function inWater(x,y){if(NRV!==RDV){NRC={};WTC={};NRV=RDV}var ck=x+','+y;if(ck in WTC)return WTC[ck];
   return WTC[ck]=roadsNear(x-10,x+10,y-10,y+10).some(function(G){return G.l.some(function(l){return segNear(l.p,x,y,l.w*MPP+6)})||G.a.some(function(rs){var c=false;rs.forEach(function(p){for(var n=0,m=p.length-1;n<p.length;m=n++){var a=p[n],b=p[m];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1]||1e-9)+a[0])c=!c}});return c})})}
@@ -307,7 +316,7 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ['cactus1','cactus2','cactus3','pyramid1','pyramid2','dune1','dune2','dune3'].map(function(n){return img(BASE+'real/deco_desert_'+n+'.png').then(function(i){IM['desert_'+n]=i})}),
   ['tree1','tree2','tree3','stone1','stone2','stone3','stone4','stone5'].map(function(n){return img(BASE+'real/deco_tomb_'+n+'.png').then(function(i){IM['tomb_'+n]=i})}),
   ['tree1','tree2','tree3','tree4','rock1','rock2','rock3','ice1','ice2'].map(function(n){return img(BASE+'real/deco_snow_'+n+'.png').then(function(i){IM['snow_'+n]=i})}),
-  ['house1','house2','house3','house4','fountain','fountain_glint'].map(function(n){return img(BASE+'real/deco_castle_'+n+'.png').then(function(i){IM['castle_'+n]=i})}))).then(function(R){
+  ['house1','house2','house3','house4','fountain','fountain_glint','lamp'].map(function(n){return img(BASE+'real/deco_castle_'+n+'.png').then(function(i){IM['castle_'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
   IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
