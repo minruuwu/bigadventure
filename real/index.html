@@ -236,8 +236,8 @@ function draw(now){
   drawClouds(now)}
 /* ---- 行囊：看各種幻獸蛋和素材有幾個（資料之後由地圖戰鬥寫進玩家資料：player.beastEggs、player.beastMat） ---- */
 var EGGS=[['fire','龍蜥蛋'],['ice','牙犬蛋'],['bolt','靈鼠蛋'],['wind','羽禽蛋'],['leaf','角蹄蛋'],['sun','輝獸蛋'],['moon','暗鱗蛋']];
-/* 孵出來的幻獸：圖（assets/beasts）和預設名字（顏色＋種族） */
-var BEAST={fire:['fire','紅龍蜥'],ice:['frost','藍牙犬'],bolt:['lightning','黃靈鼠'],wind:['wind','青羽禽'],leaf:['nature','綠角蹄'],sun:['light','金輝獸'],moon:['dark','紫暗鱗']};
+/* 孵出來的幻獸：圖（assets/beasts）和預設名字 */
+var BEAST={fire:['fire','小紅'],ice:['frost','小藍'],bolt:['lightning','小黃'],wind:['wind','小青'],leaf:['nature','小綠'],sun:['light','小金'],moon:['dark','小紫']};
 var HATCH_M=2000,BEAST_MAX=6;/* 孵一顆蛋要走 2 公里；幻獸最多 6 隻 */
 var MCOL=[['red','紅','火','fire'],['blue','藍','冰','frost'],['yellow','黃','雷','lightning'],['teal','青','風','wind'],['green','綠','自然','nature'],['gold','金','光','light'],['purple','紫','暗','dark']];/* 最後一欄：元素圖示 assets/icons/stats/res_*.png */
 var MKIND=[['crystal','結晶','攻擊'],['ore','礦石','生存'],['orb','寶珠','輔助']];
@@ -279,7 +279,7 @@ function gpsStep(x,y,acc){var t=Date.now();if(acc>35){return}if(!lastFix){lastFi
   if(dd<4)return;if(dd<=120&&dt>0&&dd/dt<=4.5&&bagData().h&&hatchM()<HATCH_M){pend+=dd;savePend();nestUpd();hatchSync()}lastFix={x:x,y:y,t:t}}
 $('nest').onclick=function(){var h=bagData().h;if(!h)return;if(hatchM()<HATCH_M){openBag();return}
   if(pend>0&&((h.m||0)<HATCH_M)){hatchSync(true);return toastMsg('同步孵化進度中，再點一次…')}
-  var bs=BEAST[h.egg];pnShow('<h3>🎉 孵化成功！</h3><img class="hb" src="../assets/beasts/beast_'+bs[0]+'.png" alt=""><p>「'+ename(h.egg)+'」孵出了<b>'+bs[1]+'</b>！幫牠取個名字吧（最多 8 個字）：</p><input id="hName" maxlength="8" value="'+bs[1]+'"><div class="row"><button type="button" id="hDone">確定</button></div>');
+  var bs=BEAST[h.egg];pnShow('<h3>🎉 孵化成功！</h3><img class="hb" src="../assets/beasts/beast_'+bs[0]+'.png" alt=""><p>「'+ename(h.egg)+'」孵化成功了！幫牠取個名字吧（最多 8 個字）：</p><input id="hName" maxlength="8" value="'+bs[1]+'"><div class="row"><button type="button" id="hDone">確定</button></div>');
   $('hDone').onclick=function(){var b=this,nm=Array.from(($('hName').value||'').trim()).slice(0,8).join('');if(!nm)return toastMsg('請輸入名字。');b.disabled=true;
     FB.beastHatchDone(nm).then(function(){$('pn').hidden=true;pend=0;savePend();nestUpd();toastMsg('「'+nm+'」加入了你的幻獸！之後可以到帕拉迪村找艾德蒙。')},function(e){b.disabled=false;toastMsg(fbErr(e))})}};
 window.addEventListener('fb-player-updated',function(){nestUpd()});
