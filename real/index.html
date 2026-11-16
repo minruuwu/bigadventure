@@ -121,11 +121,11 @@ function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE)
     /* 火星：偶爾一處，貼地往上飄 */
     if(r01('fk',sx,sy,PER)<.15)L.push({x:(sx+.1+.8*r01('fkx',sx,sy,PER))*SUB,y:(sy+.1+.8*r01('fky',sx,sy,PER))*SUB,spark:1,flat:1,ph:h32('fkp',sx,sy)%6283/1000})}
   return L}
-/* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻 */
+/* 小格裡的怪物：4 成機率有一群；地圖上只畫代表怪，進去可能有好幾隻；2% 是王（打贏必掉一顆該地區的蛋） */
 var MOC={},MOV=-1,MOP=-1;
 function monOf(sx,sy){if(MOV!==RDV||MOP!==PER){MOC={};MOV=RDV;MOP=PER}var ck=sx+','+sy;if(ck in MOC)return MOC[ck];return MOC[ck]=monOf0(sx,sy)}
 function monOf0(sx,sy){if(r01('m',sx,sy,PER)>=SPAWN)return null;var z=zoneAt(Math.floor(sx*SUB/ZONE),Math.floor(sy*SUB/ZONE)),pool=POOL[z.area];if(!pool)return null;
-  var rare=r01('mr',sx,sy,PER)<.05&&pool.boss.length,list=rare?pool.boss:pool.norm,id=list[h32('mk',sx,sy,PER)%list.length],m=MON[id];if(!m)return null;
+  var rare=r01('mr',sx,sy,PER)<.02&&pool.boss.length,list=rare?pool.boss:pool.norm,id=list[h32('mk',sx,sy,PER)%list.length],m=MON[id];if(!m)return null;
   var lv0=Math.max(1,(P&&P.lv)||LV),lv=Math.max(1,lv0+Math.round((r01('ml',sx,sy,PER)*2-1)*20));
   var mx=(sx+.2+.6*r01('mx',sx,sy,PER))*SUB,my=(sy+.2+.6*r01('my',sx,sy,PER))*SUB;
   /* 只生在路邊：離路邊 MROAD 公尺內（又不在路上、水裡）就留著，太遠就挪到 250 公尺內最近那條路的路邊；附近沒路就不生 */
