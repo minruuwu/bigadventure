@@ -49,10 +49,10 @@ var TREE_A=0.88;          /* 樹、仙人掌、金字塔的不透明度（1 = �
 /* 大型裝飾物的高度（畫面像素）：人物約 36 */
 var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40,tomb_tree1:36,tomb_tree2:36,tomb_tree3:36,tomb_stone1:15,tomb_stone2:15,tomb_stone3:15,tomb_stone4:15,tomb_stone5:15,snow_tree1:50,snow_tree2:44,snow_tree3:48,snow_tree4:46};
 var SHY={tomb_tree2:4,snow_rock1:2,snow_rock2:3,snow_rock3:3};      /* 陰影往上移幾格（圖的最下面是細根、草，樹幹其實在比較上面） */
-var GAZ={desert:0.5,tomb:0.85,snow:0.7};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
+var GAZ={desert:0.5,tomb:0.85,snow:0.7,castle:0.7};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
 var PYR=0.5;              /* 每個 500 公尺的沙漠地域格出現一組金字塔的機率 */              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
-/* 地域（試作版：森林、礦洞、沙漠、墓穴、雪山） */
-var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']},{k:'desert',n:'沙漠',c:'#e8c27a',area:'area03',deco:['cactus1','cactus2','cactus3']},{k:'tomb',n:'墓穴',c:'#6a5878',area:'area04',deco:['tree1','tree2','tree3']},{k:'snow',n:'雪山',c:'#cfe2f5',area:'area05',deco:['tree1','tree2','tree3','tree4']}];
+/* 地域（試作版：森林、礦洞、沙漠、墓穴、雪山、王城） */
+var ZN=[{k:'forest',n:'森林',c:'#4fb04a',area:'area01',deco:['pine','oak','acacia']},{k:'mine',n:'礦洞',c:'#8a7a9a',area:'area02',deco:['blue','violet','gold','green','pink','silver']},{k:'desert',n:'沙漠',c:'#e8c27a',area:'area03',deco:['cactus1','cactus2','cactus3']},{k:'tomb',n:'墓穴',c:'#6a5878',area:'area04',deco:['tree1','tree2','tree3']},{k:'snow',n:'雪山',c:'#cfe2f5',area:'area05',deco:['tree1','tree2','tree3','tree4']},{k:'castle',n:'王城',c:'#d8c9a8',area:'area06',deco:[]}];
 /* ---- 固定公式的亂數：同一個地點、同一個時段，每個人算出來都一樣 ---- */
 function h32(){var h=2166136261>>>0;for(var i=0;i<arguments.length;i++){var s=String(arguments[i]);for(var j=0;j<s.length;j++){h^=s.charCodeAt(j);h=Math.imul(h,16777619)>>>0}h^=124;h=Math.imul(h,16777619)>>>0}h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;return h>>>0}
 function r01(){return h32.apply(null,arguments)/4294967296}
@@ -74,7 +74,8 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 /* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵（樹變大後稍微稀疏：大多 0～1），礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
-function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:z.k==='tomb'?[0,0,0,1,2][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
+function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:z.k==='tomb'?[0,0,0,1,2][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%(z.deco.length||1)],L=[],big=z.k!=='mine';
+  if(!z.deco.length)n=0;/* 王城的物件還沒做 */
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
     if(big&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹（仙人掌）不要疊在一起 */
     L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0,sh:big,k:z.k+'_'+kind})}
@@ -289,7 +290,7 @@ function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
   hud(t);draw(t);if(sel&&!$('pn').hidden&&Math.random()<.1)showMon(sel);requestAnimationFrame(tick)}
 /* ---- 開始 ---- */
 Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(BASE),Doll.load(BASE,V),
-  img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png')].concat(
+  img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png'),img(BASE+'real/ground_castle.png')].concat(
   ['pine','oak','acacia'].map(function(n){return img(BASE+'real/deco_forest_'+n+'.png').then(function(i){IM['forest_'+n]=i})}),
   ['blue','violet','gold','green','pink','silver'].map(function(n){return img(BASE+'real/deco_mine_'+n+'.png').then(function(i){IM['mine_'+n]=i})}),
   ['cactus1','cactus2','cactus3','pyramid1','pyramid2','dune1','dune2','dune3'].map(function(n){return img(BASE+'real/deco_desert_'+n+'.png').then(function(i){IM['desert_'+n]=i})}),
@@ -297,7 +298,7 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ['tree1','tree2','tree3','tree4','rock1','rock2','rock3','ice1','ice2'].map(function(n){return img(BASE+'real/deco_snow_'+n+'.png').then(function(i){IM['snow_'+n]=i})}))).then(function(R){
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
-  IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
+  IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
   P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;
   PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick)
 }).catch(function(e){$('load').textContent='讀取失敗：'+(e&&e.message||e)});
