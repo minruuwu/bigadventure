@@ -47,7 +47,7 @@ var BASEC='#8c7a58';      /* 地面底色：所有地域共用的土色，地域
 var GA=0.14;
 var TREE_A=0.88;          /* 樹、仙人掌、金字塔的不透明度（1 = 完全不透明），後面的人、怪物隱約看得到；點擊不會被擋住 */
 /* 大型裝飾物的高度（畫面像素）：人物約 36 */
-var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:30,desert_cactus2:30,desert_cactus3:30,desert_pyramid1:36,desert_pyramid2:36};
+var BIGH={forest_pine:36,forest_oak:36,forest_acacia:36,desert_cactus1:15,desert_cactus2:15,desert_cactus3:15,desert_pyramid1:36,desert_pyramid2:40};
 var GAZ={desert:0.5};      /* 個別地域的地面花紋濃度（沒寫的用 GA）：沙漠要看得出黃沙 */
 var PYR=0.5;              /* 每個 500 公尺的沙漠地域格出現一組金字塔的機率 */              /* 地面花紋的濃度（1 = 原圖，越小越淡） */               /* 試作版人物等級（之後改成玩家的） */
 /* 地域（試作版：森林、礦洞、沙漠） */
@@ -73,13 +73,13 @@ function myLook(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me'
 /* ---- 世界內容 ---- */
 function zoneAt(zx,zy){return ZN[h32('z',zx,zy,PER)%ZN.length]}
 /* 小格裡的裝飾物：每 100 公尺一片，森林 0～2 棵（樹變大後稍微稀疏：大多 0～1），礦洞 0～2 堆（大多 0～1），7 成是主要種類 */
-function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
+function decoOf(sx,sy){var zx=Math.floor(sx*SUB/ZONE),zy=Math.floor(sy*SUB/ZONE),z=zoneAt(zx,zy),n=z.k==='mine'?(h32('dn',sx,sy,PER)%3?0:1)+(h32('dn2',sx,sy,PER)%4?0:1):z.k==='desert'?[0,0,0,1,1][h32('dn',sx,sy,PER)%5]:[0,0,1,2][h32('dn',sx,sy,PER)%4],main=z.deco[h32('dm',sx,sy,PER)%z.deco.length],L=[],big=z.k!=='mine';
   for(var i=0;i<n;i++){var kind=r01('dk',sx,sy,i,PER)<.7?main:z.deco[h32('do',sx,sy,i,PER)%z.deco.length],dx=(sx+.08+.84*r01('dx',sx,sy,i,PER))*SUB,dy=(sy+.08+.84*r01('dy',sx,sy,i,PER))*SUB;
     if(big&&L.some(function(q){return Math.hypot(q.x-dx,q.y-dy)<30}))continue;/* 同一格的兩棵樹（仙人掌）不要疊在一起 */
     L.push({x:dx,y:dy,im:IM[z.k+'_'+kind],big:big?BIGH[z.k+'_'+kind]:0})}
   if(z.k==='desert'){
-    /* 小沙丘：每格 1～2 個，矮矮的不透明 */
-    for(var k=0,nd=1+h32('dd',sx,sy,PER)%2;k<nd;k++)L.push({x:(sx+.05+.9*r01('ddx',sx,sy,k,PER))*SUB,y:(sy+.05+.9*r01('ddy',sx,sy,k,PER))*SUB,im:IM['desert_dune'+(1+h32('ddk',sx,sy,k,PER)%3)],dune:1});
+    /* 小沙丘：每格一半機率有 1 個，矮矮的不透明 */
+    for(var k=0,nd=h32('dd',sx,sy,PER)%2;k<nd;k++)L.push({x:(sx+.05+.9*r01('ddx',sx,sy,k,PER))*SUB,y:(sy+.05+.9*r01('ddy',sx,sy,k,PER))*SUB,im:IM['desert_dune'+(1+h32('ddk',sx,sy,k,PER)%3)],dune:1});
     /* 金字塔：每個沙漠地域格最多一組，放在其中一個小格的中間 */
     var per=ZONE/SUB,pick=h32('py',zx,zy,PER)%(per*per);
     if(r01('pyc',zx,zy,PER)<PYR&&sx-zx*per===pick%per&&sy-zy*per===Math.floor(pick/per)){var pk='desert_pyramid'+(1+h32('pyk',zx,zy,PER)%2);L.push({x:(sx+.5)*SUB,y:(sy+.3)*SUB,im:IM[pk],big:BIGH[pk],pyr:1})}}
@@ -108,7 +108,8 @@ function draw(now){
   }
   blendEdges(x0,x1,y0,y1);
   /* 地面淡一點：每個地域格再蓋一層共用的土色（GA = 地面花紋保留多少），花紋不會那麼搶眼、分界也比較不明顯 */
-  for(var zx2=Math.floor(x0/ZONE);zx2<=Math.floor(x1/ZONE);zx2++)for(var zy2=Math.floor(y0/ZONE);zy2<=Math.floor(y1/ZONE);zy2++){var z2=zoneAt(zx2,zy2),a2=scr(zx2*ZONE,(zy2+1)*ZONE),b2=scr((zx2+1)*ZONE,zy2*ZONE);cx.globalAlpha=1-(GAZ[z2.k]!=null?GAZ[z2.k]:GA);cx.fillStyle=BASEC;cx.fillRect(Math.floor(a2[0]),Math.floor(a2[1]),Math.ceil(b2[0])-Math.floor(a2[0]),Math.ceil(b2[1])-Math.floor(a2[1]));cx.globalAlpha=1}
+  for(var zx2=Math.floor(x0/ZONE);zx2<=Math.floor(x1/ZONE);zx2++)for(var zy2=Math.floor(y0/ZONE);zy2<=Math.floor(y1/ZONE);zy2++){var z2=zoneAt(zx2,zy2),a2=scr(zx2*ZONE,(zy2+1)*ZONE),b2=scr((zx2+1)*ZONE,zy2*ZONE);cx.globalAlpha=1-GA;cx.fillStyle=BASEC;cx.fillRect(Math.floor(a2[0]),Math.floor(a2[1]),Math.ceil(b2[0])-Math.floor(a2[0]),Math.ceil(b2[1])-Math.floor(a2[1]));cx.globalAlpha=1}
+  softZones(x0,x1,y0,y1);
   /* 道路（OpenStreetMap） */
   drawRoads(x0,x1,y0,y1);
   /* 可以打的範圍 */
@@ -150,6 +151,23 @@ function dissolve(z,L,T,w,h,vert,flip){var g=IM['g_'+z.k];if(!g||w<=0||h<=0)retu
   TX.save();if(flip){if(vert){TX.translate(w,0);TX.scale(-1,1)}else{TX.translate(0,h);TX.scale(1,-1)}}
   if(vert){var oy=-(((wy%256)+256)%256);for(var yy=oy;yy<h;yy+=256)TX.drawImage(M,0,yy)}else{var oxx=-(((wx%256)+256)%256);for(var xx=oxx;xx<w;xx+=256)TX.drawImage(M,xx,0)}
   TX.restore();TX.globalCompositeOperation='source-over';cx.drawImage(TMP,L,T)}
+/* ---- 地面比較明顯的地域（沙漠）：在土色上再補一層自己的地面，交界處用漸層慢慢淡出，不會一刀切 ---- */
+var FE=48,ST=document.createElement('canvas'),SX=ST.getContext('2d');/* FE = 交界漸層的寬度（畫面像素，跨在交界兩側） */
+function softZones(x0,x1,y0,y1){
+  for(var zx=Math.floor(x0/ZONE);zx<=Math.floor(x1/ZONE);zx++)for(var zy=Math.floor(y0/ZONE);zy<=Math.floor(y1/ZONE);zy++){var z=zoneAt(zx,zy),gz=GAZ[z.k],g=IM['g_'+z.k];if(gz==null||!g)continue;
+    var al=(gz-GA)/(1-GA);/* 蓋完共用土色後，再補這麼多自己的地面 = 地面花紋濃度 gz */
+    var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]),h=FE/2;
+    var dl=zoneAt(zx-1,zy)!==z,dr=zoneAt(zx+1,zy)!==z,du=zoneAt(zx,zy+1)!==z,dd=zoneAt(zx,zy-1)!==z;
+    var L2=L-(dl?h:0),R2=R+(dr?h:0),T2=T-(du?h:0),B2=B+(dd?h:0);
+    var l=Math.max(L2,-2),r=Math.min(R2,W+2),t=Math.max(T2,-2),bt=Math.min(B2,H+2),w=r-l,hh=bt-t;if(w<=0||hh<=0)continue;
+    ST.width=w;ST.height=hh;SX.imageSmoothingEnabled=false;
+    var ox0=Math.round(-me.x/MPP),oy0=Math.round(me.y/MPP),px=(((ox0+W/2)-l)%256+256)%256,py=(((oy0+H/2)-t)%256+256)%256;
+    SX.save();SX.translate(px,py);SX.fillStyle=SX.createPattern(g,'repeat');SX.fillRect(-256,-256,w+512,hh+512);SX.restore();
+    SX.globalCompositeOperation='destination-out';
+    function fade(x0g,y0g,x1g,y1g){var gr=SX.createLinearGradient(x0g-l,y0g-t,x1g-l,y1g-t);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');SX.fillStyle=gr;SX.fillRect(0,0,w,hh)}
+    if(dl)fade(L2,0,L2+FE,0);if(dr)fade(R2,0,R2-FE,0);if(du)fade(0,T2,0,T2+FE);if(dd)fade(0,B2,0,B2-FE);
+    SX.globalCompositeOperation='source-over';
+    cx.globalAlpha=al;cx.drawImage(ST,l,t);cx.globalAlpha=1}}
 function blendEdges(x0,x1,y0,y1){
   for(var zx=Math.floor(x0/ZONE);zx<=Math.floor(x1/ZONE);zx++)for(var zy=Math.floor(y0/ZONE);zy<=Math.floor(y1/ZONE);zy++){var z=zoneAt(zx,zy),zr=zoneAt(zx+1,zy),zu=zoneAt(zx,zy+1);
     var a=scr(zx*ZONE,(zy+1)*ZONE),b=scr((zx+1)*ZONE,zy*ZONE),L=Math.floor(a[0]),T=Math.floor(a[1]),R=Math.ceil(b[0]),B=Math.ceil(b[1]);
