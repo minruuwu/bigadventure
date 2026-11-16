@@ -204,7 +204,7 @@ function draw(now){
       cx.fillStyle='rgba(0,0,0,.28)';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]),Math.max(6,w*.38),3,0,0,Math.PI*2);cx.fill();
       if(o.rare){cx.save();cx.globalAlpha=.35+.2*Math.sin(now/300);cx.fillStyle='#ffd34a';cx.beginPath();cx.ellipse(Math.round(s2[0]),Math.round(s2[1]-h/2-lf),w*.7,h*.6,0,0,Math.PI*2);cx.fill();cx.restore()}
       var mi=src&&imgFor(src);if(mi&&mi.complete&&mi.naturalWidth)cx.drawImage(mi,Math.round(s2[0]-w/2),Math.round(s2[1]-h-lf),w,h);o.box=[s2[0]-w/2,s2[1]-h-lf,w,h]}
-    else if(doll){Doll.draw(doll,P.look,now);var cxp=Math.round(W/2-24),cyp=Math.round(H/2-44);cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(W/2,H/2,9,3,0,0,Math.PI*2);cx.fill();
+    else if(doll){Doll.draw(doll,P.look,now);var cxp=Math.round(W/2-24),cyp=Math.round(H/2-44);/* 人物圖本身已經畫了腳下的影子，這裡不再另外畫 */
       var bob=me.mv?Math.round(Math.abs(Math.sin(now/120))*-1):0;cx.save();if(me.face<0){cx.translate(cxp*2+48,0);cx.scale(-1,1)}cx.drawImage(doll,cxp,cyp+bob);cx.restore()}});
   /* 文字層（高解析度）：怪物的隻數、等級 */
   ox.setTransform(DPR,0,0,DPR,0,0);ox.clearRect(0,0,innerWidth,innerHeight);ox.font='700 11px system-ui,sans-serif';ox.textAlign='center';
