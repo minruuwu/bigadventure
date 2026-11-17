@@ -35,6 +35,6 @@ g.addEventListener('pagehide',savePos);
 document.addEventListener('visibilitychange',function(){if(!cur)return;if(document.hidden){savePos();cur.pause()}else if(isOn())tryPlay(cur)});
 setInterval(savePos,2000);
 /* 曲目清單（記事頁設定裡的「聽歌」用）：[檔名, 曲名, 用在哪] */
-var TRACKS=[['town','遺棄之鎮','配樂'],['battle','戰鼓響起','魔物森林'],['battle_mine','石牢的咆嘯','魔晶礦洞'],['battle_desert','舞砂','塵嵐古漠'],['battle_tomb','地底的彌撒','幽暗墓穴'],['battle_snow','霜巨人的行軍','凜冬雪山'],['battle_holy','聖所輓歌','聖教城領'],['battle_fire','硫磺焦土','熔岩火原'],['boss','最後的脈動','首領關卡'],['rift','古龍奧秘','龍之秘境'],['victory','勝利榮光','配樂'],['realm','夢之徑','幻境'],['prologue','滾雷','配樂'],['village','霧灰之晨','配樂'],['raid','脅迫之影','配樂']];
+var TRACKS=[['town','遺棄之鎮','配樂'],['battle','戰鼓響起','魔物森林'],['battle_mine','石牢的咆嘯','魔晶礦洞'],['battle_desert','舞砂','塵嵐古漠'],['battle_tomb','地底的彌撒','幽暗墓穴'],['battle_snow','霜巨人的行軍','凜冬雪山'],['battle_holy','聖所輓歌','聖教城領'],['battle_fire','硫磺焦土','熔岩火原'],['battle_demon','絕望御座','惡魔王城'],['boss','最後的脈動','首領關卡'],['rift','古龍奧秘','龍之秘境'],['victory','勝利榮光','配樂'],['realm','夢之徑','幻境'],['prologue','滾雷','配樂'],['village','霧灰之晨','配樂'],['raid','脅迫之影','配樂']];
 g.Music={TRACKS:TRACKS,init:init,play:play,fade:fade,stop:stop,page:page,back:back,isOn:isOn,setOn:setOn,vol:vol,setVol:setVol,current:function(){return curName}};
 })(window);
