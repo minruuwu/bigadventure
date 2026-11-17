@@ -58,11 +58,17 @@
     death: function (t) { tone('square', 420, 55, t, 0.5, 0.15, 0.005); tone('triangle', 300, 40, t, 0.55, 0.2); noise(t + 0.45, 0.15, 0.4, 'lowpass', 500, 150, 0.7, 0.003); tone('sine', 90, 40, t + 0.45, 0.2, 0.4) },
     revive: function (t) { tone('sine', 260, 1300, t, 0.5, 0.2, 0.05); [N.C6, N.E6, N.G6].forEach(function (f, i) { bell(f, t + 0.35 + i * 0.03, 0.9, 0.12) }); noise(t + 0.3, 0.6, 0.08, 'highpass', 6000, 9000, 0.7, 0.1) }
   };
+  /* 有音效檔的就播檔案（assets/sfx/<名稱>.mp3，先解碼好才播得即時）；沒有的才用合成的 */
+  var BASE = '../assets/', FILES = { slash: 1, stab: 1 }, BUF = {}, LOADING = {};
+  function loadFile(n) { if (BUF[n] || LOADING[n] || !AC) return LOADING[n]; LOADING[n] = fetch(BASE + 'sfx/' + n + '.mp3?v=1').then(function (r) { return r.arrayBuffer() }).then(function (b) { return new Promise(function (res, rej) { AC.decodeAudioData(b, res, rej) }) }).then(function (buf) { BUF[n] = buf; return buf }).catch(function () { LOADING[n] = null }); return LOADING[n] }
+  function playBuf(n, t) { var s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[n]; gn.gain.value = 1; s.connect(gn); gn.connect(master); s.start(t) }
+  function preload() { if (!ctx()) return; Object.keys(FILES).forEach(loadFile) }
   function play(name, o) {
-    o = o || {}; if (!S[name] || (!o.force && !isOn())) return; var c = ctx(); if (!c) return;
+    o = o || {}; if ((!S[name] && !FILES[name]) || (!o.force && !isOn())) return; var c = ctx(); if (!c) return;
     var now = c.currentTime, pr = PRI[name] || 1;
     if (!o.force && now - last.t < 0.08 && pr <= last.pr) return; /* 同一瞬間只留最重要的一個 */
     last = { t: now, pr: pr }; master.gain.value = vol();
+    if (FILES[name]) { master.gain.value = vol(); if (BUF[name]) playBuf(name, now + 0.005); else { var p = loadFile(name); if (p) p.then(function () { if (BUF[name]) playBuf(name, AC.currentTime + 0.005) }) } return }
     try { run(name, now + 0.01) } catch (e) {}
   }
   /* 離線算出一個音效的聲音（測試、匯出用）：回傳 Promise<AudioBuffer> */
@@ -72,5 +78,5 @@
     NB = oc.createBuffer(1, 44100, 44100); var d = NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     try { run(name, 0.01) } finally { AC = sv[0]; master = sv[1]; NB = sv[2] }
     return oc.startRendering() }
-  g.Sfx = { render: render, play: play, LIST: LIST, isOn: isOn, vol: vol, set: function (on, v) { try { if (on != null) localStorage.setItem('sfx.on', on ? '1' : '0'); if (v != null) localStorage.setItem('sfx.vol', String(v)) } catch (e) {} } };
+  g.Sfx = { init: function (b) { if (b) BASE = b }, preload: preload, FILES: FILES, render: render, play: play, LIST: LIST, isOn: isOn, vol: vol, set: function (on, v) { try { if (on != null) localStorage.setItem('sfx.on', on ? '1' : '0'); if (v != null) localStorage.setItem('sfx.vol', String(v)) } catch (e) {} } };
 })(window);
