@@ -64,7 +64,7 @@
   function playBuf(n, t) { var s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[n]; gn.gain.value = 1; s.connect(gn); gn.connect(master); s.start(t) }
   function preload() { if (!ctx()) return; Object.keys(FILES).forEach(loadFile) }
   function play(name, o) {
-    o = o || {}; if ((!S[name] && !FILES[name]) || (!o.force && !isOn())) return; var c = ctx(); if (!c) return;
+    o = o || {}; if ((!S[name] && !FILES[name]) || (!o.force && (!isOn() || !FILES[name]))) return; var c = ctx(); if (!c) return; /* 遊戲裡只播音效檔；合成音只在特效測試頁試聽 */
     var now = c.currentTime, pr = PRI[name] || 1;
     if (!o.force && now - last.t < 0.08 && pr <= last.pr) return; /* 同一瞬間只留最重要的一個 */
     last = { t: now, pr: pr }; master.gain.value = vol();
@@ -78,5 +78,8 @@
     NB = oc.createBuffer(1, 44100, 44100); var d = NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     try { run(name, 0.01) } finally { AC = sv[0]; master = sv[1]; NB = sv[2] }
     return oc.startRendering() }
+  /* 手機要玩家點過畫面才能出聲：第一次點擊時把音效喚醒 */
+  function unlock() { if (!isOn()) return; var c = ctx(); if (c && c.state === 'running') { document.removeEventListener('pointerdown', unlock, true); document.removeEventListener('keydown', unlock, true) } }
+  document.addEventListener('pointerdown', unlock, true); document.addEventListener('keydown', unlock, true);
   g.Sfx = { init: function (b) { if (b) BASE = b }, preload: preload, FILES: FILES, render: render, play: play, LIST: LIST, isOn: isOn, vol: vol, set: function (on, v) { try { if (on != null) localStorage.setItem('sfx.on', on ? '1' : '0'); if (v != null) localStorage.setItem('sfx.vol', String(v)) } catch (e) {} } };
 })(window);

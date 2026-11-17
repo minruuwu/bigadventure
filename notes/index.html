@@ -148,7 +148,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
             <button type="button" data-go="bdex"><b>幻獸圖鑑</b><small id="foundB"></small></button>
             <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文、幻獸</small></button>
             <button type="button" data-go="mus"><b>音樂</b><small>聽遊戲裡的配樂</small></button>
-            <button type="button" data-go="set"><b>設定</b><small>背景音樂開關、音量</small></button>
+            <button type="button" data-go="set"><b>設定</b><small>背景音樂、音效的開關與音量</small></button>
           </div></section>
         <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
         <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>魔物圖鑑</h1>
@@ -159,6 +159,8 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
           <div class="setg">
             <label class="setr" for="musOn"><span><b>背景音樂</b><small>預設關閉；只存在這台裝置的瀏覽器</small></span><input type="checkbox" id="musOn"></label>
             <label class="setr" for="musVol"><span><b>音樂音量</b><small id="musVolT"></small></span><input type="range" id="musVol" min="0" max="100" step="5"></label>
+            <label class="setr" for="sfxOn"><span><b>音效</b><small>戰鬥中的攻擊、魔法、恢復等音效；預設關閉</small></span><input type="checkbox" id="sfxOn"></label>
+            <label class="setr" for="sfxVol"><span><b>音效音量</b><small id="sfxVolT"></small></span><input type="range" id="sfxVol" min="0" max="100" step="5"></label>
           </div></section>
         <section id="v-mus" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>音樂</h1><p class="hint">點曲子就會播放（背景音樂沒開的話會自動打開）；再點一次或按「回到原本的音樂」就恢復。</p>
           <div class="jb" id="jb"></div></section>
@@ -182,6 +184,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/runevals.js?v=3"></script>
 <script src="../common/monsters.js?v=84"></script>
 <script src="../common/music.js?v=12"></script>
+<script src="../common/sfx.js?v=9"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -543,6 +546,11 @@ Promise.all(['monster_info.csv','stage_info.csv','skill_info.csv','skill_effect.
   return new Promise(function(res){withFB(function(FB){FB.requirePlayer('../').then(function(who){USER=who.user;start(Object.assign({uid:who.user.uid},who.player));res()})})})
 }).catch(function(e){var m=$('loading');if(m){m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')}});
 /* 設定：背景音樂（預設關閉，存在這台瀏覽器） */
+/* 音效開關、音量（跟音樂分開） */
+(function(){if(!window.Sfx)return;Sfx.init(BASE);var on=$('sfxOn'),vl=$('sfxVol'),vt=$('sfxVolT'),tm=0;if(!on||!vl)return;
+  function sync(){on.checked=Sfx.isOn();vl.value=Math.round(Sfx.vol()*100);vt.textContent=vl.value+'%';vl.disabled=!on.checked}
+  on.addEventListener('change',function(){Sfx.set(on.checked,null);sync();if(on.checked){Sfx.preload();Sfx.play('slash')}});
+  vl.addEventListener('input',function(){Sfx.set(null,vl.value/100);vt.textContent=vl.value+'%';clearTimeout(tm);tm=setTimeout(function(){Sfx.play('slash')},150)});sync()})();
 (function(){if(!window.Music)return;Music.init(BASE);Music.page('town');var on=$('musOn'),vl=$('musVol'),vt=$('musVolT');if(!on||!vl)return;
   function sync(){on.checked=Music.isOn();vl.value=Math.round(Music.vol()*100);vt.textContent=vl.value+'%';vl.disabled=!on.checked}
   on.addEventListener('change',function(){Music.setOn(on.checked);sync();jbSync()});vl.addEventListener('input',function(){Music.setVol(vl.value/100);vt.textContent=vl.value+'%'});sync();

@@ -243,7 +243,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/npc.js?v=1"></script>
 <script src="../common/story.js?v=9"></script>
 <script src="../common/music.js?v=12"></script>
-<script src="../common/sfx.js?v=8"></script>
+<script src="../common/sfx.js?v=9"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
@@ -1069,10 +1069,10 @@ function numXY(n){if(n.s==='p'){var pp=posOf(n.i);return[pp[0]+4,pp[1]-30]}var m
 function numHTML(n){var k=n.k;if(k==='miss')return['閃避','#c8c8c8',.8];if(k==='block')return['格擋','#d8d0b8',.8];if(k==='void')return['無效','#c8c8c8',.8];
   if(k==='sp')return[(n.v>0?'+':'')+n.v+' SP','#5ec8ff',.85];if(k==='h')return['+'+n.v,'#6cf08a',1];if(k==='shd')return['護盾 '+n.v,'#9ad8ff',.8];if(k==='t')return[String(n.v),'#d8d8d8',1];
   return[String(n.v),n.el?(DNC[n.el]||'#fff'):(n.dt==='m'?DNC.m:DNC['']),n.c?1.45:1]}
-function drawNums(t){var box=$('dnum');if(!box||!B)return;var live={},cnt={};
+function drawNums(t){var box=$('dnum');if(!box||!B)return;sfxFrame(t);var live={},cnt={};
   for(var q=B.ev.length-1;q>=0;q--){var e=B.ev[q];if(!e.nums)continue;if(e.t>t+50)continue;if(t-e.t>4000)break;
     e.nums.forEach(function(n,j){var t0=numT(e,n),d=t-t0;if(d<0||d>900)return;var key=q+'_'+j;live[key]=1;var el=DNL[key];
-      if(!el){var h=numHTML(n);el=document.createElement('div');el.className='dn'+(n.k==='d'&&n.el?' el-'+n.el:'');el.style.color=h[1];el.style.fontSize=(h[2]*Math.max(12,U*6.2)).toFixed(1)+'px';
+      if(!el){sfxNum(e,n);var h=numHTML(n);el=document.createElement('div');el.className='dn'+(n.k==='d'&&n.el?' el-'+n.el:'');el.style.color=h[1];el.style.fontSize=(h[2]*Math.max(12,U*6.2)).toFixed(1)+'px';
         el.innerHTML=(n.c&&n.k==='d'?'<span class="cr">暴擊</span>':'')+h[0]+(n.k==='d'&&n.w===1?'<span class="wk">WEAK</span>':'')+(n.k==='d'&&n.w===-1?'<span class="rs">RESIST</span>':'')+(n.k==='d'&&n.bx?'<span class="bx">×2</span>':'');
         var u0=n.s+n.i+'@'+Math.round(t0/60);cnt[u0]=(cnt[u0]||0)+1;el._st=cnt[u0]-1;box.appendChild(el);DNL[key]=el}
       var xy=numXY(n);if(!xy){el.style.opacity=0;return}var u=d/900,rise=14*(1-Math.pow(1-Math.min(1,u*1.6),2)),pop=d<90?1.35-.35*(d/90):1,a=u<.65?1:1-(u-.65)/.35,jx=((n.h||0)%3-1)*5+el._st*4,jy=el._st*7;
@@ -2059,7 +2059,7 @@ function bstGc(b){return BSTGC[b]||(BST[b]||BST.fire).c}
 var BST_ORDER=['fire','frost','lightning','wind','nature','light','dark'];
 var BSTALL={breath:1,wave:1,blades:1,bigorb:1,dash:1,cloud:1,flash:1};/* 打敵方全體的種類 */
 var BSTHIT={orb:560,shards:520,breath:560,wave:560,blades:580,spikes:470,beam:330,bigorb:820,dash:480,guard:0,poison:600,bite:500,zap:340,gust:650,cloud:700,flash:400,curse:760};
-var BSZ=.5,BSA=.7,BSX=10,BSY=14;/* 大小、透明度、相對主人腳底的位置（玩家在模擬頁調好的數值） */
+var BSZ=.5,BSA=.7,BSX=10,BSY=17;/* 2026-11：站高 3 格，免得被主人的武器擋住 *//* 大小、透明度、相對主人腳底的位置（玩家在模擬頁調好的數值） */
 /* 幻獸圖先縮成跟主角同一種像素格（1 格 = 1 單位），縮的時候平滑取樣，所以會稍微糊一點 */
 var BSM={};function bstSmall(k,s){var key=k+s;if(BSM[key])return BSM[key];var im=IMG['bst_'+k];if(!im)return null;var c=document.createElement('canvas');c.width=c.height=s;var g=c.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(im,0,0,s,s);return BSM[key]=c}
 /* 第 k 位隊員帶的幻獸（元素 key）：測試頁直接指定 MEMB[k].beast；正式戰鬥看玩家資料的 beasts[0] */
@@ -3436,6 +3436,14 @@ function OPENED(i){return i===0||(!!OPEN[i]&&(demo||cleared(i-1)>=NST))}/* 第 N
 var OPEN={0:1,1:1,2:1,3:1,4:1,5:1,6:1}/* 已經做好的章節 */;
 function cleared(a){if(demo)return NST-1;var m=MEMB[0]&&MEMB[0].adv||{};return m[AREAID[a]]|0}
 function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?{exp:parseInt(r.exp,10)||0,stones:parseInt(r.stones,10)||0}:rewardOf(a,l)}
+/* ---- 音效：每個動畫事件記下「命中時」和「施放時」要播哪個音效（common/sfx.js；持續傷害不出聲） ---- */
+var SFXW={'劍':'slash','斧':'slash','錘':'blunt','匕':'stab','槍':'stab','弓':'shoot','杖':'magic','書':'magic'},SFXEL={fire:1,frost:1,lightning:1,wind:1,nature:1,light:1,dark:1},
+  SFXBOOM={skill032:1,skill058:1,skill182:1,skill235:1,skill296:1,skill314:1,skill329:1,skill347:1,skill458:1,skill472:1,skill478:1,skill489:1,skill496:1,bst_fire_atk_4:1,bst_lightning_def_3:1},SFXCAST={skill092:'howl_wolf',skill345:'howl_ghost'};
+function sfxOf(e,o){if(e.idle||e.tick||e.rk==='thorn')return;var sk=SKN[e.sk]||{},es=(ENG.SK||{})[e.sk],el=o.el||sk.el||e.el||(es&&es.parts&&es.parts[0]?es.parts[0].e:'')||'',ty=o.ty||e.ty||sk.ty;/* 幻獸的招不在 SKN：屬性從引擎的技能資料拿 */
+  o.sfx=SFXBOOM[e.sk]||o.boom?'boom':SFXEL[el]?el:e.side==='p'&&!e.bst?(SFXW[(crew()[e.a]||{}).weapon]||'slash'):(sk.dt==='m'||e.bst?'magic':'claw');
+  o.sfc=SFXCAST[e.sk]||(ty==='buff'?'buff':ty==='debuff'?'debuff':'')}
+function sfxFrame(t){if(!window.Sfx||!Sfx.isOn()||!B||!B.ev)return;for(var q=B.ev.length-1;q>=0;q--){var e=B.ev[q];if(e.t>t)continue;if(t-e.t>1500)break;if(e.sfc&&!e._sfc&&t>=e.t+120){e._sfc=1;Sfx.play(e.sfc)}}}
+function sfxNum(e,n){if(!window.Sfx||!Sfx.isOn()||e.tick)return;var k=n.k;if(k==='miss')Sfx.play('miss');else if(k==='block')Sfx.play('block');else if(k==='h'){if(!n.ls)Sfx.play('heal')}else if(k==='d')Sfx.play(n.c?'crit':(e.sfx||'claw'))}
 function fxOf(p,id,ty){var s=SKN[id]||{n:'普通攻擊',ty:'damage',all:false,atk:true,el:'',vfx:''};if(id==='atk')s={n:'普通攻擊',ty:'damage',atk:true,el:'',vfx:''};
   var ww=WKIND[p.weapon]||'sword',wk=VFXK[s.vfx]?VFXK[s.vfx](ww):ww;return{crk:s.vfx==='riftbolt'?1:0,wk:wk,vc:vfxColor(wk,s),atk:!!s.atk,el:s.el||'',ty:ty||s.ty,far:FARK.indexOf(wk)>=0,hit:wk==='icerain'?560:wk==='pchains'?520:wk==='cross'?460:wk==='swords'?470:wk==='storm'?520:wk==='pillar'?330:wk==='throw'?300:(wk==='staff'||wk==='book')?290:180}}
 /* 有召喚的戰鬥：固定用 5 格站位，被召喚的怪站到已經倒下的同伴空出來的位置（沒有空位就站下一格） */
@@ -3488,7 +3496,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
       if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
       if(M&&e.summon)e.summon.forEach(function(i){if(!ms[i]&&M[i]){ms[i]=monEntry(M[i]);ms[i].at=o.t+500;mp.sum=true}});
-    mp.t=t;ev.push(o);return o};
+    sfxOf(e,o);mp.t=t;ev.push(o);return o};
   return mp}
 function realBattle(a,l){
   var CR=crewOf(RF),allies=CR.length-1,P=CR.map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
@@ -3834,7 +3842,7 @@ function getJSON(u){return fetch(u+'?v='+V).then(function(r){return r.ok?r.json(
 /* 背景讀到伺服器上最新的自己（技能、職業等級剛改過時快取可能是舊的）：還沒開打就換成新的 */
 window.addEventListener('fb-player-updated',function(ev){var p=ev.detail;if(!p||demo||!MEMB.length||(B&&!B.done))return;MEMB[0]=Object.assign({},MEMB[0],p,{uid:MEMB[0].uid})});
 function npcMembers(me){if(!window.NPC)return[];return (me.npcParty||[]).filter(function(id,i,a){return a.indexOf(id)===i&&NPC.on(me,id)&&NPC.get(id)&&NPC.get(id).battle}).slice(0,3).map(function(id){return NPC.player(id,me)})}
-function start(me,mem){
+function start(me,mem){if(window.Sfx){Sfx.init(BASE);if(Sfx.isOn())Sfx.preload()}/* 音效檔先解碼好，戰鬥中才播得即時 */
   MEMB=[me].concat(npcMembers(me)).concat(mem);NavIcons.setPlayer(me);
   Music.init(BASE);$('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試入口（選關預設戰棋）':'');
   $('loading').remove();renderTabs();showView('map');IMGGO();var o=curLoad();if(o)resume(o);else realBoot()}
