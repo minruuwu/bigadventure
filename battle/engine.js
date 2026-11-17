@@ -330,7 +330,7 @@
       var rows = def.rows.map(function (r) {
         var o = { k: r.k, v: r.v, el: r.el, dt: r.dt };
         if (r.k === 'dot' || r.k === 'hot' || r.k === 'banish') o.amt = r.base === 'mhp' ? r.v * tgt.b.mhp /* 幻獸木靈守護：照持有者最大生命 */ : r.v * (r.base === 'p_atk' ? stat(src, 'patk') : stat(src, 'matk'));
-        if (r.k === 'shield') o.amt = r.base === 'm_atk' ? r.v * stat(src, 'matk') : r.base === 'p_atk' ? r.v * stat(src, 'patk') : r.v;
+        if (r.k === 'shield') o.amt = r.base === 'hi_atk' ? r.v * Math.max(stat(src, 'patk'), stat(src, 'matk')) /* 幻獸：主人物攻、魔攻較高者 */ : r.base === 'm_atk' ? r.v * stat(src, 'matk') : r.base === 'p_atk' ? r.v * stat(src, 'patk') : r.v;
         return o;
       });
       var s = { n: name, src: src, turns: t, rows: rows, pol: def.pol, fresh: tgt === nowAct }; if (rows.some(function (r) { return r.k === 'acid' })) s.stk = 1;
