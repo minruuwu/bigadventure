@@ -59,7 +59,7 @@
     revive: function (t) { tone('sine', 260, 1300, t, 0.5, 0.2, 0.05); [N.C6, N.E6, N.G6].forEach(function (f, i) { bell(f, t + 0.35 + i * 0.03, 0.9, 0.12) }); noise(t + 0.3, 0.6, 0.08, 'highpass', 6000, 9000, 0.7, 0.1) }
   };
   /* 有音效檔的就播檔案（assets/sfx/<名稱>.mp3，先解碼好才播得即時）；沒有的才用合成的 */
-  var BASE = '../assets/', FILES = { slash: 1, stab: 1 }, BUF = {}, LOADING = {};
+  var BASE = '../assets/', FILES = { slash: 1, stab: 1, shoot: 1, blunt: 1, magic: 1 }, BUF = {}, LOADING = {};
   function loadFile(n) { if (BUF[n] || LOADING[n] || !AC) return LOADING[n]; LOADING[n] = fetch(BASE + 'sfx/' + n + '.mp3?v=1').then(function (r) { return r.arrayBuffer() }).then(function (b) { return new Promise(function (res, rej) { AC.decodeAudioData(b, res, rej) }) }).then(function (buf) { BUF[n] = buf; return buf }).catch(function () { LOADING[n] = null }); return LOADING[n] }
   function playBuf(n, t) { var s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[n]; gn.gain.value = 1; s.connect(gn); gn.connect(master); s.start(t) }
   function preload() { if (!ctx()) return; Object.keys(FILES).forEach(loadFile) }
