@@ -6,7 +6,7 @@
 (function (g) {
   'use strict';
   var AC = null, master = null, NB = null, last = { t: 0, pr: -1 };
-  var LIST = [['slash', '斬擊'], ['stab', '刺擊'], ['blunt', '打擊'], ['shoot', '射擊'], ['magic', '無屬性魔法'],
+  var LIST = [['slash', '斬擊'], ['stab', '刺擊'], ['blunt', '打擊'], ['claw', '怪物爪擊'], ['shoot', '射擊'], ['magic', '無屬性魔法'],
     ['fire', '火焰'], ['frost', '冰霜'], ['lightning', '雷電'], ['wind', '疾風'], ['nature', '自然'], ['light', '光明'], ['dark', '黑暗'],
     ['crit', '暴擊'], ['miss', '閃開'], ['block', '擋下'], ['buff', '正面'], ['debuff', '負面'], ['heal', '恢復'], ['death', '倒下'], ['revive', '復活']];
   /* 各音效的音量校正（讓聽起來差不多大聲；暴擊、倒下稍大） */
@@ -59,7 +59,7 @@
     revive: function (t) { tone('sine', 260, 1300, t, 0.5, 0.2, 0.05); [N.C6, N.E6, N.G6].forEach(function (f, i) { bell(f, t + 0.35 + i * 0.03, 0.9, 0.12) }); noise(t + 0.3, 0.6, 0.08, 'highpass', 6000, 9000, 0.7, 0.1) }
   };
   /* 有音效檔的就播檔案（assets/sfx/<名稱>.mp3，先解碼好才播得即時）；沒有的才用合成的 */
-  var BASE = '../assets/', FILES = { slash: 1, stab: 1, shoot: 1, blunt: 1, magic: 1 }, BUF = {}, LOADING = {};
+  var BASE = '../assets/', FILES = { slash: 1, stab: 1, shoot: 1, blunt: 1, magic: 1, claw: 1, fire: 1, frost: 1, lightning: 1, wind: 1, nature: 1, light: 1, dark: 1, heal: 1 }, BUF = {}, LOADING = {};
   function loadFile(n) { if (BUF[n] || LOADING[n] || !AC) return LOADING[n]; LOADING[n] = fetch(BASE + 'sfx/' + n + '.mp3?v=1').then(function (r) { return r.arrayBuffer() }).then(function (b) { return new Promise(function (res, rej) { AC.decodeAudioData(b, res, rej) }) }).then(function (buf) { BUF[n] = buf; return buf }).catch(function () { LOADING[n] = null }); return LOADING[n] }
   function playBuf(n, t) { var s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[n]; gn.gain.value = 1; s.connect(gn); gn.connect(master); s.start(t) }
   function preload() { if (!ctx()) return; Object.keys(FILES).forEach(loadFile) }
