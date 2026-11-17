@@ -57,8 +57,8 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 @keyframes nwob{0%,55%,100%{transform:rotate(0)}65%{transform:rotate(-9deg)}75%{transform:rotate(8deg)}85%{transform:rotate(-5deg)}93%{transform:rotate(3deg)}}
 @keyframes nhop{0%,100%{transform:translateY(0)}45%{transform:translateY(-12px)}}
 @keyframes nglow{0%,100%{filter:drop-shadow(0 0 2px #ffd45a) drop-shadow(0 0 5px #ffb820)}50%{filter:drop-shadow(0 0 5px #fff1a8) drop-shadow(0 0 10px #ffc83a)}}
-.nest .bar{height:6px;background:#2a1708;box-shadow:inset 0 0 0 1px #5a3a18;margin:2px 2px 0}.nest .bar i{display:block;height:100%;background:linear-gradient(#9be27a,#4c9a32)}
-.nest.full .bar i{background:linear-gradient(#ffe68a,#d79a16)}
+.nest .nbar{display:block;padding:0;height:6px;background:#2a1708;box-shadow:inset 0 0 0 1px #5a3a18;margin:2px 2px 0}.nest .nbar i{display:block;height:100%;background:linear-gradient(#9be27a,#4c9a32)}
+.nest.full .nbar i{background:linear-gradient(#ffe68a,#d79a16)}
 .nest small{display:block;font-size:10px;color:#eadbbd;margin-top:2px}
 .nest.full small{color:#ffe28a;font-weight:700}
 .pn .hb{display:block;width:72px;height:72px;margin:6px auto;image-rendering:pixelated;object-fit:contain}
@@ -76,7 +76,7 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <button type="button" class="bagb" id="bBag" title="行囊"><img src="../assets/real/bag.png" alt=""><span>行囊</span></button>
 <div class="bag" id="bag" hidden></div>
 <div id="tst" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 84px);transform:translateX(-50%);max-width:86%;font-size:13px;background:rgba(18,12,8,.88);color:#f6e8c0;padding:6px 10px;box-shadow:0 0 0 2px #5a3a18;z-index:9;pointer-events:none"></div>
-<div class="nest" id="nest" hidden title="孵化中的蛋"><div class="nw"><img class="nb" src="../assets/beast/nest.png" alt=""><img class="ne" id="nestEgg" alt=""></div><div class="bar"><i id="nestBar"></i></div><small id="nestTxt"></small></div>
+<div class="nest" id="nest" hidden title="孵化中的蛋"><div class="nw"><img class="nb" src="../assets/beast/nest.png" alt=""><img class="ne" id="nestEgg" alt=""></div><div class="nbar"><i id="nestBar"></i></div><small id="nestTxt"></small></div>
 <div id="rdm" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);font-size:12px;background:rgba(18,12,8,.8);padding:3px 8px;pointer-events:none"></div>
 <div style="position:fixed;right:4px;top:calc(env(safe-area-inset-top) + 50px);font-size:9px;color:rgba(255,255,255,.75);text-shadow:0 0 2px #000;pointer-events:none">© OpenStreetMap contributors</div>
 <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
