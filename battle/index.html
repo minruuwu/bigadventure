@@ -217,7 +217,10 @@ button{font:inherit;color:inherit}
 .rfgot{display:inline-flex;align-items:center;gap:3px;margin:2px 6px 0 0;font-weight:900}.rfgot img{width:18px;height:18px;image-rendering:pixelated}
 html,body,*{touch-action:manipulation}
 .cdb{position:absolute;transform:translate(-50%,-100%);background:#fbf6ea;color:#2a170a;border:2px solid #1a0d08;border-radius:4px;padding:0 6px;font:900 14px/18px 'Arial Black',sans-serif;pointer-events:none;box-shadow:0 2px 0 rgba(0,0,0,.35)}.cdb:after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-4px;border:4px solid transparent;border-top-color:#1a0d08}.cdb.r{color:#d0281a}
+#realgo{display:none}.realgo #realgo{display:flex;position:fixed;inset:0;z-index:60;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:radial-gradient(circle at 50% 45%,#2a1446 0%,#0e0818 70%);color:#e0d0ff;font-size:15px;font-weight:900;letter-spacing:.1em;text-shadow:0 0 8px #8a5ad0}.realgo #realgo i{width:34px;height:34px;border:3px solid rgba(200,170,255,.3);border-top-color:#e0d0ff;border-radius:50%;animation:rgspin .9s linear infinite}@keyframes rgspin{to{transform:rotate(360deg)}}
 </style></head><body>
+<script>/* 從幻境進來打怪：一開始就蓋住畫面，不要先閃一下冒險地圖 */if(/[?&]real=1/.test(location.search)){document.documentElement.classList.add('realgo');setTimeout(function(){document.documentElement.classList.remove('realgo')},20000)}</script>
+<div id="realgo"><i></i>遭遇魔物！</div>
 <div class="app">
  <div class="top"><h1>冒險</h1></div>
  <div class="main">
@@ -3060,7 +3063,7 @@ function stMax0(i){var a=AREAID[i],has={},any=0;(ENG&&ENG.stage||[]).forEach(fun
 function stageNo(a,l){return a*NST+l}
 function isBoss(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);return r?r.boss==='1':l%10===0}
 function rewardOf(a,l){var N=stageNo(a,l),k=isBoss(a,l)?3:1;return{exp:(20+5*N)*k,stones:Math.round(5+1.2*N)*k}}
-function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';var ap=document.querySelector('.app');if(ap)ap.classList.toggle('mapon',v==='map');if(v==='map'){if(window.Music)Music.page('town');renderMap();mapFocus()}}
+function showView(v){view=v;var tb=document.querySelector('.top');if(tb)tb.style.display=v==='tac'?'none':'';/* 戰棋畫面拿掉上方「冒險」那條，省空間 */frame.style.transform='';$('mapv').hidden=v!=='map';$('batv').hidden=v==='map'||v==='tac';$('tacv').hidden=v!=='tac';var ap=document.querySelector('.app');if(ap)ap.classList.toggle('mapon',v==='map');if(v==='map'){if(window.Music&&!document.documentElement.classList.contains('realgo'))Music.page('town');renderMap();mapFocus()}}
 /* 進地圖時捲到最後打的那一章（有光球的區域），放在畫面可見範圍的中間；地圖圖片還沒載完就等載完再捲 */
 function mapFocus(){var img=$('map').querySelector('img');if(!img.complete||!img.naturalHeight){img.addEventListener('load',mapFocus,{once:true});return}if(view!=='map')return;var z=$('zones').children[lastArea()];if(!z){window.scrollTo(0,0);return}
   var tb=document.querySelector('.top'),th=tb?tb.offsetHeight:0,nv=document.querySelector('.tabs'),nh=nv?nv.offsetHeight:90,r=z.getBoundingClientRect(),vis=window.innerHeight-th-nh;window.scrollTo(0,Math.max(0,window.scrollY+r.top-th-Math.max(0,(vis-r.height)/2)))}
@@ -3510,7 +3513,7 @@ function startBattle(a,l){if(!RF)setLastArea(a);if(window.Music)Music.play(battl
 function autoPref(){try{return localStorage.getItem('adv.autoBattle')==='1'}catch(e){return false}}
 function setAutoPref(v){try{localStorage.setItem('adv.autoBattle',v?'1':'0')}catch(e){}}
 var LV=null;/* 手動戰鬥的狀態：S = 引擎、mp = 動畫轉換、order/qi = 這回合的行動順序、wait = 等誰選、auto = 整隊自動 */
-function startLive(a,l,auto,opt){opt=opt||{};if(!RF&&!opt.tut&&!opt.real)setLastArea(a);PARTS=[];curClear();
+function startLive(a,l,auto,opt){opt=opt||{};document.documentElement.classList.remove('realgo');if(!RF&&!opt.tut&&!opt.real)setLastArea(a);PARTS=[];curClear();
   var CR=opt.crew||crewOf(RF),allies=CR.length-1,P=CR.map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
   var M=opt.mons||(RF?riftMons(RF):BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length)),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
   if(window.Music)Music.play(opt.tut?'battle':battleBgm(a,opt.real?!!opt.real.rare:!RF&&isBoss(a,l)),800);
@@ -3636,8 +3639,8 @@ function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}
    蛋：王必掉該地域的蛋，一般 1%；打倒的怪物點記在 realK（這個 3 小時時段內不再出現） */
 var REALC={area01:['green','leaf'],area02:['yellow','bolt'],area03:['teal','wind'],area04:['purple','moon'],area05:['blue','ice'],area06:['gold','sun'],area07:['red','fire']},REALX=0.3;
 function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try{o=JSON.parse(sessionStorage.getItem('real.fight')||'null');sessionStorage.removeItem('real.fight')}catch(e){}
-  if(!o||!o.mons||!o.mons.length||!MEMB[0]){if(o===null)location.href='../real/index.html';return}var a=Math.max(0,AREAID.indexOf(o.area)),stg=Math.max(1,Math.round((o.lv|0)/3));
-  var M=o.mons.map(function(id){var r=ENG.mon[id];return r?BattleEngine.monster(r,stg,ENG):null}).filter(Boolean);if(!M.length){toast('怪物資料讀不到');return}
+  if(!o||!o.mons||!o.mons.length||!MEMB[0]){if(o===null)location.href='../real/index.html';else document.documentElement.classList.remove('realgo');return}var a=Math.max(0,AREAID.indexOf(o.area)),stg=Math.max(1,Math.round((o.lv|0)/3));
+  var M=o.mons.map(function(id){var r=ENG.mon[id];return r?BattleEngine.monster(r,stg,ENG):null}).filter(Boolean);if(!M.length){document.documentElement.classList.remove('realgo');toast('怪物資料讀不到');return}
   startLive(a,1,autoPref(),{mons:M,real:o})}
 function realExpBase(lv,boss){var best=null,bd=1e9;(ENG.stage||[]).forEach(function(r){if((r.boss==='1')!==!!boss)return;var rec=parseInt(r.level,10)||3*(parseInt(r.stage,10)||1),d=Math.abs(rec-lv);if(d<bd){bd=d;best=r}});return best?parseInt(best.exp,10)||0:20}
 /* 素材數量：一般怪看「怪物等級 ÷ 自己的基準等級」— 0.5 以下上限 1、1.0 上限 10、1.5 以上上限 20，實際是上限的一半到上限；王固定 20～30。每一個各自平均抽結晶／礦石／寶珠 */
@@ -3686,7 +3689,7 @@ function saveWin(bb,req,ui){
         ui.msg('經驗、鍛造石已存檔；被擋下沒存到：'+cut.join('、')+'（請截圖給開發者）');ui.lock(false)},function(){tryCut()})},21500)})()})})})}setTimeout(put,wait)}
 $('rok').addEventListener('click',function(){var rl=B&&B.real;curClear();if(rl){location.href='../real/index.html';return}showView('map')});/* 幻境的戰鬥：確認後回到幻境 */
 /* 回到冒險頁時，有還沒結束（或還沒按確認）的戰鬥就接著播 */
-function resume(o){if(!o.rift&&!o.real)setLastArea(o.a);PARTS=[];B={rift:o.rift||null,real:o.real||null,ev:o.ev,mons:o.mons,pkl:o.pkl||{},psw:o.psw||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
+function resume(o){document.documentElement.classList.remove('realgo');if(!o.rift&&!o.real)setLastArea(o.a);PARTS=[];B={rift:o.rift||null,real:o.real||null,ev:o.ev,mons:o.mons,pkl:o.pkl||{},psw:o.psw||{},pko:{},mko:o.mko||{},res:o.res,end:o.end,a:o.a,l:o.l,mhpP:o.mhpP,mhpM:o.mhpM,hp0:o.hp0,hpNow:o.hp0,req:o.req,saved:o.saved,wall:o.wall};
   B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=battleTitle(B);$('log').textContent='';$('bres').hidden=true;
   setBG(B.rift?'R':AREA[o.a].bg);riftCenter();build();B.t0=performance.now()-(Date.now()-o.wall);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
