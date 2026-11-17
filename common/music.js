@@ -11,7 +11,10 @@ function ls(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){r
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 function isOn(){return ls('music.on','0')==='1'}
 function vol(){var v=parseFloat(ls('music.vol','0.7'));return isNaN(v)?0.7:Math.max(0,Math.min(1,v))}
-function track(n){if(!TR[n]){var a=new Audio(BASE+'audio/bgm_'+n+'.mp3');a.loop=true;a.preload='auto';TR[n]=a}return TR[n]}
+/* 有前奏的曲子：第一次從頭播，播到 end 秒就跳回 start 秒循環（跳過前奏和結尾的淡出） */
+var LOOPS={final:[21.94,138.9]};
+function track(n){if(!TR[n]){var a=new Audio(BASE+'audio/bgm_'+n+'.mp3'),L=LOOPS[n];a.loop=!L;a.preload='auto';TR[n]=a;
+  if(L){a.addEventListener('ended',function(){a.currentTime=L[0];if(cur===a&&isOn())tryPlay(a)});setInterval(function(){if(!a.paused&&a.currentTime>=L[1])a.currentTime=L[0]},40)}}return TR[n]}
 function anim(ms,fn){return new Promise(function(res){var t0=performance.now();(function f(t){var u=Math.min(1,(t-t0)/Math.max(1,ms));fn(u);if(u<1)requestAnimationFrame(f);else res()})(t0)})}
 function fadeVol(a,to,ms,then){var tok={};fades.set(a,tok);var v0=a.volume;anim(ms,function(u){if(fades.get(a)===tok)a.volume=Math.max(0,Math.min(1,v0+(to-v0)*u))}).then(function(){if(fades.get(a)===tok&&then)then()})}
 function tryPlay(a){var p=a.play();if(p&&p.catch)p.catch(function(){if(waitTap)return;waitTap=true;var go=function(){waitTap=false;document.removeEventListener('pointerdown',go,true);document.removeEventListener('keydown',go,true);if(cur===a&&isOn())a.play().catch(function(){})};document.addEventListener('pointerdown',go,true);document.addEventListener('keydown',go,true)})}
@@ -35,6 +38,6 @@ g.addEventListener('pagehide',savePos);
 document.addEventListener('visibilitychange',function(){if(!cur)return;if(document.hidden){savePos();cur.pause()}else if(isOn())tryPlay(cur)});
 setInterval(savePos,2000);
 /* 曲目清單（記事頁設定裡的「聽歌」用）：[檔名, 曲名, 用在哪] */
-var TRACKS=[['town','遺棄之鎮','配樂'],['battle','戰鼓響起','魔物森林'],['battle_mine','石牢的咆嘯','魔晶礦洞'],['battle_desert','舞砂','塵嵐古漠'],['battle_tomb','地底的彌撒','幽暗墓穴'],['battle_snow','霜巨人的行軍','凜冬雪山'],['battle_holy','聖所輓歌','聖教城領'],['battle_fire','硫磺焦土','熔岩火原'],['battle_demon','絕望御座','惡魔王城'],['boss','最後的脈動','首領關卡'],['rift','古龍奧秘','龍之秘境'],['victory','勝利榮光','配樂'],['realm','夢之徑','幻境'],['prologue','滾雷','配樂'],['village','霧灰之晨','配樂'],['raid','脅迫之影','配樂']];
+var TRACKS=[['town','遺棄之鎮','配樂'],['battle','戰鼓響起','魔物森林'],['battle_mine','石牢的咆嘯','魔晶礦洞'],['battle_desert','舞砂','塵嵐古漠'],['battle_tomb','地底的彌撒','幽暗墓穴'],['battle_snow','霜巨人的行軍','凜冬雪山'],['battle_holy','聖所輓歌','聖教城領'],['battle_fire','硫磺焦土','熔岩火原'],['battle_demon','絕望御座','惡魔王城'],['final','終焉迴響','最終決戰'],['boss','最後的脈動','首領關卡'],['rift','古龍奧秘','龍之秘境'],['victory','勝利榮光','配樂'],['realm','夢之徑','幻境'],['prologue','滾雷','配樂'],['village','霧灰之晨','配樂'],['raid','脅迫之影','配樂']];
 g.Music={TRACKS:TRACKS,init:init,play:play,fade:fade,stop:stop,page:page,back:back,isOn:isOn,setOn:setOn,vol:vol,setVol:setVol,current:function(){return curName}};
 })(window);

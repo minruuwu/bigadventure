@@ -242,7 +242,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=13"></script>
 <script src="../common/npc.js?v=1"></script>
 <script src="../common/story.js?v=9"></script>
-<script src="../common/music.js?v=11"></script>
+<script src="../common/music.js?v=12"></script>
 <script src="../common/sfx.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
@@ -3505,8 +3505,8 @@ function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||
   box.scrollTop=box.scrollHeight}
 /* 戰鬥音樂：首領戰一律播首領曲；一般戰鬥看區域有沒有專屬的戰鬥曲（冒險關卡、幻境同一個區域共用），沒有就播共用的 */
 var BGMA={area02:'battle_mine',area03:'battle_desert',area04:'battle_tomb',area05:'battle_snow',area06:'battle_holy',area07:'battle_fire',area08:'battle_demon'};
-function battleBgm(a,boss){if(RF)return 'rift';/* 龍之秘境：古龍奧秘 */return boss?'boss':BGMA[AREAID[a]]||'battle'}
-function startBattle(a,l){if(!RF)setLastArea(a);if(window.Music)Music.play(battleBgm(a,!RF&&isBoss(a,l)),800);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
+function battleBgm(a,boss,l){if(RF)return 'rift';if(boss&&AREAID[a]==='area08'&&l===20)return 'final';/* 最終決戰（惡魔王城最後一關）：終焉迴響 *//* 龍之秘境：古龍奧秘 */return boss?'boss':BGMA[AREAID[a]]||'battle'}
+function startBattle(a,l){if(!RF)setLastArea(a);if(window.Music)Music.play(battleBgm(a,!RF&&isBoss(a,l),l),800);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=battleTitle(B);$('log').textContent='';$('bres').hidden=true;
   setBG(B.rift?'R':AREA[a].bg);riftCenter();build();B.t0=performance.now()-(B.rift?WALK:0);lastNow=performance.now();if(!raf)raf=requestAnimationFrame(tick)}
 /* ======== 手動戰鬥（測試入口 ?manual=1）：輪到我方角色時停下來選招、選目標；可以整隊切自動，也可以這次行動交給自動 ======== */
@@ -3516,7 +3516,7 @@ var LV=null;/* 手動戰鬥的狀態：S = 引擎、mp = 動畫轉換、order/qi
 function startLive(a,l,auto,opt){opt=opt||{};document.documentElement.classList.remove('realgo');if(!RF&&!opt.tut&&!opt.real)setLastArea(a);PARTS=[];curClear();
   var CR=opt.crew||crewOf(RF),allies=CR.length-1,P=CR.map(function(p){return BattleEngine.player(p,ENG,{allies:allies})});
   var M=opt.mons||(RF?riftMons(RF):BattleEngine.stageMonsters(ENG,AREAID[a],l,P.length)),S=BattleEngine.session(P,M,ENG,{sp:true}),ms=M.map(monEntry),mp=mkMapper(ms,M);
-  if(window.Music)Music.play(opt.tut?'battle':battleBgm(a,opt.real?!!opt.real.rare:!RF&&isBoss(a,l)),800);
+  if(window.Music)Music.play(opt.tut?'battle':battleBgm(a,opt.real?!!opt.real.rare:!RF&&isBoss(a,l),opt.real?0:l),800);
   B={live:true,ev:mp.ev,mons:ms,pkl:mp.pkl,psw:mp.psw,pko:{},mko:mp.mko,res:null,end:1e15,a:a,l:l,rift:RF?Object.assign({},RF):null,
     mhpP:P.map(function(u){return u.b.mhp}),mhpM:M.map(function(u){return u.b.mhp}),hpNow:{p:P.map(function(u){return u.b.mhp}),m:M.map(function(u){return u.b.mhp}),pp:P.map(function(u){return u.sp})},lead:P[0],spm:true,tut:!!opt.tut,tutCrew:opt.crew||null,real:opt.real||null};
   B.wall=Date.now();B.hp0=B.hpNow;B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
