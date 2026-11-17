@@ -12,7 +12,7 @@
   /* 各音效的音量校正（讓聽起來差不多大聲；暴擊、倒下稍大） */
   var GAIN = { slash: 2.8, stab: 1.8, blunt: 0.7, shoot: 1.6, magic: 1.8, fire: 1.6, wind: 6, nature: 1, light: 1, dark: 0.7, crit: 1, miss: 6, block: 1.1, buff: 2.2, debuff: 1.4, heal: 1.2, death: 0.9, revive: 0.8, frost: 1, lightning: 1 };
   function run(name, t) { var m = master, o = AC.createGain(); o.gain.value = GAIN[name] || 1; o.connect(m); master = o; try { S[name](t) } finally { master = m } }
-  var PRI = { crit: 3, fire: 2, frost: 2, lightning: 2, wind: 2, nature: 2, light: 2, dark: 2, death: 2, revive: 2 };
+  var PRI = { crit: 3, boom: 3, howl_wolf: 3, howl_ghost: 3, fire: 2, frost: 2, lightning: 2, wind: 2, nature: 2, light: 2, dark: 2, death: 2, revive: 2 };
   function ls(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v } catch (e) { return d } }
   function isOn() { return ls('sfx.on', '0') === '1' }
   function vol() { var v = parseFloat(ls('sfx.vol', '0.6')); return isNaN(v) ? 0.6 : Math.max(0, Math.min(1, v)) }
