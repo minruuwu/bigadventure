@@ -291,7 +291,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 霜晶庇護,buff,frost_res_rate,0.4,,,,冰霜抗性 +40%、物理與魔法減傷 +10%
 霜晶庇護,buff,p_reduce_rate,0.1,,,,
 霜晶庇護,buff,m_reduce_rate,0.1,,,,
-冰牆,buff,shield,1.2,hi_atk,,,護盾（主人主要攻擊力 120%）、冰霜抗性 +20%
+冰牆,buff,shield,0.8,hi_atk,,,護盾（主人主要攻擊力 80%）、冰霜抗性 +20%
 冰牆,buff,frost_res_rate,0.2,,,,
 狐火極光,buff,fire_res_rate,0.1,,,,所有屬性抗性 +10%
 狐火極光,buff,frost_res_rate,0.1,,,,
@@ -323,9 +323,9 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 疾風迅影,buff,hit_rate,0.15,,,,
 暴風追擊,buff,p_atk_rate,0.1,,,,物理、魔法攻擊力 +10%
 暴風追擊,buff,m_atk_rate,0.1,,,,
-蒼穹羽盾,buff,p_reduce_rate,0.1,,,,物理與魔法減傷 +10%、護盾（主人主要攻擊力 120%）
+蒼穹羽盾,buff,p_reduce_rate,0.1,,,,物理與魔法減傷 +10%、護盾（主人主要攻擊力 80%）
 蒼穹羽盾,buff,m_reduce_rate,0.1,,,,
-蒼穹羽盾,buff,shield,1.2,hi_atk,,,
+蒼穹羽盾,buff,shield,0.8,hi_atk,,,
 風壁庇護,buff,wind_res_rate,0.3,,,,疾風抗性 +30%，受到傷害時幻獸反擊一次
 風壁庇護,buff,beast_counter,0.8,,,,
 風壓,debuff,p_atk_rate,-0.1,,,,物理、魔法攻擊力 −10%、速度 −20%
@@ -350,7 +350,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 野性生機,buff,hot,0.04,mhp,,,每回合回復最大生命 4%、物理與魔法增傷 +15%
 野性生機,buff,p_damage_rate,0.15,,,,
 野性生機,buff,m_damage_rate,0.15,,,,
-古木壁壘,buff,shield,1.2,hi_atk,,,護盾（主人主要攻擊力 120%）、自然抗性 +30%
+古木壁壘,buff,shield,0.8,hi_atk,,,護盾（主人主要攻擊力 80%）、自然抗性 +30%
 古木壁壘,buff,nature_res_rate,0.3,,,,
 晶壁,buff,m_reduce_rate,0.25,,,,魔法減傷 +25%
 晶角共鳴,buff,next_dmg,0.5,,,,下一次造成的傷害變成 1.5 倍
