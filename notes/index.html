@@ -145,7 +145,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
             <button type="button" data-go="acct"><b>帳號</b><small>登入資訊、登出</small></button>
             <button type="button" data-go="dex"><b>魔物圖鑑</b><small id="foundM"></small></button>
             <button type="button" data-go="bdex"><b>幻獸圖鑑</b><small id="foundB"></small></button>
-            <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文</small></button>
+            <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文、幻獸</small></button>
             <button type="button" data-go="set"><b>設定</b><small>背景音樂</small></button>
           </div></section>
         <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
@@ -439,7 +439,7 @@ function openBeast(id){var b=(D.beasts||[]).filter(function(x){return x.beast_id
   s.appendChild(el('p','hint',b.stage==='幼年體'?'幼年體依固定順序在 Lv1、6、12、18 學會；同時只能配戴 2 招，每回合 25% 機率從配戴的招式中隨機施放一招。':'成熟體在進化時與 Lv6、12、18 隨機學會；同時只能配戴 2 招，每回合 25% 機率從配戴的招式中隨機施放一招。'))})}
 
 /* ---- 事典 ---- */
-var TOC=[['el','屬性','七種屬性與抗性'],['st','狀態','增益、減益的效果'],['rule','戰鬥規則','命中、暴擊、傷害與順序'],['rune','符文','武器附魔的 26 種符文'],['mst','職業精通','職業 50 級的永久天賦']];
+var TOC=[['el','屬性','七種屬性與抗性'],['st','狀態','增益、減益的效果'],['rule','戰鬥規則','命中、暴擊、傷害與順序'],['rune','符文','武器附魔的 26 種符文'],['mst','職業精通','職業 50 級的永久天賦'],['bst','幻獸培養','取得蛋、孵化、素材、餵養與進化']];
 function renderToc(){var t=$('toc');t.textContent='';TOC.forEach(function(x){var b=el('button');b.type='button';b.appendChild(el('span',null,x[1]));b.appendChild(el('small',null,x[2]));b.addEventListener('click',function(){openDoc(x[0])});t.appendChild(b)})}
 function ent(img,title,txt,extra){var d=el('div','ent'+(img?'':' noi'));if(img)d.appendChild(icon(img));var b=el('b',null,title);if(extra)b.appendChild(extra);d.appendChild(b);d.appendChild(el('p',null,txt));return d}
 function rule(t,txt){var d=el('div','rule');d.appendChild(el('b',null,t));d.appendChild(document.createTextNode(txt));return d}
@@ -476,6 +476,35 @@ function openDoc(k){openSheet(function(s){
     s.appendChild(rule('戰報','回血、SP 增加只在角色身上跳數字；驅魔解除狀態、劍心獲得劍氣才會寫進戰報。'));
     var my=(ME&&ME.jobLv)||{};
     D.mst.forEach(function(m){var on=(my[m.sn]|0)>=50;s.appendChild(rule((on?'★ ':'')+m.n+'（'+m.job+'）',m.d))})}
+  else if(k==='bst'){s.appendChild(el('h2',null,'幻獸培養'));s.appendChild(el('p','sub','幻獸跟在主人身邊戰鬥：提升主人的屬性，主人每次行動結束後也有機會放出幻獸的技能。看完第一章之四「幻境的傳說」後開放。'));
+    s.appendChild(el('div','k2','取得幻獸蛋'));
+    s.appendChild(rule('劇情','第一章之四「幻境的傳說」裡選一種顏色，就會得到那顆蛋（每個帳號一次）。'));
+    s.appendChild(rule('幻境','在幻境打贏怪物有機會掉蛋；打贏首領一定掉一顆。蛋的種類跟著地域：森林 角蹄蛋（自然）、礦洞 靈鼠蛋（雷電）、沙漠 羽禽蛋（疾風）、墓穴 暗鱗蛋（黑暗）、雪山 牙犬蛋（冰霜）、王城 輝獸蛋（光明）、火原 龍蜥蛋（火焰）。'));
+    s.appendChild(el('div','k2','孵化'));
+    s.appendChild(rule('開始孵化','在幻境打開右下角的「行囊」，點一下蛋就開始孵化。一次只能孵一顆，孵化中不能換別顆。'));
+    s.appendChild(rule('走路孵蛋','開著定位實際走 2 公里就會孵好（左上角的巢會顯示進度）。孵好後點那顆跳動的蛋，幫幻獸取名字（最多 8 個字，之後可以改）。'));
+    s.appendChild(rule('數量上限','最多同時擁有 6 隻幻獸；滿了就不能再孵，可以到艾德蒙那裡放生。'));
+    s.appendChild(el('div','k2','培養素材'));
+    s.appendChild(rule('取得','在幻境打贏怪物會掉培養素材，顏色跟著地域（森林綠、礦洞黃、沙漠青、墓穴紫、雪山藍、王城金、火原紅）。每一個素材隨機是結晶、礦石或寶珠其中一種，機率一樣。'));
+    s.appendChild(rule('數量','怪物等級比自己高越多，掉得越多；首領掉得最多。打倒的怪物要等下一個時段（每 3 小時換一批）才會再出現。'));
+    s.appendChild(rule('對應','結晶＝攻擊方向、礦石＝生存方向、寶珠＝輔助方向。幻獸只吃自己顏色的素材，例如紅龍蜥吃紅色。'));
+    s.appendChild(el('div','k2','照料幻獸'));
+    s.appendChild(rule('艾德蒙','在帕拉迪村找艾德蒙，選「照料幻獸」，可以查看每隻幻獸的屬性、技能，並餵養、進化、改名、放生，或選一隻同行。'));
+    s.appendChild(rule('同行','一次只能帶一隻幻獸出戰。同行的幻獸加成主人的屬性；主人每次行動結束後，有 25% 機率從裝備的兩招技能裡放出一招。幻獸不會被攻擊。'));
+    s.appendChild(rule('放生','放生後幻獸會回到幻境，無法復原，花掉的素材也不會退還。'));
+    s.appendChild(el('div','k2','餵養與屬性'));
+    s.appendChild(rule('餵養','每餵一次升 1 級，並隨機增加 3 格屬性（可能重複加在同一項）。選攻擊、生存或輔助方向，消耗對應的素材：Lv1 時 10 個，之後每級多 5 個。'));
+    s.appendChild(rule('方向','每一格有一半機率加在選的方向那三項：攻擊＝攻擊力、增傷、暴擊率；生存＝減傷、生命力、本屬性抗性；輔助＝閃避率、暴擊傷害、其他屬性抗性。另一半隨機加在其他六項。已經加滿的項目不會再抽到。'));
+    s.appendChild(rule('屬性上限','幼年體每項最多 15 格，滿格時：攻擊力 +10%（加在物攻、魔攻較高的那個）、增傷 +15%、暴擊率 +10%、減傷 +15%、生命力 +20%、本屬性抗性 +30%（幻獸自己的屬性）、閃避率 +8%、暴擊傷害 +100%、其他屬性抗性 +10%（另外六種屬性）。成熟體每項最多 30 格，加成也是兩倍。'));
+    s.appendChild(rule('孵化與進化的祝福','孵化時、進化時各免費加 3 格屬性。'));
+    s.appendChild(el('div','k2','技能'));
+    s.appendChild(rule('幼年體','Lv1 學會單體攻擊、Lv6 學會守護、Lv12 學會減益、Lv18 學會全體攻擊。'));
+    s.appendChild(rule('成熟體','進化時學會第一招成熟體技能，之後 Lv6、Lv12、Lv18 各學一招（順序在進化時隨機決定）。幼年體的四招也會保留。'));
+    s.appendChild(rule('裝備','學會的技能裡選兩招裝備；戰鬥中幻獸只會放裝備的這兩招。'));
+    s.appendChild(el('div','k2','進化'));
+    s.appendChild(rule('條件','幼年體 Lv20，加上自己顏色的結晶、礦石、寶珠各 50 個。'));
+    s.appendChild(rule('進化成哪一型','攻擊型、生存型、輔助型三選一，機率照攻擊、生存、輔助三組屬性的格數比例決定：哪一組格數越多，越容易進化成那一型，但不是一定。進化前可以在「進化」分頁看到目前的機率。'));
+    s.appendChild(rule('進化後','外觀改變，等級回到 Lv1、可以再升到 Lv20；原本的屬性全部保留，每項上限變成 30 格。成熟體餵養的素材消耗也比較多。'))}
   else if(k==='rune'){s.appendChild(el('h2',null,'符文'));s.appendChild(el('p','sub','在秘境打贏可以拿到符文碎片，碎片累積到門檻就升級（最高 Lv10）。符文 Lv1 以上才能裝備；武器到 30／60／75 級各開一格，任何武器都能裝任何符文，同一把武器不能重複，三格同時生效。點符文看每一級的數值。'));
     var rs=(ME&&ME.rs)||{};
     D.runes.forEach(function(r){var t=el('b','rn');t.textContent=r.rune_name;t.style.color=r.color;var d=el('div','ent rune'),my=window.RuneVals?RuneVals.levelOf(rs[r.u_sn]):0;d.appendChild(icon(BASE+'icons/runes/'+r.u_sn+'.png?v='+V));
