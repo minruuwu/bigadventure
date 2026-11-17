@@ -34,5 +34,7 @@ function init(base){if(base)BASE=base}
 g.addEventListener('pagehide',savePos);
 document.addEventListener('visibilitychange',function(){if(!cur)return;if(document.hidden){savePos();cur.pause()}else if(isOn())tryPlay(cur)});
 setInterval(savePos,2000);
-g.Music={init:init,play:play,fade:fade,stop:stop,page:page,back:back,isOn:isOn,setOn:setOn,vol:vol,setVol:setVol,current:function(){return curName}};
+/* 曲目清單（記事頁設定裡的「聽歌」用）：[檔名, 曲名, 用在哪] */
+var TRACKS=[['town','遺棄之鎮','營地、冒險地圖等一般頁面'],['battle','戰鼓響起','森林的戰鬥（其他還沒有專屬曲的區域也用這首）'],['battle_mine','石牢的咆嘯','礦洞的戰鬥'],['boss','最後的脈動','首領關卡'],['victory','勝利榮光','戰鬥勝利'],['realm','夢之徑','幻境'],['prologue','（未命名）','序章劇情'],['village','（未命名）','第一章之四劇情（帕拉迪村）'],['raid','（未命名）','第一章之二劇情']];
+g.Music={TRACKS:TRACKS,init:init,play:play,fade:fade,stop:stop,page:page,back:back,isOn:isOn,setOn:setOn,vol:vol,setVol:setVol,current:function(){return curName}};
 })(window);
