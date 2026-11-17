@@ -500,6 +500,14 @@ function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
     if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy+=1;if(keys.ArrowDown||keys.s)vy-=1;
     var l2=Math.hypot(vx,vy);if(l2>0){vx/=l2;vy/=l2;var sp=fast?FAST:WALK;me.x+=vx*sp*dt;me.y+=vy*sp*dt;if(vx)me.face=vx<0?-1:1;me.mv=1;if(Math.random()<.02)save()}else me.mv=0}
   hud(t);draw(t);if(sel&&!$('pn').hidden&&$('pn').dataset.k==='mon'&&Math.random()<.1)showMon(sel);/* 只有怪物資訊會自己更新距離，取名等視窗不會被蓋掉 */requestAnimationFrame(tick)}
+/* 地圖上的自己拿著目前裝備的武器（跟營地一樣：武器階段的圖、副手、符文光環） */
+function myWeapon(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null');if(c&&c.player)p=c.player}catch(e){}if(!p.weapon)return;
+  Promise.all([getCSV('weapon_info.csv'),getCSV('rune_info.csv')]).then(function(R){var r=R[0].filter(function(x){return x.weapon_name===p.weapon&&x.u_sn})[0];if(!r)return;var k=r.u_sn,d=(p.weapons&&p.weapons[k])||{},lv=Math.max(1,d.lv|0||1),
+    s=Math.min(3,Math.max(0,(d.stage|0)-1,lv>=75?3:lv>=60?2:lv>=30?1:0)),off=r.offhand||'',col={};R[1].forEach(function(x){if(x.u_sn)col[x.u_sn]=x.color||'#d0a0ff'});
+    var n=lv>=75?3:lv>=60?2:lv>=30?1:0,halo=(Array.isArray(d.ench)?d.ench:[]).filter(function(id){return (p.runeV|0)>=2&&((p.rs||{})[id]|0)>=1&&col[id]}).slice(0,n).map(function(id){return col[id]});
+    var offN=off?(s===0?[off]:[off.replace(/\d+$/,'')+'_'+(s+1),off+'_'+(s+1),off]):[];
+    return Promise.all([img(BASE+'weapons/'+k+'_'+(s+1)+'.png?v='+V).then(function(i){return i||img(BASE+'weapons/'+k+'_1.png?v='+V)}),offN.reduce(function(pr,nm){return pr.then(function(i){return i||img(BASE+'weapons/'+nm+'.png?v='+V)})},Promise.resolve(null))]).then(function(I){
+      if(I[0])P.look.weapon={img:I[0],key:k+'_'+s,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0};if(I[1])P.look.shield={img:I[1],key:'off_'+k+'_'+s};P.look.halo=halo})}).catch(function(){})}
 /* ---- 開始 ---- */
 Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(BASE),Doll.load(BASE,V),
   img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png'),img(BASE+'real/ground_castle.png'),img(BASE+'real/ground_fire.png'),img(BASE+'real/ground_fire_glow.png')].concat(
@@ -514,7 +522,7 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   R[0].forEach(function(m){if(m.monster_id)MON[m.monster_id]=m});
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
   IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];IM.g_fire=R[10];IM.g_fire_glow=R[11];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
-  P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;
+  P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;myWeapon();
   PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick);navTabs()
 }).catch(function(e){$('load').textContent='讀取失敗：'+(e&&e.message||e)});
 })();
