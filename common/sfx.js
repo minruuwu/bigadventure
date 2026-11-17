@@ -60,7 +60,7 @@
   };
   /* 有音效檔的就播檔案（assets/sfx/<名稱>.mp3，先解碼好才播得即時）；沒有的才用合成的 */
   var BASE = '../assets/', FILES = { slash: 1, stab: 1, shoot: 1, blunt: 1, magic: 1, claw: 1, fire: 1, frost: 1, lightning: 1, wind: 1, nature: 1, light: 1, dark: 1, heal: 1, crit: 1, boom: 1, howl_ghost: 1, howl_wolf: 1, block: 1, miss: 1, buff: 1, debuff: 1 }, BUF = {}, LOADING = {};
-  function loadFile(n) { if (BUF[n] || LOADING[n] || !AC) return LOADING[n]; LOADING[n] = fetch(BASE + 'sfx/' + n + '.mp3?v=1').then(function (r) { return r.arrayBuffer() }).then(function (b) { return new Promise(function (res, rej) { AC.decodeAudioData(b, res, rej) }) }).then(function (buf) { BUF[n] = buf; return buf }).catch(function () { LOADING[n] = null }); return LOADING[n] }
+  function loadFile(n) { if (BUF[n] || LOADING[n] || !AC) return LOADING[n]; LOADING[n] = fetch(BASE + 'sfx/' + n + '.mp3?v=2').then(function (r) { return r.arrayBuffer() }).then(function (b) { return new Promise(function (res, rej) { AC.decodeAudioData(b, res, rej) }) }).then(function (buf) { BUF[n] = buf; return buf }).catch(function () { LOADING[n] = null }); return LOADING[n] }
   function playBuf(n, t) { var s = AC.createBufferSource(), gn = AC.createGain(); s.buffer = BUF[n]; gn.gain.value = 1; s.connect(gn); gn.connect(master); s.start(t) }
   function preload() { if (!ctx()) return; Object.keys(FILES).forEach(loadFile) }
   function play(name, o) {
