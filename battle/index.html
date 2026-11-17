@@ -243,7 +243,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/npc.js?v=1"></script>
 <script src="../common/story.js?v=9"></script>
 <script src="../common/music.js?v=12"></script>
-<script src="../common/sfx.js?v=10"></script>
+<script src="../common/sfx.js?v=11"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
@@ -3440,7 +3440,8 @@ function stageReward(a,l){var r=ENG&&BattleEngine.stageRow(ENG,AREAID[a],l);retu
 var SFXW={'劍':'slash','斧':'slash','錘':'blunt','匕':'stab','槍':'stab','弓':'shoot','杖':'magic','書':'magic'},SFXEL={fire:1,frost:1,lightning:1,wind:1,nature:1,light:1,dark:1},
   SFXBOOM={skill032:1,skill058:1,skill182:1,skill235:1,skill296:1,skill314:1,skill329:1,skill347:1,skill458:1,skill472:1,skill478:1,skill489:1,skill496:1,bst_fire_atk_4:1,bst_lightning_def_3:1},SFXCAST={skill092:'howl_wolf',skill345:'howl_ghost'};
 function sfxOf(e,o){if(e.idle||e.tick||e.rk==='thorn')return;var sk=SKN[e.sk]||{},es=(ENG.SK||{})[e.sk],el=o.el||sk.el||e.el||(es&&es.parts&&es.parts[0]?es.parts[0].e:'')||'',ty=o.ty||e.ty||sk.ty;/* 幻獸的招不在 SKN：屬性從引擎的技能資料拿 */
-  o.sfx=SFXBOOM[e.sk]||o.boom?'boom':SFXEL[el]?el:e.side==='p'&&!e.bst?(SFXW[(crew()[e.a]||{}).weapon]||'slash'):(sk.dt==='m'||e.bst?'magic':'claw');
+  var pm=es&&es.parts&&es.parts[0]&&es.parts[0].d==='m'/* 這招是魔法傷害 */,plain=!e.sk||e.sk==='atk'||e.sk==='skill171'/* 普攻、祕法飛彈維持原本的魔法音 */;
+  o.sfx=SFXBOOM[e.sk]||o.boom?'boom':SFXEL[el]?el:pm&&!plain?'spell'/* 其他無屬性魔法：法術音 */:e.side==='p'&&!e.bst?(SFXW[(crew()[e.a]||{}).weapon]||'slash'):(sk.dt==='m'||e.bst?'magic':'claw');
   o.sfc=SFXCAST[e.sk]||(ty==='buff'?'buff':ty==='debuff'?'debuff':'')}
 function sfxFrame(t){if(!window.Sfx||!Sfx.isOn()||!B||!B.ev)return;for(var q=B.ev.length-1;q>=0;q--){var e=B.ev[q];if(e.t>t)continue;if(t-e.t>1500)break;if(e.sfc&&!e._sfc&&t>=e.t+120){e._sfc=1;Sfx.play(e.sfc)}}}
 function sfxNum(e,n){if(!window.Sfx||!Sfx.isOn()||e.tick)return;var k=n.k;if(k==='miss')Sfx.play('miss');else if(k==='block')Sfx.play('block');else if(k==='h'){if(!n.ls)Sfx.play('heal')}else if(k==='d')Sfx.play(n.c?'crit':(e.sfx||'claw'))}
