@@ -493,7 +493,7 @@ function navTabs(){var h=$('tabs');if(!h||!window.NavIcons)return;h.textContent=
     var c=document.createElement('canvas');c.width=c.height=48;c.style.width=c.style.height='48px';b.appendChild(c);var sp=document.createElement('span');sp.textContent=it[1];b.appendChild(sp);
     b.addEventListener('click',function(){save();NavIcons.go(it[0])});h.appendChild(b)});
   try{var cc=JSON.parse(localStorage.getItem('bigadv:me')||'null');if(cc&&cc.player)NavIcons.setPlayer(cc.player)}catch(e){}NavIcons.apply(h);var fit=function(){document.documentElement.style.setProperty('--nb',(h.offsetHeight+4)+'px')};fit();addEventListener('resize',fit);setTimeout(fit,800)}/* 下方按鈕、視窗都放在分頁條上面 */
-if(window.Music){Music.init(BASE);Music.page('prologue')}/* 幻境的背景音樂 */
+if(window.Music){Music.init(BASE);Music.page('realm')}/* 幻境的背景音樂 */
 /* ---- 主迴圈 ---- */
 function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
   if(!gps&&DEV){var vx=0,vy=0;if(drag){var L=Math.hypot(drag.dx,drag.dy);if(L>12){vx=drag.dx/L;vy=-drag.dy/L}}
