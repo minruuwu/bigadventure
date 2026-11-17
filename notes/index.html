@@ -147,7 +147,8 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
             <button type="button" data-go="dex"><b>魔物圖鑑</b><small id="foundM"></small></button>
             <button type="button" data-go="bdex"><b>幻獸圖鑑</b><small id="foundB"></small></button>
             <button type="button" data-go="doc"><b>事典</b><small>屬性、狀態、戰鬥規則、符文、幻獸</small></button>
-            <button type="button" data-go="set"><b>設定</b><small>背景音樂</small></button>
+            <button type="button" data-go="mus"><b>音樂</b><small>聽遊戲裡的配樂</small></button>
+            <button type="button" data-go="set"><b>設定</b><small>背景音樂開關、音量</small></button>
           </div></section>
         <section id="v-acct" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>帳號</h1><div class="acct" id="acct"></div></section>
         <section id="v-dex" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>魔物圖鑑</h1>
@@ -158,8 +159,8 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
           <div class="setg">
             <label class="setr" for="musOn"><span><b>背景音樂</b><small>預設關閉；只存在這台裝置的瀏覽器</small></span><input type="checkbox" id="musOn"></label>
             <label class="setr" for="musVol"><span><b>音樂音量</b><small id="musVolT"></small></span><input type="range" id="musVol" min="0" max="100" step="5"></label>
-          </div>
-          <h2 class="jbh">聽歌</h2><p class="hint">點曲子就會播放（音樂沒開的話會自動打開）；離開這頁或按「回到原本的音樂」就恢復。</p>
+          </div></section>
+        <section id="v-mus" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>音樂</h1><p class="hint">點曲子就會播放（背景音樂沒開的話會自動打開）；再點一次或按「回到原本的音樂」就恢復。</p>
           <div class="jb" id="jb"></div></section>
         <section id="v-doc" hidden><button type="button" class="bk" data-go="">‹ 返回</button><h1>事典</h1><div class="toc" id="toc"></div></section>
         <p class="demo" id="demoNote" hidden>示範模式：用範例進度顯示。</p>
@@ -180,7 +181,7 @@ html:has(.back:not([hidden])),html:has(.back:not([hidden])) body{overflow:hidden
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/runevals.js?v=3"></script>
 <script src="../common/monsters.js?v=84"></script>
-<script src="../common/music.js?v=2"></script>
+<script src="../common/music.js?v=3"></script>
 <script>
 (function(){
 var BASE='../assets/',V='5',demo=/[?&]demo=1/.test(location.search),NST=20;
@@ -522,8 +523,8 @@ function openDoc(k){openSheet(function(s){
 })}
 
 /* ---- 記事內的分頁：目錄 → 帳號／魔物圖鑑／事典（用網址 # 記錄，手機返回鍵回目錄） ---- */
-function show(v){['menu','acct','dex','bdex','doc','set'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
-function route(){var h=location.hash.replace('#','');show(['acct','dex','bdex','doc','set'].indexOf(h)>=0?h:'menu')}
+function show(v){['menu','acct','dex','bdex','doc','set','mus'].forEach(function(k){$('v-'+k).hidden=k!==(v||'menu')});window.scrollTo(0,0)}
+function route(){var h=location.hash.replace('#','');show(['acct','dex','bdex','doc','set','mus'].indexOf(h)>=0?h:'menu')}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.getAttribute('data-go');if(g){NAVD=true;location.hash=g}else if(NAVD){NAVD=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);route()}});var NAVD=false;
 window.addEventListener('hashchange',route);
 /* ---- 分頁列 ---- */
