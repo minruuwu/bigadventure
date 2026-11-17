@@ -404,7 +404,7 @@
       if (banishedOnly(d)) { parts = parts.filter(function (x) { return x.d === 'm' }); if (!parts.length) return { amt: 0, void: true }; o = Object.assign({}, o, { mult: (o.mult || 1) * 2, noReact: true }) } /* 放逐中：物理無效、魔法 ×2、不會反應 */
       var isP = parts.some(function (x) { return x.d === 'p' }), isM = parts.some(function (x) { return x.d === 'm' });
       var r = { miss: false, crit: false, amt: 0 };
-      if (!o.sure && !sk.sure) { var hc = 1 - stat(d, 'eva') + stat(a, 'hit') + sv(d, 'hit_taken_rate'); if (RND() >= clamp(hc, 0.05, 1)) { r.miss = true; return r } }
+      if (!o.sure && !sk.sure) { var hc = 1 - stat(d, 'eva') + stat(a, 'hit') + sv(d, 'hit_taken_rate') + (a.boss && a.side === 'm' ? 0.2 : 0) /* 首領的命中 +20 個百分點（壓制高閃避） */; if (RND() >= clamp(hc, 0.05, 1)) { r.miss = true; return r } }
       /* 反應技（受擊前） */
       var re = o.noReact ? null : react(d, a, isP, isM, parts);
       if (re && re.block) { r.blocked = true; r.re = re; return r }
