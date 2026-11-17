@@ -291,7 +291,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 霜晶庇護,buff,frost_res_rate,0.4,,,,冰霜抗性 +40%、物理與魔法減傷 +10%
 霜晶庇護,buff,p_reduce_rate,0.1,,,,
 霜晶庇護,buff,m_reduce_rate,0.1,,,,
-冰牆,buff,shield,1.5,hi_atk,,,護盾（主人主要攻擊力 150%）、冰霜抗性 +20%
+冰牆,buff,shield,1.2,hi_atk,,,護盾（主人主要攻擊力 120%）、冰霜抗性 +20%
 冰牆,buff,frost_res_rate,0.2,,,,
 狐火極光,buff,fire_res_rate,0.1,,,,所有屬性抗性 +10%
 狐火極光,buff,frost_res_rate,0.1,,,,
@@ -350,7 +350,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 野性生機,buff,hot,0.04,mhp,,,每回合回復最大生命 4%、物理與魔法增傷 +15%
 野性生機,buff,p_damage_rate,0.15,,,,
 野性生機,buff,m_damage_rate,0.15,,,,
-古木壁壘,buff,shield,2.0,hi_atk,,,護盾（主人主要攻擊力 200%）、自然抗性 +30%
+古木壁壘,buff,shield,1.2,hi_atk,,,護盾（主人主要攻擊力 120%）、自然抗性 +30%
 古木壁壘,buff,nature_res_rate,0.3,,,,
 晶壁,buff,m_reduce_rate,0.25,,,,魔法減傷 +25%
 晶角共鳴,buff,next_dmg,0.5,,,,下一次造成的傷害變成 1.5 倍
