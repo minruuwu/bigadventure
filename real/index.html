@@ -288,10 +288,12 @@ var syncing=false;
 function hatchSync(force){var h=bagData().h;if(!h||syncing||!window.FB||!FB.user())return;var m=Math.min(HATCH_M,(h.m||0)+pend);
   if(m<=(h.m||0))return;if(!force&&pend<100&&m<HATCH_M)return;var step=Math.min(m,(h.m||0)+600);syncing=true;
   FB.beastHatchStep(step).then(function(v){pend=Math.max(0,pend-(v-(h.m||0)));savePend();syncing=false;nestUpd();if(pend>=100||((bagData().h||{}).m||0)+pend>=HATCH_M&&pend>0)hatchSync()},function(){syncing=false})}
-/* GPS 每次定位：精準度 35 公尺內、一次 4～120 公尺、速度每秒 4.5 公尺內才算走路（拖曳、快速移動、GPS 亂跳都不算） */
+/* GPS 每次定位：精準度 50 公尺內才採用；跟上一個採用的點比，移動超過「精準度一半（至少 5 公尺）」才算一步（站著不動時 GPS 飄移不算），
+   一段最多 800 公尺、平均速度每秒 4.5 公尺內才算走路（拖曳、快速移動、坐車、GPS 亂跳都不算）。
+   2026-11 修正：以前一段超過 120 公尺就整段不算，訊號不好時常常一大段路都沒算到 */
 var lastFix=null;
-function gpsStep(x,y,acc){var t=Date.now();if(acc>35){return}if(!lastFix){lastFix={x:x,y:y,t:t};return}var dd=Math.hypot(x-lastFix.x,y-lastFix.y),dt=(t-lastFix.t)/1000;
-  if(dd<4)return;if(dd<=120&&dt>0&&dd/dt<=4.5&&bagData().h&&hatchM()<HATCH_M){pend+=dd;savePend();nestUpd();hatchSync()}lastFix={x:x,y:y,t:t}}
+function gpsStep(x,y,acc){var t=Date.now();if(!(acc<=50))return;if(!lastFix||t-lastFix.t>15*60000){lastFix={x:x,y:y,t:t};return}var dd=Math.hypot(x-lastFix.x,y-lastFix.y),dt=(t-lastFix.t)/1000;
+  if(dd<Math.max(5,acc*.5))return;if(dd<=800&&dt>0&&dd/dt<=4.5&&bagData().h&&hatchM()<HATCH_M){pend+=dd;savePend();nestUpd();hatchSync()}lastFix={x:x,y:y,t:t}}
 $('nest').onclick=function(){var h=bagData().h;if(!h)return;if(hatchM()<HATCH_M){openBag();return}
   if(pend>0&&((h.m||0)<HATCH_M)){hatchSync(true);return toastMsg('同步孵化進度中，再點一次…')}
   var bs=BEAST[h.egg];pnShow('<h3>🎉 孵化成功！</h3><img class="hb" src="../assets/beasts/beast_'+bs[0]+'.png" alt=""><p>「'+ename(h.egg)+'」孵化成功了！幫牠取個名字吧（最多 8 個字）：</p><input id="hName" maxlength="8" value="'+bs[1]+'"><div class="row"><button type="button" id="hDone">確定</button></div>');
