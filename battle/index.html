@@ -239,7 +239,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/doll.js?v=13"></script>
 <script src="../common/npc.js?v=1"></script>
 <script src="../common/story.js?v=9"></script>
-<script src="../common/music.js?v=9"></script>
+<script src="../common/music.js?v=10"></script>
 <script src="../common/sfx.js?v=1"></script>
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
@@ -3501,7 +3501,7 @@ function addLog(e){(e.st||[]).forEach(function(q){var r=B.stat[q[1]],o=r[q[0]]||
   (e.dead||[]).forEach(function(i){box.appendChild(el('div','lg ko',B.mons[i].n+' 倒下了'))});[].concat(e.pko==null?[]:e.pko).forEach(function(i){box.appendChild(el('div','lg ko',(crew()[i]||{}).name+' 倒下了'))});
   box.scrollTop=box.scrollHeight}
 /* 戰鬥音樂：首領戰一律播首領曲；一般戰鬥看區域有沒有專屬的戰鬥曲（冒險關卡、幻境同一個區域共用），沒有就播共用的 */
-var BGMA={area02:'battle_mine',area03:'battle_desert',area04:'battle_tomb',area05:'battle_snow',area06:'battle_holy'};
+var BGMA={area02:'battle_mine',area03:'battle_desert',area04:'battle_tomb',area05:'battle_snow',area06:'battle_holy',area07:'battle_fire'};
 function battleBgm(a,boss){if(RF)return 'rift';/* 龍之秘境：古龍奧秘 */return boss?'boss':BGMA[AREAID[a]]||'battle'}
 function startBattle(a,l){if(!RF)setLastArea(a);if(window.Music)Music.play(battleBgm(a,!RF&&isBoss(a,l)),800);PARTS=[];B=realBattle(a,l);B.wall=Date.now();B.hp0=B.hpNow;B.req=makeReq(B);curSave();B.li=0;B.done=false;B.stat={dmg:[],taken:[],heal:[]};B.sopen={};setBTab('log');
   showView('battle');$('bhead').textContent=battleTitle(B);$('log').textContent='';$('bres').hidden=true;
