@@ -3640,8 +3640,21 @@ function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}
 var REALC={area01:['green','leaf'],area02:['yellow','bolt'],area03:['teal','wind'],area04:['purple','moon'],area05:['blue','ice'],area06:['gold','sun'],area07:['red','fire']},REALX=0.3;
 function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try{o=JSON.parse(sessionStorage.getItem('real.fight')||'null');sessionStorage.removeItem('real.fight')}catch(e){}
   if(!o||!o.mons||!o.mons.length||!MEMB[0]){if(o===null)location.href='../real/index.html';else document.documentElement.classList.remove('realgo');return}var a=Math.max(0,AREAID.indexOf(o.area)),stg=Math.max(1,Math.round((o.lv|0)/3));
-  var M=o.mons.map(function(id){var r=ENG.mon[id];return r?BattleEngine.monster(r,stg,ENG):null}).filter(Boolean);if(!M.length){document.documentElement.classList.remove('realgo');toast('怪物資料讀不到');return}
+  var nP=crewOf(null).length,M=o.mons.map(function(id){var r=ENG.mon[id];if(!r)return null;var m=BattleEngine.monster(r,stg,ENG),bs=r.boss==='1',sc=realScale(o.area,bs,o.lv|0,stg),hs=sc.hp*(1+(bs?0.2:0.4)*Math.max(0,nP-1));
+    m.b.mhp=Math.round(m.b.mhp*hs);m.b.patk=Math.round(m.b.patk*sc.atk);m.b.matk=Math.round(m.b.matk*sc.atk);m.stg=stg;m.hs=hs;m.as=sc.atk;return m}).filter(Boolean);if(!M.length){document.documentElement.classList.remove('realgo');toast('怪物資料讀不到');return}
   startLive(a,1,autoPref(),{mons:M,real:o})}
+/* 幻境怪物強度對齊：冒險模式「這個等級該有多強」的曲線（各章一般關、首領關的怪物平均生命與攻擊），
+   幻境的怪照等級找到曲線上的值，再跟自己區域同等級的平均比，算出生命、攻擊要乘多少（區域內各怪的強弱差、減傷閃避技能都保留） */
+var RCV=null;
+function realPool(area,boss){var ids={};(ENG.stage||[]).forEach(function(r){if(r.area_id!==area||(r.boss==='1')!==boss)return;String((boss?r.fixed_monsters:r.monster_pool)||'').split(';').forEach(function(id){id=id.trim();var m=ENG.mon[id];if(m&&(m.boss==='1')===boss)ids[id]=1})});return Object.keys(ids)}
+function realAvg(ids,stg){var h=0,t=0,n=0;ids.forEach(function(id){var m=BattleEngine.monster(ENG.mon[id],stg,ENG);h+=m.b.mhp;t+=Math.max(m.b.patk,m.b.matk);n++});return n?{hp:h/n,atk:t/n}:null}
+function realCurve(boss){RCV=RCV||{};var k=boss?'b':'n';if(RCV[k])return RCV[k];var pts=[],pc={};
+  (ENG.stage||[]).forEach(function(r){if((r.boss==='1')!==boss)return;var lv=parseInt(r.level,10),st=parseInt(r.stage,10),an=parseInt(String(r.area_id).replace(/\D/g,''),10)||1;if(!lv||!st)return;
+    var ids=pc[r.area_id]=pc[r.area_id]||realPool(r.area_id,boss),a=realAvg(ids,st+(an-1)*20);if(a)pts.push({lv:lv,hp:a.hp,atk:a.atk})});
+  pts.sort(function(a,b){return a.lv-b.lv});return RCV[k]=pts}
+function realAt(pts,lv){if(!pts.length)return null;if(lv<=pts[0].lv)return pts[0];var i=1;while(i<pts.length&&pts[i].lv<lv)i++;if(i>=pts.length)i=pts.length-1;var p=pts[i-1],q=pts[i],f=q.lv===p.lv?1:(lv-p.lv)/(q.lv-p.lv);/* 超過最後一關就照最後兩點延伸 */return{hp:p.hp+(q.hp-p.hp)*f,atk:p.atk+(q.atk-p.atk)*f}}
+function realScale(area,boss,lv,stg){try{var tg=realAt(realCurve(boss),lv),own=realAvg(realPool(area,boss),stg);if(!tg||!own||!own.hp||!own.atk)return{hp:1,atk:1};
+  return{hp:Math.max(0.25,Math.min(4,tg.hp/own.hp)),atk:Math.max(0.25,Math.min(4,tg.atk/own.atk))}}catch(e){return{hp:1,atk:1}}}
 function realExpBase(lv,boss){var best=null,bd=1e9;(ENG.stage||[]).forEach(function(r){if((r.boss==='1')!==!!boss)return;var rec=parseInt(r.level,10)||3*(parseInt(r.stage,10)||1),d=Math.abs(rec-lv);if(d<bd){bd=d;best=r}});return best?parseInt(best.exp,10)||0:20}
 /* 素材數量：一般怪看「怪物等級 ÷ 自己的基準等級」— 0.5 以下上限 1、1.0 上限 10、1.5 以上上限 20，實際是上限的一半到上限；王固定 20～30。每一個各自平均抽結晶／礦石／寶珠 */
 function realMatN(o){if(o.rare)return 20+Math.floor(Math.random()*11);var r=(o.lv|0)/Math.max(1,o.base|0||1),up=r<=.5?1:r>=1.5?20:r<=1?1+(r-.5)/.5*9:10+(r-1)/.5*10;up=Math.max(1,Math.min(20,Math.round(up)));var lo=Math.max(1,Math.ceil(up/2));return lo+Math.floor(Math.random()*(up-lo+1))}
