@@ -112,12 +112,12 @@ function body(p){var jsn=JSEL[p.uid]||(JOBS[0]&&JOBS[0].u_sn),jl=((p.jobLv||{})[
     '<div class="rw"><label>幻獸</label><span>'+((p.beasts||[]).map(function(b){return esc(b.name)}).join('、')||'沒有')+'</span><button type="button" data-a="breset">清掉孵化中與幻獸</button></div>'+'<div class="rw"><label>素材</label><span>'+(function(){var m=p.beastMat||{},t=0;Object.keys(m).forEach(function(k){t+=m[k]|0});return '共 '+t+' 個'})()+'</span><button type="button" data-a="bmat">21 種素材各 +100</button><button type="button" data-a="bmat0">素材全部歸零</button></div>'+bstBox(p);
   h+='<h3>一鍵重置</h3><div class="rw"><button type="button" data-a="reset" class="danger">重置角色進度</button><span class="note">人物 Lv1、經驗 0、所有武器 Lv1（含淬火、附魔、外觀階）、鍛造石 0、職業回戰士且等級歸 0、配點歸 0、技能配置清空、冒險關卡進度歸零</span></div>';
   return h+'<p class="note" id="wn-'+p.uid+'"></p></div>'}
-/* 幻獸測試：第一隻（裝備中）設成指定等級，照餵食規則重骨屬性（孵化送 1 次＋每升一級餵 1 次，每次 3 格：60% 落在選的方向那 3 項、40% 落在其他 6 項，滿 15 格不再骰），再選裝備的兩招 */
+/* 幻獸測試：第一隻（裝備中）設成指定等級，照餵食規則重骨屬性（孵化送 1 次＋每升一級餵 1 次，每次 3 格：50% 落在選的方向那 3 項、50% 落在其他 6 項，滿 15 格不再骰），再選裝備的兩招 */
 var BSK={fire:['小火球','火焰吐息','火靈守護','蜥血火毒'],ice:['冰牙','冰霜吐息','冰靈守護','寒霜咬'],bolt:['電光彈','靜電力場','雷靈守護','麻痺電擊'],wind:['風羽斬','風刃切割','風靈守護','封息之風'],leaf:['草刺','飛葉快刀','木靈守護','森林醉氧'],sun:['光擊','輝光彈','光靈守護','炫光'],moon:['影牙','暗蛇閃擊','暗靈守護','影之詛咒']};
 var BLRN=[[1,0],[6,2],[12,3],[18,1]],BGRP={atk:['atk','dmg','crit'],def:['red','hp','res'],sup:['eva','cdmg','ores']},BSTN={atk:'攻擊力',dmg:'增傷',crit:'暴擊率',red:'減傷',hp:'生命力',res:'本屬性抗性',eva:'閃避',cdmg:'暴擊傷害',ores:'其他屬性抗性'},BCAPV={atk:10,dmg:15,crit:10,red:15,hp:20,res:30,eva:8,cdmg:100,ores:10};
 function bstRoll(lv,dir){var st={},all=[].concat(BGRP.atk,BGRP.def,BGRP.sup);all.forEach(function(k){st[k]=0});
   function pick(L){L=L.filter(function(k){return st[k]<15});return L.length?L[Math.floor(Math.random()*L.length)]:null}
-  function step(d){var k=null;if(!d)k=pick(all);else{var own=BGRP[d],oth=all.filter(function(x){return own.indexOf(x)<0});k=Math.random()<.6?(pick(own)||pick(oth)):(pick(oth)||pick(own))}if(k)st[k]++}
+  function step(d){var k=null;if(!d)k=pick(all);else{var own=BGRP[d],oth=all.filter(function(x){return own.indexOf(x)<0});k=Math.random()<.5?(pick(own)||pick(oth)):(pick(oth)||pick(own))}if(k)st[k]++}
   for(var i=0;i<3;i++)step(null);/* 孵化送的那一次：9 項平均 */
   for(var f=1;f<lv;f++){var d=dir==='rand'?['atk','def','sup'][Math.floor(Math.random()*3)]:dir;for(var j=0;j<3;j++)step(d)}return st}
 function bstBox(p){var b=(p.beasts||[])[0];if(!b)return '';var lv=Math.max(1,Math.min(20,b.lv|0||1)),L=BSK[b.sp]||[],got=BLRN.filter(function(x){return lv>=x[0]}).map(function(x){return x[1]}),sk=(b.sk||got.slice(-2)).filter(function(i){return got.indexOf(i)>=0}),st=b.st||{};

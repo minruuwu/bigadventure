@@ -4,6 +4,13 @@
 <style>
 html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-size-adjust:100%;background:#120c08;color:#eadbbd;font-family:'PingFang TC','Noto Sans TC','Microsoft JhengHei',system-ui,sans-serif;font-size:14px}
 *{box-sizing:border-box}
+:root{--nb:88px;--dim:#b09a74;--accent:#e0b84a}
+/* 下方主分頁（跟冒險頁同一條） */
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;display:grid;grid-template-columns:repeat(5,1fr);background:#2a1b0f;border-top:4px solid #080503;box-shadow:inset 0 3px 0 #6b4a2a;z-index:6}
+.tab{position:relative;background:none;border:0;color:var(--dim);font:inherit;font-size:12px;font-weight:700;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-height:68px;text-shadow:1px 1px 0 #000;-webkit-tap-highlight-color:transparent}
+.tab canvas{filter:saturate(.3) brightness(.62)}
+.tab[aria-selected="true"]{color:var(--accent);background:#3d2814;box-shadow:inset 0 3px 0 var(--accent)}
+.tab[aria-selected="true"] canvas{filter:none}
 #map{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 #ov{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 .hud{position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 8px);display:flex;flex-direction:column;gap:6px;pointer-events:none}
@@ -11,19 +18,19 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 .bar b{font-size:15px;letter-spacing:.06em}.bar small{color:#b09a74;font-size:11px}
 .zn{display:flex;align-items:center;gap:6px}.zn i{width:12px;height:12px;display:inline-block;box-shadow:0 0 0 2px #080503}
 [hidden]{display:none!important}
-.btns{position:fixed;right:76px;bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column;gap:8px}
+.btns{position:fixed;right:76px;bottom:calc(env(safe-area-inset-bottom) + var(--nb) + 10px);display:flex;flex-direction:column;gap:8px}
 .btns button,.pn button{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 10px;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #6b4a2a;min-width:92px}
 .btns button.on{background:#2f6a2a;box-shadow:0 0 0 2px #0a2408,inset 0 2px 0 #4f9a46}
-.tip{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);max-width:52%;font-size:11px;line-height:1.5;color:#d8c8a4;background:rgba(18,12,8,.75);padding:6px 8px;box-shadow:0 0 0 2px #080503}
-.pn{z-index:10;position:fixed;left:max(12px,calc(50% - 204px));right:80px;bottom:calc(env(safe-area-inset-bottom) + 14px);max-width:340px;background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
+.tip{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom) + var(--nb) + 10px);max-width:52%;font-size:11px;line-height:1.5;color:#d8c8a4;background:rgba(18,12,8,.75);padding:6px 8px;box-shadow:0 0 0 2px #080503}
+.pn{z-index:10;position:fixed;left:max(12px,calc(50% - 204px));right:80px;bottom:calc(env(safe-area-inset-bottom) + var(--nb) + 14px);max-width:340px;background:radial-gradient(ellipse at 50% 40%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:14px 14px 12px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4)}
 .pn[hidden]{display:none}
 .pn h3{margin:0 0 4px;font-size:16px}.pn p{margin:2px 0;font-size:13px}.pn .row{display:flex;gap:8px;margin-top:10px}.pn .row button{flex:1}
 .pn button:disabled{opacity:.5}.pn .x{position:absolute;top:6px;right:6px;min-width:0;width:28px;height:28px;padding:0}
-.back{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 10px);width:60px;display:flex;flex-direction:column;align-items:center;text-decoration:none;z-index:5;-webkit-tap-highlight-color:transparent}.back canvas{width:62px;height:62px;margin:-5px 0 -5px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(170,90,255,.7))}.back span,.bagb span{font-size:12px;font-weight:900;color:#f6e8c0;background:rgba(18,10,24,.8);padding:0 7px;margin-top:-2px;box-shadow:0 0 0 2px #080503;letter-spacing:.15em;text-shadow:1px 1px 0 #000;white-space:nowrap}.back span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #9a5ae0}
+.back{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + var(--nb) + 10px);width:60px;display:flex;flex-direction:column;align-items:center;text-decoration:none;z-index:5;-webkit-tap-highlight-color:transparent}.back canvas{width:62px;height:62px;margin:-5px 0 -5px;image-rendering:pixelated;filter:drop-shadow(0 0 6px rgba(170,90,255,.7))}.back span,.bagb span{font-size:12px;font-weight:900;color:#f6e8c0;background:rgba(18,10,24,.8);padding:0 7px;margin-top:-2px;box-shadow:0 0 0 2px #080503;letter-spacing:.15em;text-shadow:1px 1px 0 #000;white-space:nowrap}.back span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #9a5ae0}
 .gpsb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px}.gpsb[hidden]{display:none}.gpsb>div{background:#e8d4a8;color:#3b2713;max-width:320px;padding:16px 16px 14px;box-shadow:0 0 0 3px #4a2a12,6px 6px 0 rgba(0,0,0,.5);font-size:14px;line-height:1.6}.gpsb h3{margin:0 0 6px;font-size:16px}.gpsb p{margin:0 0 12px}.gpsb .r{display:flex;gap:8px;flex-wrap:wrap}.gpsb button,.gpsb a{font:inherit;font-size:13px;font-weight:700;color:#f6e8c0;background:#4a2a12;border:0;padding:8px 12px;cursor:pointer;text-decoration:none;box-shadow:0 0 0 2px #1d1008}
-.bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 86px);width:60px;padding:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;z-index:5;-webkit-tap-highlight-color:transparent}
+.bagb{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + var(--nb) + 86px);width:60px;padding:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;z-index:5;-webkit-tap-highlight-color:transparent}
 .bagb img{width:52px;height:auto;image-rendering:pixelated;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
-.bag{position:fixed;left:max(8px,calc(50% - 214px));right:76px;bottom:calc(env(safe-area-inset-bottom) + 10px);max-width:360px;max-height:calc(100% - 120px);overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:9}
+.bag{position:fixed;left:max(8px,calc(50% - 214px));right:76px;bottom:calc(env(safe-area-inset-bottom) + var(--nb) + 10px);max-width:360px;max-height:calc(100% - 120px - var(--nb));overflow:auto;background:radial-gradient(ellipse at 50% 30%,#f6e8c0 0%,#ecd6a0 70%,#d9bb7c 100%);color:#3b2713;padding:12px 12px 14px;box-shadow:0 0 0 3px #5a3a18,0 0 0 6px #2a1708,6px 6px 0 6px rgba(0,0,0,.4);z-index:9}
 .bag[hidden]{display:none}
 .bag h3{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:6px}.bag h3 img{width:24px;image-rendering:pixelated}
 .bag h4{margin:10px 0 4px;font-size:13px;color:#6b4a2a;border-bottom:1px dashed #b08a5a;padding-bottom:2px}
@@ -72,10 +79,13 @@ html,body{margin:0;height:100%;overflow:hidden;touch-action:none;-webkit-text-si
 <div class="nest" id="nest" hidden title="孵化中的蛋"><div class="nw"><img class="nb" src="../assets/beast/nest.png" alt=""><img class="ne" id="nestEgg" alt=""></div><div class="bar"><i id="nestBar"></i></div><small id="nestTxt"></small></div>
 <div id="rdm" hidden style="position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 56px);transform:translateX(-50%);font-size:12px;background:rgba(18,12,8,.8);padding:3px 8px;pointer-events:none"></div>
 <div style="position:fixed;right:4px;top:calc(env(safe-area-inset-top) + 50px);font-size:9px;color:rgba(255,255,255,.75);text-shadow:0 0 2px #000;pointer-events:none">© OpenStreetMap contributors</div>
+<nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
 <div id="load">讀取中…</div>
 <script type="module" src="../common/fb.js?v=45"></script>
 <script src="../common/monsters.js?v=84"></script>
 <script src="../common/doll.js?v=12"></script>
+<script src="../common/music.js?v=1"></script>
+<script src="../common/nav.js?v=30"></script>
 <script>
 (function(){
 'use strict';
@@ -477,6 +487,13 @@ $('bGps').onclick=function(){var b=this;if(gps){gps=false;if(gpsId!=null)navigat
   gpsId=navigator.geolocation.watchPosition(function(p){var m=toM(p.coords.latitude,p.coords.longitude);if(m[0]!==me.x)me.face=m[0]<me.x?-1:1;me.mv=gps&&Math.hypot(m[0]-me.x,m[1]-me.y)>.5?1:0;me.x=m[0];me.y=m[1];gpsStep(m[0],m[1],p.coords.accuracy);gps=true;b.textContent='GPS：開（±'+Math.round(p.coords.accuracy)+'m）';b.classList.add('on');save()},
     function(err){if(!DEV&&err.code!==1){toastMsg('定位訊號不穩，繼續定位中…');return}/* 逾時、暫時抓不到：watchPosition 會繼續試 */gps=false;b.textContent='GPS：關';b.classList.remove('on');if(gpsId!=null)navigator.geolocation.clearWatch(gpsId);gpsId=null;var m=err.code===1?'幻境要靠你在現實中走路探索，一定要開啟定位才能進行。請到瀏覽器或手機設定裡，允許這個網站使用位置，再按「重新嘗試」；不開定位的話，你只能返回原本的世界。':'定位失敗：'+err.message;if(DEV)alert(m);else gpsBlock(m)},{enableHighAccuracy:true,maximumAge:2000,timeout:20000})};
 if(!DEV){toastMsg('定位中…');$('bGps').onclick()}/* 一般玩家：一進來就開 GPS */
+/* ---- 下方主分頁：跟其他頁同一條（冒險 = 回到冒險頁）；背景音樂 ---- */
+function navTabs(){var h=$('tabs');if(!h||!window.NavIcons)return;h.textContent='';
+  [['adv','冒險'],['camp','營地'],['char','角色'],['forge','鍛造'],['set','記事']].forEach(function(it){var b=document.createElement('button');b.type='button';b.className='tab';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(it[0]==='adv'));b.setAttribute('data-k',it[0]);
+    var c=document.createElement('canvas');c.width=c.height=48;c.style.width=c.style.height='48px';b.appendChild(c);var sp=document.createElement('span');sp.textContent=it[1];b.appendChild(sp);
+    b.addEventListener('click',function(){save();NavIcons.go(it[0])});h.appendChild(b)});
+  try{var cc=JSON.parse(localStorage.getItem('bigadv:me')||'null');if(cc&&cc.player)NavIcons.setPlayer(cc.player)}catch(e){}NavIcons.apply(h);var fit=function(){document.documentElement.style.setProperty('--nb',(h.offsetHeight+4)+'px')};fit();addEventListener('resize',fit);setTimeout(fit,800)}/* 下方按鈕、視窗都放在分頁條上面 */
+if(window.Music){Music.init(BASE);Music.page('prologue')}/* 幻境的背景音樂 */
 /* ---- 主迴圈 ---- */
 function tick(t){var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
   if(!gps&&DEV){var vx=0,vy=0;if(drag){var L=Math.hypot(drag.dx,drag.dy);if(L>12){vx=drag.dx/L;vy=-drag.dy/L}}
@@ -498,7 +515,7 @@ Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(B
   ZN.forEach(function(z){var nm={},bs={};R[1].forEach(function(s){if(s.area_id!==z.area)return;String(s.monster_pool||'').split(';').forEach(function(id){if(MON[id])nm[id]=1});if(s.boss==='1'){var f=String(s.fixed_monsters||'').split(';')[0];if(MON[f])bs[f]=1}});POOL[z.area]={norm:Object.keys(nm),boss:Object.keys(bs)}});
   IM.g_forest=R[4];IM.g_mine=R[5];IM.g_desert=R[6];IM.g_tomb=R[7];IM.g_snow=R[8];IM.g_castle=R[9];IM.g_fire=R[10];IM.g_fire_glow=R[11];ZN.forEach(function(z){var g=IM['g_'+z.k];if(!g)return;var c=document.createElement('canvas');c.width=g.width;c.height=g.height;var x=c.getContext('2d');x.drawImage(g,0,0);var d=x.getImageData(0,0,c.width,c.height).data,t=[0,0,0],n=d.length/4;for(var q=0;q<d.length;q+=4){t[0]+=d[q];t[1]+=d[q+1];t[2]+=d[q+2]}z.avg='rgb('+Math.round(t[0]/n)+','+Math.round(t[1]/n)+','+Math.round(t[2]/n)+')'});
   P={look:myLook()};P.lv=P.look.lv||LV;doll=document.createElement('canvas');doll.width=doll.height=48;
-  PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick)
+  PER=period(Date.now());home();resize();addEventListener('resize',resize);$('load').remove();requestAnimationFrame(tick);navTabs()
 }).catch(function(e){$('load').textContent='讀取失敗：'+(e&&e.message||e)});
 })();
 </script>
