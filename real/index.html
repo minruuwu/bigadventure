@@ -510,6 +510,8 @@ function myWeapon(){var p={};try{var c=JSON.parse(localStorage.getItem('bigadv:m
     var offN=off?(s===0?[off]:[off.replace(/\d+$/,'')+'_'+(s+1),off+'_'+(s+1),off]):[];
     return Promise.all([img(BASE+'weapons/'+k+'_'+(s+1)+'.png?v='+V).then(function(i){return i||img(BASE+'weapons/'+k+'_1.png?v='+V)}),offN.reduce(function(pr,nm){return pr.then(function(i){return i||img(BASE+'weapons/'+nm+'.png?v='+V)})},Promise.resolve(null))]).then(function(I){
       if(I[0])P.look.weapon={img:I[0],key:k+'_'+s,cut:parseFloat(r.cut)||1,ox:parseFloat(r.offset_x)||0,oy:parseFloat(r.offset_y)||0};if(I[1])P.look.shield={img:I[1],key:'off_'+k+'_'+s};P.look.halo=halo})}).catch(function(){})}
+/* 還沒看完第一章之四「幻境的傳說」：不能進幻境，送回冒險頁（只看這台裝置記得的玩家資料；?dev=1 測試不擋） */
+(function(){if(DEV)return;try{var c=JSON.parse(localStorage.getItem('bigadv:me')||'null'),p=c&&c.player;if(p&&!(p.story&&p.story.ch1_4))location.replace('../battle/index.html')}catch(e){}})();
 /* ---- 開始 ---- */
 Promise.all([getCSV('monster_info.csv'),getCSV('stage_info.csv'),Monsters.load(BASE),Doll.load(BASE,V),
   img(BASE+'real/ground_forest.png'),img(BASE+'real/ground_mine.png'),img(BASE+'real/ground_desert.png'),img(BASE+'real/ground_tomb.png'),img(BASE+'real/ground_snow.png'),img(BASE+'real/ground_castle.png'),img(BASE+'real/ground_fire.png'),img(BASE+'real/ground_fire_glow.png')].concat(
