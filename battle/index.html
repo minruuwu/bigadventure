@@ -245,7 +245,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/nav.js?v=30"></script>
 <script src="engine.js?v=81"></script>
 <script src="../common/skilldesc.js?v=2"></script>
-<script src="tactics.js?v=18"></script>
+<script src="tactics.js?v=19"></script>
 <script>
 (function(){
 var OUT='#241610';
@@ -3228,7 +3228,7 @@ function tutTip(u,cb){var T=TUT?TUT.tip:{},me=MEMB[0]||{},hero=u.i===0,dead=LV.M
   else if(!hero&&!T.c){T.c=1;t='瑟琳也由你操作。「黑魔法」裡有火球，「白魔法」裡有治療術，可以替受傷的隊友補血。'}
   if(!t){cb();return}tutBox('教學',t,'知道了',cb)}
 function tutEnd(win){if(!TUT)return;var cl=function(){$('bres').hidden=true};cl();
-  if(win){tutBox('勝利','哥布林被擊退了！','繼續',function(){var r=TUT.res;TUT=null;closeMenu();if(window.Music)Music.fade(1500);view='map';$('batv').hidden=true;r()/* 不經過 showView：劇情接著播，不要換回地圖音樂 */})}
+  if(win){if(window.Music)Music.play('victory',150);tutBox('勝利','哥布林被擊退了！','繼續',function(){var r=TUT.res;TUT=null;closeMenu();if(window.Music)Music.fade(1500);view='map';$('batv').hidden=true;r()/* 不經過 showView：劇情接著播，不要換回地圖音樂 */})}
   else tutBox('瑟琳','「別放棄，再試一次！」','重新挑戰',function(){tutStart()})}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
   if(a==='lvx'){if($('lvov').querySelector('[data-a="egk"]'))return;closeLevels()}
@@ -3649,7 +3649,7 @@ function realResult(w){var me=MEMB[0];if(!w){$('rtxt').innerHTML='這場沒有�
   if(B.saved)return;var bb=B,msg=function(t){var q=$('rsave');if(q)q.textContent=t};if(demo){msg('示範模式：不寫入');return}$('rok').disabled=true;
   var tries=0;(function put(){tries++;withFB(function(FB){FB.realWin(req).then(function(){bb.saved=true;if(B===bb)curSave();me.exp=(me.exp|0)+req.exp;me.beastMat=Object.assign({},me.beastMat||{});Object.keys(req.mats).forEach(function(k){me.beastMat[k]=(me.beastMat[k]|0)+req.mats[k]});if(req.egg){me.beastEggs=Object.assign({},me.beastEggs||{});me.beastEggs[req.egg]=(me.beastEggs[req.egg]|0)+1}msg('已存檔');$('rok').disabled=false},
     function(e){if(e&&e.code==='already'){bb.saved=true;msg('這組怪物已經打倒過了（沒有重複給獎勵）');$('rok').disabled=false;return}if(tries<3&&e&&e.code==='permission-denied'){msg('跟上一場隔太近，稍等一下自動存檔…');setTimeout(put,16000);return}msg('存檔失敗：'+(e&&(e.code||e.message))+'（獎勵沒有寫入，請截圖給開發者）');$('rok').disabled=false})})})()}
-function showResult(){if(B&&B.tut){tutEnd(B.res==='win');return}var w=B.res==='win';$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
+function showResult(){if(B&&B.tut){tutEnd(B.res==='win');return}var w=B.res==='win';if(w&&window.Music)Music.play('victory',150);/* 打贏：馬上切到勝利音樂 */$('rtt').textContent=w?'勝利':'失敗';$('rtt').className='rt '+(w?'win':'lose');
   var box=$('bres');box.hidden=false;$('rok').disabled=false;
   if(B.rift){riftResult(w);return}
   if(B.real){realResult(w);return}

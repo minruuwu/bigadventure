@@ -782,6 +782,7 @@
     if (done) return; done = true; busy = true; cur = null; closeMenu(); hideInfo(); clearCells(); flushLog(); renderQueue(); hint('');
     $('tauto').disabled = true;
     var r = S.res(), w = r === 'win', rw = w && ctx.reward ? ctx.reward({ mons: M0, lead: S.P[0] }) : null;
+    if (w && window.Music) Music.play('victory', 150); /* 打贏：勝利音樂 */
     var o = el('div', 'tres'); o.innerHTML = '<div class="rbox"><div class="rt ' + (w ? 'win' : 'lose') + '">' + (w ? '勝利' : '失敗') + '</div><p id="trtxt">' +
       (w ? (rw ? rw.html : '打倒了所有敵人！') : (r === 'draw' ? S.MAXR + ' 回合內沒分出勝負，' : '全隊倒下了，') + '這場沒有獎勵，下次再挑戰吧。') + '</p>' +
       '<button type="button" class="go" id="tback">確認結果</button></div>';
