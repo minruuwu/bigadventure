@@ -272,9 +272,23 @@ const FB = {
     const got = doneOn(p); if (got) { fin(p); return got; }/* 上一次其實已經存進去了 */
     if (!p.hatch || (p.hatch.m || 0) < 2000) throw new Error('not-ready');
     const b = { sp: p.hatch.egg, name: nm, at: Date.now() }, nb = (p.beasts || []).concat([b]);
-    try { await tmo(updateDoc(doc(db, 'players', u.uid), { hatch: deleteField(), beasts: nb }), 15000); }
-    catch (e) { if (e && e.code === 'timeout') { await netKick(); const p2 = await fresh().catch(() => null); const g2 = doneOn(p2); if (g2) { fin(p2); return g2; } } throw e; }
+    /* 新的一隻用 arrayUnion 接在最後：原本的幻獸由伺服器保留，不從手機重寫（避免手機上的資料跟伺服器有一點點不同就被規則擋下） */
+    try { await tmo(updateDoc(doc(db, 'players', u.uid), { hatch: deleteField(), beasts: arrayUnion(b) }), 15000); }
+    catch (e) { if (e && e.code === 'timeout') { await netKick(); const p2 = await fresh().catch(() => null); const g2 = doneOn(p2); if (g2) { fin(p2); return g2; } }
+      if (e && e.code === 'permission-denied') { try { e.why = await FB.hatchWhy(b); } catch (e2) { e.why = ['檢查失敗']; } } throw e; }
     fin({ beasts: nb }); return b; },
+  // 孵化完成被規則擋下時：用 REST 讀伺服器上的原始資料（看得到整數／小數型別），逐項對照規則 beastOk 找原因
+  async hatchWhy(b) { await ready; const u = auth.currentUser; if (!u) return ['沒有登入']; const why = [];
+    const tk = await u.getIdToken(); const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000);
+    if (!rr.ok) return ['讀不到伺服器資料（HTTP ' + rr.status + '）']; const F = (await rr.json()).fields || {};
+    const ty = v => v ? Object.keys(v)[0].replace('Value', '') : '無', nv = v => v ? Number(v.integerValue != null ? v.integerValue : v.doubleValue) : NaN;
+    const H = F.hatch && F.hatch.mapValue ? (F.hatch.mapValue.fields || {}) : null;
+    if (!H) why.push('伺服器上沒有孵化中的蛋（hatch=' + ty(F.hatch) + '）');
+    else { if (!(nv(H.m) >= 2000)) why.push('伺服器進度 ' + nv(H.m) + ' 公尺（' + ty(H.m) + '）'); const eg = H.egg && H.egg.stringValue; if (eg !== b.sp) why.push('蛋的元素不同（伺服器 ' + eg + '）'); const hk = Object.keys(H).filter(k => k !== 'egg' && k !== 'm'); if (hk.length) why.push('hatch 多了欄位 ' + hk.join('、')); }
+    if (F.beasts && !F.beasts.arrayValue) why.push('beasts 不是清單（' + ty(F.beasts) + '）');
+    const L = F.beasts && F.beasts.arrayValue ? (F.beasts.arrayValue.values || []) : []; if (L.length >= 6) why.push('已經有 ' + L.length + ' 隻');
+    if (!b.name || Array.from(b.name).length > 8) why.push('名字長度不對');
+    why.push('幻獸 ' + L.length + ' 隻、欄位 ' + Object.keys(F).length + ' 個'); return why; },
   // 照料幻獸：先讀最新資料，再由 fn(玩家資料) 算出要寫的欄位（餵養要用最新的素材數量；規則 beastEditOk 會核對）
   async beastEdit(fn) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const p = await FB.myFresh(); if (!p) throw new Error('no-player'); const f = fn(p); if (!f) throw new Error('bad-op');
