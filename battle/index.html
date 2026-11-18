@@ -189,8 +189,7 @@ button{font:inherit;color:inherit}
 .bcm{display:grid;grid-template-columns:24px repeat(3,1fr);gap:3px 4px;align-items:center;font-size:11px}.bcm .hd{text-align:center;font-weight:900;color:#5a3a1a}.bcm .it{display:flex;align-items:center;gap:3px;background:rgba(74,42,18,.12);padding:1px 3px}.bcm img{width:20px;height:20px;image-rendering:pixelated}
 .portal span{font-size:12px;font-weight:900;color:#f2e6ff;background:rgba(18,10,24,.82);padding:0 7px;margin-top:-4px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6a4aa8;text-shadow:1px 1px 0 #000;letter-spacing:.15em}
 .portal:active canvas,.portal:active img{transform:translateY(1px)}
-.portal.care .cic{position:relative;width:60px;height:56px}.portal.care .cic img{position:absolute;image-rendering:pixelated;filter:drop-shadow(0 0 5px rgba(150,230,110,.7))}.portal.care .cn{left:3px;bottom:0;width:54px;height:43px}.portal.care .ce{left:20px;bottom:16px;width:20px;height:24px;animation:cbob 1.8s ease-in-out infinite}.portal.care span{box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #5a9a3a}
-@keyframes cbob{50%{transform:translateY(-2px)}}@media (prefers-reduced-motion:reduce){.portal.care .ce{animation:none}}
+.portal.care .cic{width:60px;height:72px;image-rendering:pixelated;filter:drop-shadow(0 0 5px rgba(255,120,80,.55))}.portal.care span{margin-top:-6px;box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #c8452a}
 .rfbox{position:relative;width:100%;max-width:380px;background:#1b1520;box-shadow:0 0 0 2px #080503,inset 0 0 0 2px #4b3a66,6px 6px 0 rgba(0,0,0,.5);padding:16px 14px 16px;color:#eadbbd}
 .rfbox h2{margin:0;font-size:19px;font-weight:900;letter-spacing:.15em;color:#f2e6ff;text-shadow:2px 2px 0 #000}
 .rfbox .x{position:absolute;top:10px;right:10px;width:30px;height:30px;border:0;background:#3a2a52;color:#f0dfb8;font-weight:900;cursor:pointer;box-shadow:0 0 0 2px #080503}
@@ -229,7 +228,7 @@ html,body,*{touch-action:manipulation}
  <div class="top"><h1>冒險</h1></div>
  <div class="main">
   <div id="loading">讀取資料中…</div>
-  <div id="mapv" hidden><div class="ports"><button type="button" class="portal care" id="portal3" aria-label="照料幻獸" hidden><div class="cic"><img class="cn" src="../assets/beast/nest.png" alt=""><img class="ce" src="../assets/beast/egg_leaf.png" alt=""></div><span>照料幻獸</span></button><button type="button" class="portal gate" id="portal2" aria-label="幻境" hidden><canvas id="ptc2" width="24" height="24"></canvas><span>幻境</span></button><button type="button" class="portal" id="portal" aria-label="秘境"><canvas id="ptc" width="20" height="20"></canvas><span>秘境</span></button></div><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
+  <div id="mapv" hidden><div class="ports"><button type="button" class="portal care" id="portal3" aria-label="照料幻獸" hidden><img class="cic" src="../assets/beast/care.png?v=1" alt=""><span>照料幻獸</span></button><button type="button" class="portal gate" id="portal2" aria-label="幻境" hidden><canvas id="ptc2" width="24" height="24"></canvas><span>幻境</span></button><button type="button" class="portal" id="portal" aria-label="秘境"><canvas id="ptc" width="20" height="20"></canvas><span>秘境</span></button></div><div class="map" id="map"><img src="../assets/battle/map.jpg?v=1" alt="冒險地圖" draggable="false"><div id="zones"></div></div><p class="note" id="who"></p></div>
   <div id="tacv" hidden></div>
   <div id="batv" hidden>
   <div class="bhead" id="bhead"></div>
