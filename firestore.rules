@@ -201,8 +201,9 @@ service cloud.firestore {
             && oe.get(nh.egg, 0) >= 1 && ne.get(nh.egg, 0) == oe.get(nh.egg, 0) - 1 && ob.size() < 6)
           || (ak.hasOnly(['hatch']) && oh != null && nh is map && nh.keys().hasOnly(['egg','m']) && nh.egg == oh.egg
             && nh.m is number && nh.m > oh.m && nh.m <= 2000 && nh.m - oh.m <= 600)
-          || (ak.hasOnly(['hatch','beasts']) && oh != null && oh.m >= 2000 && nh == null
-            && nb is list && nb.size() == ob.size() + 1 && nb.size() <= 6 && nb[0:ob.size()] == ob
+          // (2026-11-18 改寫:孵化中拿掉改用 !('hatch' in n);第一隻不做清單切片比較,之後用 hasAll 確認原本的幻獸都還在)
+          || (ak.hasOnly(['hatch','beasts']) && oh != null && oh.m >= 2000 && !('hatch' in n)
+            && nb is list && nb.size() == ob.size() + 1 && nb.size() <= 6 && (ob.size() == 0 || nb.hasAll(ob))
             && nb[ob.size()].keys().hasOnly(['sp','name','at']) && nb[ob.size()].sp == oh.egg
             && nb[ob.size()].name is string && nb[ob.size()].name.size() >= 1 && nb[ob.size()].name.size() <= 8);
       }
