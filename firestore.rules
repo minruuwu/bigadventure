@@ -231,6 +231,7 @@ service cloud.firestore {
       // ---- 照料幻獸 ----
       // 同一隻以外的幻獸都不能變(第 i 隻前後兩段原封不動):直接寫在 beastEditOk 裡。
       // 2026-11-18:原本寫成函式 bKeep(ob, nb, i),清單切片用到函式參數,疑似因此讓一般玩家照料幻獸的存檔被擋(管理者走 adminOk 所以沒發現)
+      // 2026-11-18 再修:空的切片(例如 nb[0:0]、只有 1 隻時的 nb[1:1])會讓規則出錯而整筆被擋,所以前後段是空的就不比對(孵化完成也是同一個問題)
       // 已學會的技能(順序編號):Lv1 第 0 招、Lv6 第 2 招、Lv12 第 3 招、Lv18 第 1 招
       function bLearn(lv) { return lv >= 18 ? [0, 2, 3, 1] : lv >= 12 ? [0, 2, 3] : lv >= 6 ? [0, 2] : [0]; }
       // 第 s 招學會了沒:幼年體照 bLearn;成熟體幼年四招都會,成熟招(4~7)照進化時抽的順序 mo,Lv1/6/12/18 各學一招
@@ -260,13 +261,13 @@ service cloud.firestore {
         return op is map && op.keys().hasOnly(['t','i','k']) && i is int && i >= 0 && i < ob.size()
           && (
             // 改名:1~8 個字
-            (op.t == 'name' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && nb[0:i] == ob[0:i] && nb[i + 1:nb.size()] == ob[i + 1:ob.size()])
+            (op.t == 'name' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && (i == 0 || nb[0:i] == ob[0:i]) && (i + 1 >= ob.size() || nb[i + 1:nb.size()] == ob[i + 1:ob.size()]))
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['name']) && nb[i].name is string && nb[i].name.size() >= 1 && nb[i].name.size() <= 8)
             // 選技能:1~2 招,都要是已學會的
-            || (op.t == 'sk' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && nb[0:i] == ob[0:i] && nb[i + 1:nb.size()] == ob[i + 1:ob.size()])
+            || (op.t == 'sk' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && (i == 0 || nb[0:i] == ob[0:i]) && (i + 1 >= ob.size() || nb[i + 1:nb.size()] == ob[i + 1:ob.size()]))
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['sk']) && bSkOk(nb[i]))
             // 餵養:升 1 級(最高 20),屬性合計 +3 格;扣這隻幻獸顏色的一種素材,數量 = 10 + 5 ×(等級 − 1)、成熟體 = 110 + 5 ×(等級 − 1)
-            || (op.t == 'feed' && ak.hasOnly(['beasts','beastMat','bOp']) && (nb.size() == ob.size() && nb[0:i] == ob[0:i] && nb[i + 1:nb.size()] == ob[i + 1:ob.size()])
+            || (op.t == 'feed' && ak.hasOnly(['beasts','beastMat','bOp']) && (nb.size() == ob.size() && (i == 0 || nb[0:i] == ob[0:i]) && (i + 1 >= ob.size() || nb[i + 1:nb.size()] == ob[i + 1:ob.size()]))
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','st'])
               && nb[i].lv == ob[i].get('lv', 1) + 1 && nb[i].lv <= 20
               && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), ('ev' in ob[i]) ? 30 : 15)
@@ -276,12 +277,12 @@ service cloud.firestore {
               && n.get('beastMat', {}).get(op.k, 0) == resource.data.get('beastMat', {}).get(op.k, 0) - ((('ev' in ob[i]) ? 110 : 10) + 5 * (ob[i].get('lv', 1) - 1))
               && n.get('beastMat', {}).get(op.k, 0) >= 0)
             // 孵化(之後還有進化)送的一次屬性:每隻只有一次(fr = 1 標記),屬性合計 +3 格
-            || (op.t == 'free' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && nb[0:i] == ob[0:i] && nb[i + 1:nb.size()] == ob[i + 1:ob.size()])
+            || (op.t == 'free' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && (i == 0 || nb[0:i] == ob[0:i]) && (i + 1 >= ob.size() || nb[i + 1:nb.size()] == ob[i + 1:ob.size()]))
               && !('fr' in ob[i]) && nb[i].diff(ob[i]).affectedKeys().hasOnly(['st','fr']) && nb[i].fr == 1
               && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 15))
             // 進化:幼年體 Lv20 → 成熟體 Lv1,型別 ev、成熟招學習順序 mo(0~3 的排列),送 3 格屬性(上限 30),可以順便換裝備技能;
             // 扣這隻幻獸顏色的結晶、礦石、寶珠各 50 個
-            || (op.t == 'evo' && ak.hasOnly(['beasts','beastMat','bOp']) && (nb.size() == ob.size() && nb[0:i] == ob[0:i] && nb[i + 1:nb.size()] == ob[i + 1:ob.size()])
+            || (op.t == 'evo' && ak.hasOnly(['beasts','beastMat','bOp']) && (nb.size() == ob.size() && (i == 0 || nb[0:i] == ob[0:i]) && (i + 1 >= ob.size() || nb[i + 1:nb.size()] == ob[i + 1:ob.size()]))
               && !('ev' in ob[i]) && ob[i].get('lv', 1) == 20
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','ev','mo','st','sk'])
               && nb[i].lv == 1 && nb[i].ev in ['atk','def','sup']
@@ -291,7 +292,7 @@ service cloud.firestore {
               && bEvoMat(ob[i].sp))
             // 放生:拿掉第 i 隻,其他順序不變;同行的編號可以一起改
             || (op.t == 'del' && ak.hasOnly(['beasts','bOp','beastOn'])
-              && nb.size() == ob.size() - 1 && nb[0:i] == ob[0:i] && nb[i:nb.size()] == ob[i + 1:ob.size()]
+              && nb.size() == ob.size() - 1 && (i == 0 || nb[0:i] == ob[0:i]) && (i >= nb.size() || nb[i:nb.size()] == ob[i + 1:ob.size()])
               && (!('beastOn' in ak) || (n.beastOn is int && n.beastOn >= -1 && n.beastOn < nb.size())))
           );
       }
