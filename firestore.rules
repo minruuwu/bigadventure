@@ -359,6 +359,19 @@ service cloud.firestore {
         return (
           riftOk(ak)
         )
+        // 鍛造(放在前面,跟秘境一樣避免前面的規則先吃掉 1000 個運算式的額度):鍛造石只能減少、武器等級只能增加,而且付的鍛造石要夠
+        || (
+          ak.hasOnly(['stones','weapons'])
+          && request.resource.data.get('stones', 0) is int
+          && request.resource.data.get('stones', 0) >= 0
+          && request.resource.data.get('stones', 0) <= resource.data.get('stones', 0)
+          && request.resource.data.get('weapons', {}).keys().hasOnly(['weapon01','weapon02','weapon03','weapon04','weapon05','weapon06','weapon07','weapon08'])
+          && wLvOk('weapon01') && wLvOk('weapon02') && wLvOk('weapon03') && wLvOk('weapon04')
+          && wLvOk('weapon05') && wLvOk('weapon06') && wLvOk('weapon07') && wLvOk('weapon08')
+          && resource.data.get('stones', 0) - request.resource.data.get('stones', 0)
+          >= wPaid('weapon01') + wPaid('weapon02') + wPaid('weapon03') + wPaid('weapon04')
+          + wPaid('weapon05') + wPaid('weapon06') + wPaid('weapon07') + wPaid('weapon08')
+        )
         // (符文碎片兌換已在 2026-11 取消)
         // 符文遷移(鍛造頁):標記 runeV = 2,所有武器的舊附魔清空(只做一次)
         || (
@@ -454,19 +467,6 @@ service cloud.firestore {
           && request.resource.data.pets.diff(resource.data.get('pets', {})).affectedKeys().size() == 1
           && tentOk('gm_pet_01') && tentOk('gm_pet_02') && tentOk('gm_pet_03'))
           )
-        )
-        // 鍛造:鍛造石只能減少、武器等級只能增加,而且付的鍛造石要夠
-        || (
-          ak.hasOnly(['stones','weapons'])
-          && request.resource.data.get('stones', 0) is int
-          && request.resource.data.get('stones', 0) >= 0
-          && request.resource.data.get('stones', 0) <= resource.data.get('stones', 0)
-          && request.resource.data.get('weapons', {}).keys().hasOnly(['weapon01','weapon02','weapon03','weapon04','weapon05','weapon06','weapon07','weapon08'])
-          && wLvOk('weapon01') && wLvOk('weapon02') && wLvOk('weapon03') && wLvOk('weapon04')
-          && wLvOk('weapon05') && wLvOk('weapon06') && wLvOk('weapon07') && wLvOk('weapon08')
-          && resource.data.get('stones', 0) - request.resource.data.get('stones', 0)
-          >= wPaid('weapon01') + wPaid('weapon02') + wPaid('weapon03') + wPaid('weapon04')
-          + wPaid('weapon05') + wPaid('weapon06') + wPaid('weapon07') + wPaid('weapon08')
         )
         // 組隊：隊長改自己的 party(全隊最多 4 人)
         || (
