@@ -2553,12 +2553,14 @@ function bstFxDk(e,d,kind,c,O,T,L){var u,i,j,k,p=party[e.a];
 /* 每個主人一張幻獸畫布，疊層＝主人的前一層：幻獸只在自己主人後面，站得更後面的隊友會被幻獸擋住 */
 function bstCv(p){var W=frame.clientWidth,H=frame.clientHeight;if(!p.bc){var c=document.createElement('canvas');c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';frame.appendChild(c);els.push(c);p.bc=c;p.bcx=c.getContext('2d')}
   if(p.bc.width!==W||p.bc.height!==H){p.bc.width=W;p.bc.height=H}else p.bcx.clearRect(0,0,W,H);p.bc.style.zIndex=Math.max(0,(parseInt(p.f.style.zIndex,10)||0)-1);return p.bcx}
-function beastLayer(t){if(!B||!party)return;party.forEach(function(p,k){var bk=bstK(k),hasB=bk&&p.sx!=null&&BST[bk]&&IMG['bst_'+bk],hasF=B.bbuf&&B.bbuf[k]||(B.ev||[]).some(function(e){return e.bst&&e.a===k});if(!hasB&&!hasF){if(p.bc&&p.bcd){p.bcx.clearRect(0,0,p.bc.width,p.bc.height);p.bcd=0}return}
+/* 主人倒下時幻獸淡出消失（0.4 秒），被復活再淡入出現 */
+function bstVis(k,t){var L=(B&&B.pkl&&B.pkl[k])||[],last=null;L.forEach(function(x){if(t>=x.t)last=x});if(!last)return 1;var u=Math.min(1,(t-last.t)/400);return last.d?1-u:u}
+function beastLayer(t){if(!B||!party)return;party.forEach(function(p,k){var bk=bstK(k),bv=bstVis(k,t),hasB=bk&&p.sx!=null&&BST[bk]&&IMG['bst_'+bk]&&bv>0,hasF=B.bbuf&&B.bbuf[k]||(B.ev||[]).some(function(e){return e.bst&&e.a===k});if(!hasB&&!hasF){if(p.bc&&p.bcd){p.bcx.clearRect(0,0,p.bc.width,p.bc.height);p.bcd=0}return}
   var cx=bstCv(p);p.bcd=1;var spb=pctx;pctx=cx;try{bstGround(k,p,t);bstBuf(t,false,k);/* 持續效果的後半圈（守護晶石、霓虹光霧） */if(!hasB)return;
-  var P=bstPos(k,p,t),s=bstS(bk),im=bstSmall(bk,s),x0=Math.round(P.x-s/2),y0=Math.round(P.y-s);
-  bstFog(cx,P.x,P.y,s,t);/* 最底下：霞彩光霧 */
+  var P=bstPos(k,p,t),s=bstS(bk),im=bstSmall(bk,s),x0=Math.round(P.x-s/2),y0=Math.round(P.y-s);P.a*=bv;P.pw*=bv;
+  bstFog(cx,P.x,P.y,s,t,null,bv);/* 最底下：霞彩光霧 */
   var D=bstHalo(bk,s);if(D){var ph=(t%1800)/1800,gl=1+P.pw*.8;for(var y=0;y<D.h;y++)for(var x=0;x<D.w;x++){var dd=D.d[y*D.w+x];if(dd<=0||dd>D.R)continue;var u=dd/D.R;if(u>.55&&((x+y+(t>>8))&1))continue;var al=((1-u)*(1-u)*.55+Math.max(0,1-Math.abs(u-ph)*6)*(1-ph)*.35)*gl;if(al<=.02)continue;
-    cx.globalAlpha=Math.min(.9,al);cx.fillStyle='#ffffff';cx.fillRect((x0-D.R+x)*U,(y0-D.R+y)*U,Math.ceil(U),Math.ceil(U))}}/* 中間：白色光暈從身上往外散 */
+    cx.globalAlpha=Math.min(.9,al)*bv;cx.fillStyle='#ffffff';cx.fillRect((x0-D.R+x)*U,(y0-D.R+y)*U,Math.ceil(U),Math.ceil(U))}}/* 中間：白色光暈從身上往外散 */
   cx.globalAlpha=P.a;cx.imageSmoothingEnabled=false;if(P.flip){cx.save();cx.translate((x0+s)*U,0);cx.scale(-1,1);cx.drawImage(im,0,y0*U,s*U,s*U);cx.restore()}else cx.drawImage(im,x0*U,y0*U,s*U,s*U);
   if(P.pw>.05){cx.globalCompositeOperation='lighter';cx.globalAlpha=P.pw*.55;cx.drawImage(im,x0*U,y0*U,s*U,s*U);cx.globalCompositeOperation='source-over'}cx.globalAlpha=1;bstDarkDraw(cx,bk,P,x0,y0,s)}finally{pctx=spb}})}
 /* 嘴巴（技能出發點）與目標 */
