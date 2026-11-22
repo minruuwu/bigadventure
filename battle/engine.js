@@ -507,11 +507,11 @@
         return false;
       }
       /* 先祖之鄉（必定、一次）→ 神恩（機率、一次） */
-      if (u.runes.indexOf('rune17') >= 0 && (u.flags.r17 | 0) < RV(D, 'rune17', 1, 1, u)) { u.flags.r17 = (u.flags.r17 | 0) + 1; /* 先祖之鄉：Lv10 每場可以復活 2 次 */ revive(u, RV(D, 'rune17', 0, 0.5, u), '先祖之鄉', e); return false }
+      if (u.runes.indexOf('rune17') >= 0 && (u.flags.r17 | 0) < RV(D, 'rune17', 1, 1, u)) { u.flags.r17 = (u.flags.r17 | 0) + 1; /* 先祖之鄉：Lv10 每場可以復活 2 次 */ revive(u, RV(D, 'rune17', 0, 0.5, u), '先祖之鄉', e, 1); return false }
       var sf = u.side === 'm' ? (u.special || []).filter(function (x) { return x.k === 'soul_feast' })[0] : null;
       if (sf && (u.souls || []).length) { var sv0 = u.souls.shift(); u.hp = Math.max(1, Math.round(u.b.mhp * sf.v)); if (e) (e.hz = e.hz || []).push(u.i); /* 打倒他的那一招：血條先歸零 */ reQ.push([u, sv0, u.souls.length, u.hp]); return false } /* 火焰獻祭：吞一顆魂火復活，狀態保留 */
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
-      if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e); return false } }
+      if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e, 1); return false } }
       u.dead = true; u.st = [];
       if (u.side === 'm' && (u.special || []).some(function (x) { return x.k === 'death_boom' })) booms.push(u);
       if (u.side === 'm') { u.sun = null; M.forEach(function (o) { if (o !== u && !o.dead && (o.special || []).some(function (x) { return x.k === 'soul_feast' })) soulQ.push([o, u]) }) } /* 火焰獻祭：等這一招結算完才變成魂火 */ /* 烈焰殉爆：等這一招結算完再炸 */
@@ -523,7 +523,7 @@
     }
     /* 逃出肚子的文字等這一行的傷害寫完才接在後面 */
     function flushRel(e) { if (e && e._rel) { e.txt += '；' + e._rel.join('；'); delete e._rel } if (e && e._spk) { e.txt += '；' + e._spk.join('；'); delete e._spk } if (e && e._spm) { e.txt += '；' + e._spm.join('；'); delete e._spm } }
-    function revive(u, f, why, e) { u.st = []; u.hp = Math.max(1, Math.round(u.b.mhp * f)); if (e) { e.txt += '；' + u.name + ' 因「' + why + '」復活（' + u.hp + ' 生命）'; (e.rev = e.rev || []).push([u.side, u.i]); if (why === '先祖之鄉' && u.side === 'p') (e.rvr = e.rvr || []).push(u.i) /* 畫面：金色光柱往上升 */ } }
+    function revive(u, f, why, e, pil) { u.st = []; u.hp = Math.max(1, Math.round(u.b.mhp * f)); if (e) { e.txt += '；' + u.name + ' 因「' + why + '」復活（' + u.hp + ' 生命）'; (e.rev = e.rev || []).push([u.side, u.i]); if (pil && u.side === 'p') (e.rvr = e.rvr || []).push(u.i) /* 先祖之鄉、神恩：畫面上金色光柱往上升 */ } }
 
     /* --- 反應技 --- */
     function react(d, a, isP, isM, parts) {
