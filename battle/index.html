@@ -1173,7 +1173,7 @@ function drawVfx(t){shakeY=0;shakeX=0;if(!B)return;bstBuf(t,true);bstMonBuf(t);/
   /* 多段攻擊：每一下間隔 0.13 秒各畫一次 */
   B.ev.forEach(function(e){FXA=e.el==='undead'?UNDA:1;for(var hh=0;hh<(e.hits>1?e.hits:1);hh++)vOne(e,t-hh*(e.hg||130),hh);FXA=1});
   B.ev.forEach(function(e){if(e.dring){var f=footOf(e.dring[0],e.dring[1]);if(f)debuffRing(f,t-e.t-(e.rfx?40:200),e.dcol)}if(e.rfx)runeFx(e,t-e.t);if(e.spd)e.spd.forEach(function(k){var f=footOf('p',k);if(f)spDrainFx(f,t-e.t-(e.hit||180)-80)});if(e.tring){var f2=footOf(e.tring[0],e.tring[1]);if(f2)thornRing(f2,t-e.t)}if(e.frr){var fp=e.frr[0]==='p'?posOf(e.frr[1]):monPos(e.frr[1]);if(fp){var fy=e.frr[0]==='p'?fp[1]-14:fp[1];pBurst('frost',fp[0],fy,t-e.t-40,16,VS);frostShardFx(fp[0],fy,t-e.t)}}/* 霜甲反擊：攻擊者身上炸出冰晶 */if(e.acr){var ap2=e.acr[0]==='p'?posOf(e.acr[1]):monPos(e.acr[1]);if(ap2)acidSplat(ap2[0],e.acr[0]==='p'?ap2[1]-16:ap2[1],t-e.t-40)}/* 異形酸血：攻擊者身上濺酸 */if(e.firr){var fp2=e.firr[0]==='p'?posOf(e.firr[1]):monPos(e.firr[1]);if(fp2)pBurst('fire',fp2[0],e.firr[0]==='p'?fp2[1]-14:fp2[1],t-e.t-40,18,VS)}/* 焰甲反擊：攻擊者身上噴火 */});
-  function vOne(e,t,hh){var d=t-e.t;if(e.side==='p'&&e.rvv&&!hh&&d>=0&&d<=1500)reviveFx(e,d);if(e.rvr&&!hh){var d9=d-(e.hit||300);if(d9>=0&&d9<=1500)reviveFx({rvv:e.rvr},d9)}if(d<0||d>(e.supw?2300:e.gstk||e.fham||e.tcut||e.excr||e.bst?1800:e.hfire||e.meteor||e.fwall||e.fhand||e.nova?3200:e.ragn||e.lflow?2000:e.sulf||e.fchg||e.met1||e.aspit||e.ftor?2000:e.skyf==='astral'?2700:e.skyf?2100:e.rvv?1500:e.fdrg?1600:e.fslam||e.fflash?1500:e.icrash||e.wworld||e.itrail||e.tor||e.jham||e.wk==="icerain"?1400:e.wk==="pillar"?1000:e.wk==="pchains"||e.wk==="cross"||e.crk?1100:e.wk==="sandstorm"||e.wk==="storm"||e.wk==="swords"?1400:900)||!e.side)return;
+  function vOne(e,t,hh){var d=t-e.t;if(e.side==='p'&&e.rvv&&!hh&&d>=0&&d<=1500)reviveFx(e,d);if(e.rvr&&!hh){var d9=d-(e.rvt||1050);if(d9>=0&&d9<=1700)rebirthFx(e.rvr,d9)}if(d<0||d>(e.supw?2300:e.gstk||e.fham||e.tcut||e.excr||e.bst?1800:e.hfire||e.meteor||e.fwall||e.fhand||e.nova?3200:e.ragn||e.lflow?2000:e.sulf||e.fchg||e.met1||e.aspit||e.ftor?2000:e.skyf==='astral'?2700:e.skyf?2100:e.rvv?1500:e.fdrg?1600:e.fslam||e.fflash?1500:e.icrash||e.wworld||e.itrail||e.tor||e.jham||e.wk==="icerain"?1400:e.wk==="pillar"?1000:e.wk==="pchains"||e.wk==="cross"||e.crk?1100:e.wk==="sandstorm"||e.wk==="storm"||e.wk==="swords"?1400:900)||!e.side)return;
     if(e.bst){if(!hh)bstFx(e,d);return}/* 幻獸技能 */
     if(e.side==='p'&&e.skyf){if(!hh)(e.skyf==='astral'?astralFx:skyFx)(e,d);return}
     if(e.side==='p'&&e.meteor){if(!hh)meteorFx(e,d);return}if(e.side==='p'&&e.icrash){if(!hh)iceCrashFx(e,d);return}
@@ -1784,6 +1784,15 @@ function skyFx(e,d){var C=SKYC[e.skyf];if(!C)return;var T=(e.tg||[]).map(functio
       if(e.skyf==='icecrash'&&w<.8){for(var m2=0;m2<5;m2++){var an2=-Math.PI*(.15+m2*.175);VP(ex+Math.cos(an2)*(3+w*7),ey+Math.sin(an2)*(3+w*9),'#d6f6ff',.8-w)}}}}
   if(e.skyf==='astral'){var w2=(d-C.span-C.fd)/500;if(w2>=0&&w2<=1){var cx=T.reduce(function(a,p){return a+p[0]},0)/T.length,cy=T.reduce(function(a,p){return a+p[1]},0)/T.length;
     for(var m3=0;m3<28;m3++){var an3=m3/28*Math.PI*2,rr=6+w2*34;VP(cx+Math.cos(an3)*rr,cy+Math.sin(an3)*rr*.55,m3%2?'#f5d66a':'#b48cff',(1-w2)*.85)}}}/* 最後一圈紫金色光環擴散 */}
+/* 先祖之鄉、神恩：倒地的人身上先亮起來 → 粗金光柱往上衝，最亮的時候（650ms）整個人被白金光蓋住，這時候站起來 → 光慢慢退掉 */
+function rebirthFx(L,d){L.forEach(function(i){var p=posOf(i);if(!p)return;var x=p[0],fy=p[1],fa=FXA;FXA=1;
+  var up=d<650?d/650:1,fade=d<900?1:Math.max(0,1-(d-900)/800),H=Math.round(110*Math.min(1,d/350)),W=Math.round(2+up*4);
+  glowAt(x,fy-14,10+up*26,'rgba(255,250,225,'+(.95*fade)+')','rgba(255,214,110,'+(.55*fade)+')',1);/* 身上的光暈 */
+  for(var y=0;y<H;y++){var yy=fy-y,f=fade*(1-y/H*.7);for(var w=-W;w<=W;w++){var cw=Math.abs(w)/(W+1);VP(x+w,yy,cw<.35?'#ffffff':cw<.7?'#fff0b8':'#f5c85a',f*(1-cw*.6))}}/* 光柱 */
+  var pk=Math.max(0,1-Math.abs(d-650)/260);if(pk>0){glowAt(x,fy-16,40,'rgba(255,255,255,'+pk+')','rgba(255,236,170,'+(pk*.8)+')',1);for(var yb=-38;yb<=4;yb++)for(var xb=-11;xb<=11;xb++){var q=Math.hypot(xb/11,(yb+17)/21);if(q<1)VP(x+xb,fy+yb,'#fffdf0',pk*(1-q*q))}}/* 最亮的瞬間把整個人蓋住 */
+  for(var s=0;s<18;s++){var u=((d+s*97)%1100)/1100,sx=x+(skyR(s,9)-.5)*24,sy=fy-u*80;VP(sx,sy,s%2?'#ffffff':'#ffe08a',fade*(1-u))}/* 往上飄的光點 */
+  var r=(d%800)/800*22;for(var m=0;m<24;m++){var an=m/24*Math.PI*2;VP(x+Math.cos(an)*r,fy+Math.sin(an)*r*.35,'#f5d66a',fade*(1-r/22))}/* 腳下光圈 */
+  FXA=fa})}
 function reviveFx(e,d){(e.rvv||[]).forEach(function(i){var p=posOf(i);if(!p)return;var x=p[0],fy=p[1],a=d<300?d/300:d>1100?Math.max(0,1-(d-1100)/400):1;
   for(var y=0;y<70;y++){var yy=fy-y,f=a*(1-y/70)*.85;VP(x,yy,'#fff4c0',f);VP(x-1,yy,'#f5d66a',f*.7);VP(x+1,yy,'#f5d66a',f*.7);if(y%2===0){VP(x-2,yy,'#e8b84a',f*.35);VP(x+2,yy,'#e8b84a',f*.35)}}
   for(var s=0;s<10;s++){var u=((d+s*137)%900)/900,sx=x+(skyR(s,7)-.5)*14,sy=fy-u*46;VP(sx,sy,s%2?'#fff4c0':'#ffe08a',a*(1-u))}
@@ -3495,7 +3504,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       if(e.bst){var bk0=((BST[e.bst[0]]||{}).sk||[])[e.bst[1]];bk0=bk0?bk0[1]:'orb';o.bst=e.bst;o.side='p';o.a=e.a;o.tg=BSELF[bk0]?[]:(e.tg||[]);o.hits=1;o.hit=BSTHIT[bk0]||400;o.ty=BSELF[bk0]?'buff':e.ty;o.atk=false;o.far=true;o.el='';if(BSTPERS[bk0])o.bpers=[bk0,(BST[e.bst[0]].sk[e.bst[1]]||[])[0]]}/* 幻獸出招：跟特效測試頁一樣的事件，主人不動作 */
       if(e.nums&&e.nums.length)o.nums=e.nums;/* 跳字 *//* 被奪走 SP 的我方角色 */
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
-      if(e.kind!=='round')t+=e.soulR?1500:e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;
+      if(e.kind!=='round')t+=e.soulR?1500:e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;if(e.rvr&&e.rvr.length)t+=1400;/* 先祖之鄉、神恩：先倒下，等這一招演完再金光復活，多留一點時間 */
       if(e.kind!=='round'&&!e.soulR&&o.hit>=600)t=Math.max(t,o.t+o.hit+500);/* 大招：下一行至少等到打中後 0.5 秒，血條、倒下才不會被下一招搶先 */
       var KOD=o.kod||(o.hit>=600?o.hit+80:260);/* 倒下時間跟著招式真正打中的時間走（大招蓄力久，不會動畫還沒打到人就先倒） */(e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+KOD});
       (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
@@ -3503,8 +3512,9 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
       else if(e.tf){if(ms[e.tf[0]]){ms[e.tf[0]].tf={t0:o.t,t:o.t+TFSW,k:e.tf[1],n:e.tf[2],au:ms[e.tf[0]].au||[]};ms[e.tf[0]].au=[]}/* 靈氣（噬血光環）等變身後才出現 */o.tfA=e.tf[0]}
       if(e.cd&&ms[e.cd[0]])(ms[e.cd[0]].cds=ms[e.cd[0]].cds||[]).push({t:o.t+(e.tf?BONESW:0),n:e.cd[1]});/* 骨堆頭上的倒數 *//* 變身（亡骸化）：先消散 → 地上浮現熒綠光陣 → 光柱往上衝 → 亡骸從光陣裡往上升起 */
       (e.pko||[]).forEach(function(i){(pkl[i]=pkl[i]||[]).push({t:o.t+KOD,d:true})});
-      (e.rev||[]).forEach(function(x){if(x[0]==='p')(pkl[x[1]]=pkl[x[1]]||[]).push({t:o.t+700,d:false})});
-      if(e.rvr&&e.rvr.length)o.rvr=e.rvr.slice();/* 先祖之鄉：被打倒的那一下之後，身上一道金色光柱往上升 */
+      var RV0=Math.max(KOD+600,1050);/* 先祖之鄉、神恩：打中那一下先倒地（KOD），這一招演完（約 1 秒）才開始金光，金光最亮時（+650）站起來 */
+      (e.rev||[]).forEach(function(x){if(x[0]!=='p')return;var L=pkl[x[1]]=pkl[x[1]]||[];if(e.rvr&&e.rvr.indexOf(x[1])>=0){L.push({t:o.t+KOD,d:true});L.push({t:o.t+RV0+650,d:false})}else L.push({t:o.t+700,d:false})});
+      if(e.rvr&&e.rvr.length){o.rvr=e.rvr.slice();o.rvt=RV0}
       (e.swal||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:true})});(e.rel||[]).forEach(function(i){(psw[i]=psw[i]||[]).push({t:o.t+300,d:false})});/* 被吞噬／從肚子裡出來 */
       if(o.side==='m'&&o.sumR!=null&&o.tgts&&o.tgts.length){o.wk='souls';o.el=o.sumR;o.vc=SUMC(o.sumR);o.hit=420}/* 召喚類（冥河呼喚、深林叫喚、太陽召儀…）：打中的隊員身上竄起氣勁，顏色照屬性 */
       if(M&&e.summon)e.summon.forEach(function(i){if(!ms[i]&&M[i]){ms[i]=monEntry(M[i]);ms[i].at=o.t+500;mp.sum=true}});
