@@ -220,8 +220,9 @@ button{font:inherit;color:inherit}
 .rfgot{display:inline-flex;align-items:center;gap:3px;margin:2px 6px 0 0;font-weight:900}.rfgot img{width:18px;height:18px;image-rendering:pixelated}
 html,body,*{touch-action:manipulation}
 .cdb{position:absolute;transform:translate(-50%,-100%);background:#fbf6ea;color:#2a170a;border:2px solid #1a0d08;border-radius:4px;padding:0 6px;font:900 14px/18px 'Arial Black',sans-serif;pointer-events:none;box-shadow:0 2px 0 rgba(0,0,0,.35)}.cdb:after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-4px;border:4px solid transparent;border-top-color:#1a0d08}.cdb.r{color:#d0281a}
-#realgo{display:none}.realgo #realgo{display:flex;position:fixed;inset:0;z-index:60;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:radial-gradient(circle at 50% 45%,#2a1446 0%,#0e0818 70%);color:#e0d0ff;font-size:15px;font-weight:900;letter-spacing:.1em;text-shadow:0 0 8px #8a5ad0}.realgo #realgo i{width:34px;height:34px;border:3px solid rgba(200,170,255,.3);border-top-color:#e0d0ff;border-radius:50%;animation:rgspin .9s linear infinite}@keyframes rgspin{to{transform:rotate(360deg)}}
+.carego body{background:#0e0818}.carego #mapv{visibility:hidden}/* 從幻境來照料幻獸：先不要露出冒險地圖 */#realgo{display:none}.realgo #realgo{display:flex;position:fixed;inset:0;z-index:60;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:radial-gradient(circle at 50% 45%,#2a1446 0%,#0e0818 70%);color:#e0d0ff;font-size:15px;font-weight:900;letter-spacing:.1em;text-shadow:0 0 8px #8a5ad0}.realgo #realgo i{width:34px;height:34px;border:3px solid rgba(200,170,255,.3);border-top-color:#e0d0ff;border-radius:50%;animation:rgspin .9s linear infinite}@keyframes rgspin{to{transform:rotate(360deg)}}
 </style></head><body>
+<script>if(/[?&]care=1/.test(location.search))document.documentElement.classList.add('carego');</script>
 <script>/* 從幻境進來打怪：一開始就蓋住畫面，不要先閃一下冒險地圖 */if(/[?&]real=1/.test(location.search)){document.documentElement.classList.add('realgo');setTimeout(function(){document.documentElement.classList.remove('realgo')},20000)}</script>
 <div id="realgo"><i></i>遭遇魔物！</div>
 <div class="app">
@@ -3107,7 +3108,8 @@ function openVillage(){var h='<div class="lvbox" role="dialog" aria-modal="true"
 /* ---- 艾德蒙：談話（遊戲小知識）、照料幻獸（看完第一章之四才有） ---- */
 var EDTIPS=['技能要消耗 SP。每回合會回 1 點，打倒敵人也會回 1 點，最多存 5 點。','選「待機」可以跳過這次行動，多拿 1 點 SP。','秘境每天都會換一間龍之聖殿，打贏可以拿到符文碎片。','不同職業擅長的屬性不一樣，配隊時可以互相補足。','幻獸蛋要在幻境裡走路才能孵化，走滿 2 公里就會破殼。'];/* 之後換成正式的小知識 */
 function edCare(){return demo||storyDone('ch1_4')}
-var ED_MAP=false;/* 照料幻獸是不是從地圖上的圖示打開的 */
+var ED_MAP=false,ED_REAL=/[?&]care=1/.test(location.search);/* ED_REAL：從幻境的「照料幻獸」按鈕進來，返回就回幻境 *//* 照料幻獸是不是從地圖上的圖示打開的 */
+$('tabs').addEventListener('click',function(){ED_REAL=false;document.documentElement.classList.remove('carego')},true);/* 從幻境來照料、改點下方分頁：照一般冒險頁走 */
 var edTm=0;function edPortraits(){clearInterval(edTm);var lk=window.NPC&&NPC.look?NPC.look('npc02',false):null,f=document.createElement('canvas');f.width=f.height=48;if(!lk||!window.Doll)return;
   function dr(){var L=document.querySelectorAll('#lvov .edc');if(!L.length){clearInterval(edTm);return}Doll.draw(f,lk,performance.now());Array.prototype.forEach.call(L,function(c){var x=c.getContext('2d');x.imageSmoothingEnabled=false;x.clearRect(0,0,32,24);x.save();x.translate(32,0);x.scale(-1,1);x.drawImage(f,8,4,32,24,0,0,32,24);x.restore()/* 跟劇情對話框的頭像同一塊範圍（頭到胸口） */})}
   dr();edTm=setInterval(dr,120)}
@@ -3133,7 +3135,7 @@ function edCareView(){setTimeout(bFreeAll,300);var me=MEMB[0]||{},L=me.beasts||[
   var ht=me.hatch;if(ht&&ht.egg)h+='<h4>孵化中</h4><div class="bcr"><img src="'+A+'beast/egg_'+esc(ht.egg)+'.png" alt="" style="width:34px;height:40px"><div class="t"><b>'+esc((EGGN.filter(function(x){return x[0]===ht.egg})[0]||[0,''])[1])+'</b><br>已走 '+Math.min(2000,ht.m|0)+'／2000 公尺</div></div>';
   var E=me.beastEggs||{};h+='<h4>幻獸蛋</h4><div class="bce">'+EGGN.map(function(x){var n=E[x[0]]|0;return '<div'+(n?'':' class="z"')+'><img src="'+A+'beast/egg_'+x[0]+'.png" alt="">'+x[1]+' ×'+n+'</div>'}).join('')+'</div>';
   var M=me.beastMat||{};h+='<h4>素材</h4><div class="bcm"><span></span>'+MKINDB.map(function(k){return '<span class="hd">'+k[1]+'</span>'}).join('');MCOLB.forEach(function(c){h+='<span><img src="'+A+'icons/stats/res_'+c[2]+'.png" alt="'+c[1]+'"></span>'+MKINDB.map(function(k){var key=k[0]+'_'+c[0];return '<span class="it"><img src="'+A+'beast/mat_'+key+'.png" alt="">×'+(M[key]|0)+'</span>'}).join('')});h+='</div>';
-  h+='<div class="nb">孵蛋、收集素材：從地圖上的「幻境」入口進去，在現實中走路探索。</div></div><div class="edbt" style="margin-top:10px"><button type="button" class="bk" data-a="'+(ED_MAP?'lvx':'edbk2')+'">返回</button></div></div>';
+  h+='<div class="nb">孵蛋、收集素材：從地圖上的「幻境」入口進去，在現實中走路探索。</div></div><div class="edbt" style="margin-top:10px"><button type="button" class="bk" data-a="'+(ED_REAL?'edreal':ED_MAP?'lvx':'edbk2')+'">'+(ED_REAL?'返回幻境':'返回')+'</button></div></div>';
   var o=$('lvov');o.innerHTML='<div class="lvbg" data-a="lvx"></div>'+h;o.hidden=false}
 /* 幻獸明細：屬性、技能（選兩招裝備）、餵養、同行／卸下、改名、放生 */
 var BDV={i:0,msg:'',ren:false,rel:0};
@@ -3241,7 +3243,8 @@ function tutEnd(win){if(!TUT)return;var cl=function(){$('bres').hidden=true};cl(
   if(win){if(window.Music)Music.play('victory',150);tutBox('勝利','哥布林被擊退了！','繼續',function(){var r=TUT.res;TUT=null;closeMenu();if(window.Music)Music.fade(1500);view='map';$('batv').hidden=true;r()/* 不經過 showView：劇情接著播，不要換回地圖音樂 */})}
   else tutBox('瑟琳','「別放棄，再試一次！」','重新挑戰',function(){tutStart()})}
 $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.getAttribute('data-a');
-  if(a==='lvx'){if($('lvov').querySelector('[data-a="egk"]'))return;closeLevels()}
+  if(a==='edreal'){location.href='../real/index.html';return}
+  if(a==='lvx'){if($('lvov').querySelector('[data-a="egk"]'))return;if(ED_REAL){location.href='../real/index.html';return}/* 從幻境來的：關掉就回幻境 */closeLevels()}
   else if(BDV&&BDV.busy&&$('lvov').querySelector('.bdv'))return;/* 存檔中不接受其他操作 */
   else if(a==='btab'){BDV.tab=b.getAttribute('data-t');BDV.ren=false;BDV.rel=0;BDV.msg='';edBeast(BDV.i,true);$('lvov').scrollTop=0}
   else if(a==='edm'||a==='edbk2')edOpen();else if(a==='edtalk')edTalk();else if(a==='edcare')edCareView();else if(a==='edbk')openVillage();else if(a==='bon')edSetOn(+b.getAttribute('data-i'));else if(a==='boff')edSetOn(-1);else if(a==='bdet')edBeast(+b.getAttribute('data-i'));else if(a==='bfeed')bFeed(b.getAttribute('data-d'));else if(a==='bsk')bSkill(+b.getAttribute('data-s'));else if(a==='bren'){BDV.ren=true;edBeast(BDV.i,true)}else if(a==='bnmx'){BDV.ren=false;edBeast(BDV.i,true)}else if(a==='bnmok')bRename();else if(a==='brel')bRelease();else if(a==='bevo'){b.disabled=true;bEvolve()}
@@ -3854,7 +3857,7 @@ function npcMembers(me){if(!window.NPC)return[];return (me.npcParty||[]).filter(
 function start(me,mem){if(window.Sfx){Sfx.init(BASE);if(Sfx.isOn())Sfx.preload()}/* 音效檔先解碼好，戰鬥中才播得即時 */
   MEMB=[me].concat(npcMembers(me)).concat(mem);NavIcons.setPlayer(me);
   Music.init(BASE);$('who').textContent='隊伍：'+MEMB.slice(0,4).map(function(p){return p.name}).join('、')+(TACT?'　｜戰棋測試入口（選關預設戰棋）':'');
-  $('loading').remove();renderTabs();showView('map');IMGGO();var o=curLoad();if(o)resume(o);else realBoot()}
+  $('loading').remove();renderTabs();showView('map');IMGGO();var o=curLoad();if(o)resume(o);else if(ED_REAL){if(edCare())edCareView();else location.href='../real/index.html'}else realBoot()}
 /* 圖片清單：用檔名當 key 載入，之後用 IMG['monster_10_a'] 取用；加新圖只要在這裡多一行，不用再算 r[] 的位置 */
 var IMGF={monster_01:'monsters/monster_01.png',monster_02:'monsters/monster_02.png',monster_02_blink:'monsters/monster_02_blink.png',
   monster_03:'monsters/monster_03.png?v=3',monster_03_blink:'monsters/monster_03_blink.png?v=2',monster_boss_01:'monsters/monster_boss_01.png',monster_boss_01_blink:'monsters/monster_boss_01_blink.png',
