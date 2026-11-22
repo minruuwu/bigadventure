@@ -529,12 +529,13 @@ function charCost(a,b){var s=0;for(var l=a;l<b;l++)s+=charNext(l);return s}
 /* 職業升級：一轉職業（job06～job20）花費是基礎職業的 3 倍（規則裡也要一起改） */
 function jobMul(sn){return tierOf(sn)===1?3:1}
 /* 一轉職業（2026-11）：前 30 級照 ×3；從 30 級起每級再乘 1.08^(L-29)（複利 +8%），取整到十位。基礎職業不變 */
-function jobNext(sn,l){var v=expNext(l)*jobMul(sn);return tierOf(sn)===1&&l>=30?r10(v*Math.pow(1.08,l-29)):v}
+/* 二轉職業（2026-11，方案 A）：Lv1→2 要 25,000，之後每級 +4%（比一轉 Lv49→50 的 20,970 高）；尚未開放，規則開放時要一起加 */
+function jobNext(sn,l){if(tierOf(sn)===2)return r10(25000*Math.pow(1.04,l-1));var v=expNext(l)*jobMul(sn);return tierOf(sn)===1&&l>=30?r10(v*Math.pow(1.08,l-29)):v}
 function jobCost(sn,a,b){var s=0;for(var l=a;l<b;l++)s+=jobNext(sn,l);return s}
 /* 退還（重置、降級）照新曲線退：規則沒有次方，用多項式 jX 近似「一轉 30 級以後多付的累計經驗」（跟 firestore.rules 的 jX 完全同一條式子），
    這裡照同一條式子算再無條件捨去，保證不超過規則上限；跟逐級加總的實際花費只差幾點經驗 */
 function jX(L){var k=L-30;return L<=30?0:((((0.005688*k+0.032036)*k+6.262528)*k+106.023405)*k+117.604562)*k-6.140867}
-function jobRefCost(sn,a,b){var base=expCost(a,b)*jobMul(sn);return tierOf(sn)===1?base+Math.max(0,Math.floor(jX(b)-jX(a)-0.01)):base}
+function jobRefCost(sn,a,b){if(tierOf(sn)===2)return jobCost(sn,a,b);var base=expCost(a,b)*jobMul(sn);return tierOf(sn)===1?base+Math.max(0,Math.floor(jX(b)-jX(a)-0.01)):base}
 function jobSum(){var t=0;Object.keys(S.jobLvs).forEach(function(k){t+=S.jobLvs[k]|0});return t}
 function tierOf(sn){var n=parseInt(String(sn).slice(3),10)||0;return n<=5?0:n<=20?1:2}
 /* 單一職業降級：最低能降到幾級（目前職業至少 1 級；有等級的進階職業需要它的話，至少要符合轉職條件）→ [最低等級, 原因] */

@@ -3670,7 +3670,8 @@ function setLastAdv(t){try{localStorage.setItem('adv.last',String(t))}catch(e){}
 var REALC={area01:['green','leaf'],area02:['yellow','bolt'],area03:['teal','wind'],area04:['purple','moon'],area05:['blue','ice'],area06:['gold','sun'],area07:['red','fire']},REALX=0.3;
 function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try{o=JSON.parse(sessionStorage.getItem('real.fight')||'null');sessionStorage.removeItem('real.fight')}catch(e){}
   if(!o||!o.mons||!o.mons.length||!MEMB[0]){if(o===null)location.href='../real/index.html';else document.documentElement.classList.remove('realgo');return}var a=Math.max(0,AREAID.indexOf(o.area)),stg=Math.max(1,Math.round((o.lv|0)/3));
-  var nP=crewOf(null).length,M=o.mons.map(function(id){var r=ENG.mon[id];if(!r)return null;var m=BattleEngine.monster(r,stg,ENG),bs=r.boss==='1',sc=realScale(o.area,bs,o.lv|0,stg),hs=sc.hp*(1+(bs?0.2:0.4)*Math.max(0,nP-1));
+  var nP=crewOf(null).length;if(o.rare){var bl=realBossLine(o.mons[0],nP);if(bl)o.mons=bl}
+  var M=o.mons.map(function(id){var r=ENG.mon[id];if(!r)return null;var m=BattleEngine.monster(r,stg,ENG),bs=r.boss==='1',sc=realScale(o.area,bs,o.lv|0,stg),hs=sc.hp*(1+(bs?0.2:0.4)*Math.max(0,nP-1));
     m.b.mhp=Math.round(m.b.mhp*hs);m.b.patk=Math.round(m.b.patk*sc.atk);m.b.matk=Math.round(m.b.matk*sc.atk);m.stg=stg;m.hs=hs;m.as=sc.atk;return m}).filter(Boolean);if(!M.length){document.documentElement.classList.remove('realgo');toast('怪物資料讀不到');return}
   startLive(a,1,autoPref(),{mons:M,real:o})}
 /* 幻境怪物強度對齊：冒險模式「這個等級該有多強」的曲線（各章一般關、首領關的怪物平均生命與攻擊），
@@ -3678,6 +3679,10 @@ function realBoot(){if(!/[?&]real=1/.test(location.search))return;var o=null;try
 var RCV=null;
 function realPool(area,boss){var ids={};(ENG.stage||[]).forEach(function(r){if(r.area_id!==area||(r.boss==='1')!==boss)return;String((boss?r.fixed_monsters:r.monster_pool)||'').split(';').forEach(function(id){id=id.trim();var m=ENG.mon[id];if(m&&(m.boss==='1')===boss)ids[id]=1})});return Object.keys(ids)}
 function realAvg(ids,stg){var h=0,t=0,n=0;ids.forEach(function(id){var m=BattleEngine.monster(ENG.mon[id],stg,ENG);h+=m.b.mhp;t+=Math.max(m.b.patk,m.b.matk);n++});return n?{hp:h/n,atk:t/n}:null}
+/* 幻境的王（2026-11）：照冒險頁「這隻王當主王的那一關」的陣容出場（冰后 → 第 10 關、颶父 → 第 20 關），1～2 人改用小怪少的版本；
+   小怪不另外給獎勵，戰鬥中的召喚（颶父叫出冰后）照引擎原本的做法 */
+function realBossLine(mid,nP){var hit=null;(ENG.stage||[]).forEach(function(r){if(hit||r.boss!=='1')return;var L=String(r.fixed_monsters||'').split(';').map(function(x){return x.trim()}).filter(Boolean),main=L.filter(function(id){return ENG.mon[id]&&ENG.mon[id].boss==='1'})[0];if(main===mid)hit=r});
+  if(!hit)return null;var fs=nP<=2&&hit.fixed_small?hit.fixed_small:hit.fixed_monsters,L=String(fs||'').split(';').map(function(x){return x.trim()}).filter(function(id){return ENG.mon[id]});return L.indexOf(mid)>=0?L:null}
 function realCurve(boss){RCV=RCV||{};var k=boss?'b':'n';if(RCV[k])return RCV[k];var pts=[],pc={};
   (ENG.stage||[]).forEach(function(r){if((r.boss==='1')!==boss)return;var lv=parseInt(r.level,10),st=parseInt(r.stage,10),an=parseInt(String(r.area_id).replace(/\D/g,''),10)||1;if(!lv||!st)return;
     var ids=pc[r.area_id]=pc[r.area_id]||realPool(r.area_id,boss),a=realAvg(ids,st+(an-1)*20);if(a)pts.push({lv:lv,hp:a.hp,atk:a.atk})});
