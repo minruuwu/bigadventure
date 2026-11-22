@@ -523,7 +523,7 @@
     }
     /* 逃出肚子的文字等這一行的傷害寫完才接在後面 */
     function flushRel(e) { if (e && e._rel) { e.txt += '；' + e._rel.join('；'); delete e._rel } if (e && e._spk) { e.txt += '；' + e._spk.join('；'); delete e._spk } if (e && e._spm) { e.txt += '；' + e._spm.join('；'); delete e._spm } }
-    function revive(u, f, why, e) { u.st = []; u.hp = Math.max(1, Math.round(u.b.mhp * f)); if (e) { e.txt += '；' + u.name + ' 因「' + why + '」復活（' + u.hp + ' 生命）'; (e.rev = e.rev || []).push([u.side, u.i]) } }
+    function revive(u, f, why, e) { u.st = []; u.hp = Math.max(1, Math.round(u.b.mhp * f)); if (e) { e.txt += '；' + u.name + ' 因「' + why + '」復活（' + u.hp + ' 生命）'; (e.rev = e.rev || []).push([u.side, u.i]); if (why === '先祖之鄉' && u.side === 'p') (e.rvr = e.rvr || []).push(u.i) /* 畫面：金色光柱往上升 */ } }
 
     /* --- 反應技 --- */
     function react(d, a, isP, isM, parts) {
@@ -957,9 +957,13 @@
       if (sk.ty === 'damage') {
         var single = sk.t === 'enemy_single' && !hooks.area, H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
         var each = sk.p === 'random_each' && H > 1;
+        /* 這一招打倒過的目標（之後被先祖之鄉、神恩、骨堆、魂火救回來也一樣）：剩下的段數不再打他；
+           單體技能就改打別的敵人，沒有別人就停 */
+        var downed = [], rt = false, pool = function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u), sk); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.filter(function (x) { return downed.indexOf(x) < 0 }) }, down = function (t) { if (t.hp <= 0 && downed.indexOf(t) < 0) downed.push(t) };
         for (var h = 0; h < H; h++) {
           if (h > 0 && (u.dead || u.undead)) break; /* 出手途中被反擊打倒（變成骨堆）就不再繼續打 */
-          var list = each ? (function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u), sk); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead });
+          var list = each ? (function () { var c = pool(); return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead && downed.indexOf(x) < 0 });
+          if (!each && !list.length && downed.length && single) { var c2 = pool(); if (c2.length) { tg = [pickOne(c2)]; list = tg; rt = true } } /* 單體：原本的目標倒下了，剩下的段數打別人 */
           if (!list.length) break;
           list.forEach(function (t0) {
             var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr) t = pr;
@@ -1010,7 +1014,7 @@
               foes(u).filter(function (q) { return q !== t && !q.dead && !banished(q) }).forEach(function (q) {
                 var sa = Math.max(1, Math.round(spBase * num(bonus.splash.value) * (1 - Math.min(stat(q, spP ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(q, ''), 0.9))));
                 NC = { el: mp0.e || '', dt: mp0.d, c: x.crit, h: h, spl: 1 }; var sr = hurt(q, sa, u); totalDmg += sr; addStat(e, u, 'dmg', sr, sk.n + '（擴散）'); addStat(e, q, 'taken', sr, u.name + ' ' + sk.n + '（擴散）');
-                (e._x = e._x || []).push('擴散 → ' + q.name + ' ' + sr); (e.spl = e.spl || []).push([q.side, q.i]); checkDeath(q, e);
+                (e._x = e._x || []).push('擴散 → ' + q.name + ' ' + sr); (e.spl = e.spl || []).push([q.side, q.i]); down(q); checkDeath(q, e);
               });
             }
             /* 焚身火焰（怪物被動 burn_splash）：單體攻擊每一下命中，其他敵人各受到「減傷前」傷害 ×v 的屬性傷害，再吃各自的減傷、抗性；濺射不能閃避、不觸發反應 */
@@ -1019,7 +1023,7 @@
               foes(u).filter(function (q) { return q !== t && !q.dead && !banished(q) }).forEach(function (q) {
                 var ba = Math.max(1, Math.round(bBase * bs.v * (1 - Math.min(stat(q, bM ? 'mred' : 'pred'), 0.9)) * (1 - Math.min(resOf(q, bs.el || ''), 0.9))));
                 NC = { el: bs.el || '', dt: bM ? 'm' : 'p', h: h, spl: 1 }; var br = hurt(q, ba, u); totalDmg += br; addStat(e, u, 'dmg', br, bnm); addStat(e, q, 'taken', br, u.name + ' ' + bnm);
-                (e._x = e._x || []).push(bnm + ' → ' + q.name + ' ' + br); (e.bspl = e.bspl || []).push([q.side, q.i]); checkDeath(q, e) }) });
+                (e._x = e._x || []).push(bnm + ' → ' + q.name + ' ' + br); (e.bspl = e.bspl || []).push([q.side, q.i]); down(q); checkDeath(q, e) }) });
             /* 荊棘之皇冠：排進反應佇列，敵人整招結束後才反彈（腳下荊棘光環） */
             /* 霜甲：被打就用施加者的魔攻反擊冰霜魔法傷害（吃攻擊者的魔法減傷、冰霜抗性；施加者倒下就不反擊） */
             t.st.forEach(function (s) { if (s.paused || !s.src || s.src.dead || s.src.undead || !real || u.dead) return; s.rows.forEach(function (r) { if (r.k !== 'frost_thorn' && r.k !== 'fire_thorn') return; var fT = r.k === 'fire_thorn' /* 焰甲：照施放者物攻算、火焰物理 */, fa = Math.round(stat(s.src, fT ? 'patk' : 'matk') * r.v * (1 - Math.min(stat(u, fT ? 'pred' : 'mred'), 0.9)) * (1 - Math.min(resOf(u, fT ? 'fire' : 'frost'), 0.9))); if (fa > 0) (e._th = e._th || []).push({ d: t, a: u, amt: fa, fr: s.n, fire: fT }) }) });
@@ -1042,12 +1046,12 @@
             /* 即死（死之敕命）：每次命中判定，對首領無效；倒下時照常可以被先祖之鄉、神恩救回 */
             if (!t.dead && t.hp > 0 && !t.boss && real > 0) effs.forEach(function (r) { if (r.effect_kind === 'instakill' && !t.dead && t.hp > 0 && RND() < (num(r.apply_chance) || 0)) { t.hp = 0; (e._x = e._x || []).push(t.name + ' 被「' + sk.n + '」即死') } });
             reactPost(t, u, x.re, e);
-            checkDeath(t, e);
+            down(t); checkDeath(t, e);
           });
         }
         e.tg = order.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i });
         e.tgP = order.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
-        e.hitsN = hitList.length; e.tgh = each ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null; e.tghP = each ? hitList.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) : null;
+        e.hitsN = hitList.length; e.tgh = each || rt ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null; e.tghP = each || rt ? hitList.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) : null;
         e._dealt = (e._dealt || 0) + totalDmg;
         e.txt += ' → ' + order.map(function (t) { var hs = perT[t.i + t.side].hs, tn = perT[t.i + t.side].nm || t.name; return H > 1 ? tn + ' 受到 ' + hs.join('、') + ' 傷害' : (hs[0] === '閃開' ? tn + ' 閃開了' : hs[0] === '擋下' ? tn + ' 擋下了' : hs[0] === '無效' ? tn + ' 不受影響' : tn + (/^暴擊/.test(hs[0]) ? ' 暴擊！受到 ' + hs[0].slice(3) : ' 受到 ' + hs[0]) + ' 傷害') }).join('，');
         if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
