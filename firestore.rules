@@ -281,7 +281,7 @@ service cloud.firestore {
               && !('fr' in ob[i]) && nb[i].diff(ob[i]).affectedKeys().hasOnly(['st','fr']) && nb[i].fr == 1
               && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 15))
             // 進化:幼年體 Lv20 → 成熟體 Lv1,型別 ev、成熟招學習順序 mo(0~3 的排列),送 3 格屬性(上限 30),可以順便換裝備技能;
-            // 扣這隻幻獸顏色的結晶、礦石、寶珠各 50 個
+            // 扣這隻幻獸顏色的結晶、礦石、寶珠各 100 個
             || (op.t == 'evo' && ak.hasOnly(['beasts','beastMat','bOp']) && (nb.size() == ob.size() && (i == 0 || nb[0:i] == ob[0:i]) && (i + 1 >= ob.size() || nb[i + 1:nb.size()] == ob[i + 1:ob.size()]))
               && !('ev' in ob[i]) && ob[i].get('lv', 1) == 20
               && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','ev','mo','st','sk'])
