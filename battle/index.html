@@ -3168,7 +3168,7 @@ function edBeast(i,keep){var me=MEMB[0]||{},L=me.beasts||[],b=L[i];if(!b){edCare
     if(TB==='sk'){h+='<h4>技能（點選裝備兩招）</h4><div class="bsk">';if(X.ev){h+='<div class="nb">成熟體技能</div>';[4,5,6,7].filter(function(s){return got.indexOf(s)>=0}).concat([4,5,6,7].filter(function(s){return got.indexOf(s)<0})).forEach(function(s){h+=rowS(s)});h+='<div class="nb">幼年體技能</div>'}[0,1,2,3].forEach(function(s){h+=rowS(s)});h+='</div>'}
     if(TB!=='gr');else if(lv<20){h+='<h4>餵養（升 1 級，屬性隨機 +3 格）</h4><div class="bfd">';BDIR.forEach(function(d){var key=d[2]+'_'+col,have=M[key]|0;h+='<button type="button" data-a="bfeed" data-d="'+d[0]+'"'+(have<X.cost?' disabled':'')+'><b>'+d[1]+'</b><span><img src="'+A+'beast/mat_'+key+'.png" alt="">'+d[3]+' ×'+X.cost+'</span><small>持有 '+have+'</small></button>'});h+='</div><div class="nb">選的方向有一半機率加在：'+BDIR.map(function(d){return d[1]+'＝'+BSTAT.filter(function(q){return q[3]===d[0]}).map(function(q){return q[1]}).join('、')}).join('；')+'</div>'}
     else if(!X.ev){var P=bEvoP(st),enough=BDIR.every(function(d){return (M[d[2]+'_'+col]|0)>=50});
-      h+='<h4>進化</h4><div class="nb">消耗'+BDIR.map(function(d){return '<img src="'+A+'beast/mat_'+d[2]+'_'+col+'.png" alt="" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:-3px">'+d[3]+' ×50（持有 '+(M[d[2]+'_'+col]|0)+'）'}).join('、')+'。進化後等級回到 Lv1，屬性全部保留、每項上限變 30 格，再送 3 格屬性，並學會第一招成熟體技能。</div>';
+      h+='<h4>進化</h4><div class="nb">消耗'+BDIR.map(function(d){return '<img src="'+A+'beast/mat_'+d[2]+'_'+col+'.png" alt="" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:-3px">'+d[3]+' ×100（持有 '+(M[d[2]+'_'+col]|0)+'）'}).join('、')+'。進化後等級回到 Lv1，屬性全部保留、每項上限變 30 格，再送 3 格屬性，並學會第一招成熟體技能。</div>';
       h+='<div class="bevp">'+['atk','def','sup'].map(function(t){var nm=(BST[X.base+'_'+t]||{}).n||'';return '<div><img src="'+A+'beasts/beast_'+X.base+'_'+t+'.png" alt=""><b>'+BEVN[t]+'</b><small>'+esc(nm)+'</small><em>'+Math.round(P[t]*100)+'%</em></div>'}).join('')+'</div><div class="nb">機率依攻擊、生存、輔助三組屬性格數的比例決定。</div>';
       h+='<div class="edbt" style="margin-top:6px"><button type="button" class="evo" data-a="bevo"'+(enough?'':' disabled')+'>'+(enough?'進化！':'素材不足')+'</button></div>'}
     else h+='<h4>等級</h4><div class="nb">已經是成熟體 Lv20，之後的成長開放後再繼續。</div>';
@@ -3189,9 +3189,9 @@ function bFeed(d){var i=BDV.i;var rolled=[];bWrite(function(p){var L=(p.beasts||
 function bSkill(s){var i=BDV.i,me=MEMB[0],b=(me.beasts||[])[i];if(!b)return;var X=bInfo(b),eq=bEq(b,X.got);
   var j=eq.indexOf(s);if(j>=0){if(eq.length<2)return;eq.splice(j,1)}else{if(eq.length>=2)eq.shift();eq.push(s)}
   bWrite(function(p){var L=(p.beasts||[]).slice();if(!L[i])return null;L[i]=Object.assign({},L[i],{sk:eq});return{beasts:L,bOp:{t:'sk',i:i}}},function(){BDV.msg='';edBeast(i,true)})}
-/* 進化：照三類格數比例抽型、成熟招學習順序洗牌、送 3 格（上限 30）、裝備換成「第一招成熟技能＋原本裝備的第一招」；扣三種素材各 50 */
+/* 進化：照三類格數比例抽型、成熟招學習順序洗牌、送 3 格（上限 30）、裝備換成「第一招成熟技能＋原本裝備的第一招」；扣三種素材各 100（2026-11-23 從 50 改成 100）*/
 function bEvolve(){var i=BDV.i,res=null;bWrite(function(p){var L=(p.beasts||[]).slice(),b=L[i];if(!b)return null;var X=bInfo(b);if(X.ev||X.lv<20)return null;var col=BEGGCOL[b.sp]||'red',bm=Object.assign({},p.beastMat||{});
-    if(BDIR.some(function(d){return (bm[d[2]+'_'+col]|0)<50}))return null;BDIR.forEach(function(d){bm[d[2]+'_'+col]=(bm[d[2]+'_'+col]|0)-50});
+    if(BDIR.some(function(d){return (bm[d[2]+'_'+col]|0)<100}))return null;BDIR.forEach(function(d){bm[d[2]+'_'+col]=(bm[d[2]+'_'+col]|0)-100});
     var P=bEvoP(b.st||{}),r=Math.random(),ev=r<P.atk?'atk':r<P.atk+P.def?'def':'sup',mo=[0,1,2,3];for(var q=3;q>0;q--){var w=Math.floor(Math.random()*(q+1)),t=mo[q];mo[q]=mo[w];mo[w]=t}
     var st=Object.assign({},b.st||{}),got=bRoll(st,30,null);if(!got)return null;var eq0=bEq(b,X.got);
     L[i]=Object.assign({},b,{lv:1,ev:ev,mo:mo,st:st,sk:[eq0[0],4+mo[0]]});res={from:X.k,to:X.base+'_'+ev,ev:ev,got:got,first:4+mo[0],base:X.base};return{beasts:L,beastMat:bm,bOp:{t:'evo',i:i}}},
