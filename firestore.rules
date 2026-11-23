@@ -301,9 +301,9 @@ service cloud.firestore {
         let om = resource.data.get('beastMat', {});
         let nm = request.resource.data.get('beastMat', {});
         return nm.diff(om).affectedKeys().hasOnly(['crystal_' + c, 'ore_' + c, 'orb_' + c])
-          && nm.get('crystal_' + c, 0) == om.get('crystal_' + c, 0) - 50 && nm.get('crystal_' + c, 0) >= 0
-          && nm.get('ore_' + c, 0) == om.get('ore_' + c, 0) - 50 && nm.get('ore_' + c, 0) >= 0
-          && nm.get('orb_' + c, 0) == om.get('orb_' + c, 0) - 50 && nm.get('orb_' + c, 0) >= 0;
+          && nm.get('crystal_' + c, 0) == om.get('crystal_' + c, 0) - 100 && nm.get('crystal_' + c, 0) >= 0
+          && nm.get('ore_' + c, 0) == om.get('ore_' + c, 0) - 100 && nm.get('ore_' + c, 0) >= 0
+          && nm.get('orb_' + c, 0) == om.get('orb_' + c, 0) - 100 && nm.get('orb_' + c, 0) >= 0;
       }
       // 幻獸顏色的三種素材(攻擊 = 結晶、生存 = 礦石、輔助 = 寶珠)
       function bMatOf(sp) {
