@@ -31,7 +31,7 @@
       if (r.part1_dmg) parts.push({ d: r.part1_dmg, e: r.part1_element || '', r: num(r.part1_ratio) });
       if (r.part2_dmg) parts.push({ d: r.part2_dmg, e: r.part2_element || '', r: num(r.part2_ratio) });
       if (r.part3_dmg) parts.push({ d: r.part3_dmg, e: r.part3_element || '', r: num(r.part3_ratio) });
-      if (r.part4_dmg) parts.push({ d: r.part4_dmg, e: r.part4_element || '', r: num(r.part4_ratio) }); /* 天啟真命：四段 */
+      if (r.part4_dmg) parts.push({ d: r.part4_dmg, e: r.part4_element || '', r: num(r.part4_ratio) }); /* 精靈真儀：四段 */
       D.SK[r.skill_id] = { id: r.skill_id, n: r.skill_name, j: r.job, lv: parseInt(r.job_level, 10) || 0, kind: r.kind, t: r.target, p: r.pick, ty: r.type,
         cr: num(r.extra_crit_rate), cd: num(r.extra_crit_damage), parts: parts, rand4: parts.some(function (x) { return x.e === 'rand4' }) /* 每一下隨機冰火雷風（混沌風暴） */, vfx: r.vfx || '', hits: parseInt(r.hits, 10) || 1, sure: r.sure_hit === '1', ds: r.skill_desc || '', raw: r /* 原始欄位（戰棋讀 range / area / area_size / cost） */ };
     });
@@ -983,12 +983,12 @@
         /* 這一招打倒過的目標（之後被先祖之鄉、神恩、骨堆、魂火救回來也一樣）：剩下的段數不再打他；
            單體技能就改打別的敵人，沒有別人就停 */
         var downed = [], rt = false, pool = function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u), sk); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.filter(function (x) { return downed.indexOf(x) < 0 }) }, down = function (t) { if (t.hp <= 0 && downed.indexOf(t) < 0) downed.push(t) };
-        /* 先上的狀態（天啟真命：先附加四屬詛咒再打） */
+        /* 先上的狀態（精靈真儀：先附加四屬詛咒再打） */
         effs.forEach(function (r) { if (r.effect_kind === 'status' && r.condition === 'before') tg.forEach(function (t) { if (!t.dead && t.side !== u.side) applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) }) });
         /* 精靈共鳴：施放前身上有的光球 → 這招該屬性 +40%；整招結束後，出現過的屬性：有光球就消耗，沒有就產生（要有元素共鳴被動） */
         var orbSk = u.side === 'p' && sk.id !== 'atk' && (sk.kind === 'combat' || sk.kind === 'ultimate'), elSeen = {};
         if (orbSk) { u._ebst = {}; EL4.forEach(function (el) { var os = u.st.filter(function (q) { return q.n === ORB[el] && !q.paused })[0]; if (os) u._ebst[el] = (os.rows.filter(function (q) { return q.k === 'elem_orb' })[0] || {}).v || 0.4 }) }
-        var split = !!bonus.split_parts; if (split) H = sk.parts.length; /* 天啟真命：每段各自一下（各自暴擊、各自跳數字） */
+        var split = !!bonus.split_parts; if (split) H = sk.parts.length; /* 精靈真儀：每段各自一下（各自暴擊、各自跳數字） */
         e.hel = [];
         for (var h = 0; h < H; h++) {
           if (h > 0 && (u.dead || u.undead)) break;

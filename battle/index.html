@@ -2809,7 +2809,7 @@ function godrFx(e,d){if(d<0||d>3700)return;if(!e._snd&&window.Sfx){e._snd=1;try{
   godrCutIn(e,d);/* 特寫畫在最上層 */
   FXA=fa}
 /* == 魔導精靈使（job22）技能特效 ===============================================
-   烈焰焚滅 blazepillar、雷霆轟鳴 thunderroar、風暴奇點 vortex、冰川尖刺 glacierspike、混沌風暴 chaosstorm、奧義‧天啟真命 apocalypse；
+   烈焰焚滅 blazepillar、雷霆轟鳴 thunderroar、風暴奇點 vortex、冰川尖刺 glacierspike、混沌風暴 chaosstorm、奧義‧精靈真儀 apocalypse；
    狀態：精靈共鳴光球、雷動、深層凍結；被動觸發：深層凍結爆發；反應：元素反衝 */
 var J22P={fire:['#5a0a04','#c8301a','#ff8a2a','#ffd24a','#fff6c0'],frost:['#0a2a5a','#2a7ad0','#7ac8ff','#cfeeff','#ffffff'],lightning:['#3a2a04','#c89a10','#ffe24a','#fff6a0','#ffffff'],wind:['#0a3a2a','#2aa87a','#7cf0c4','#cffff0','#ffffff']};
 var J22EL=['frost','fire','wind','lightning'];/* 光球位置：左上冰、右上火、左下風、右下雷 */
@@ -2900,19 +2900,20 @@ function dfzFx(side,k,d){if(d<0||d>1100)return;var pp=side==='p'?posOf(k):monPos
   if(d>=80&&d<300){shakeX=Math.round(Math.sin(d/10)*1.6*U*(1-(d-80)/220))}
   FXA=fa}
 
-/* == 奧義‧天啟真命 =====
+/* == 奧義‧精靈真儀 =====
    特寫（0～1500）之後：A 腳下紫色魔法陣旋轉 → B 身前擴大球形魔法陣 → C 敵陣旁四色魔法陣 → D 升起雲氣精靈 → E 精靈眼中射出 8 道光線、中心金光越來越大 → F 全畫面亮白、跳傷害 */
 var APOC={a:0,b:400,c:1000,d:1200,e:1800,f:3000,end:3700};
 function j22Circle(x,y,R,sq,rot,cols,a,ticks){if(a<=0||R<1)return;bRing(x,y,R,cols[0],a,sq);bRing(x,y,R*.82,cols[1],a*.85,sq);bRing(x,y,R*.5,cols[0],a*.8,sq);
   var N=ticks||12;for(var i=0;i<N;i++){var an=rot+i/N*6.28,cx=x+Math.cos(an)*R*.91,cy=y+Math.sin(an)*R*.91*sq;VP(cx,cy,cols[2],a);if(i%3===0)bRing(cx,cy,Math.max(1.5,R*.09),cols[1],a*.9,sq)}
   for(var j=0;j<6;j++){var a2=-rot*1.3+j/6*6.28;bLine(x+Math.cos(a2)*R*.5,y+Math.sin(a2)*R*.5*sq,x+Math.cos(a2+2.1)*R*.5,y+Math.sin(a2+2.1)*R*.5*sq,cols[1],a*.6,1)}}/* 中間的六芒星 */
 /* 球形魔法陣：幾圈不同傾斜角度的符文環交錯成一顆球 */
-function j22Sphere(x,y,R,t,a){var cols=['#e6fbff','#7adcff','#ffffff'];for(var r=0;r<4;r++){var tilt=r/4*Math.PI+t/700,sq=Math.max(.12,Math.abs(Math.cos(tilt))),n=Math.max(24,Math.round(R*6)),rl=r*.7+t/900;
+function j22Sphere(x,y,R,t,a){var cols=['#e6fbff','#7adcff','#ffffff'];for(var r=0;r<4;r++){var tilt=r/4*Math.PI+t/700,sq=Math.max(.12,Math.abs(Math.cos(tilt))),n=Math.max(24,Math.round(R*7)),rl=r*.7+t/900;
   for(var i=0;i<n;i++){var an=i/n*6.28+t/(500+r*120),px=Math.cos(an)*R,py=Math.sin(an)*R*sq,xr=px*Math.cos(rl)-py*Math.sin(rl),yr=px*Math.sin(rl)+py*Math.cos(rl);VP(x+xr,y+yr,i%6===0?cols[2]:cols[r%2],a*(i%6===0?1:.75))}}
   glowAt(x,y,R*.9,'rgba(220,250,255,.35)','rgba(90,200,255,.12)',a)}
 /* 雲氣精靈：沒有形體的一團雲氣＋兩顆星光眼睛 */
-function j22Spirit(x,y,el,g,t,a){var P=J22P[el];for(var i=0;i<110;i++){var an=hsh(i,el.length)*6.28,rr=Math.sqrt(hsh(el.length,i))*11*g,px=x+Math.cos(an+t/1500)*rr*1.1,py=y+Math.sin(an+t/1500)*rr*.8-hsh(i,3)*16*g+Math.sin(t/300+i)*1.2,col=rr<4*g?P[3]:i%3?P[2]:P[1];VP(px,py,col,a*.8);VP(px+1,py,col,a*.45);if(i%4===0)VP(px,py-1,P[4],a*.5)}
-  glowAt(x,y-5*g,10*g,P[3],P[1],a*.5);[-3,3].forEach(function(o){var ex=x+o,ey=y-8*g;VP(ex,ey,'#ffffff',a);bLine(ex-2,ey,ex+2,ey,'#ffffff',a*.7,1);bLine(ex,ey-2,ex,ey+2,'#ffffff',a*.7,1)})}
+var J22FOG={fire:[[255,120,60],[255,170,80],[255,220,150],[255,90,90]],frost:[[120,190,255],[160,215,255],[210,240,255],[140,170,255]],wind:[[110,230,190],[150,245,215],[205,255,240],[120,220,160]],lightning:[[255,220,80],[255,240,140],[255,252,210],[255,200,90]]};/* 精靈光霧：跟幻獸的霞彩光霧同畫法，換成各屬性的顏色 */
+function j22Spirit(x,y,el,g,t,a){var P=J22P[el];bstFog(pctx,x,y+6*g,15*g,t,J22FOG[el],a*1.1);glowAt(x,y-6*g,16*g,P[3],P[1],a*.55);for(var i=0;i<110;i++){var an=hsh(i,el.length)*6.28,rr=Math.sqrt(hsh(el.length,i))*11*g,px=x+Math.cos(an+t/1500)*rr*1.1,py=y+Math.sin(an+t/1500)*rr*.8-hsh(i,3)*16*g+Math.sin(t/300+i)*1.2,col=rr<4*g?P[3]:i%3?P[2]:P[1];VP(px,py,col,a*.8);VP(px+1,py,col,a*.45);if(i%4===0)VP(px,py-1,P[4],a*.5)}
+  glowAt(x,y-5*g,10*g,P[3],P[1],a*.5);[-3,3].forEach(function(o){var ex=x+o*Math.max(1,g*.8),ey=y-8*g;VP(ex,ey,'#ffffff',a);bLine(ex-2,ey,ex+2,ey,'#ffffff',a*.7,1);bLine(ex,ey-2,ex,ey+2,'#ffffff',a*.7,1)})}
 function apocFx(e,d){if(d<0||d>GODR.cut+APOC.end)return;if(!e._snd&&window.Sfx){e._snd=1;try{Sfx.init(BASE);Sfx.play('ult',{force:VFXT})}catch(err){}}
   var fa=FXA;FXA=1;var q=d-GODR.cut,H=supHome(e),T=(e.tg||[]).map(j21Mon).filter(Boolean);
   if(q>=0&&H&&T.length){var cx=T.reduce(function(s,v){return s+v.x},0)/T.length,cgy=T.reduce(function(s,v){return s+v.gy},0)/T.length,cy=cgy-16,minX=Math.min.apply(null,T.map(function(v){return v.x-v.tw/2})),maxX=Math.max.apply(null,T.map(function(v){return v.x+v.tw/2}));
@@ -2920,13 +2921,13 @@ function apocFx(e,d){if(d<0||d>GODR.cut+APOC.end)return;if(!e._snd&&window.Sfx){
     /* A：腳下紫色魔法陣 */
     var aa=Math.min(1,q/250)*fadeAll;j22Circle(H[0],H[1],lerp(6,30,ease(Math.min(1,q/400))),.32,q/400,['#d8a8ff','#8a4ae0','#ffffff'],aa,12);glowAt(H[0],H[1],26,'rgba(200,140,255,.4)','rgba(90,30,180,.15)',aa*.8);
     /* B：身前球形魔法陣 */
-    if(q>=APOC.b)j22Sphere(H[0]+26,H[1]-20,lerp(4,24,ease(Math.min(1,(q-APOC.b)/600))),q,Math.min(1,(q-APOC.b)/200)*fadeAll);
+    if(q>=APOC.b){var sk2=ease(Math.min(1,(q-APOC.b)/900)),SW=pfx.width/U,SH=pfx.height/U;j22Sphere(lerp(H[0]+26,SW*.5,sk2),lerp(H[1]-20,SH*.5,sk2),lerp(4,Math.hypot(SW,SH)*.55,sk2),q,Math.min(1,(q-APOC.b)/200)*fadeAll*(1-sk2*.35))}/* 球形光陣從身前一路擴大到包住整個戰場 */
     /* C：敵陣四角四色魔法陣 → D：升起雲氣精靈 */
     var WR=pfx.width/U-16,spots=[[minX-6,cgy-2,'fire'],[Math.min(WR,maxX+4),cgy-2,'frost'],[minX+8,cgy+8,'wind'],[Math.min(WR-6,maxX-8),cgy+8,'lightning']],eyes=[];
     if(q>=APOC.c)spots.forEach(function(s,n){var P=J22P[s[2]],ca=Math.min(1,(q-APOC.c-n*60)/200)*fadeAll;if(ca<=0)return;j22Circle(s[0],s[1],14,.3,q/500*(n%2?1:-1),[P[3],P[2],P[4]],ca,8);
-      if(q>=APOC.d){var g=ease(Math.min(1,(q-APOC.d-n*60)/500)),sy=s[1]-4-g*22;j22Spirit(s[0],sy,s[2],Math.max(.2,g*1.3),q,ca);eyes.push([s[0]-3,sy-8*g*1.3,s[2]],[s[0]+3,sy-8*g*1.3,s[2]])}});
+      if(q>=APOC.d){var g=ease(Math.min(1,(q-APOC.d-n*60)/500)),gs=Math.max(.2,g*1.8),sy=s[1]-4-g*26;j22Spirit(s[0],sy,s[2],gs,q,ca);eyes.push([s[0]-3,sy-8*gs,s[2]],[s[0]+3,sy-8*gs,s[2]])}});
     /* E：8 道四色光線持續射向中心，中心金光越來越大 */
-    if(q>=APOC.e&&q<APOC.f+200){var ea=Math.min(1,(q-APOC.e)/150)*fadeAll;eyes.forEach(function(o,n){var P=J22P[o[2]],grow=Math.min(1,(q-APOC.e-n*25)/160);if(grow<=0)return;var ex=lerp(o[0],cx,grow),ey=lerp(o[1],cy,grow),fl=.8+.2*Math.sin(q/30+n);for(var w=-2;w<=2;w++)bLine(o[0],o[1]+w,ex,ey+w,w===0?'#ffffff':Math.abs(w)===1?P[3]:P[2],ea*fl*(Math.abs(w)===2?.55:1),1)});
+    if(q>=APOC.e&&q<APOC.f+200){var ea=Math.min(1,(q-APOC.e)/150)*fadeAll;eyes.forEach(function(o,n){var P=J22P[o[2]],grow=Math.min(1,(q-APOC.e-n*25)/160);if(grow<=0)return;var ex=lerp(o[0],cx,grow),ey=lerp(o[1],cy,grow),fl=.8+.2*Math.sin(q/30+n);for(var w=-4;w<=4;w++){var aw=Math.abs(w);bLine(o[0],o[1]+w,ex,ey+w,aw<=1?'#ffffff':aw<=2?P[4]:aw===3?P[3]:P[2],ea*fl*(aw===4?.5:aw===3?.8:1),1)}glowAt(o[0],o[1],5,'rgba(255,255,255,.9)',P[2],ea)});
       var gr=Math.min(1,(q-APOC.e)/(APOC.f-APOC.e)),R2=4+gr*gr*70;glowAt(cx,cy,R2,'rgba(255,250,220,.95)','rgba(255,200,80,.5)',ea);for(var s3=0;s3<10;s3++){var a3=hsh(s3,(q/60)|0)*6.28;bLine(cx,cy,cx+Math.cos(a3)*R2*.6,cy+Math.sin(a3)*R2*.4,'#fff6c0',ea*.6,1)}
       if(q>APOC.e+300){shakeX=Math.round(Math.sin(q/14)*gr*1.2*U)}}
     /* F：全畫面亮白，然後慢慢退 */

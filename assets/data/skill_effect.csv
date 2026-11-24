@@ -629,8 +629,8 @@ skill513,元素反衝,reaction,,attacker,3,,counter,1,m_atk,rand4,m,hit_any,0.2,
 skill514,冰川尖刺,status,凍結,enemy_single,2,0.25,,,,,,,,boss_half
 skill515,元素汲取,passive,,,,,sp_elem,1,,,,,,燃燒|灼燒|燒傷|魂灼|霜蝕|凍傷|霜凍|凍結|雷滯|風化|風眼
 skill516,混沌風暴,status,,enemy_single,3,0.15,,,,,,,,per_hit_el
-skill517,天啟真命,status,冰霜詛咒,enemy_all,3,1,,,,,,,,before
-skill517,天啟真命,status,火焰詛咒,enemy_all,3,1,,,,,,,,before
-skill517,天啟真命,status,疾風詛咒,enemy_all,3,1,,,,,,,,before
-skill517,天啟真命,status,雷電詛咒,enemy_all,3,1,,,,,,,,before
-skill517,天啟真命,bonus,,,,,split_parts,,,,,,,
+skill517,精靈真儀,status,冰霜詛咒,enemy_all,3,1,,,,,,,,before
+skill517,精靈真儀,status,火焰詛咒,enemy_all,3,1,,,,,,,,before
+skill517,精靈真儀,status,疾風詛咒,enemy_all,3,1,,,,,,,,before
+skill517,精靈真儀,status,雷電詛咒,enemy_all,3,1,,,,,,,,before
+skill517,精靈真儀,bonus,,,,,split_parts,,,,,,,

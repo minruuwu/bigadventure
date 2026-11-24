@@ -627,4 +627,4 @@ skill513,元素反衝,job22,16,reaction,,,reaction,,,,,,,,,被攻擊時 20% 機�
 skill514,冰川尖刺,job22,20,combat,enemy_single,random,damage,,,m,frost,2.2,,,,高密度寒冰長矛射向目標並冰爆；25% 機率凍結 2 回合（對王機率減半、只凍結 1 回合）,glacierspike,,,3,single,,3,,,,,,,,
 skill515,元素汲取,job22,25,passive,,,passive,,,,,,,,,輪到自己行動時，敵方身上合計有 2 種以上不同的元素負面狀態（燃燒、灼燒、燒傷、魂灼、霜蝕、凍傷、霜凍、凍結、雷滯、風化、風眼），SP 額外 +1,,,,,,,,,,,,,,,
 skill516,混沌風暴,job22,30,combat,enemy_single,random_each,damage,,,m,rand4,0.4,,,,7 發元素飛彈，每一發隨機冰、火、雷、風屬性、各自隨機挑敵人；每一發 15% 機率附加對應狀態 3 回合（燃燒／霜凍／雷滯／風化）,chaosstorm,7,,4,single,,4,2,,,,,,,
-skill517,天啟真命,job22,35,ultimate,enemy_all,,damage,,,m,frost,0.75,m,fire,0.75,奧義：先對敵方全體附加冰霜、火焰、疾風、雷電詛咒 3 回合（各屬性抗性 −30%），再造成冰、火、風、雷 4 段各 75% 魔法傷害（每段各自判定暴擊）,apocalypse,4,,0,diamond,4,6,4,,m,wind,0.75,m,lightning,0.75
+skill517,精靈真儀,job22,35,ultimate,enemy_all,,damage,,,m,frost,0.75,m,fire,0.75,奧義：先對敵方全體附加冰霜、火焰、疾風、雷電詛咒 3 回合（各屬性抗性 −30%），再造成冰、火、風、雷 4 段各 75% 魔法傷害（每段各自判定暴擊）,apocalypse,4,,0,diamond,4,6,4,,m,wind,0.75,m,lightning,0.75
