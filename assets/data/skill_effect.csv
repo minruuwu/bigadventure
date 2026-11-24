@@ -620,3 +620,17 @@ skill501,怒戰英豪,passive,,,,,crit_damage_rate,1,,,,,,status:怒意|戰意
 skill505,武器大師,passive,,,,,p_atk_rate,0.1,,,,,,
 skill505,武器大師,passive,,,,,crit_damage_rate,1,,,,,,
 skill506,血戰無雙,cost,,self,,,hp_cur,0.2,,,,,,
+skill508,烈焰焚滅,status,燃燒,enemy_single,3,0.5,,,,,,,,
+skill509,元素共鳴,passive,,,,,elem_orb,0.4,,,,,,
+skill510,雷霆轟鳴,status,雷動,self,3,1,,,,,,,,
+skill511,深層凍結,passive,,,,,deep_freeze,0.5,,,,,,
+skill512,風暴奇點,status,風眼,enemy_all,3,0.5,,,,,,,,
+skill513,元素反衝,reaction,,attacker,3,,counter,1,m_atk,rand4,m,hit_any,0.2,el_status
+skill514,冰川尖刺,status,凍結,enemy_single,2,0.25,,,,,,,,boss_half
+skill515,元素汲取,passive,,,,,sp_elem,1,,,,,,燃燒|灼燒|燒傷|魂灼|霜蝕|凍傷|霜凍|凍結|雷滯|風化|風眼
+skill516,混沌風暴,status,,enemy_single,3,0.15,,,,,,,,per_hit_el
+skill517,天啟真命,status,冰霜詛咒,enemy_all,3,1,,,,,,,,before
+skill517,天啟真命,status,火焰詛咒,enemy_all,3,1,,,,,,,,before
+skill517,天啟真命,status,疾風詛咒,enemy_all,3,1,,,,,,,,before
+skill517,天啟真命,status,雷電詛咒,enemy_all,3,1,,,,,,,,before
+skill517,天啟真命,bonus,,,,,split_parts,,,,,,,

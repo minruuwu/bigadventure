@@ -5,7 +5,7 @@
   'use strict';
   var SKT = { enemy_single: '敵方單體', enemy_all: '敵方全體', self: '自身', ally_single: '我方單體', ally_all: '我方全體', ally_others: '其他隊友全體' };
   var SKP = { random: '隨機', lowest_hp: '生命力最低', prefer_without_status: '優先沒有此狀態者', prefer_with_debuff: '優先有減益者', random_each: '每一下各自隨機' };
-  var SKEL = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' };
+  var SKEL = { rand4: '隨機屬性（冰火雷風）', fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' };
   var SKHT = { target: '目標', self: '自身', ally_all: '我方全體', ally_others: '其他隊友全體', ally_single: '我方單體' };
   var SKHB = { m_atk: '魔法攻擊力', p_atk: '物理攻擊力', sacrificed_hp: '犧牲生命' };
   function pc(x) { return Math.round(parseFloat(x) * 100) + '%' }

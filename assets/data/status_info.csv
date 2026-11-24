@@ -176,7 +176,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 骨牢,debuff,dot,0.4,m_atk,dark,m,
 霜甲,buff,m_reduce_rate,0.2,,,,魔法減傷 +20%；被攻擊時對攻擊者造成施加者魔法攻擊力 20% 的冰霜魔法傷害
 霜甲,buff,frost_thorn,0.2,,,,
-冰霜詛咒,debuff,frost_res_rate,-0.4,,,,冰霜抗性 −40%
+冰霜詛咒,debuff,frost_res_rate,-0.3,,,,冰霜抗性 −30%
 雪原戰號,buff,p_atk_rate,0.2,,,,物理攻擊力 +20%
 冰旋,debuff,p_reduce_rate,-0.15,,,,物理減傷 −15%、冰霜抗性 −20%
 冰旋,debuff,frost_res_rate,-0.2,,,,
@@ -416,3 +416,17 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 勇冠三軍,buff,p_damage_rate,0.2,,,,物理、魔法增傷 +20%
 勇冠三軍,buff,m_damage_rate,0.2,,,,
 振奮護盾,buff,shield,0.5,mhp,,,護盾吸收傷害：數值為最大生命 50%
+火精共鳴,buff,elem_orb,0.4,,fire,,下一次使用火焰屬性技能時消耗，該屬性傷害 +40%（不可驅散）
+火精共鳴,buff,no_dispel,,,,,
+冰精共鳴,buff,elem_orb,0.4,,frost,,下一次使用冰霜屬性技能時消耗，該屬性傷害 +40%（不可驅散）
+冰精共鳴,buff,no_dispel,,,,,
+雷精共鳴,buff,elem_orb,0.4,,lightning,,下一次使用雷電屬性技能時消耗，該屬性傷害 +40%（不可驅散）
+雷精共鳴,buff,no_dispel,,,,,
+風精共鳴,buff,elem_orb,0.4,,wind,,下一次使用疾風屬性技能時消耗，該屬性傷害 +40%（不可驅散）
+風精共鳴,buff,no_dispel,,,,,
+雷動,buff,speed,2,,,,速度 +2、閃避率 +10%、暴擊率 +10%
+雷動,buff,eva_rate,0.1,,,,
+雷動,buff,crit_rate,0.1,,,,
+深層凍結,buff,no_dispel,,,,,第一次因受傷生命低於 50% 時解除，全體敵人凍結 2 回合（王 1 回合）；不可驅散
+雷電詛咒,debuff,lightning_res_rate,-0.3,,,,雷電抗性 −30%
+疾風詛咒,debuff,wind_res_rate,-0.3,,,,疾風抗性 −30%
