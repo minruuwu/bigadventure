@@ -2820,7 +2820,7 @@ function j22Orbs(f,x,top,by,t){J22EL.forEach(function(el,n){if(!f['orb_'+el])ret
   if(((t/90)|0)%7===n)VP(x+o[0]+(hsh(n,(t/90)|0)-.5)*6,y-4,'#ffffff',.9)})}/* 偶爾閃一顆星光 */
 /* 雷動：身體周圍不時竄出細小的黃藍電流 */
 function j22Zap(x,top,by,t){for(var n=0;n<3;n++){var ph=((t/70)|0)+n*5;if(hsh(n,ph)<.45)continue;var sx=x+(hsh(ph,n)-.5)*18,sy=top+4+hsh(n,ph+1)*(by-top-6),px=sx,py=sy;
-  for(var s=0;s<4;s++){var nx=px+(hsh(s,ph)-.5)*6,ny=py+2+hsh(ph,s)*3;bLine(px,py,nx,ny,s%2?'#fff6a0':'#9ae8ff',.85,1);px=nx;py=ny}glowAt(sx,sy,4,'rgba(255,250,200,.8)','rgba(120,200,255,.3)',.6)}}
+  var dr=hsh(ph,n+7)<.5?-1:1;for(var s=0;s<3;s++){var nx=px+dr*(2+hsh(s,ph)*2.5),ny=py+(hsh(ph,s)-.5)*2.4;bLine(px,py,nx,ny,s%2?'#fff6a0':'#9ae8ff',.85,1);px=nx;py=ny}glowAt(sx,sy,4,'rgba(255,250,200,.8)','rgba(120,200,255,.3)',.6)}}
 /* 深層凍結（還沒爆發）：腳邊淡淡的冰霧，偶爾飄下一兩片雪花 */
 function j22Mist(x,by,t){for(var n=0;n<16;n++){var u=((t+n*173)%2600)/2600,ax=x+(hsh(n,3)-.5)*24+Math.sin(t/900+n)*2,ay=by-1-u*4+hsh(3,n)*2;VP(ax,ay,n%3?'#cfeeff':'#9ad8ff',(1-Math.abs(u-.5)*2)*.35)}
   for(var s=0;s<2;s++){var u2=((t+s*1900)%3800)/3800;if(u2>.6)continue;var sx=x+(hsh(s,(t/3800)|0)-.5)*22,sy=by-34+u2*36,a=u2<.1?u2/.1:1-u2/.6;VP(sx,sy,'#ffffff',a);VP(sx-1,sy,'#cfeeff',a*.6);VP(sx+1,sy,'#cfeeff',a*.6);VP(sx,sy-1,'#cfeeff',a*.6);VP(sx,sy+1,'#cfeeff',a*.6)}}
@@ -2845,13 +2845,13 @@ function blazeFx(e,d){if(d<0||d>1500)return;var q=j21Mon((e.tg||[])[0]);if(!q)re
   FXA=fa}
 
 /* == 雷霆轟鳴：每個敵人頭上一道接一道劈下落雷（白藍鋸齒＋外層黃色、命中光暈） == */
-function j22Bolt(x,top,gy,seed,a){var pts=[[x+(hsh(seed,1)-.5)*10,-6]],N=9;for(var i=1;i<=N;i++){var k=i/N;pts.push([x+(i<N?(hsh(seed,i)-.5)*12*(1-k*.5):0),lerp(-6,gy-2,k)])}
-  for(var j=0;j<pts.length-1;j++){var p0=pts[j],p1=pts[j+1];for(var o=-2;o<=2;o++)bLine(p0[0]+o,p0[1],p1[0]+o,p1[1],Math.abs(o)===2?'#c89a10':'#ffe24a',a*(Math.abs(o)===2?.5:.85),1);bLine(p0[0],p0[1],p1[0],p1[1],'#ffffff',a,1);bLine(p0[0]+.6,p0[1],p1[0]+.6,p1[1],'#9ae8ff',a*.9,1)}
-  for(var b=2;b<N-1;b+=3){var bp=pts[b],ln=5+hsh(seed,b+20)*6,dx=(hsh(b,seed)-.5)*14;bLine(bp[0],bp[1],bp[0]+dx,bp[1]+ln,'#fff6a0',a*.7,1)}}/* 枝狀分岔 */
+function j22Bolt(x,top,gy,seed,a,W){W=W||2;var pts=[[x+(hsh(seed,1)-.5)*14,-6]],N=10;for(var i=1;i<=N;i++){var k=i/N;pts.push([x+(i<N?(hsh(seed,i)-.5)*16*(1-k*.5):0),lerp(-6,gy-2,k)])}
+  for(var j=0;j<pts.length-1;j++){var p0=pts[j],p1=pts[j+1];for(var o=-W;o<=W;o++){var ao=Math.abs(o);bLine(p0[0]+o,p0[1],p1[0]+o,p1[1],ao===W?'#c89a10':ao===W-1?'#ffd030':'#ffe24a',a*(ao===W?.45:ao===W-1?.7:.9),1)}for(var o2=-1;o2<=1;o2++)bLine(p0[0]+o2*.6,p0[1],p1[0]+o2*.6,p1[1],'#ffffff',a,1);bLine(p0[0]+W*.4,p0[1],p1[0]+W*.4,p1[1],'#9ae8ff',a*.8,1)}
+  for(var b=2;b<N-1;b+=2){var bp=pts[b],ln=6+hsh(seed,b+20)*9,dx=(hsh(b,seed)-.5)*20;bLine(bp[0],bp[1],bp[0]+dx,bp[1]+ln,'#fff6a0',a*.75,1);bLine(bp[0]+1,bp[1],bp[0]+dx+1,bp[1]+ln,'#ffe24a',a*.5,1)}}/* W：雷柱半寬 *//* 枝狀分岔 */
 function thunderFx(e,d){if(d<0||d>1500)return;var fa=FXA;FXA=1;var H=supHome(e);
   if(H&&d<380){var ca=d<100?d/100:1-(d-100)/280;glowAt(H[0],H[1]-17,16,'rgba(255,250,200,.8)','rgba(255,220,60,.3)',ca);j22Zap(H[0],H[1]-34,H[1],d)}/* 施法：身上竄電 */
   (e.tg||[]).forEach(function(i,n){var q=j21Mon(i);if(!q)return;var t0=300+n*80,dd=d-t0;if(dd<0||dd>700)return;var cy=q.gy-q.th*.45;
-    if(dd<240){var fl=(((dd/35)|0)%2)?1:.6;j22Bolt(q.x,cy,q.gy,i*7+((dd/70)|0),fl*(dd<200?1:1-(dd-200)/40));glowAt(q.x,cy,22,'rgba(255,255,230,.95)','rgba(255,220,60,.45)',dd<60?1:1-(dd-60)/180);if(dd<50)bScreen('#fffbd0',.18)}
+    [[-9,0],[9,90],[0,180]].forEach(function(B,b){var db=dd-B[1];if(db<0||db>=240)return;var fl=(((db/35)|0)%2)?1:.6;j22Bolt(q.x+B[0],cy,q.gy,i*7+b*31+((db/70)|0),fl*(db<200?1:1-(db-200)/40),b===2?4:3);glowAt(q.x+B[0]*.5,cy,26,'rgba(255,255,230,.95)','rgba(255,220,60,.45)',db<60?1:1-(db-60)/180);if(db<50)bScreen('#fffbd0',.14)});/* 每個敵人交錯落下三根雷柱（左、右、正中最粗） */
     if(dd<90)bRing(q.x,q.gy,4+dd/5,'#ffe24a',1-dd/90,.35);pBurst('lightning',q.x,cy,dd-20,16,VS);if(dd<120){shakeX=Math.round(Math.sin(dd/9)*1.6*U*(1-dd/120))}});
   FXA=fa}
 
