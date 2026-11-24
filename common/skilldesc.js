@@ -23,7 +23,7 @@
     return { st: st, hl: hl };
   }
   function healTxt(hl) {
-    return (hl || []).map(function (h) { var who = h.tg === 'ally_single' ? '我方單體（' + (SKP[h.c || 'lowest_hp'] || '生命力最低') + '）' : (SKHT[h.tg] || ''); return '恢復' + who + ' ' + pc(h.v) + ' ' + (SKHB[h.b] || '魔法攻擊力') + '的生命' }).join('，');
+    return (hl || []).map(function (h) { var who = h.tg === 'ally_single' ? '我方單體（' + (SKP[h.c || 'lowest_hp'] || '生命力最低') + '）' : (SKHT[h.tg] || ''); return h.b === 'mhp' ? '恢復' + who + ' ' + pc(h.v) + ' 最大生命' /* 照最大生命比例（振奮戰吼） */ : '恢復' + who + ' ' + pc(h.v) + ' ' + (SKHB[h.b] || '魔法攻擊力') + '的生命' }).join('，');
   }
   /* stDesc(狀態名) → 狀態說明（沒有就用技能自己的說明） */
   function text(sk, st, hl, stDesc) {

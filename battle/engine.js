@@ -10,6 +10,7 @@
   var ELS = ['fire', 'frost', 'lightning', 'wind', 'nature', 'light', 'dark'];
   var ELN = { fire: '火焰', frost: '冰霜', lightning: '雷電', wind: '疾風', nature: '自然', light: '光明', dark: '黑暗' };
   var CONTROL = { stun: 1, sleep: 1, confuse: 1, seal: 1, petrify: 1, charm: 1, banish: 1 };
+  var CCB = { stun: 1, sleep: 1, confuse: 1, charm: 1, petrify: 1, fear: 1 }; /* 無畏（cc_block）擋得住的控制：暈眩／麻痺／凍結、睡眠、混亂、魅惑、石化、恐懼；封禁、放逐、被吞噬不擋 */
   var NOBOSS = { charm: 1, swallow: 1 }; /* 放逐對王有效：機率照控制類減半，而且只放逐 1 回合（見 applyStatus） */
   var PSLOT = [1, 30, 60, 90];
   var MAXR = 30;
@@ -99,11 +100,12 @@
     var pts = [0, 1, 2].map(function (q) { return Array.isArray(wd.pts) ? Math.max(0, wd.pts[q] | 0) : 0 });
     function rOn(id) { return en.indexOf(id) >= 0 }
     var pas = (Array.isArray(sv.passive) ? sv.passive : []).filter(function (id, q) { var k = D.SK[id]; return k && lv >= PSLOT[q] && learned(p, k) });
-    var self = Object.assign({}, p.npcFix || {}), aura = [], special = []; /* NPC 的固定減傷、抗性（npc_info 的 fixed_stats） */
+    var self = Object.assign({}, p.npcFix || {}), aura = [], special = [], cpas = []; /* NPC 的固定減傷、抗性（npc_info 的 fixed_stats） */
     pas.forEach(function (id) { (D.EFF[id] || []).forEach(function (e) {
       if (e.effect_kind !== 'passive' || !e.effect) return;
       if (e.condition && /^weapon/.test(e.condition) && e.condition !== ws) return;
       var v = num(e.value);
+      if (/^status:/.test(e.condition || '')) { cpas.push({ id: id, k: e.effect, v: v, sts: e.condition.slice(7).split('|').map(function (x) { return x.trim() }).filter(Boolean) }); return } /* 怒戰英豪：condition = status:怒意|戰意，身上有其中一個才算（同一招只算一次） */
       if (e.trigger || ['revive_self', 'forge_bonus', 'exp_bonus', 'apply_status'].indexOf(e.effect) >= 0) { special.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type }); return }
       self[e.effect] = (self[e.effect] || 0) + v;
       if (e.target === 'ally_all') aura.push({ id: id, k: e.effect, v: v });
@@ -145,8 +147,9 @@
       /* 4 格只認「現職＋額外技能組（最多兩組）」的技能，其他當普通攻擊 */
       cycle: (Array.isArray(sv.combat) ? sv.combat : []).slice(0, 4).map(function (id) { return id && D.SK[id] && D.SK[id].kind === 'combat' && learned(p, D.SK[id]) && (p.npcLearn || setJobs(p).indexOf(D.SK[id].j) >= 0) ? id : 'atk' }),
       reaction: sv.reaction && D.SK[sv.reaction] && learned(p, D.SK[sv.reaction]) ? sv.reaction : '',
-      aura: aura, special: special, mst: mst, runes: en.slice(), rlv: rlv, weapon: p.weapon || '', p: p,
+      aura: aura, special: special, cpas: cpas, mst: mst, runes: en.slice(), rlv: rlv, weapon: p.weapon || '', p: p,
       apa: sp('atk_per_ally'), apaN: opt.allies || 0, pB: s + wsum('p_atk') + Math.round(v * sp('vit_to_p_atk')), mB: i + wsum('m_atk') + Math.round(s * sp('str_to_m_atk')),
+      ult: (Object.keys(D.SK).map(function (id) { return D.SK[id] }).filter(function (k) { return k.kind === 'ultimate' && learned(p, k) })[0] || {}).id || '', /* 奧義：學會就能用，不佔戰鬥格、不限目前職業（每人只會有一招） */
       learned: Object.keys(D.SK).map(function (id) { return D.SK[id] }).filter(function (k) { return k.kind === 'combat' && k.id !== 'atk' && k.j && k.j !== 'monster' && learned(p, k) })
     };
     while (u.cycle.length < 4) u.cycle.push('atk');
@@ -265,6 +268,8 @@
     /* --- 屬性（基礎 + 狀態 + 靈氣） --- */
     function sv(u, k) { var t = 0; u.st.forEach(function (s) { if (s.paused) return; s.rows.forEach(function (r) { if (r.k === k) t += r.v }) }); return t }
     function has(u, k) { return u.st.some(function (s) { return !s.paused && s.rows.some(function (r) { return r.k === k }) }) }
+    /* 條件被動：身上有指定狀態之一時才加（同一招同一項只算一次） */
+    function cpV(u, k) { if (!u.cpas || !u.cpas.length) return 0; var t = 0; u.cpas.forEach(function (c) { if (c.k === k && u.st.some(function (s) { return !s.paused && c.sts.indexOf(s.n) >= 0 })) t += c.v }); return t }
     function stat(u, k) {
       var b = u.b;
       switch (k) {
@@ -275,8 +280,8 @@
         case 'pred': if (sv(u, 'zero_red')) return 0; /* 汽化：減傷歸零 */ return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate') - acidRed(u);
         case 'mred': if (sv(u, 'zero_red')) return 0; return b.mred + sv(u, 'm_reduce_rate') + auraVal(u, 'm_reduce_rate');
         case 'eva': return sv(u, 'no_eva') ? 0 : b.eva + sv(u, 'eva_rate'); /* 妖火：閃避率直接變 0 */
-        case 'crit': return b.crit + sv(u, 'crit_rate') + auraVal(u, 'crit_rate');
-        case 'cdmg': return b.cdmg + sv(u, 'crit_damage_rate');
+        case 'crit': return b.crit + sv(u, 'crit_rate') + auraVal(u, 'crit_rate') + cpV(u, 'crit_rate');
+        case 'cdmg': return b.cdmg + sv(u, 'crit_damage_rate') + cpV(u, 'crit_damage_rate');
         case 'speed': return (b.speed + sv(u, 'speed')) * (1 + sv(u, 'speed_rate'));
         case 'hit': return sv(u, 'hit_rate') + (u.special ? u.special.reduce(function (t, p) { return p.k === 'hit_rate' && !p.tr ? t + p.v : t }, 0) : 0);
       }
@@ -317,6 +322,7 @@
       if (tgt.boss && nob) return false;
       /* 秘術護罩（debuff_block）：持續期間擋下敵人施加的新負面狀態 */
       if (def.pol === 'debuff' && src && src.side !== tgt.side && tgt.st.some(function (x) { return !x.paused && x.rows.some(function (r) { return r.k === 'debuff_block' }) })) { if (e) e.txt += '，' + tgt.name + ' 的護罩抵擋了「' + name + '」'; return false }
+      if (def.pol === 'debuff' && src && src.side !== tgt.side && def.rows.some(function (r) { return CCB[r.k] }) && tgt.st.some(function (x) { return !x.paused && x.rows.some(function (r) { return r.k === 'cc_block' }) })) { if (e) e.txt += '，' + tgt.name + ' 的「' + (tgt.st.filter(function (x) { return x.rows.some(function (r) { return r.k === 'cc_block' }) })[0] || {}).n + '」免疫了「' + name + '」'; return false } /* 無畏：免疫控制（整個狀態都擋，例如骨牢） */
       var ch = chance == null || chance === '' ? 1 : num(chance);
       if (src && src.mst && src.mst.debuff_chance && def.pol === 'debuff' && src.side !== tgt.side) ch = Math.min(1, ch + src.mst.debuff_chance.v); /* 咒術精通 */
       if (tgt.boss && ctl) ch /= 2;
@@ -330,7 +336,7 @@
       var rows = def.rows.map(function (r) {
         var o = { k: r.k, v: r.v, el: r.el, dt: r.dt };
         if (r.k === 'dot' || r.k === 'hot' || r.k === 'banish') o.amt = r.base === 'mhp' ? r.v * tgt.b.mhp /* 幻獸木靈守護：照持有者最大生命 */ : r.v * (r.base === 'p_atk' ? stat(src, 'patk') : stat(src, 'matk'));
-        if (r.k === 'shield') o.amt = r.base === 'hi_atk' ? r.v * Math.max(stat(src, 'patk'), stat(src, 'matk')) /* 幻獸：主人物攻、魔攻較高者 */ : r.base === 'm_atk' ? r.v * stat(src, 'matk') : r.base === 'p_atk' ? r.v * stat(src, 'patk') : r.v;
+        if (r.k === 'shield') o.amt = r.base === 'hi_atk' ? r.v * Math.max(stat(src, 'patk'), stat(src, 'matk')) /* 幻獸：主人物攻、魔攻較高者 */ : r.base === 'm_atk' ? r.v * stat(src, 'matk') : r.base === 'p_atk' ? r.v * stat(src, 'patk') : r.base === 'mhp' ? r.v * tgt.b.mhp /* 振奮護盾：持有者最大生命 */ : r.v;
         return o;
       });
       var s = { n: name, src: src, turns: t, rows: rows, pol: def.pol, fresh: tgt === nowAct }; if (rows.some(function (r) { return r.k === 'acid' })) s.stk = 1;
@@ -424,6 +430,8 @@
       r.amt = Math.max(tot > 0 ? 1 : 0, Math.round(tot)); r.re = re;
       return r;
     }
+    /* 職業精通（冠軍勇士）：每次受到傷害（含自己消耗生命）有機率獲得狀態 */
+    function mstHurt(d) { var m = d.mst && d.mst.status_on_hurt; if (!m || !m.st || d.dead || d.hp <= 0 || RND() >= m.ch) return; if (applyStatus(d, d, m.st, m.turns, 1, null)) { var he = ev[ev.length - 1]; if (he) (he._x = he._x || []).push(d.name + ' 的「' + m.n + '」：獲得「' + m.st + '」') } }
     function hurt(d, amt, src, dot) {
       /* 扣血（先扣護盾）；回傳實際扣掉的生命與是否倒下 */
       /* 不滅供奉：自己以外還有同伴活著時，不受持續傷害、最少留 1 滴血 */
@@ -444,6 +452,7 @@
         if (has(d, 'min_hp1')) { left = Math.max(0, Math.ceil(d.hp) - 1); if (le2 && !le2._mh1) { le2._mh1 = 1; (le2._x = le2._x || []).push(d.name + ' 的「' + (d.st.filter(function (s) { return s.rows.some(function (r) { return r.k === 'min_hp1' }) })[0] || {}).n + '」撐住了最後一口氣') } }
       }
       d.hp -= left; numHit(d, amt, left);
+      if (left > 0) mstHurt(d);
       if (left > 0) {
         /* 妖槲寄生：身上有寄生的目標每次受傷，施放者（幻獸）的主人回復該傷害的一定比例 */
         d.st.forEach(function (s) { if (s.paused || !s.src) return; s.rows.forEach(function (r) { if (r.k !== 'leech') return; var o9 = s.src.owner || s.src; if (o9 && !o9.dead && o9 !== d) { var NC9 = NC; NC = { ls: 1 }; heal(o9, o9, left * r.v, null, true); NC = NC9 } }) });
@@ -716,7 +725,9 @@
       }
       /* 選技能：封禁只能普攻；沒有可用目標就換下一招。
          SP 制度：輪到的招冷卻中 → 跳下一招；SP 不夠 → 這次普攻、這招保留到下次 */
-      for (var tries = 0; !forced && tries < 4; tries++) {
+      /* 奧義（自動）：輪到時 SP 夠、冷卻好了就優先放，不管技能循環排到哪 */
+      if (!forced && SPM && u.side === 'p' && u.ult && !ctrl(u, 'seal') && D.SK[u.ult] && canUse(u, D.SK[u.ult]) && useOk(u, u.ult)) { var tU = pickTargets(u, D.SK[u.ult], charmed, confused); if (tU.length) { sk = D.SK[u.ult]; tg = tU } }
+      for (var tries = 0; !forced && !sk && tries < 4; tries++) {
         var id = u.cycle[u.cy % u.cycle.length]; if (id.indexOf('|') > 0) id = pickOne(id.split('|')).trim(); /* 「a|b」= 這格隨機放其中一招（教皇的偽神救贖／輝光枷鎖） */
         if (SPM && u.side === 'p' && id !== 'atk' && D.SK[id] && !ctrl(u, 'seal')) {
           if (cdOf(u, id) > 0) { u.cy++; continue }
@@ -733,7 +744,7 @@
       }
       if (!sk && SPM && u.side === 'p' && !forced) { var ta = pickTargets(u, D.SK.atk, charmed, confused); if (ta.length) { sk = D.SK.atk; tg = ta } } /* 四招都在冷卻：普攻 */
       if (!sk) { e.txt = u.name + (foes(u).some(airborne) ? ' 的目標飛到高空，攻擊落空' : ' 沒有可以行動的目標'); e.idle = 1; e.hp = hpSnap(); endAct(u, null); return }
-      e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」';
+      e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」'; if (sk.kind === 'ultimate') { e.ult = 1; e.txt = u.name + ' 發動奧義「' + sk.n + '」' }
       if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）';
         /* 職業精通：巧手回收（自己 SP +1）、餘韻（隨機一名同伴 SP +1），只算消耗 SP 的技能 */
         if (sk.sp && u.mst) {
@@ -953,7 +964,7 @@
       var charmed = ctrl(u, 'charm');
       var bonus = {}; effs.forEach(function (r) { if (r.effect_kind === 'bonus') bonus[r.effect] = r });
       /* 代價（奉獻詩歌） */
-      var sac = 0; effs.forEach(function (r) { if (r.effect_kind === 'cost' && r.effect === 'hp_cur') { sac = Math.floor(u.hp * num(r.value)); u.hp -= sac; e.txt += '，犧牲 ' + sac + ' 生命' } });
+      var sac = 0; effs.forEach(function (r) { if (r.effect_kind === 'cost' && r.effect === 'hp_cur') { sac = Math.max(0, Math.min(Math.floor(u.hp * num(r.value)), Math.ceil(u.hp) - 1)); u.hp -= sac; e.txt += '，犧牲 ' + sac + ' 生命'; if (sac > 0) mstHurt(u) } /* 不會扣死；算受到傷害（觸發精通） */ });
       if (sk.ty === 'damage') {
         var single = sk.t === 'enemy_single' && !hooks.area, H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
         var each = sk.p === 'random_each' && H > 1;
@@ -1069,7 +1080,7 @@
           var sn = r.status_name; if (u.owner && /^phys:/.test(r.condition || '') && !u.hiM) sn = String(r.condition).slice(5); /* 幻獸：物攻較高時換成物理版的狀態（森羅角擊的猛毒） */
           if (r.target === 'self') { var su = u.owner || u; applyStatus(su, su, sn, r.turns, r.apply_chance, e) }/* 幻獸的招：加在主人身上 */
           else if (r.target === 'ally_all') friends(u).forEach(function (f) { applyStatus(u, f, sn, r.turns, r.apply_chance, e) }); /* 傷害技順便替自己全隊上增益（神聖輝煌） */
-          else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, sn, r.turns, r.apply_chance, e) });
+          else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side && !(r.condition === 'not_boss' && t.boss)) applyStatus(u, t, sn, r.turns, r.apply_chance, e) });
         });
         /* 霜刃術：攻擊時每個被打中的目標各擲一次凍結 */
         var fzv = sv(u, 'freeze_on_hit'); if (fzv > 0) order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, '凍結', 1, fzv, e) });
@@ -1111,7 +1122,8 @@
           /* 驅散（加狀態類技能也能帶，例：冰之守護）：value = 每人最多驅除幾個，空白 = 全部 */
           if (r.effect_kind === 'cleanse') { var cn = String(r.value).trim() === 'r1-2' ? 1 + Math.floor(RND() * 2) : num(r.value) || 99; tg.forEach(function (t) { var d = debuffs(t).filter(function (q) { return !q.swal && !q.banish }).sort(function () { return RND() - 0.5 }).slice(0, cn); /* 隨機挑要清的（慈樹春暉、星辰甘露） */ d.forEach(function (q) { removeStatus(t, q) }); if (d.length) e.txt += '，清除 ' + t.name + ' 的 ' + d.map(function (q) { return '「' + q.n + '」' }).join('') }); return }
           if (r.effect_kind !== 'status') return;
-          tg.forEach(function (t) { applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
+          var tgR = /^enemy/.test(r.target || '') && !/^enemy/.test(sk.t || '') ? foes(u).filter(function (x) { return !banished(x) }) : tg; /* 增益技順便對敵人上狀態（冠軍戰吼：恐懼） */
+          tgR.forEach(function (t) { if (r.condition === 'not_boss' && t.boss) return; applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
         });
         if (sk.ty === 'debuff') { e.tg = tg.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }); e.tgP = tg.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) }
       }

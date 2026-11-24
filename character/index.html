@@ -229,7 +229,8 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .skc{float:right;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:900;color:var(--pink2);margin-left:6px;line-height:18px}.skc .sq{display:inline-flex;gap:2px}.skc .sq i{width:8px;height:8px;border-radius:50%;background:#3a9ad8;box-shadow:0 0 0 1px #12364e,inset 1px 1px 0 #a8dcff}
 .skrow{display:flex;align-items:center;gap:4px;margin-bottom:6px}.skrow .sks{margin-bottom:0;flex:1;min-width:0}.skar{flex:none;width:30px;height:30px;padding:0;font:inherit;font-size:12px;color:#f0e2c4;background:var(--pink);border:2px solid var(--lo);cursor:pointer}.skar:disabled{opacity:.35;cursor:default}
 .ske{width:16px;height:16px;vertical-align:-3px;margin-left:4px;image-rendering:pixelated}.ski{flex:none;width:26px;height:26px;image-rendering:pixelated;display:block}.ski.bl{box-sizing:border-box;background:#1d1008;border:2px solid #7a5a30}.ski svg{display:block;width:100%;height:100%}
-.ktag{display:inline-block;font-size:11px;font-weight:400;padding:0 6px;margin-left:6px;border:2px solid;vertical-align:1px;-webkit-text-stroke:0}.ktag.combat{background:#9a3a2a;color:#f6e6c8;border-color:#5a1e14}.ktag.reaction{background:#2f5878;color:#e4eef6;border-color:#17324a}.ktag.passive{background:#3f6a2c;color:#eaf3d8;border-color:#223d16}
+.ktag{display:inline-block;font-size:11px;font-weight:400;padding:0 6px;margin-left:6px;border:2px solid;vertical-align:1px;-webkit-text-stroke:0}.ktag.combat{background:#9a3a2a;color:#f6e6c8;border-color:#5a1e14}.ktag.reaction{background:#2f5878;color:#e4eef6;border-color:#17324a}.ktag.ultimate{background:#5a2a8a;color:#f3e6ff;border-color:#2e1050}.skult{display:flex;align-items:center;gap:8px;padding:7px 8px;margin-bottom:6px;background:linear-gradient(90deg,#3a1660,#5a2a8a 60%,#4a2070);border:2px solid #1e0a36;box-shadow:inset 0 0 0 1px #b48ae8;color:#f6ecff;box-sizing:border-box}.skult .nm3{flex:1;min-width:0;font-size:14px;font-weight:700}.skult .nm3 small{display:block;font-size:11px;font-weight:400;color:#dcc8f4;white-space:normal}.skult .skc{color:#e8d8ff}.skult .jtag{color:#f0e0ff;border-color:#b48ae8;background:rgba(255,255,255,.08)}.skult.lk{background:transparent;border-style:dashed;border-color:#7a5aa0;box-shadow:none;color:#6a4a8a}.skult.lk small{color:#7a5aa0}
+.ktag.passive{background:#3f6a2c;color:#eaf3d8;border-color:#223d16}
 .jtag{display:inline-block;font-size:11px;font-weight:400;color:var(--pink2);border:1px solid var(--pink2);padding:0 5px;margin-left:6px;-webkit-text-stroke:0}
 .skl{display:flex;gap:8px;padding:8px 0;border-bottom:1px dashed var(--pink2)}.skl.off{opacity:.55}.skl .lv{flex:none;width:40px;font-size:12px;color:var(--pink2);padding-top:2px}.skl .t{font-size:14px;font-weight:700;color:var(--pink)}.skl .d{font-size:12px;color:var(--pink2);margin-top:2px;line-height:1.5}
 .sksel{font:inherit;font-size:14px;width:100%;height:38px;color:var(--pink);background:var(--paper2);border:2px solid var(--lo)}
@@ -275,7 +276,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="../common/skilldesc.js?v=2"></script>
+<script src="../common/skilldesc.js?v=3"></script>
 <script src="../common/runevals.js?v=3"></script>
 <script src="../common/beastinfo.js?v=1"></script>
 <script src="../common/music.js?v=12"></script>
@@ -428,7 +429,7 @@ function normSkills(v){v=v&&typeof v==='object'?v:{};var c=Array.isArray(v.comba
 function exArr(x){var a=Array.isArray(x)?x:(typeof x==='string'&&x?[x]:[]);return a.filter(function(v,i){return typeof v==='string'&&v&&a.indexOf(v)===i}).slice(0,2)}
 /* 升級完成時的摘要：比對升級前後，列出增加的點數、屬性、學到的技能、可以轉職的新職業 */
 function upSnap(){var r={};Object.keys(JOB).forEach(function(sn){if(reqMet(sn))r[sn]=1});return{lv:S.lv,jl:Object.assign({},S.jobLvs),req:r}}
-function upSummary(b){var o={lines:[],skills:[],jobs:[]},dn=S.lv-b.lv,KL={combat:'主動',reaction:'反應',passive:'被動'};
+function upSummary(b){var o={lines:[],skills:[],jobs:[]},dn=S.lv-b.lv,KL={combat:'主動',reaction:'反應',passive:'被動',ultimate:'奧義'};
   if(dn>0)o.lines.push('人物 Lv'+b.lv+' → Lv'+S.lv+'：自由點數 +'+5*dn+'、生命 +'+10*dn+'、職業等級上限 +'+2*dn);
   Object.keys(S.jobLvs).forEach(function(k){var a=b.jl[k]|0,n=S.jobLvs[k]|0;if(n<=a)return;var g=[];KEYS.forEach(function(x){var v=growthOf(k,x)*(n-a);if(v)g.push(NAMES[x]+' +'+(Math.round(v*100)/100))});
     o.lines.push(jobName(k)+' Lv'+a+' → Lv'+n+(g.length?'：'+g.join('、'):''));
@@ -444,7 +445,7 @@ function skGet(id){return id==='atk'?SKNA:SKILL[id]}
 /* 已配置的被動技能加成（屬性頁用）：回傳 {v:生效合計, L:來源說明}；條件不符的也列出但不算 */
 function skPas(key){var r={v:0,L:[]};if(!S||!S.skills)return r;var wsn=WNAME2K[S.weapon];
   skValid(S.skills).passive.forEach(function(id){if(!id)return;(SKEFF[id]||[]).forEach(function(e){if(e.k!==key)return;var t='技能 '+SKILL[id].n+' +'+pct(e.v);
-    if(e.c&&e.c!==wsn){var wn=WEAPON[e.c]?WEAPON[e.c].n:e.c;r.L.push(t+'（未裝備'+wn+'，未生效）')}else{r.v+=e.v;r.L.push(t)}})});
+    if(/^status:/.test(e.c||'')){r.L.push(t+'（戰鬥中身上有'+e.c.slice(7).split('|').map(function(x){return '「'+x+'」'}).join('或')+'時生效）')}else if(e.c&&e.c!==wsn){var wn=WEAPON[e.c]?WEAPON[e.c].n:e.c;r.L.push(t+'（未裝備'+wn+'，未生效）')}else{r.v+=e.v;r.L.push(t)}})});
   Object.keys(MSTR).forEach(function(sn){var m=MSTR[sn];if(m.kind!=='stat'||!mastered(sn))return;[1,2].forEach(function(q){if(m['stat_'+q]!==key)return;var v=parseFloat(m['value_'+q])||0;r.v+=v;r.L.push('職業精通 '+m.talent_name+' +'+pct(v))})});return r}
 /* 已失效（還沒學會或資料不存在）的技能，畫面上當成空格／普通攻擊 */
 /* 戰鬥技能 4 格只能放「現職＋額外技能組」裡的技能（自動戰鬥和手動選單用同一批） */
@@ -453,7 +454,7 @@ function skValid(set){var ex=exArr(set.extra).filter(function(x){return x!==S.jo
 /* 戰棋額外技能組：另一個職業、而且至少學會一招該職業的戰鬥技能才能帶 */
 function skSetOk(sn){return SKORDER.some(function(id){var sk=SKILL[id];return sk&&sk.j===sn&&sk.k==='combat'&&skLearned(sk)})}
 function skSetName(sn){return JOB[sn]&&JOB[sn].skill_set?JOB[sn].skill_set:jobName(sn)}
-var SKT={enemy_single:'敵方單體',enemy_all:'敵方全體',self:'自身',ally_single:'我方單體',ally_all:'我方全體',ally_others:'其他隊友全體'},SKP={random:'隨機',lowest_hp:'生命力最低',prefer_without_status:'優先沒有此狀態者',prefer_with_debuff:'優先有減益者',random_each:'每一下各自隨機'},SKEL={fire:'火焰',frost:'冰霜',lightning:'雷電',wind:'疾風',nature:'自然',light:'光明',dark:'黑暗'},SKKN={combat:'戰鬥',reaction:'反應',passive:'被動'};
+var SKT={enemy_single:'敵方單體',enemy_all:'敵方全體',self:'自身',ally_single:'我方單體',ally_all:'我方全體',ally_others:'其他隊友全體'},SKP={random:'隨機',lowest_hp:'生命力最低',prefer_without_status:'優先沒有此狀態者',prefer_with_debuff:'優先有減益者',random_each:'每一下各自隨機'},SKEL={fire:'火焰',frost:'冰霜',lightning:'雷電',wind:'疾風',nature:'自然',light:'光明',dark:'黑暗'},SKKN={combat:'戰鬥',reaction:'反應',passive:'被動',ultimate:'奧義'};
 function skPc(x){return Math.round(parseFloat(x)*100)+'%'}
 /* 附帶治療列（skill_effect 的 heal）：自動接在說明後面 */
 var SKHL={},SKHT={target:'目標',self:'自身',ally_all:'我方全體',ally_others:'其他隊友全體',ally_single:'我方單體'},SKHB={m_atk:'魔法攻擊力',p_atk:'物理攻擊力',sacrificed_hp:'犧牲生命'};
@@ -466,7 +467,7 @@ var skTab='cfg',skDraft=null,skPick=null,skFlt='all',skJob=null,skMsg='';
 function skDirty(){return JSON.stringify(skDraft)!==JSON.stringify(skValid(S.skills))}
 function skEl(sk){var e=sk&&sk.e;return e&&SKEL[e]?'<img class="ske" alt="'+SKEL[e]+'" title="'+SKEL[e]+'" src="../assets/icons/stats/res_'+e+'.png?v=5" onerror="this.remove()">':''}
 /* 戰鬥技能右上角：「冷卻 N」＋ SP 藍色格子 */
-function skCost(sk){if(!sk||sk.k!=='combat'||sk.id==='atk')return '';var q='';for(var i=0;i<sk.spN;i++)q+='<i></i>';return '<span class="skc">'+(sk.cdN?'冷卻'+sk.cdN:'')+(sk.spN?'<span class="sq">'+q+'</span>':'')+'</span>'}
+function skCost(sk){if(!sk||(sk.k!=='combat'&&sk.k!=='ultimate')||sk.id==='atk')return '';var q='';for(var i=0;i<sk.spN;i++)q+='<i></i>';return '<span class="skc">'+(sk.cdN?'冷卻'+sk.cdN:'')+(sk.spN?'<span class="sq">'+q+'</span>':'')+'</span>'}
 function skSlot(no,id,attr){var sk=id?skGet(id):null;return '<button class="sks" type="button" '+attr+'><span class="no">'+no+'</span>'+skIcon(sk)+'<span class="nm3">'+(sk?esc(sk.n)+skEl(sk)+skCost(sk):'（空）')+'<small>'+(sk?esc(skDesc(sk)):'點一下選擇技能')+'</small></span></button>'}
 function skPicker(){var g=skPick.g,k={c:'combat',r:'reaction',p:'passive'}[g],D=skDraft,used=g==='c'?D.combat:g==='p'?D.passive:[D.reaction],here=g==='c'?D.combat[skPick.i]:g==='p'?D.passive[skPick.i]:D.reaction;
   var CJ=[S.jobSn].concat(D.extra||[]);
@@ -494,6 +495,8 @@ function bookHTML(){if(!skDraft)skDraft=skValid(S.skills);if(!skJob)skJob=S.jobS
   h+='<div class="sec">戰鬥技能（自動時依序循環）</div><p class="hint" style="margin:0 2px 6px">只能放現職和額外技能組（上方）的技能；換掉技能組，原本那組的技能會變回普通攻擊。</p>';
   D.combat.forEach(function(id,i){h+='<div class="skrow">'+skSlot(i+1,id,'data-a="skpick" data-g="c" data-i="'+i+'"')+'<button class="skar" type="button" data-a="skup" data-i="'+i+'" aria-label="上移" '+(i?'':'disabled')+'>▲</button><button class="skar" type="button" data-a="skdn" data-i="'+i+'" aria-label="下移" '+(i<3?'':'disabled')+'>▼</button></div>'});
   h+='<div class="sec">反應技能</div>'+skSlot('R',D.reaction,'data-a="skpick" data-g="r" data-i="0"');
+  /* 奧義：學會就自動生效，不用配置、不能放進戰鬥技能格（紫色框，只顯示） */var UL=SKORDER.map(function(id){return SKILL[id]}).filter(function(sk){return sk.k==='ultimate'&&skLearned(sk)})[0];
+  h+='<div class="sec">奧義</div>'+(UL?'<div class="skult">'+skIcon(UL)+'<span class="nm3">'+esc(UL.n)+skCost(UL)+'<span class="jtag">'+esc(jobName(UL.j))+' Lv'+UL.lv+'</span><small>'+esc(skDesc(UL))+'<br>學會後自動生效：自動戰鬥 SP 夠就優先施放，手動戰鬥用「奧義」按鈕。</small></span></div>':'<div class="skult lk"><span class="ski bl"></span><span class="nm3">尚未學會奧義<small>二轉職業練到 Lv35 學會；學會後不用配置，自動、手動戰鬥都能用。</small></span></div>');
   h+='<div class="sec" style="display:flex;justify-content:space-between"><span>被動技能</span><span>人物 Lv'+S.lv+'</span></div>';
   D.passive.forEach(function(id,i){if(S.lv>=PSLOT[i])h+=skSlot(i+1,id,'data-a="skpick" data-g="p" data-i="'+i+'"');else h+='<div class="sks lk"><span class="no">'+(i+1)+'</span><span class="ski bl"></span><span class="nm3">未開放<small>人物 Lv'+PSLOT[i]+' 開放</small></span></div>'});
   var dirty=skDirty();h+='<div class="bar"><span class="t">'+esc(skMsg||(dirty?'尚未儲存的變更':'沒有變更'))+'</span><button class="b alt" data-a="skcancel" type="button" '+(dirty?'':'disabled')+'>取消</button><button class="b go" data-a="sksave" type="button" '+(dirty?'':'disabled')+'>儲存</button></div>';

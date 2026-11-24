@@ -617,4 +617,4 @@ skill503,激戰,job21,16,reaction,,,reaction,,,,,,,,,20%機率對物理魔法攻
 skill504,振奮戰吼,job21,20,combat,self,,heal,,,m,,0,,,,恢復自身最大生命 20%，並獲得最大生命 50% 的「振奮護盾」3 回合（再次施放會刷新）,rallyroar,,,0,single,,3,,
 skill505,武器大師,job21,25,passive,,,passive,,,,,,,,,物理攻擊力 +10%、暴擊傷害 +100%,,,,,,,,,
 skill506,血戰無雙,job21,30,combat,enemy_single,random,damage,,,p,,1.1,,,,消耗目前生命 20%（算受到傷害、不會致死），對目標連砍 3 次,bloodrush,3,,1,single,,3,2,
-skill507,狂神降世,job21,35,combat,enemy_single,random_each,damage,,,p,,0.5,,,,奧義：8 次物理攻擊，每一下隨機挑一個敵人,godrage,8,,1,single,,5,4,
+skill507,狂神降世,job21,35,ultimate,enemy_single,random_each,damage,,,p,,0.5,,,,奧義：8 次物理攻擊，每一下隨機挑一個敵人,godrage,8,,1,single,,5,4,

@@ -610,10 +610,13 @@ skill499,斧宗師,passive,,,,,p_atk_rate,0.1,,,,,,weapon02
 skill499,斧宗師,passive,,,,,p_damage_rate,0.05,,,,,,weapon02
 skill500,疾風怒濤,status,怒意,self,4,1,,,,,,,,
 skill502,冠軍戰吼,status,勇冠三軍,ally_all,3,1,,,,,,,,
-skill502,冠軍戰吼,status,恐懼,enemy_all,2,0.5,,,,,,,,
+skill502,冠軍戰吼,status,恐懼,enemy_all,2,0.5,,,,,,,,not_boss
 skill503,激戰,reaction,,attacker,,,counter,1,p_atk,,p,hit_any,0.2,
+skill503,激戰,reaction,戰意,self,3,,apply_status,,,,,,,
 skill504,振奮戰吼,heal,,self,,,,0.2,mhp,,,,,
 skill504,振奮戰吼,status,振奮護盾,self,3,1,,,,,,,,
+skill501,怒戰英豪,passive,,,,,crit_rate,0.2,,,,,,status:怒意|戰意
+skill501,怒戰英豪,passive,,,,,crit_damage_rate,1,,,,,,status:怒意|戰意
 skill505,武器大師,passive,,,,,p_atk_rate,0.1,,,,,,
 skill505,武器大師,passive,,,,,crit_damage_rate,1,,,,,,
 skill506,血戰無雙,cost,,self,,,hp_cur,0.2,,,,,,

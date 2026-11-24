@@ -79,7 +79,7 @@ button{font:inherit;color:inherit}
 .bm-c button em{font-style:normal;font-size:10px;font-weight:900;color:#5ec8ff}.bm-c button.cdn em{color:#ff9a8a}
 .bm-c button.on{background:#a8741e;color:#fff;box-shadow:inset 0 0 0 1px #ffe08a}
 .bm-c button.set::after{content:"›";color:#c8b48a;margin-left:4px}
-.bm-c button.wt{background:#2c4a5a}.bm-c button.au{background:#3a3a3a}
+.bm-c button.wt{background:#2c4a5a}.bm-c button.ult{background:#4a2470;box-shadow:inset 0 1px 0 #8a5ac8}.bm-c button.ult.on{background:#7a3ab8;box-shadow:inset 0 0 0 1px #e0c0ff}.bm-c button.au{background:#3a3a3a}
 .bm-c button[disabled]{opacity:.38;cursor:default}
 .binfo{position:absolute;left:4px;top:4px;z-index:1190;background:rgba(20,12,6,.86);box-shadow:0 0 0 2px #080503,inset 0 0 0 1px #6b4a2a;padding:3px 6px 3px 3px;cursor:pointer;max-width:58%}
 .binfo[hidden]{display:none}
@@ -251,8 +251,8 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=84"></script>
-<script src="../common/skilldesc.js?v=2"></script>
+<script src="engine.js?v=85"></script>
+<script src="../common/skilldesc.js?v=3"></script>
 <script src="tactics.js?v=19"></script>
 <script>
 (function(){
@@ -3778,6 +3778,7 @@ function renderMenu(){var m=$('bmenu');if(!m||!MS)return;var u=MS.u,S=LV.S,p=cre
   var c1=col(),sets=skillSets(u,p);
   item(c1,'攻擊',MS.sk==='atk',null,function(){selSkill('atk')});
   sets.forEach(function(g){var b=item(c1,g.n,MS.set===g.j,'set',function(){MS.set=MS.set===g.j?null:g.j;MS.sk=null;MS.tg=null;LV.hl=null;renderMenu();desc(null)});if(sealed)b.disabled=true});
+  if(u.ult&&ENG.SK[u.ult]){var uk=ENG.SK[u.ult],ucd=S.cdOf(u,uk.id),ub=item(c1,'奧義',MS.sk===uk.id,'ult'+(ucd>0?' cdn':''),function(){MS.set=null;selSkill(uk.id)},ucd>0?'冷卻'+ucd:null);if(!(ucd>0)&&uk.sp){var usq=el('span','sq');for(var uq=0;uq<uk.sp;uq++)usq.appendChild(el('i'));ub.appendChild(usq)}if(!S.canUse(u,uk)||sealed)ub.disabled=true}/* 奧義：學會就有，獨立一顆紫色按鈕（不在技能組裡） */
   item(c1,'待機',false,'wt',function(){liveWait(u)});
   item(c1,'自動',false,'au',function(){liveAct(u,null)});
   if(MS.set){var g=sets.filter(function(x){return x.j===MS.set})[0],c2=col();
@@ -3795,7 +3796,7 @@ function needTg(k){return (k.t==='enemy_single'||k.t==='ally_single')&&k.p!=='ra
 function selSkill(id){var S=LV.S,u=MS.u,k=ENG.SK[id]||ENG.SK.atk;
   if(MS.sk===id&&!needTg(k)){liveAct(u,{sk:id,tg:S.cands(u,id)});return}/* 群體／自身：同一招點第二次才施放 */
   MS.sk=id;MS.tg=null;var C=S.cands(u,id);LV.hl=needTg(k)?null:C.map(function(x){return[x.side,x.i]});
-  if(id==='atk')MS.set=null;renderMenu();desc(k)}
+  if(id==='atk'||k.kind==='ultimate')MS.set=null;renderMenu();desc(k)}
 function selTarget(x){var u=MS.u;if(MS.tg===x){liveAct(u,{sk:MS.sk,tg:[x]});return}MS.tg=x;LV.hl=[[x.side,x.i]];renderMenu()}
 /* 點選單外面：退一步（目標 → 技能 → 技能組）；在最上層就不動 */
 function menuBack(){if(!MS)return;if(MS.tg){MS.tg=null;LV.hl=null}else if(MS.sk){MS.sk=null;LV.hl=null;desc(null)}else if(MS.set){MS.set=null}else return;renderMenu()}
@@ -3974,7 +3975,7 @@ var VTT=null;function vtTree(){if(VTT)return VTT;var T=[],used={};
   var monSk=function(r){var L=[].concat.apply([],[r.skill_1,r.skill_2,r.skill_3,r.skill_4].map(function(x){return String(x||'').split('|')})).map(function(x){return String(x||'').trim()}).filter(function(x,i,a){return x&&x!=='atk'&&ENG.SK[x]&&ENG.SK[x].kind==='combat'&&a.indexOf(x)===i});if(L.indexOf('skill416')>=0&&ENG.SK.skill417)L.push('skill417');/* 鷹揚的後半招「俯衝」也列出來 */return L};
   var tfOf=function(id){var o=[],r0=ENG.mon[id]||{};String(r0.passive||'').split(';').forEach(function(p){(ENG.EFF[p.trim()]||[]).forEach(function(e){if((e.effect==='transform'||e.effect==='enter_summon')&&e.condition&&ENG.mon[e.condition])o.push(e.condition)})});[r0.skill_1,r0.skill_2,r0.skill_3,r0.skill_4].forEach(function(sk){(ENG.EFF[String(sk||'').trim()]||[]).forEach(function(e){if(e.effect_kind==='summon'&&ENG.mon[e.effect])o.push(e.effect)})});return o}/* 變身後的型態、召喚出來的怪 */,withTf=function(ids){var o=[];var add=function(id){if(o.indexOf(id)>=0)return;o.push(id);tfOf(id).forEach(add)};ids.forEach(add);return o}/* 變身後的型態再召喚的怪也接在後面 */;/* 變身後的型態（腐化的鐵腕、亡骸龍）接在本體後面 */
   var monNode=function(id){var r=ENG.mon[id];if(!r||!r.sprite)return null;var L=monSk(r);if(!L.length)return null;used[id]=1;return{n:r.monster_name,sk:L.map(function(s){return[s+'|'+r.sprite,ENG.SK[s].n]})}};
-  var byJ={};Object.keys(ENG.SK).forEach(function(s){var k=ENG.SK[s];if(k.kind!=='combat'||!k.j||k.j==='monster'||s==='atk')return;(byJ[k.j]=byJ[k.j]||[]).push(s)});
+  var byJ={};Object.keys(ENG.SK).forEach(function(s){var k=ENG.SK[s];if((k.kind!=='combat'&&k.kind!=='ultimate')||!k.j||k.j==='monster'||s==='atk')return;(byJ[k.j]=byJ[k.j]||[]).push(s)});
   T.push({n:'職業',kids:Object.keys(byJ).sort().map(function(j){var jn=(JOBI[j]&&JOBI[j].job_name)||j;return{n:jn,sk:byJ[j].sort(function(a,b){return(ENG.SK[a].lv||0)-(ENG.SK[b].lv||0)}).map(function(s){return[s+'|',ENG.SK[s].n]})}})});
   if(window.NPC){var nk=NPC.list().filter(function(n){return n.battle}).map(function(n){var GO=[];n.skills.forEach(function(x){if(GO.indexOf(x.g)<0)GO.push(x.g)});var L=n.skills.filter(function(x){return ENG.SK[x.id]&&ENG.SK[x.id].kind==='combat'}).sort(function(a,b){return GO.indexOf(a.g)-GO.indexOf(b.g)||a.lv-b.lv});return L.length?{n:n.name,sk:L.map(function(x){return[x.id+'|npc:'+n.id,x.g+'・'+ENG.SK[x.id].n+'（Lv'+x.lv+'）']})}:null}).filter(Boolean);if(nk.length)T.push({n:'NPC',kids:nk})}
   T.push({n:'幻獸',kids:[].concat.apply([],BSTMENU).map(function(b){var tp={atk:'攻擊型',def:'生存型',sup:'輔助型'}[b.split('_')[1]];return{n:BST[b].n+(tp?'（'+tp+'）':''),sk:BST[b].sk.map(function(x,i){return['bst:'+b+':'+i,x[0]]})}})});/* 幻獸：名稱 → 幼體技能（從測試角色身旁的幻獸放出） *//* NPC：名稱 → 技能（由 NPC 本人從我方施放） */
