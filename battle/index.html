@@ -2763,7 +2763,7 @@ function brushFx(e,d){if(d<0||d>1500)return;var fa=FXA;FXA=1;var S=brushPts(e);i
    1500～1800 全身金紅光蓄力 → 1800 起 8 下：每 170 毫秒瞬間穿梭到一個敵人身邊砍一道金紅劍氣（榮耀打擊的光斬改金紅色），身後拖金紅殘影
    → 3170 起退回原位 */
 var GODR={cut:1500,hit:1800,gap:170};
-var ULTC={job21:['#2a0402','#b8201a','#ffb040','#fff4c8'],job22:['#14042a','#5a24a8','#c08aff','#f6eaff']};/* 奧義光帶顏色：每個二轉各自一組（暗邊、主色、亮色、高光） */
+var ULTC={job21:['#2a0402','#b8201a','#ffb040','#fff4c8'],job22:['#060c34','#2c44c8','#86a2ff','#eaf0ff']};/* 奧義光帶顏色：每個二轉各自一組（暗邊、主色、亮色、高光） */
 function godrSlot(e,i){var tg=e.tgh&&e.tgh.length?e.tgh:(e.tg||[0]),q=j21Mon(tg[i%tg.length]);if(!q)return null;var sd=i%2?1:-1,R=pfx.width/U-8;return[Math.min(R,q.x+sd*(q.tw*.5+6)),q.gy+(hsh(i,3)-.5)*5,sd>0?1:0,q]}
 function godrAt(e,d){var H=supHome(e);if(!H||d<0||d>3600)return null;if(d<GODR.hit-90)return[H[0],H[1],0];
   var n=Math.min(7,Math.floor((d-(GODR.hit-90))/GODR.gap)),tA=GODR.hit-90+n*GODR.gap,Sn=godrSlot(e,n);if(!Sn)return[H[0],H[1],0];
@@ -2902,7 +2902,7 @@ function dfzFx(side,k,d){if(d<0||d>1100)return;var pp=side==='p'?posOf(k):monPos
 
 /* == 奧義‧精靈真儀 =====
    特寫（0～1500）之後：A 腳下紫色魔法陣旋轉 → B 身前擴大球形魔法陣 → C 敵陣旁四色魔法陣 → D 升起雲氣精靈 → E 精靈眼中射出 8 道光線、中心金光越來越大 → F 全畫面亮白、跳傷害 */
-var APOC={a:0,b:400,c:1000,d:1200,e:1800,f:3000,end:3700};
+var APOC={a:0,b:400,c:1000,d:1200,e:2400,f:3600,end:4300};/* 四靈升起後（約 1900）停一下再射光柱 */
 function j22Circle(x,y,R,sq,rot,cols,a,ticks){if(a<=0||R<1)return;bRing(x,y,R,cols[0],a,sq);bRing(x,y,R*.82,cols[1],a*.85,sq);bRing(x,y,R*.5,cols[0],a*.8,sq);
   var N=ticks||12;for(var i=0;i<N;i++){var an=rot+i/N*6.28,cx=x+Math.cos(an)*R*.91,cy=y+Math.sin(an)*R*.91*sq;VP(cx,cy,cols[2],a);if(i%3===0)bRing(cx,cy,Math.max(1.5,R*.09),cols[1],a*.9,sq)}
   for(var j=0;j<6;j++){var a2=-rot*1.3+j/6*6.28;bLine(x+Math.cos(a2)*R*.5,y+Math.sin(a2)*R*.5*sq,x+Math.cos(a2+2.1)*R*.5,y+Math.sin(a2+2.1)*R*.5*sq,cols[1],a*.6,1)}}/* 中間的六芒星 */
@@ -2918,12 +2918,12 @@ function apocFx(e,d){if(d<0||d>GODR.cut+APOC.end)return;if(!e._snd&&window.Sfx){
   var fa=FXA;FXA=1;var q=d-GODR.cut,H=supHome(e),T=(e.tg||[]).map(j21Mon).filter(Boolean);
   if(q>=0&&H&&T.length){var cx=T.reduce(function(s,v){return s+v.x},0)/T.length,cgy=T.reduce(function(s,v){return s+v.gy},0)/T.length,cy=cgy-16,minX=Math.min.apply(null,T.map(function(v){return v.x-v.tw/2})),maxX=Math.max.apply(null,T.map(function(v){return v.x+v.tw/2}));
     var fadeAll=q<APOC.f?1:Math.max(0,1-(q-APOC.f)/300);
-    /* A：腳下紫色魔法陣 */
-    var aa=Math.min(1,q/250)*fadeAll;j22Circle(H[0],H[1],lerp(6,30,ease(Math.min(1,q/400))),.32,q/400,['#d8a8ff','#8a4ae0','#ffffff'],aa,12);glowAt(H[0],H[1],26,'rgba(200,140,255,.4)','rgba(90,30,180,.15)',aa*.8);
+    /* A：腳下藍紫色魔法陣 */
+    var aa=Math.min(1,q/250)*fadeAll;j22Circle(H[0],H[1],lerp(6,30,ease(Math.min(1,q/400))),.32,q/400,['#aebcff','#4a5ee8','#ffffff'],aa,12);glowAt(H[0],H[1],26,'rgba(140,165,255,.4)','rgba(40,60,190,.15)',aa*.8);
     /* B：身前球形魔法陣 */
     if(q>=APOC.b){var sk2=ease(Math.min(1,(q-APOC.b)/900)),SW=pfx.width/U,SH=pfx.height/U;j22Sphere(lerp(H[0]+26,SW*.5,sk2),lerp(H[1]-20,SH*.5,sk2),lerp(4,Math.hypot(SW,SH)*.55,sk2),q,Math.min(1,(q-APOC.b)/200)*fadeAll*(1-sk2*.35))}/* 球形光陣從身前一路擴大到包住整個戰場 */
     /* C：敵陣四角四色魔法陣 → D：升起雲氣精靈 */
-    var WR=pfx.width/U-16,spots=[[minX-6,cgy-2,'fire'],[Math.min(WR,maxX+4),cgy-2,'frost'],[minX+8,cgy+8,'wind'],[Math.min(WR-6,maxX-8),cgy+8,'lightning']],eyes=[];
+    var WR=pfx.width/U-16,mid=(H[0]+minX)/2,spots=[[mid+8,cgy-4,'fire'],[Math.min(WR,maxX+8),cgy-4,'frost'],[mid,cgy+8,'wind'],[Math.min(WR-8,maxX-2),cgy+8,'lightning']],eyes=[];/* 火、風站在主角和敵人中間；冰、雷站在敵陣後方 */
     if(q>=APOC.c)spots.forEach(function(s,n){var P=J22P[s[2]],ca=Math.min(1,(q-APOC.c-n*60)/200)*fadeAll;if(ca<=0)return;j22Circle(s[0],s[1],14,.3,q/500*(n%2?1:-1),[P[3],P[2],P[4]],ca,8);
       if(q>=APOC.d){var g=ease(Math.min(1,(q-APOC.d-n*60)/500)),gs=Math.max(.2,g*1.8),sy=s[1]-4-g*26;j22Spirit(s[0],sy,s[2],gs,q,ca);eyes.push([s[0]-3,sy-8*gs,s[2]],[s[0]+3,sy-8*gs,s[2]])}});
     /* E：8 道四色光線持續射向中心，中心金光越來越大 */
@@ -4178,7 +4178,7 @@ function vtUI(){var h='<div class="vt"><div class="vth">音效（點一下試聽
 function vtSync(){function on(id,f){[].forEach.call(document.querySelectorAll('#'+id+' button'),function(b){b.classList.toggle('on',f(b))})}
   on('vtw',function(b){return b.dataset.w===VT.w});on('vte',function(b){return b.dataset.e===VT.el});on('vtk',function(b){var k=b.dataset.k;return k==='atk'?(VT.atk&&VT.kind==='damage'):(!(VT.atk&&VT.kind==='damage')&&k===VT.kind)});on('vtm',function(b){return b.dataset.m===VT.mon});on('vts',function(b){return !!VT.st[b.dataset.s]});on('vta',function(b){return b.dataset.aa?VT.auAlly:!!VT.au[b.dataset.au]});on('vtk2',function(b){return b.dataset.sheep?!!VT.sheep:b.dataset.k===VT.kind});on('vtk3',function(b){return b.dataset.k===VT.kind})}
 function vtStart(){$('loading').remove();renderTabs();view='battle';$('mapv').hidden=true;$('batv').hidden=false;$('bhead').textContent='特效測試';setBG('A');vtBuild();vtUI();lastNow=performance.now();
-  (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>(VT.kind==='mrebirth'?TFLEN+500:VT.kind==='jcorrupt'||VT.kind==='pdemon'?BLDLEN+900:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='ldash'?2200:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='supreme'?2500:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='firedragon'?2000:VT.sk==='skill465'?2000:VT.sk==='skill489'?3400:VT.sk==='skill490'||VT.sk==='skill492'||VT.sk==='skill488'?2300:VT.sk==='skill469'||VT.sk==='skill472'?2300:VT.sk&&SKN[VT.sk]&&(SKN[VT.sk].vfx==='fslam'||SKN[VT.sk].vfx==='fflash')?2000:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='astral'?3100:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='glorystrike'?2200:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='godrage'?4400:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='apocalypse'?6200:VT.sk&&SKN[VT.sk]&&['blazepillar','thunderroar','vortex','glacierspike','chaosstorm'].indexOf(SKN[VT.sk].vfx)>=0?2300:VT.kind==='dfz'?1900:VT.kind==='relc'?1500:VT.sk&&SKN[VT.sk]&&['fearless','ragewhirl','champroar','rallyroar','bloodrush'].indexOf(SKN[VT.sk].vfx)>=0?2300:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='frenzyhammer'?2000:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='throatcut'?2100:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='execute'?2100:VT.bst?2300:VT.ast?2400:1300)){VT.lastT=t;VT.ast=null;vtFire(t)}/* 會附加狀態的招式放慢一點，狀態多停一下 */}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
+  (function loop(){if(B){var t=performance.now()-B.t0;if(t-VT.lastT>(VT.kind==='mrebirth'?TFLEN+500:VT.kind==='jcorrupt'||VT.kind==='pdemon'?BLDLEN+900:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='ldash'?2200:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='supreme'?2500:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='firedragon'?2000:VT.sk==='skill465'?2000:VT.sk==='skill489'?3400:VT.sk==='skill490'||VT.sk==='skill492'||VT.sk==='skill488'?2300:VT.sk==='skill469'||VT.sk==='skill472'?2300:VT.sk&&SKN[VT.sk]&&(SKN[VT.sk].vfx==='fslam'||SKN[VT.sk].vfx==='fflash')?2000:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='astral'?3100:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='glorystrike'?2200:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='godrage'?4400:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='apocalypse'?6800:VT.sk&&SKN[VT.sk]&&['blazepillar','thunderroar','vortex','glacierspike','chaosstorm'].indexOf(SKN[VT.sk].vfx)>=0?2300:VT.kind==='dfz'?1900:VT.kind==='relc'?1500:VT.sk&&SKN[VT.sk]&&['fearless','ragewhirl','champroar','rallyroar','bloodrush'].indexOf(SKN[VT.sk].vfx)>=0?2300:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='frenzyhammer'?2000:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='throatcut'?2100:VT.sk&&SKN[VT.sk]&&SKN[VT.sk].vfx==='execute'?2100:VT.bst?2300:VT.ast?2400:1300)){VT.lastT=t;VT.ast=null;vtFire(t)}/* 會附加狀態的招式放慢一點，狀態多停一下 */}setTimeout(loop,100)})();if(!raf)raf=requestAnimationFrame(tick)}
 /* 牛皮紙紋理（跟營地的視窗一樣） */
 try{document.body.style.setProperty('--kraft',(function(){var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');var sd=61;function r(){sd=(sd*9301+49297)%233280;return sd/233280}for(var i=0;i<170;i++){x.fillStyle=r()<.5?'rgba(70,40,15,.20)':'rgba(255,225,180,.16)';x.fillRect(Math.floor(r()*48),Math.floor(r()*48),1,1)}for(var j=0;j<14;j++){x.fillStyle='rgba(60,32,12,.22)';var fx=Math.floor(r()*48),fy=Math.floor(r()*48),L=3+Math.floor(r()*6);for(var q=0;q<L;q++)x.fillRect((fx+q)%48,(fy+(q>>1))%48,1,1)}return 'url('+c.toDataURL()+')'})())}catch(e){}
 var demo=/[?&]demo=\d/.test(location.search),TACT=/[?&]tactics=1/.test(location.search),MANUAL=!/[?&]manual=0/.test(location.search)/* SP 制度＋手動戰鬥：正式開放（網址加 ?manual=0 回到舊版自動戰鬥） */,VFXT=/[?&]vfx=1/.test(location.search);
