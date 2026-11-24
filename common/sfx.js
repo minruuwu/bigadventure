@@ -8,11 +8,11 @@
   var AC = null, master = null, NB = null, last = { t: 0, pr: -1 };
   var LIST = [['slash', '斬擊'], ['stab', '刺擊'], ['blunt', '打擊'], ['claw', '怪物爪擊'], ['shoot', '射擊'], ['magic', '無屬性魔法（書杖普攻、祕法飛彈）'], ['spell', '無屬性法術'],
     ['fire', '火焰'], ['frost', '冰霜'], ['lightning', '雷電'], ['wind', '疾風'], ['nature', '自然'], ['light', '光明'], ['dark', '黑暗'],
-    ['crit', '暴擊'], ['boom', '爆炸'], ['howl_wolf', '狼嚎'], ['howl_ghost', '女妖嚎叫'], ['miss', '閃開'], ['block', '擋下'], ['buff', '正面'], ['debuff', '負面'], ['heal', '恢復'], ['death', '倒下'], ['revive', '復活']];
+    ['crit', '暴擊'], ['boom', '爆炸'], ['howl_wolf', '狼嚎'], ['howl_ghost', '女妖嚎叫'], ['miss', '閃開'], ['block', '擋下'], ['buff', '正面'], ['debuff', '負面'], ['heal', '恢復'], ['death', '倒下'], ['revive', '復活'], ['ult', '奧義（坑＋發光）']];
   /* 各音效的音量校正（讓聽起來差不多大聲；暴擊、倒下稍大） */
   var GAIN = { slash: 2.8, stab: 1.8, blunt: 0.7, shoot: 1.6, magic: 1.8, fire: 1.6, wind: 6, nature: 1, light: 1, dark: 0.7, crit: 1, miss: 6, block: 1.1, buff: 2.2, debuff: 1.4, heal: 1.2, death: 0.9, revive: 0.8, frost: 1, lightning: 1 };
   function run(name, t) { var m = master, o = AC.createGain(); o.gain.value = GAIN[name] || 1; o.connect(m); master = o; try { S[name](t) } finally { master = m } }
-  var PRI = { crit: 3, boom: 3, howl_wolf: 3, howl_ghost: 3, fire: 2, frost: 2, lightning: 2, wind: 2, nature: 2, light: 2, dark: 2, death: 2, revive: 2 };
+  var PRI = { ult: 4, crit: 3, boom: 3, howl_wolf: 3, howl_ghost: 3, fire: 2, frost: 2, lightning: 2, wind: 2, nature: 2, light: 2, dark: 2, death: 2, revive: 2 };
   function ls(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v } catch (e) { return d } }
   function isOn() { return ls('sfx.on', '0') === '1' }
   function vol() { var v = parseFloat(ls('sfx.vol', '0.6')); return isNaN(v) ? 0.6 : Math.max(0, Math.min(1, v)) }
@@ -56,6 +56,10 @@
     debuff: function (t) { [659, 587, 523, 415].forEach(function (f, i) { tone('triangle', f, f * 0.97, t + i * 0.07, 0.16, 0.2) }); var o = tone('sawtooth', 130, 90, t, 0.4, 0.1, 0.05) },
     heal: function (t) { bell(N.E6, t, 0.5, 0.15); bell(N.A6, t + 0.1, 0.6, 0.15); for (var i = 0; i < 4; i++) { var f = 2500 + Math.random() * 1500; tone('sine', f, f, t + 0.15 + i * 0.06, 0.12, 0.04) } },
     death: function (t) { tone('square', 420, 55, t, 0.5, 0.15, 0.005); tone('triangle', 300, 40, t, 0.55, 0.2); noise(t + 0.45, 0.15, 0.4, 'lowpass', 500, 150, 0.7, 0.003); tone('sine', 90, 40, t + 0.45, 0.2, 0.4) },
+    /* 奧義：低沉的「坑」一聲＋往上爬的發光嘶嘶聲與高音鈴 */
+    ult: function (t) { tone('sine', 120, 36, t, 0.75, 0.95, 0.003); tone('square', 240, 60, t, 0.16, 0.12, 0.002); noise(t, 0.28, 0.7, 'lowpass', 2000, 180, 0.8, 0.002);
+      noise(t + 0.06, 1.1, 0.16, 'highpass', 3500, 9000, 0.7, 0.3); tone('sine', 330, 1500, t + 0.06, 0.7, 0.07, 0.25);
+      [N.E6, N.A6, N.C7, N.E6 * 2].forEach(function (f, i) { bell(f, t + 0.12 + i * 0.07, 1.3, 0.08) }) },
     revive: function (t) { tone('sine', 260, 1300, t, 0.5, 0.2, 0.05); [N.C6, N.E6, N.G6].forEach(function (f, i) { bell(f, t + 0.35 + i * 0.03, 0.9, 0.12) }); noise(t + 0.3, 0.6, 0.08, 'highpass', 6000, 9000, 0.7, 0.1) }
   };
   /* 有音效檔的就播檔案（assets/sfx/<名稱>.mp3，先解碼好才播得即時）；沒有的才用合成的 */

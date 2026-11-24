@@ -411,3 +411,8 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 暗金星輝,buff,crit_rate,0.15,,,,
 暗金星輝,buff,dark_res_rate,0.3,,,,
 黑曜七星,buff,obsidian,0.2,,,,七顆黑曜星：每受到一次傷害消耗一顆，讓該次傷害 −20%；每受到一個負面狀態消耗一顆抵銷
+無畏,buff,p_reduce_rate,0.15,,,,物理減傷 +15%、免疫控制狀態（暈眩、麻痺、睡眠、混亂、魅惑、凍結、石化、恐懼等；封禁、放逐、被吞噬不擋）
+無畏,buff,cc_block,,,,,
+勇冠三軍,buff,p_damage_rate,0.2,,,,物理、魔法增傷 +20%
+勇冠三軍,buff,m_damage_rate,0.2,,,,
+振奮護盾,buff,shield,0.5,mhp,,,護盾吸收傷害：數值為最大生命 50%
