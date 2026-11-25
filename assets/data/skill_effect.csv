@@ -656,3 +656,16 @@ skill535,神恩迴向,passive,,,,,sp_support,0.3,,,,,,
 skill536,律令：破邪,dispel,,,,,,,,,,,,
 skill537,至聖神蹟,cleanse,,ally_all,,,,,,,,,,
 skill537,至聖神蹟,bonus,,,,,revive_all,0.35,,,,,,
+skill538,創生：真理稜鏡,summon_prism,,,,,,0.7,,,,,,
+skill538,創生：真理稜鏡,use_if,,,,,prism_need,0.5,,,,,,
+skill539,書本鑽研,passive,,,,,m_atk_rate,0.1,,,,,,weapon08
+skill539,書本鑽研,passive,,,,,crit_damage_rate,0.5,,,,,,weapon08
+skill540,鍊成：熔解反應,bonus,,,,,melt,1,,,,,,
+skill541,赤紅提煉,passive,,,,,red_refine,0.4,,,,,,
+skill542,創生：天球秘儀,status,天球秘儀,ally_all,3,1,,,,,,,,
+skill542,創生：天球秘儀,bonus,,,,,orb_charges,4,,,,,,
+skill542,創生：天球秘儀,use_if,天球秘儀,,,,lacks_status,,,,,,,
+skill543,創生：黃金造物,reaction,,self,,,gold_clone,0.5,,,,damaged,0.2,
+skill544,鍊成：秘銀光刃,status,易傷,enemy_all,2,1,,,,,,,,
+skill545,轉化：等價交換,passive,,,,,eq_exchange,0.05,,,,,,
+skill547,質量崩解,bonus,,,,,dmg_per_debuff,0.1,,,,,,max0.6

@@ -462,3 +462,10 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 神威,buff,p_reduce_rate,0.1,,,,
 神威,buff,m_reduce_rate,0.1,,,,
 神威,buff,undying1,,,,,
+熔蝕,debuff,fire_res_rate,-0.1,,,,每層火焰抗性 −10%（真理稜鏡的紅寶石射線；每層各自計時、可疊加、可到負數）
+熔蝕,debuff,each,,,,,
+等價交換,buff,m_atk_rate,0.05,,,,每層魔法攻擊力 +5%（每消耗 1 SP 疊一層，各自計時）
+等價交換,buff,each,,,,,
+天球秘儀,buff,orb_red,0.5,,,,受到敵人攻擊的傷害 −50%，每次攻擊碎一層（共 4 層）；護盾還在時免疫新的負面狀態；不可驅散
+天球秘儀,buff,debuff_block,,,,,
+天球秘儀,buff,no_dispel,,,,,

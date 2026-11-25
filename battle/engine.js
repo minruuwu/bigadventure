@@ -109,7 +109,7 @@
       if (e.condition && /^weapon/.test(e.condition) && e.condition !== ws) return;
       var v = num(e.value);
       if (/^status:/.test(e.condition || '')) { cpas.push({ id: id, k: e.effect, v: v, sts: e.condition.slice(7).split('|').map(function (x) { return x.trim() }).filter(Boolean) }); return } /* 怒戰英豪：condition = status:怒意|戰意，身上有其中一個才算（同一招只算一次） */
-      if (e.trigger || ['revive_self', 'forge_bonus', 'exp_bonus', 'apply_status', 'elem_orb', 'deep_freeze', 'sp_elem', 'crit_wind', 'prey_mark', 'over_grace', 'holy_stack', 'sp_support'].indexOf(e.effect) >= 0) { special.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type, tg: e.target }); return }
+      if (e.trigger || ['revive_self', 'forge_bonus', 'exp_bonus', 'apply_status', 'elem_orb', 'deep_freeze', 'sp_elem', 'crit_wind', 'prey_mark', 'over_grace', 'holy_stack', 'sp_support', 'red_refine', 'eq_exchange'].indexOf(e.effect) >= 0) { special.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type, tg: e.target }); return }
       self[e.effect] = (self[e.effect] || 0) + v;
       if (e.target === 'ally_all') aura.push({ id: id, k: e.effect, v: v });
       else if (['lifesteal', 'extra_dmg', 'heal_echo', 'auto_cleanse'].indexOf(e.effect) >= 0) special.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
@@ -262,7 +262,7 @@
     var duo = P.length === 2 && !P[0].lone && !P[1].lone;
     if (duo) P.forEach(function (Q) { Q.lone = true; Q.b.mhp = Math.round(Q.b.mhp * 1.5); Q.b.patk = Math.round(Q.b.patk * 1.5); Q.b.matk = Math.round(Q.b.matk * 1.5) });
     P.forEach(function (u) { if (u.ult) u.ug = 0 }); /* 奧義值：開場 0、滿 100 */
-    U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = RV(D, 'rune18', 0, 0.5, u) });
+    U.forEach(function (u) { u.hp = u.b.mhp; u.st = []; u.cy = (u.side === 'm' && u.cycle && u.cycle.length) ? Math.floor(Math.random() * u.cycle.length) : 0; /* 怪物從技能循環的隨機一格開始放 */ u.dead = false; u.used = {}; u.flags = {}; u.dragon = RV(D, 'rune18', 0, 0.5, u); u.prism = null; u.clone = null });
     P.forEach(function (u) { if (u.special && u.special.some(function (x) { return x.k === 'deep_freeze' })) applyStatus(u, u, '深層凍結', 30, 1, null) }); /* 深層凍結：開戰就掛上（整場） */
     /* 靈氣：同一招只算一次，套到同陣營每個人（自己的已算在基礎值） */
     var auraSeen = {};
@@ -279,7 +279,7 @@
       var b = u.b;
       switch (k) {
         case 'patk': return (b.patk + apaAdj(u, 'pB') + sv(u, 'atk_flat') /* 星夜掠奪：偷來的攻擊力 */) * (1 + sv(u, 'p_atk_rate') + 0.5 * sv(u, 'str_rate') + (u.hstk ? u.hstk * u.hstkV : 0) /* 苦修 */ + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
-        case 'matk': return (b.matk + apaAdj(u, 'mB') + sv(u, 'atk_flat')) * (1 + sv(u, 'm_atk_rate') + 0.5 * sv(u, 'int_rate') + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
+        case 'matk': return (b.matk + apaAdj(u, 'mB') + sv(u, 'atk_flat')) * (1 + sv(u, 'm_atk_rate') + (u.clone && u.mst && u.mst.gold_requiem ? u.mst.gold_requiem.v : 0) /* 黃金鎮魂曲：分身在場魔攻 +15% */ + 0.5 * sv(u, 'int_rate') + (u.fstk ? u.fstk * u.fstkV : 0) /* 墮天 */ + (u.runes.indexOf('rune18') >= 0 ? u.dragon : 0));
         case 'pdmg': return b.pdmg + sv(u, 'p_damage_rate') + auraVal(u, 'p_damage_rate');
         case 'mdmg': return b.mdmg + sv(u, 'm_damage_rate') + auraVal(u, 'm_damage_rate');
         case 'pred': if (sv(u, 'zero_red')) return 0; /* 汽化：減傷歸零 */ return b.pred + sv(u, 'p_reduce_rate') + auraVal(u, 'p_reduce_rate') - acidRed(u);
@@ -310,7 +310,7 @@
       if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h, bx: NC && !c.tr && banishedOnly(d) ? 1 : 0 }) }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n === '聖光' ? '聖光|' + (s.stk || 1) : s.n }) }
-    function hpSnap() { P.forEach(mhpSync); return { pm: P.map(function (u) { return u.b.mhp }), ob: P.map(function (u) { var o = obsOf(u); return o ? o.obs : null }), p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null, hbp: P.map(hbN), hbm: M.map(hbN), ug: P.map(function (u) { return u.ult ? u.ug | 0 : -1 }) } }
+    function hpSnap() { P.forEach(mhpSync); return { pm: P.map(function (u) { return u.b.mhp }), ob: P.map(function (u) { var o = obsOf(u); return o ? o.obs : null }), p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null, hbp: P.map(hbN), hbm: M.map(hbN), ug: P.map(function (u) { return u.ult ? u.ug | 0 : -1 }), pz: P.map(function (u) { return u.prism && !u.dead ? [Math.max(0, Math.round(u.prism.hp)), u.prism.mhp] : 0 }), gc: P.map(function (u) { return u.clone && !u.dead ? [Math.max(0, Math.round(u.clone.hp)), u.clone.mhp] : 0 }), orb: P.map(function (u) { var q = u.dead ? null : u.st.filter(function (x) { return x.orb && !x.paused })[0]; return q ? q.orb.n : 0 }) } }
     function hbN(u) { return u.dead ? 0 : u.st.reduce(function (a, s) { return a + (!s.paused && s.hb > 0 ? s.hb : 0) }, 0) } /* 聖堂守勢剩幾面盾（畫面用） */
     function addStat(e, u, kind, v, sk) { if (u.side !== 'p' || !v) return; (e.st = e.st || []).push([u.i, kind, Math.round(v), sk]) }
 
@@ -401,6 +401,7 @@
     }
     function choose(list, pick, stn) {
       if (pick === 'boss_high') { var bl = list.filter(function (x) { return x.boss }); return (bl.length ? bl : list).reduce(function (b, x) { return x.hp > b.hp ? x : b }) } /* 王獵閃光：優先打王，沒有王打血最多的 */
+      if (pick === 'boss_debuff') { var bl2 = list.filter(function (x) { return x.boss }); if (bl2.length) return bl2.reduce(function (b, x) { return x.hp > b.hp ? x : b }); var mx = Math.max.apply(null, list.map(function (x) { return debuffs(x).length })); return pickOne(list.filter(function (x) { return debuffs(x).length === mx })) } /* 質量崩解：優先打王，沒有王打負面狀態最多的 */
       if (pick === 'lowest_hp') return list.reduce(function (b, x) { return x.hp / x.b.mhp < b.hp / b.b.mhp ? x : b }, list[0]);
       if (pick === 'prefer_without_status' && stn) { var w = list.filter(function (x) { return !x.st.some(function (s) { return s.n === stn }) }); if (w.length) return pickOne(w) }
       if (pick === 'prefer_with_debuff') { var d = list.filter(function (x) { return debuffs(x).length }); if (d.length) return pickOne(d) }
@@ -427,13 +428,13 @@
         var atk = x.d === 'm' ? stat(a, 'matk') : stat(a, 'patk'), inc = x.d === 'm' ? stat(a, 'mdmg') : stat(a, 'pdmg'), red = x.d === 'm' ? stat(d, 'mred') : stat(d, 'pred');
         if (o.redPierce && red > 0) red = Math.max(0, red - o.redPierce); /* 無視減傷（爆炎轟 20%、裂空俯衝全部）：只扣掉正的減傷 */
         var rs0 = resOf(d, x.e); if (x.e === 'wind') rs0 = windIgn(a, d, rs0); if (o.resIgnore && rs0 > 0) rs0 = 0; /* 無視屬性抗性（爆炎轟）：正的抗性當作 0 */
-        var v = atk * x.r * (1 + inc) * (1 + sv(a, 'next_dmg')) /* 晶角共鳴：下一次傷害 ×1.5 */ * (1 - Math.min(red, 0.9)) * (1 - Math.min(rs0 - (x.e ? (o.resPierce || 0) : 0), rs0 >= 1 ? 1 : 0.9)) /* 抗性 100%（褻瀆之光的暗）= 完全免疫 */ * (1 + sv(d, 'dmg_taken_rate') + sv(d, x.d === 'm' ? 'm_dmg_taken_rate' : 'p_dmg_taken_rate')) * cm * (o.mult || 1) * (x.d === 'm' && d.special ? d.special.reduce(function (t9, p9) { return p9.k === 'm_taken' ? t9 * (1 + p9.v) : t9 }, 1) : 1) /* 龍鱗 */ * (0.95 + RND() * 0.1) * (a._ebst && x.e && a._ebst[x.e] ? 1 + a._ebst[x.e] : 1) /* 精靈共鳴：該屬性 +40% */ * (x.e === 'light' && a._holy ? 1 + a._holy : 1) /* 聖光蓄能 */;
+        var v = atk * x.r * (1 + inc) * (1 + sv(a, 'next_dmg')) /* 晶角共鳴：下一次傷害 ×1.5 */ * (1 - Math.min(red, 0.9)) * (1 - Math.min(rs0 - (x.e ? (o.resPierce || 0) : 0), rs0 >= 1 ? 1 : 0.9)) /* 抗性 100%（褻瀆之光的暗）= 完全免疫 */ * (1 + sv(d, 'dmg_taken_rate') + sv(d, x.d === 'm' ? 'm_dmg_taken_rate' : 'p_dmg_taken_rate')) * cm * (o.mult || 1) * (x.d === 'm' && d.special ? d.special.reduce(function (t9, p9) { return p9.k === 'm_taken' ? t9 * (1 + p9.v) : t9 }, 1) : 1) /* 龍鱗 */ * (a.side !== d.side ? 1 - Math.min(sv(d, 'orb_red'), 0.9) : 1) /* 天球秘儀：敵人攻擊 −50% */ * (0.95 + RND() * 0.1) * (a._ebst && x.e && a._ebst[x.e] ? 1 + a._ebst[x.e] : 1) /* 精靈共鳴：該屬性 +40% */ * (x.e === 'light' && a._holy ? 1 + a._holy : 1) /* 聖光蓄能 */;
         if (re && re.refl) re.reflAmt = (re.reflAmt || 0) + v * re.refl;
         if (re && re.reduce) v *= 1 - re.reduce;
         byEl[x.e] = (byEl[x.e] || 0) + v; tot += v;
       });
       if (re && re.absorb) { var ab = 0; re.absorb.forEach(function (el) { ab += byEl[el] || 0 }); if (ab > 0) { tot -= ab; r.absorbed = Math.round(ab); heal(d, d, ab, null, true) } }
-      r.amt = Math.max(tot > 0 ? 1 : 0, Math.round(tot)); r.re = re;
+      r.amt = Math.max(tot > 0 ? 1 : 0, Math.round(tot)); r.re = re; if (r.amt > 0 && a.side !== d.side) orbMark(d);
       return r;
     }
     /* 風勢：每層無視風抗 v，只抵銷「原本的」風抗（最低到 0）；負面狀態的減抗（縛風）另外再扣 */
@@ -476,6 +477,7 @@
       /* 不滅供奉：自己以外還有同伴活著時，不受持續傷害、最少留 1 滴血 */
       var undy = d.special && d.special.some(function (x) { return x.k === 'offering' }) /* 不滅供奉（不要跟骨兵的 undying 搞混） */ && (d.side === 'm' ? M : P).some(function (x) { return x !== d && !x.dead });
       if (undy && dot) return 0;
+      if (!dot && d.side === 'p' && d.clone && src && src.side !== d.side && amt > 0) { amt = cloneTake(d, amt); if (amt <= 0) return 0 } /* 黃金分身：先替本尊承受 */
       /* 牧羊權柄：被指定為羔羊的同伴替施放者扛一半傷害 */
       if (amt > 1 && !dot) { var lamb = (d.side === 'm' ? M : P).filter(function (x) { return x !== d && !x.dead && x.st.some(function (q) { return q.lamb && q.src === d }) })[0];
         if (lamb) { var half = Math.floor(amt / 2); amt -= half; var lt = hurt(lamb, half, src, true); var le = ev[ev.length - 1]; if (le) { (le.lamb = le.lamb || []).push([d.i, lamb.i]); if (lt) (le._x = le._x || []).push(lamb.name + ' 替 ' + d.name + ' 承受 ' + lt + ' 傷害') } if (lamb.hp <= 0 && !lamb.dead) checkDeath(lamb, le) } }
@@ -514,7 +516,7 @@
       t.hp += real; if (real > 0) numAdd(t, real, 'h', { ls: NC && NC.ls, h: NC && NC.h }); if (real > 0 && src !== t && t.hp >= t.b.mhp * 0.8 && t.st.some(function (s) { return s.dcurse })) t.st = t.st.filter(function (s) { return !s.dcurse }); /* 死之詛咒：被別人補血、補到 80% 以上才解除（自己身上的回復被動不算） */ return real;
     }
     /* 技能使用條件（skill_effect 的 use_if）：hp_below = 生命比例低於 value 才能用、hp_above = 高於 value 才能用、not_full = 場上活著的怪少於 value 隻才能用（呼喚同伴滿了改普攻） */
-    function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'has_other' ? friends(u).some(function (x) { return x !== u && !x.dead }) : r.effect === 'lacks_status' ? !u.st.some(function (q) { return q.n === r.status_name }) /* 身上已經有這個狀態就不放（自燃） */ : r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : r.effect === 'ally_below' ? (u.side === 'm' ? M : P).some(function (m) { return !m.dead && m.hp / Math.max(1, m.b.mhp) < v }) /* 有同伴（含自己）生命低於 v 才放（天使史萊姆的群體治療） */ : true }) }
+    function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'prism_need' ? (!u.prism || u.prism.hp < u.prism.mhp * (v || 0.5)) : r.effect === 'has_other' ? friends(u).some(function (x) { return x !== u && !x.dead }) : r.effect === 'lacks_status' ? !u.st.some(function (q) { return q.n === r.status_name }) /* 身上已經有這個狀態就不放（自燃） */ : r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : r.effect === 'ally_below' ? (u.side === 'm' ? M : P).some(function (m) { return !m.dead && m.hp / Math.max(1, m.b.mhp) < v }) /* 有同伴（含自己）生命低於 v 才放（天使史萊姆的群體治療） */ : true }) }
     function morph(u, mid) { morphUnit(u, mid, D); if (u.cycle && u.cycle.length) u.cy = Math.floor(RND() * u.cycle.length) /* 重生後從隨機一招開始 */ }
     /* 永冬誓言（被動 summon_hp）：生命第一次掉到 value 比例以下時，召喚 condition 那隻怪上場（每場一次） */
     /* 叫一隻怪上場（跟召喚者同樣的生命／攻擊倍率），回傳新的怪 */
@@ -565,7 +567,8 @@
       if (sf && (u.souls || []).length) { var sv0 = u.souls.shift(); u.hp = Math.max(1, Math.round(u.b.mhp * sf.v)); if (e) (e.hz = e.hz || []).push(u.i); /* 打倒他的那一招：血條先歸零 */ reQ.push([u, sv0, u.souls.length, u.hp]); return false } /* 火焰獻祭：吞一顆魂火復活，狀態保留 */
       var g = u.special.filter(function (x) { return x.k === 'revive_self' })[0];
       if (g && !u.flags.grace) { u.flags.grace = 1; if (RND() < g.ch) { revive(u, g.v, D.SK[g.id] ? D.SK[g.id].n : '神恩', e, 1); return false } }
-      u.dead = true; u.st = [];
+      u.dead = true; u.st = []; u.prism = null; u.clone = null; /* 本尊倒下：稜鏡、分身一起消失 */
+      redRefine(e, u.side, u.i);
       if (u.side === 'm' && (u.special || []).some(function (x) { return x.k === 'death_boom' })) booms.push(u);
       if (u.side === 'm') { u.sun = null; M.forEach(function (o) { if (o !== u && !o.dead && (o.special || []).some(function (x) { return x.k === 'soul_feast' })) soulQ.push([o, u]) }) } /* 火焰獻祭：等這一招結算完才變成魂火 */ /* 烈焰殉爆：等這一招結算完再炸 */
       if (u.side === 'm' && u._lh && u._lh.side === 'p' && !u._lh.dead) ugAdd(u._lh, 20); /* 奧義值：擊倒 +20 */
@@ -689,6 +692,7 @@
       }
       hl.forEach(function (q) { if (d.dead) return; var h = num(q.value) * (q.base === 'p_atk' ? stat(d, 'patk') : stat(d, 'matk')), c = RND() < stat(d, 'crit'); h *= (1 + d.b.heal) * (c ? 1 + stat(d, 'cdmg') : 1); var got = heal(d, d, h); if (got) { r.txt += '，' + d.name + (c ? ' 暴擊！' : ' ') + '恢復 ' + got + ' 生命'; addStat(r, d, 'heal', got, re.name) } });
       if (re.reflAmt > 0 && !a.dead && a.hp > 0) { NC = { el: 'light', dt: 'm', tr: 1 }; var rfl = hurt(a, Math.max(1, Math.round(re.reflAmt)), d); r.txt += '，反彈 ' + rfl + ' 傷害給 ' + a.name; r.refl = 1; addStat(r, d, 'dmg', rfl, re.name); addStat(r, a, 'taken', rfl, d.name + ' ' + re.name); checkDeath(a, r) } /* 聖鏡反照：反彈這次傷害（減傷前）的 70% */
+      re.post.forEach(function (q) { if (q.effect !== 'gold_clone' || d.dead) return; var mh = Math.max(1, Math.round(d.b.mhp * (num(q.value) || 0.5))); if (d.clone) { d.clone.mhp = mh; d.clone.hp = mh; r.txt += '，黃金分身補滿（' + mh + ' 生命）' } else { d.clone = { hp: mh, mhp: mh }; r.txt += '，在身前創造黃金分身（' + mh + ' 生命）' } r.gcS = [d.i]; r.rk = 'buff' }); /* 黃金造物 */
       sts.forEach(function (q) { if (q.condition === 'on_hit' && !r._land) return; /* 風纏箭：反擊打中才附加 */ if (!a.dead && applyStatus(d, a, q.status_name, q.turns, 1, r)) r.dring = 1 }); delete r._land;
       flushSt(r); flushRel(r); r.hp = hpSnap();
     }
@@ -798,12 +802,13 @@
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」'; if (sk.kind === 'ultimate') { e.ult = 1; e.txt = u.name + ' 發動奧義「' + sk.n + '」'; u.ug = 0 } else if (u.side === 'p') ugAdd(u, 10) /* 奧義值：自己每次行動 +10 */
       if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）';
         /* 職業精通：巧手回收（自己 SP +1）、餘韻（隨機一名同伴 SP +1），只算消耗 SP 的技能 */
+        if (sk.sp > 0 && u.special.some(function (x) { return x.k === 'eq_exchange' })) { for (var q7 = 0; q7 < sk.sp; q7++) applyStatus(u, u, '等價交換', 4, 1, null); e.eqx = [u.i, sk.sp | 0]; e._spm = (e._spm || []).concat('「轉化：等價交換」獲得 ' + sk.sp + ' 層') } /* 等價交換：每花 1 SP 疊一層魔攻 +5% */
         if (u.mst && u.mst.decree_echo && /^律令/.test(sk.n) && RND() < u.mst.decree_echo.ch) { var s8 = u.sp | 0; u.sp = Math.min(SPMAX, s8 + (sk.sp | 0)); delete u.cd[sk.id]; if (u.sp > s8) numAdd(u, u.sp - s8, 'sp'); e.decho = 1; e._spm = (e._spm || []).concat('「' + u.mst.decree_echo.n + '」退還 ' + (sk.sp | 0) + ' SP、不進入冷卻') } /* 律令迴響 */
         if (sk.sp && u.mst) {
           if (u.mst.sp_on_skill && RND() < u.mst.sp_on_skill.ch) { var q0 = u.sp | 0; u.sp = Math.min(SPMAX, q0 + 1); if (u.sp > q0) { numAdd(u, 1, 'sp'); e._spm = (e._spm || []).concat('「' + u.mst.sp_on_skill.n + '」' + u.name + ' SP +1') } }
           if (u.mst.sp_ally_on_skill && RND() < u.mst.sp_ally_on_skill.ch) { var oa = P.filter(function (q) { return q !== u && !q.dead && (q.sp | 0) < SPMAX }); if (oa.length) { var ob = pickOne(oa); ob.sp = (ob.sp | 0) + 1; numAdd(ob, 1, 'sp'); e._spm = (e._spm || []).concat('「' + u.mst.sp_ally_on_skill.n + '」' + ob.name + ' SP +1') } }
         } }
-      u._didHeal = 0; doSkill(u, sk, tg, e);
+      u._didHeal = 0; doSkill(u, sk, tg, e); genesisPost(u, sk, e);
       if (u._didHeal) holyAdd(u, e); u._didHeal = 0; /* 聖光蓄能：用一招治療技能疊 1 層 */
       if (SPM && u.side === 'p' && sk.id !== 'atk' && !/^enemy/.test(sk.t || '') && sk.ty !== 'damage' && !u.dead) u.special.forEach(function (x) { if (x.k === 'sp_support' && RND() < x.v) { var s9 = u.sp | 0; u.sp = Math.min(SPMAX, s9 + 1); if (u.sp > s9) { numAdd(u, 1, 'sp'); e._spm = (e._spm || []).concat('「' + (D.SK[x.id] ? D.SK[x.id].n : '神恩迴向') + '」' + u.name + ' SP +1') } } }); /* 神恩迴向 */
       if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x }
@@ -819,6 +824,7 @@
       fieldPulse(u);
       flushBoom();
       beastTurn(u);
+      prismRay(u);
       /* 翠嵐順風：這次行動結束後立刻再行動一次（插在行動順序裡自己的下一位） */
       if (u._again) { u._again = false; var j9 = curOrder ? curOrder.lastIndexOf(u) : -1; if (j9 >= 0 && !u.dead) { curOrder.splice(j9 + 1, 0, u); u._xtra = true } }
     }
@@ -867,6 +873,60 @@
     /* 技能結算後才判定的符文：墓之土、啟示之書、鷹之勇氣、命運之輪（追加的那次不再觸發後兩者） */
     /* 烈焰殉爆：倒下的怪炸出一圈火焰，對敵方全體造成（自己的）魔攻 ×v 的屬性傷害；可以打倒人，我方全滅就算輸 */
     var booms = [], soulQ = [], reQ = []; /* reQ：提豐吞魂火重燃，招式結束後獨立兩行（先攫取魂火的特效，再回血） */
+    /* ===== 創生導師 ===== */
+    var ORBS = [], goldQ = [];
+    /* 天球秘儀：被敵人打中（傷害 > 0）就記一下；每次行動結束時，這次有被打到就碎一層，碎完全隊的天球一起消失 */
+    function orbOf(u) { var q = u && u.st ? u.st.filter(function (x) { return x.orb && !x.paused })[0] : null; return q ? q.orb : null }
+    function orbMark(d) { var o = d.side === 'z' ? d.orbO : orbOf(d); if (o && o.n > 0) o.hit = 1 }
+    function orbTick() { ORBS.forEach(function (o) { if (!o.hit || o.n <= 0) return; o.hit = 0; o.n--; var le = ev[ev.length - 1];
+      if (o.n <= 0) P.forEach(function (x) { x.st = x.st.filter(function (q) { return q.orb !== o }) });
+      if (le) { le.txt += '；天球秘儀碎了一層' + (o.n > 0 ? '（剩 ' + o.n + ' 層）' : '，天球消散'); le.orbB = o.n; le.hp = hpSnap() } }); ORBS = ORBS.filter(function (o) { return o.n > 0 }) }
+    function orbAny() { for (var i = 0; i < P.length; i++) { if (P[i].dead) continue; var o = orbOf(P[i]); if (o && o.n > 0) return o } return null }
+    /* 真理稜鏡（不在隊伍陣列裡）：被敵人打時用的假目標 —— 七屬性抗性 20%、沒有減傷與閃避、不吃狀態 */
+    var PZRES = { fire: 0.2, frost: 0.2, lightning: 0.2, wind: 0.2, nature: 0.2, light: 0.2, dark: 0.2 };
+    function pzUnit(o) { var ob = orbAny(); return { side: 'z', i: o.i, name: '真理稜鏡', boss: false, st: ob ? [{ n: '天球秘儀', pol: 'buff', rows: [{ k: 'orb_red', v: 0.5 }], orb: ob }] : [], special: [], runes: [], aura: [], b: { mhp: o.prism.mhp, eva: 0, pred: 0, mred: 0, crit: 0, cdmg: 0, res: PZRES }, hp: o.prism.hp, orbO: ob } } /* 天球秘儀也包住稜鏡 */
+    function prismTake(a, sk, o, e, H, split) {
+      var pz = pzUnit(o), tot = [];
+      for (var h = 0; h < (H || 1) && o.prism; h++) { var hP = split ? [sk.parts[h] || sk.parts[0]] : sk.parts, mp0 = hP.reduce(function (p, q) { return q.r > p.r ? q : p }, hP[0] || { d: 'p', e: '' });
+        var x = dmgOnce(a, pz, hP, sk, { noReact: true });
+        if (x.miss) { numAdd(pz, 0, 'miss', { h: h }); tot.push('閃開'); continue }
+        var amt = x.amt || 0; NC = { el: mp0.e === 'rand4' ? '' : (mp0.e || ''), dt: mp0.d, c: x.crit, h: h }; numHit(pz, amt, amt); o.prism.hp -= amt; tot.push((x.crit ? '暴擊 ' : '') + amt);
+        if (o.prism.hp <= 0) prismBreak(o, e) }
+      (e._x = e._x || []).push('真理稜鏡 受到 ' + tot.join('、') + ' 傷害'); (e.pzH = e.pzH || []).push(o.i) }
+    function prismBreak(o, e) { o.prism = null; if (e) { (e.pzD = e.pzD || []).push(o.i); (e._x = e._x || []).push('真理稜鏡碎裂了') } redRefine(e, 'z', o.i) }
+    /* 黃金分身：本尊被敵人打時先承受（還原本尊的減傷，分身自己沒有減傷）；掉多少血，本尊與隊友各恢復同樣的數值；打爆後剩下的傷害回到本尊 */
+    function cloneTake(d, amt) {
+      var c = d.clone, red = NC && NC.dt ? stat(d, NC.dt === 'm' ? 'mred' : 'pred') : 0, k = 1 - Math.min(Math.max(red, 0), 0.9), raw = amt / k, take = Math.min(c.hp, raw), tk = Math.max(1, Math.round(take)), le = ev[ev.length - 1], NC0 = NC;
+      c.hp -= take; numAdd({ side: 'c', i: d.i }, tk, 'd', { h: NC0 && NC0.h, el: NC0 && NC0.el, dt: NC0 && NC0.dt, c: NC0 && NC0.c });
+      var hs = []; NC = { h: NC0 && NC0.h }; P.forEach(function (f) { if (f.dead || banished(f)) return; var g = heal(d, f, tk, null, true); if (g) hs.push(f.name + ' ' + g) }); NC = NC0;
+      if (le) { (le._x = le._x || []).push('黃金分身替 ' + d.name + ' 承受 ' + tk + (hs.length ? '，恢復 ' + hs.join('、') : '')); (le.gcH = le.gcH || []).push([d.i, tk]) }
+      if (c.hp <= 0.5) { d.clone = null; if (le) { (le.gcD = le.gcD || []).push(d.i); (le._x = le._x || []).push('黃金分身碎裂了') } redRefine(le, 'c', d.i); if (d.mst && d.mst.gold_requiem) goldQ.push(d) }
+      return Math.max(0, Math.round((raw - take) * k)) }
+    /* 黃金鎮魂曲：分身被打爆 → 招式結算完後，對敵方全體造成自己魔攻 300% 的無屬性傷害（不會暴擊） */
+    function flushGold() { while (goldQ.length) { var o = goldQ.shift(); if (o.dead) continue; var tgs = foes(o).filter(function (q) { return !q.dead && !banished(q) }); if (!tgs.length) continue;
+      var r = line({ side: 'p', a: o.i, grq: 1, txt: '' }), out = [], mv = o.mst.gold_requiem.v2 || 3;
+      tgs.forEach(function (q) { var x = dmgOnce(o, q, [{ d: 'm', e: '', r: mv }], { sure: true, cr: -9 }, { noReact: true, extraCrit: -9 }); NC = { el: '', dt: 'm' }; var d = hurt(q, x.amt || 0, o); addStat(r, o, 'dmg', d, '黃金鎮魂曲'); addStat(r, q, 'taken', d, o.name + ' 黃金鎮魂曲'); out.push(q.name + ' ' + d); checkDeath(q, r) });
+      r.tg = tgs.map(function (q) { return q.i }); r.txt = o.name + ' 的「黃金鎮魂曲」：' + out.join('、') + ' 傷害'; flushRel(r); r.hp = hpSnap() } }
+    /* 赤紅提煉：任何單位倒下（含稜鏡、分身）→ 有這個被動的人各自 40% 機率 SP +1 */
+    function redRefine(e, side, i) { if (!SPM) return; P.forEach(function (o) { if (o.dead) return; var rr = o.special && o.special.filter(function (x) { return x.k === 'red_refine' })[0]; if (!rr || RND() >= (rr.v || 0.4)) return; var s0 = o.sp | 0; o.sp = Math.min(SPMAX, s0 + 1); if (o.sp > s0) { numAdd(o, 1, 'sp'); if (e) { (e.rcr = e.rcr || []).push([side, i, o.i]); (e._spk = e._spk || []).push('「赤紅提煉」' + o.name + ' SP +1') } } }) }
+    /* 招式結算後：真理稜鏡召喚／補滿、天球秘儀的共用層數 */
+    function genesisPost(u, sk, e) { var effs = D.EFF[sk.id] || [];
+      effs.forEach(function (r) {
+        if (r.effect_kind === 'summon_prism' && !u.dead) { var mh = Math.max(1, Math.round(u.b.mhp * (num(r.value) || 0.7))); if (u.prism) { u.prism.mhp = mh; u.prism.hp = mh; e.txt += '，真理稜鏡補滿（' + mh + ' 生命）' } else { u.prism = { hp: mh, mhp: mh }; e.txt += '，召喚真理稜鏡（' + mh + ' 生命）' } e.pzS = [u.i] }
+        if (r.effect_kind === 'bonus' && r.effect === 'orb_charges') { var ob = { n: num(r.value) || 4, hit: 0 }; P.forEach(function (x) { x.st.forEach(function (q) { if (q.n === '天球秘儀' && q.src === u) q.orb = ob }) }); ORBS.push(ob); e.orbS = 1 }
+      }) }
+    /* 真理稜鏡：本尊每次行動完，對隨機敵人發射紅寶石射線（魔攻、暴擊照本尊；擊殺 SP 算本尊；不觸發敵人的反應） */
+    var RAY = { id: 'prism_ray', n: '紅寶石射線', t: 'enemy_single', p: 'random', ty: 'damage', kind: 'summon', parts: [{ d: 'm', e: 'fire', r: 1 }], hits: 1, sp: 0, cdN: 0 };
+    if (!D.SK.prism_ray) { D.SK.prism_ray = RAY; D.EFF.prism_ray = [{ effect_kind: 'status', status_name: '熔蝕', target: 'enemy_single', turns: '5', apply_chance: '1', condition: '' }] }
+    function pzProxy(u) { var x = u._pzP; if (!x) { x = u._pzP = { side: 'p', name: '真理稜鏡', boss: false, st: [], runes: [], special: [], aura: [], mst: null, used: {}, flags: {}, hp: 1, dragon: 0, owner: u, cycle: [] };
+        Object.defineProperty(x, 'sp', { get: function () { return u.sp }, set: function (v) { u.sp = v } }); Object.defineProperty(x, 'i', { get: function () { return u.i } }); Object.defineProperty(x, 'dead', { get: function () { return u.dead }, set: function () {} }) }
+      x.b = { mhp: u.b.mhp, patk: 0, matk: stat(u, 'matk'), pdmg: 0, mdmg: stat(u, 'mdmg'), eva: 0, crit: stat(u, 'crit'), cdmg: stat(u, 'cdmg'), pred: 0, mred: 0, res: {}, heal: 0, speed: stat(u, 'speed'), hit: 0 }; return x }
+    function prismRay(u) {
+      if (!u.prism || u.side !== 'p' || u.dead || u.undead || !foes(u).length) return;
+      var px = pzProxy(u), tg = pickTargets(px, D.SK.prism_ray, false, false); if (!tg.length) return;
+      var e = line({ side: 'p', a: u.i, pzr: 1, sk: 'prism_ray', ty: 'damage', txt: '真理稜鏡 發射「紅寶石射線」' }); nowAct = null;
+      doSkill(px, D.SK.prism_ray, tg, e); delete e._rq; delete e._th; delete e._rn; delete e._bc; delete e._pz; delete e.hel;
+      flushSt(e); flushRel(e); e.hp = hpSnap(); flushBoom() }
     function flushSoul() {
       while (reQ.length) { var rq = reQ.shift(), ru = rq[0]; if (ru.dead) continue;
         var r1 = line({ side: 'm', a: ru.i, idle: 1, soulR: [ru.i, rq[2]], soulEat: [[ru.i, rq[2]]], hit: 120, hz: [ru.i], txt: ru.name + ' 從灰燼中伸手攫取 ' + rq[1] + ' 的魂火……' }); r1.hp = hpSnap();
@@ -875,7 +935,7 @@
         var r = line({ side: 'm', a: o.i, idle: 1, soul: [o.i, v.i, o.souls.length], txt: o.name + ' 攫取了 ' + v.name + ' 的靈魂，魂火在他身旁燃起（' + o.souls.length + ' 顆）' }); r.hp = hpSnap() }
     }
     function flushBoom() {
-      flushSoul();
+      flushSoul(); flushGold();
       while (booms.length) { var u = booms.shift(), sp = u.special.filter(function (x) { return x.k === 'death_boom' })[0], nm = D.SK[sp.id] ? D.SK[sp.id].n : '烈焰殉爆', out = [], bM = (sp.dt || 'm') === 'm';
         var tgs = foes(u).filter(function (q) { return !q.dead && !banished(q) }); if (!tgs.length) continue;
         var r = line({ side: u.side, a: u.i, boom: 1, txt: '' });
@@ -983,6 +1043,7 @@
       if (t === 'ally_dead') return (u.side === 'p' ? P : M).filter(function (x) { return x.dead && !x.summoned });
       return pickTargets(u, sk, false, false) }
     function endAct(u, sk) {
+      orbTick();
       var X = u._xtra; u._xtra = false; /* 翠嵐順風的額外行動：冷卻、狀態回合都不扣 */
       if (SPM && u.cd && !X) Object.keys(u.cd).forEach(function (k) { if (u.cd[k] > 0) u.cd[k]-- });
       u.st.forEach(function (s) {
@@ -1023,6 +1084,7 @@
       if (sk.ty === 'damage') {
         var single = sk.t === 'enemy_single' && !hooks.area, H = sk.hits || 1, perT = {}, order = [], totalDmg = 0, anyCrit = false, hitList = [];
         var each = sk.p === 'random_each' && H > 1;
+        if (u.side === 'm' && single && !each && !charmed && !ctrl(u, 'confuse')) { var pzO = P.filter(function (x) { return !x.dead && x.prism }), nP = targetable(foes(u), sk).length; if (pzO.length && !P.some(function (x) { return !x.dead && has(x, 'taunt') }) && RND() < pzO.length / (nP + pzO.length)) { var po = pickOne(pzO); prismTake(u, sk, po, e, H, !!bonus.split_parts); e.tg = []; e.tgP = [po.i]; e.pzT = po.i; if (e._x) { e.txt += '（' + e._x.join('，') + '）'; delete e._x } return } } /* 真理稜鏡：單體攻擊把稜鏡當成多一位隊友平均分配 */
         /* 這一招打倒過的目標（之後被先祖之鄉、神恩、骨堆、魂火救回來也一樣）：剩下的段數不再打他；
            單體技能就改打別的敵人，沒有別人就停 */
         var downed = [], rt = false, pool = function () { var c = targetable(charmed ? friends(u).filter(function (x) { return x !== u }) : foes(u), sk); if (hooks.pool) { var pl = hooks.pool; c = c.filter(function (x) { return pl.indexOf(x) >= 0 }) } return c.filter(function (x) { return downed.indexOf(x) < 0 }) }, down = function (t) { if (t.hp <= 0 && downed.indexOf(t) < 0) downed.push(t) };
@@ -1049,6 +1111,7 @@
             hitList.push(t);
             var mult = 1, xc = 0, sc = false;
             if (bonus.dmg_per_debuff) mult += Math.min(debuffs(t).length * num(bonus.dmg_per_debuff.value), num(String(bonus.dmg_per_debuff.condition || '').replace('max', '')) || 9);
+            if (bonus.melt) { var fr8 = resOf(t, 'fire'); if (fr8 < 0) mult += -fr8 * (num(bonus.melt.value) || 1) } /* 熔解反應：火抗每低於 0 一個百分點 +1% */
             if (bonus.dmg_if_low_hp && t.hp / t.b.mhp < (num(bonus.dmg_if_low_hp.condition) || 0.5)) mult += num(bonus.dmg_if_low_hp.value);
             if (bonus.crit_if_debuffed && debuffs(t).length) xc += num(bonus.crit_if_debuffed.value);
             if (bonus.sure_crit_low_hp && t.hp / t.b.mhp < (num(bonus.sure_crit_low_hp.value) || 0.3)) sc = true;
@@ -1138,6 +1201,7 @@
         if (hS) { delete u._holy; if (order.some(function (t) { return perT[t.i + t.side].ok })) { removeStatus(u, hS); (e._x = e._x || []).push('用掉聖光 ' + (hS.stk || 1) + ' 層') } } /* 聖光蓄能：打中就全部用掉 */
         /* 律令：極光：傷害之後替我方全體回血（魔攻 × value，吃治療加成、會爆擊） */
         effs.forEach(function (r) { if (r.effect_kind !== 'heal' || r.target !== 'ally_all' || u.dead) return; var hl2 = []; friends(u).forEach(function (f) { var c = RND() < stat(u, 'crit'), v = stat(u, 'matk') * num(r.value) * (1 + u.b.heal) * (c ? 1 + stat(u, 'cdmg') : 1); NC = { c: c }; var g = skHeal(u, f, v, e); addStat(e, u, 'heal', g, sk.n); if (g) hl2.push(f.name + (c ? ' 暴擊！' : ' ') + g) }); if (hl2.length) (e._x = e._x || []).push('恢復 ' + hl2.join('、')); e.hl = friends(u).filter(function (f) { return f.side === 'p' }).map(function (f) { return f.i }) });
+        if (u.side === 'm' && sk.t === 'enemy_all' && !charmed) P.forEach(function (o) { if (!o.dead && o.prism) prismTake(u, sk, o, e, sk.hits || 1, !!bonus.split_parts) }); /* 全體攻擊也打到真理稜鏡 */
         e.tg = order.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i });
         e.tgP = order.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
         e.hitsN = hitList.length; e.tgh = each || rt ? hitList.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }) : null; e.tghP = each || rt ? hitList.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i }) : null;
