@@ -292,7 +292,23 @@ const FB = {
   // 照料幻獸：先讀最新資料，再由 fn(玩家資料) 算出要寫的欄位（餵養要用最新的素材數量；規則 beastEditOk 會核對）
   async beastEdit(fn) { await ready; const u = auth.currentUser; if (!u) throw new Error('not-signed-in');
     const p = await FB.myFresh(); if (!p) throw new Error('no-player'); const f = fn(p); if (!f) throw new Error('bad-op');
-    await tmo(updateDoc(doc(db, 'players', u.uid), f)); mePatch(f); return f; },
+    try { await tmo(updateDoc(doc(db, 'players', u.uid), f)); }
+    catch (e) { if (e && e.code === 'permission-denied' && f.bOp) { try { e.why = await FB.beastWhy(f); } catch (e2) { e.why = ['檢查失敗']; } } throw e; }
+    mePatch(f); return f; },
+  // 照料幻獸被規則擋下時：用 REST 讀伺服器原始資料（看得到型別），把這次要寫的跟伺服器上的逐項比對，列出差在哪
+  async beastWhy(f) { await ready; const u = auth.currentUser; if (!u) return ['沒有登入']; const tk = await u.getIdToken();
+    const rr = await withTimeout(fetch('https://firestore.googleapis.com/v1/projects/bigadventure-8033f/databases/(default)/documents/players/' + u.uid, { headers: { Authorization: 'Bearer ' + tk } }), 8000);
+    if (!rr.ok) return ['讀不到伺服器資料（HTTP ' + rr.status + '）']; const F = (await rr.json()).fields || {};
+    const jv = v => { if (!v) return undefined; if ('integerValue' in v) return 'i' + v.integerValue; if ('doubleValue' in v) return 'd' + v.doubleValue; if ('stringValue' in v) return 's' + v.stringValue; if ('booleanValue' in v) return 'b' + v.booleanValue; if ('nullValue' in v) return 'null';
+      if ('arrayValue' in v) return '[' + (v.arrayValue.values || []).map(jv).join(',') + ']'; if ('mapValue' in v) { const m = v.mapValue.fields || {}; return '{' + Object.keys(m).sort().map(k => k + ':' + jv(m[k])).join(',') + '}'; } return '?' + Object.keys(v)[0]; };
+    const lv = x => { if (x == null) return 'null'; if (typeof x === 'number') return (Number.isInteger(x) ? 'i' : 'd') + x; if (typeof x === 'string') return 's' + x; if (typeof x === 'boolean') return 'b' + x; if (Array.isArray(x)) return '[' + x.map(lv).join(',') + ']'; return '{' + Object.keys(x).sort().map(k => k + ':' + lv(x[k])).join(',') + '}'; };
+    const op = f.bOp || {}, i = op.i | 0, why = ['動作 ' + op.t + ' 第' + i + '隻'], OB = (F.beasts && F.beasts.arrayValue && F.beasts.arrayValue.values) || [], NB = f.beasts || [];
+    if (OB.length !== NB.length) why.push('隻數 ' + OB.length + '→' + NB.length);
+    OB.forEach((v, k) => { if (k !== i && jv(v) !== lv(NB[k])) why.push('第' + k + '隻被改到'); });
+    const o = (OB[i] && OB[i].mapValue && OB[i].mapValue.fields) || {}, n = NB[i] || {};
+    Object.keys(Object.assign({}, o, n)).forEach(k => { const a = jv(o[k]), b = n[k] === undefined ? undefined : lv(n[k]); if (a !== b) why.push(k + ' ' + (a === undefined ? '無' : a) + '→' + (b === undefined ? '無' : b)); });
+    if (f.beastMat) { const M = (F.beastMat && F.beastMat.mapValue && F.beastMat.mapValue.fields) || {}; Object.keys(Object.assign({}, M, f.beastMat)).forEach(k => { const a = jv(M[k]), b = f.beastMat[k] === undefined ? undefined : lv(f.beastMat[k]); if (a !== b) why.push(k + ' ' + a + '→' + b); }); }
+    why.push('bOp ' + jv(F.bOp) + '→' + lv(op)); return why; },
   // 孵化送的一次屬性：還沒領過（沒有 fr）的幻獸，9 項裡平均隨機加 3 格（同一項可重複，滿 15 格的不會抽到）；回傳 [加了哪幾項的 key]
   async beastFree() { const got = []; await FB.beastEdit(p => { const L = (p.beasts || []).slice(), i = L.findIndex(b => b && !b.fr && !b.ev); if (i < 0) return null;
       const K = ['atk','dmg','crit','red','hp','res','eva','cdmg','ores'], st = Object.assign({}, L[i].st || {});

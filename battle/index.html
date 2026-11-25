@@ -3502,7 +3502,7 @@ function edBeast(i,keep){var me=MEMB[0]||{},L=me.beasts||[],b=L[i];if(!b){edCare
 /* 存檔中：擋住所有按鈕、轉圈圈，存完才能再按（按太快會讓兩次寫入互撞而失敗） */
 function bBusy(on){BDV.busy=on;var bx=$('lvov')&&$('lvov').querySelector('.bdv');if(bx)bx.classList.toggle('busy',on)}
 function bWrite(fn,after,onErr){var me=MEMB[0];if(!me||BDV.busy)return;bBusy(true);if(demo){setTimeout(function(){bBusy(false);var f=fn(me);if(f){Object.keys(f).forEach(function(k){if(k.indexOf('.')<0)me[k]=f[k];else{var p=k.split('.');me[p[0]]=Object.assign({},me[p[0]]||{});me[p[0]][p[1]]=f[k]}});after&&after(f)}else edBeast(BDV.i,true)},400);return}
-  withFB(function(FB){FB.beastEdit(fn).then(function(f){bBusy(false);Object.keys(f).forEach(function(k){if(k.indexOf('.')<0)me[k]=f[k];else{var p=k.split('.');me[p[0]]=Object.assign({},me[p[0]]||{});me[p[0]][p[1]]=f[k]}});after&&after(f)},function(e){bBusy(false);toast(e&&e.message==='bad-op'?'條件不符（素材或等級不夠），畫面已重新整理':'存檔失敗：'+(e&&(e.code||e.message)));if(onErr)onErr(e);else edBeast(BDV.i,true)})})}
+  withFB(function(FB){FB.beastEdit(fn).then(function(f){bBusy(false);Object.keys(f).forEach(function(k){if(k.indexOf('.')<0)me[k]=f[k];else{var p=k.split('.');me[p[0]]=Object.assign({},me[p[0]]||{});me[p[0]][p[1]]=f[k]}});after&&after(f)},function(e){bBusy(false);toast(e&&e.message==='bad-op'?'條件不符（素材或等級不夠），畫面已重新整理':e&&e.why?'存檔失敗，請截圖給管理者：'+e.why.join('；'):'存檔失敗：'+(e&&(e.code||e.message)));if(onErr)onErr(e);else edBeast(BDV.i,true)})})}
 function bRoll(st,cap,d){var got=[];for(var r=0;r<3;r++){var open=BSTAT.filter(function(q){return (st[q[0]]|0)<cap});if(!open.length)return null;var F=d?open.filter(function(q){return q[3]===d}):open,O=d?open.filter(function(q){return q[3]!==d}):[],pool=F.length&&(!O.length||Math.random()<.5)?F:O/* 50% 落在選的方向 */,q=pool[Math.floor(Math.random()*pool.length)];st[q[0]]=(st[q[0]]|0)+1;got.push(q[1])}return got}
 function bFeed(d){var i=BDV.i;var rolled=[];bWrite(function(p){var L=(p.beasts||[]).slice(),b=L[i];if(!b)return null;var X=bInfo(b);if(X.lv>=20)return null;var key=BDIR.filter(function(x){return x[0]===d})[0][2]+'_'+(BEGGCOL[b.sp]||'red'),have=(p.beastMat||{})[key]|0;if(have<X.cost)return null;
     var st=Object.assign({},b.st||{});rolled=bRoll(st,X.cap,d);if(!rolled)return null;
@@ -3588,7 +3588,7 @@ $('lvov').addEventListener('click',function(e){var b=e.target.closest('[data-a]'
 
 /* ================= 秘境 ================= */
 /* 七間：rift_info.csv（間、符文池、顏色）；首領 = monster_info 的 rift 欄是這間、boss = 1；幼龍 = 同一間、首領會召喚的那隻 */
-function toast(t){var d=$('rftoast');if(!d){d=document.createElement('div');d.id='rftoast';d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#1d1008;color:#ffd76a;padding:6px 14px;font-size:13px;font-weight:900;box-shadow:0 0 0 2px #6b4a2a;z-index:90;pointer-events:none';document.body.appendChild(d)}d.textContent=t;d.hidden=false;clearTimeout(d._t);d._t=setTimeout(function(){d.hidden=true},1800)}
+function toast(t){var d=$('rftoast');if(!d){d=document.createElement('div');d.id='rftoast';d.style.cssText='position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#1d1008;color:#ffd76a;padding:6px 14px;font-size:13px;font-weight:900;box-shadow:0 0 0 2px #6b4a2a;z-index:90;pointer-events:none';document.body.appendChild(d)}d.textContent=t;d.hidden=false;clearTimeout(d._t);d.style.maxWidth='86vw';d._t=setTimeout(function(){d.hidden=true},Math.min(12000,1800+String(t).length*45))}/* 長訊息（例如存檔失敗的原因）顯示久一點 */
 var RIFTS=[],RF=null,RIFTMAX=10,RWD='一二三四五六日',RCH='月火水木金土日';
 function riftBuild(rows){RIFTS=[];if(!ENG)return;var mon=ENG.mon;
   rows.forEach(function(r){if(!r.room)return;var ch=r.rift,boss=null,young=null;
@@ -4249,5 +4249,5 @@ Promise.all([['weapon_info.csv','rune_info.csv','weapon_rune.csv','skill_info.cs
 }).catch(function(e){var m=$('loading');m.textContent='資料載入失敗：'+(e&&(e.code||e.message));m.classList.add('err')});
 })();
 </script>
-<script type="module" src="../common/fb.js?v=47"></script>
+<script type="module" src="../common/fb.js?v=48"></script>
 <script>(function(){var t=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-t<350&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='INPUT')e.preventDefault();t=n},{passive:false});document.addEventListener('gesturestart',function(e){e.preventDefault()})})()</script></body></html>
