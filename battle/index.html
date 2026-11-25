@@ -3016,11 +3016,16 @@ function khuntFx(e,d){if(d<0||d>GODR.cut+KHUNT.end)return;if(!e._snd&&window.Sfx
     var hx=J[0]+12,hy=J[1]-20,og=Math.min(1,Math.max(0,(q-300)/(KHUNT.orb-300)));if(q>=300){if(q<KHUNT.orb)for(var s2=0;s2<14;s2++){var u2=((q+s2*53)%420)/420,a2=hsh(s2,7)*6.28;VP(hx+Math.cos(a2)*(1-u2)*24,hy+Math.sin(a2)*(1-u2)*20,J23W[3],u2)}
       var oR=2+og*8+(q>=KHUNT.fire?Math.sin(q/25)*1.2:0);glowAt(hx,hy,oR*1.6,'rgba(240,255,250,.95)','rgba(60,220,170,.45)',fadeAll);bRing(hx,hy,oR,J23W[4],fadeAll,.95)}
     /* 背後金色符文光球 */
-    var OB=khuntOrbs(J);OB.forEach(function(o,n){var oa=Math.min(1,(q-500-n*90)/250)*fadeAll;if(oa<=0)return;var r=3+(n%2);glowAt(o[0],o[1],r*1.8,'rgba(255,250,225,.95)','rgba(255,200,60,.45)',oa);bRing(o[0],o[1],r+3,J23G[3],oa*.9,1);bRing(o[0],o[1],r+5,J23G[2],oa*.6,1);for(var t=0;t<8;t++){var at=t/8*6.28+q/700*(n%2?1:-1);VP(o[0]+Math.cos(at)*(r+4),o[1]+Math.sin(at)*(r+4),J23G[4],oa)}});
+    var OB=khuntOrbs(J);OB.forEach(function(o,n){var oa=Math.min(1,(q-500-n*90)/250)*fadeAll;if(oa<=0)return;var r=3+(n%2);glowAt(o[0],o[1],r*1.8,'rgba(235,255,248,.95)','rgba(60,220,170,.45)',oa);bRing(o[0],o[1],r+3,J23W[3],oa*.9,1);bRing(o[0],o[1],r+5,J23W[2],oa*.6,1);for(var t=0;t<8;t++){var at=t/8*6.28+q/700*(n%2?1:-1);VP(o[0]+Math.cos(at)*(r+4),o[1]+Math.sin(at)*(r+4),J23W[4],oa)}});
     /* 連射 9 次 */
     for(var v=0;v<9;v++){var vq=q-(KHUNT.fire+v*KHUNT.gap);if(vq<0||vq>260)continue;var ba=vq<60?1:Math.max(0,1-(vq-60)/200),gk=Math.min(1,vq/50);
-      OB.forEach(function(o,n){if((n+v)%2&&n>3)return;var bend=(hsh(n,v)-.5)*30,mx=lerp(o[0],tx,.5)+bend*.3,my=lerp(o[1],ty,.5)+bend,ex=lerp(o[0],tx,gk),ey=lerp(o[1],ty,gk),k1=Math.min(1,gk*2);
-        for(var gw=-1;gw<=1;gw++){var gc=gw?J23G[2]:J23G[4],ga2=ba*(gw?.75:1);bLine(o[0],o[1]+gw,lerp(o[0],mx,k1),lerp(o[1],my,k1)+gw,gc,ga2,1);if(gk>.5){var k2=(gk-.5)*2;bLine(mx,my+gw,lerp(mx,tx,k2),lerp(my,ty,k2)+gw,gc,ga2,1)}}bLine(o[0],o[1]-2,lerp(o[0],mx,k1),lerp(o[1],my,k1)-2,J23G[1],ba*.4,1);glowAt(o[0],o[1],5,'rgba(255,250,220,.9)','rgba(255,200,60,.4)',ba*.8);VP(ex,ey,'#ffffff',ba)});/* 金色細光束（會彎折） */
+      OB.forEach(function(o,n){var aq=vq-n*14;if(aq<0)return;var tq=Math.min(1,aq/170),sg=hsh(n,v)<.5?-1:1,dx0=tx-o[0],dy0=ty-o[1],L0=Math.hypot(dx0,dy0)||1,an0=Math.atan2(dy0,dx0)+sg*(.5+hsh(v,n)*.4),bx0=o[0]+Math.cos(an0)*L0*.42,by0=o[1]+Math.sin(an0)*L0*.42,l1=Math.hypot(bx0-o[0],by0-o[1]),l2=Math.hypot(tx-bx0,ty-by0),dist=tq*(l1+l2),ax,ay,adx,ady;
+          if(dist<=l1){var f1=dist/l1;ax=lerp(o[0],bx0,f1);ay=lerp(o[1],by0,f1);adx=bx0-o[0];ady=by0-o[1]}else{var f2=(dist-l1)/l2;ax=lerp(bx0,tx,f2);ay=lerp(by0,ty,f2);adx=tx-bx0;ady=ty-by0}
+          var fa2=aq<170?1:Math.max(0,1-(aq-170)/220);/* 風色氣勁：走過的直線＋轉角，留一條漸淡的風痕 */
+          var seg=function(x0,y0,x1,y1){for(var w=-1;w<=1;w++){var nx=-(y1-y0),ny=x1-x0,nl=Math.hypot(nx,ny)||1;bLine(x0+nx/nl*w,y0+ny/nl*w,x1+nx/nl*w,y1+ny/nl*w,w?J23W[2]:J23W[4],fa2*(w?.55:.85),1)}};
+          if(dist<=l1)seg(o[0],o[1],ax,ay);else{seg(o[0],o[1],bx0,by0);seg(bx0,by0,ax,ay);glowAt(bx0,by0,4,'rgba(235,255,248,.9)','rgba(60,220,170,.35)',fa2*.8)}
+          for(var sp=0;sp<4;sp++){var sk=Math.max(0,dist-sp*9-hsh(sp,n)*6),px2,py2;if(sk<=l1){px2=lerp(o[0],bx0,sk/l1);py2=lerp(o[1],by0,sk/l1)}else{px2=lerp(bx0,tx,(sk-l1)/l2);py2=lerp(by0,ty,(sk-l1)/l2)}VP(px2+(hsh(sp,v)-.5)*5,py2+(hsh(v,sp)-.5)*5,J23W[3],fa2*.8)}
+          if(tq<1)j23Spr(ax,ay,adx,ady,1.05,1,0)});
       var dx=tx-hx,dy=ty-hy,n2=Math.hypot(dx,dy)||1,px=-dy/n2,py=dx/n2,bx=lerp(hx,tx,gk),by=lerp(hy,ty,gk);
       for(var w=-9;w<=9;w++){var aw=Math.abs(w),tw=aw<=2?1:aw<=5?.75:.45;bLine(hx+px*w*1.4,hy+py*w*1.4,bx+px*w*tw*.7,by+py*w*tw*.7,aw<=2?'#ffffff':aw<=5?J23W[3]:J23W[2],ba*(aw===9?.4:aw>=7?.65:1),1)}/* 風色主光束：根部粗、像綻放 */
       for(var pt=0;pt<6;pt++){var pa=hsh(pt,v)*6.28;VP(hx+Math.cos(pa)*(6+vq/20),hy+Math.sin(pa)*(6+vq/20),J23W[4],ba*.8)}
