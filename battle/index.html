@@ -2774,7 +2774,7 @@ function brushFx(e,d){if(d<0||d>1500)return;var fa=FXA;FXA=1;var S=brushPts(e);i
    1500～1800 全身金紅光蓄力 → 1800 起 8 下：每 170 毫秒瞬間穿梭到一個敵人身邊砍一道金紅劍氣（榮耀打擊的光斬改金紅色），身後拖金紅殘影
    → 3170 起退回原位 */
 var GODR={cut:1500,hit:1800,gap:170};
-var ULTC={job21:['#2a0000','#d0100c','#ff5038','#ffe2d8'],job22:['#060c34','#2c44c8','#86a2ff','#eaf0ff'],job23:['#03281f','#12806a','#5ae0b8','#eafff6'],job24:['#3a2a08','#c8a040','#fff0b0','#ffffff'],job25:['#032a2c','#00808a','#2cc8d0','#e4fffe']};/* 奧義光帶顏色：每個二轉各自一組（暗邊、主色、亮色、高光） */
+var ULTC={job21:['#2a0000','#d0100c','#ff5038','#ffe2d8'],job22:['#060c34','#2c44c8','#86a2ff','#eaf0ff'],job23:['#03281f','#12806a','#5ae0b8','#eafff6'],job24:['#3a2a08','#c8a040','#fff0b0','#ffffff'],job25:['#032a2c','#00808a','#2cc8d0','#e4fffe'],job26:['#1c0a30','#6a2cb0','#c8c8dc','#ffffff'],job27:['#2a0402','#b8201a','#ffb040','#fff4c8'],job28:['#2c2410','#d4a838','#e6e8f0','#ffffff'],job29:['#1e0208','#7a0c26','#c84060','#ffd6e0'],job30:['#08282a','#108a7c','#b890e0','#ffe6a0'],job31:['#200838','#a030e0','#e08cff','#fbeaff'],job32:['#000000','#020c0c','#24dcbc','#1a6a58'],job33:['#000000','#2a220c','#a8862a','#f0d890'],job34:['#0a0414','#3a1258','#7a3aa8','#d8b8f0'],job35:['#0a2808','#3a9a20','#9ae050','#f0ffd8']};/* 奧義光帶顏色：每個二轉各自一組（暗邊、主色、亮色、高光） */
 function godrSlot(e,i){var tg=e.tgh&&e.tgh.length?e.tgh:(e.tg||[0]),q=j21Mon(tg[i%tg.length]);if(!q)return null;var sd=i%2?1:-1,R=pfx.width/U-8;return[Math.min(R,q.x+sd*(q.tw*.5+6)),q.gy+(hsh(i,3)-.5)*5,sd>0?1:0,q]}
 function godrAt(e,d){var H=supHome(e);if(!H||d<0||d>3600)return null;if(d<GODR.hit-90)return[H[0],H[1],0];
   var n=Math.min(7,Math.floor((d-(GODR.hit-90))/GODR.gap)),tA=GODR.hit-90+n*GODR.gap,Sn=godrSlot(e,n);if(!Sn)return[H[0],H[1],0];
