@@ -2954,15 +2954,18 @@ function j23Arrow(x,y,dx,dy,L,a,W){if(a<=0)return;var n=Math.hypot(dx,dy)||1,ux=
   var hl=3+W*2;for(var s=-1;s<=1;s+=2)for(var k=0;k<=W;k++)bLine(x+ux*(2-k),y+uy*(2-k),x-ux*(hl-k)+px*s*hl*.75,y-uy*(hl-k)+py*s*hl*.75,k?J23W[2]:J23W[3],a,1);
   for(var f=0;f<3;f++){var fk=(f+1)/4;VP(x-ux*L*fk+px*(f%2?1:-1)*(W+2),y-uy*L*fk+py*(f%2?1:-1)*(W+2),J23W[3],a*.6)}
   glowAt(x,y,4+W*2.5,'rgba(235,255,248,.9)','rgba(60,220,170,.35)',a*.8)}
+function j23Spr(x,y,dx,dy,sc,a,tr){var ai=vimg(ARROW,'wind');if(!ai||a<=0){j23Arrow(x,y,dx,dy,14*sc,a,1);return}var ang=Math.atan2(dy,dx),n=Math.hypot(dx,dy)||1,ux=dx/n,uy=dy/n,tc=ELC.wind||'#7af0c8';/* 風系箭矢圖（跟一般風屬性弓箭同一張），sc 放大倍率 */
+  if(tr)for(var q=0;q<tr;q+=1){var k=1-q/tr,bx=x-ux*(10*sc+q),by=y-uy*(10*sc+q);VP(bx,by,tc,k*.75*a);if(sc>1.2&&k>.4){VP(bx-uy,by+ux,tc,(k-.4)*a);VP(bx+uy,by-ux,tc,(k-.4)*a)}}
+  var sz=24*VS*U*sc;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.min(1,a);pctx.translate(x*U,y*U);pctx.rotate(ang);pctx.drawImage(ai,-sz+1.5*U*sc,-sz/2,sz,sz);pctx.restore()}
 function j23Fly(x,y,t,a,gold){var P=gold?J23G:J23W,w=((t/90)|0)%2;VP(x,y,P[4],a);VP(x-1,y-1-w,P[3],a*.9);VP(x+1,y+(w?-1:1),P[2],a*.9)}/* 風靈小蝶：三個像素，翅膀上下拍 */
 function j23Hit(x,y,dd,s){if(dd<0||dd>320)return;var u=dd/320;glowAt(x,y,(10+dd/14)*s,'rgba(240,255,250,.95)','rgba(60,220,170,.45)',1-u);bRing(x,y,(3+dd/12)*s,J23W[3],1-u,.4);
   for(var k=0;k<8;k++){var an=k/8*6.28+.4,r=(3+dd/9)*s;bLine(x+Math.cos(an)*r*.5,y+Math.sin(an)*r*.35,x+Math.cos(an)*r,y+Math.sin(an)*r*.7,k%2?J23W[2]:J23W[4],(1-u)*.9,1)}}
 /* 風烈矢：跳起 → 光圈往身上收（蓄力）→ 射出大風箭，直線留下風綠殘影 */
-var GARR={jump:160,fire:470,fly:110};
-function garrAt(e,d){var H=supHome(e);if(!H||d<0||d>1000)return null;var y=d<GARR.jump?ease(d/GARR.jump)*16:d<GARR.fire+120?16:Math.max(0,16*(1-ease((d-GARR.fire-120)/260)));return[H[0],H[1]-y,0]}
+var GARR={jump:180,fire:490,fly:110,hi:30};
+function garrAt(e,d){var H=supHome(e);if(!H||d<0||d>1000)return null;var y=d<GARR.jump?ease(d/GARR.jump)*GARR.hi:d<GARR.fire+120?GARR.hi:Math.max(0,GARR.hi*(1-ease((d-GARR.fire-120)/280)));return[H[0],H[1]-y,0]}
 function garrFx(e,d){if(d<0||d>1300)return;var H=supHome(e),q=j21Mon((e.tg||[])[0]);if(!H||!q)return;var fa=FXA;FXA=1;var J=garrAt(e,Math.min(d,999))||[H[0],H[1]],sx=J[0]+10,sy=J[1]-19,tx=q.x-q.tw*.2,ty=q.gy-q.th*.45,dx=tx-sx,dy=ty-sy;
   if(d>=GARR.jump-60&&d<GARR.fire){var g=(d-GARR.jump+60)/(GARR.fire-GARR.jump+60),R=lerp(26,3,ease(g));bRing(J[0],J[1]-17,R,J23W[3],.35+.65*g,.9);bRing(J[0],J[1]-17,R*.7,J23W[2],.5*g,.9);for(var s=0;s<10;s++){var an=s/10*6.28+d/200;VP(J[0]+Math.cos(an)*R,J[1]-17+Math.sin(an)*R*.9,J23W[4],g)}glowAt(sx,sy,3+g*6,'rgba(235,255,248,.9)','rgba(60,220,170,.4)',g)}/* 一圈光往身上縮 */
-  var fq=d-GARR.fire;if(fq>=0&&fq<GARR.fly){var k=fq/GARR.fly;j23Arrow(lerp(sx,tx,k),lerp(sy,ty,k),dx,dy,28,1,2)}
+  var fq=d-GARR.fire;if(fq>=0&&fq<GARR.fly){var k=fq/GARR.fly;j23Spr(lerp(sx,tx,k),lerp(sy,ty,k),dx,dy,1.8,1,26)}
   if(fq>=0&&fq<700){var ta=fq<GARR.fly?1:Math.max(0,1-(fq-GARR.fly)/560),ek=Math.min(1,fq/GARR.fly);for(var w=-1;w<=1;w++)bLine(sx,sy+w,lerp(sx,tx,ek),lerp(sy,ty,ek)+w,w?J23W[1]:J23W[2],ta*(w?.45:.75),1)}/* 直線殘影 */
   j23Hit(tx,ty,fq-GARR.fly,1.1);if(fq>=GARR.fly&&fq<GARR.fly+110)shakeX=Math.round(Math.sin(fq/9)*1.6*U*(1-(fq-GARR.fly)/110));FXA=fa}
 /* 風靈驟雨：往前一步分出四個風色殘影 → 稍頓 → 五道身影各連射三支風箭，落在敵陣中心 */
@@ -2972,7 +2975,7 @@ function srainFx(e,d){if(d<0||d>1600)return;var H=supHome(e),T=(e.tg||[]).map(j2
   var ga=d<SRAIN.step?d/SRAIN.step:d<1100?1:Math.max(0,1-(d-1100)/300);
   for(var n=1;n<5;n++){var o=SROFF[n],gx=J[0]+o[0]*ga,gy=J[1]+o[1]*ga*.45;godrGhost(p,gx,gy,0,ga*.32,n%2?'#7af0c8':'#3fd6a6')}
   for(var m=0;m<5;m++)for(var r=0;r<3;r++){var t0=SRAIN.shoot+r*SRAIN.gap+m*22,fq=d-t0,o2=SROFF[m],sx=J[0]+o2[0]+10,sy=J[1]+o2[1]*.5-19,ex=cx+(hsh(m,r)-.5)*14,ey=cy+(hsh(r,m+3)-.5)*10;
-    if(fq>=0&&fq<SRAIN.fly){var k=fq/SRAIN.fly,ax=lerp(sx,ex,k),ay=lerp(sy,ey,k)-Math.sin(k*Math.PI)*8;j23Arrow(ax,ay,ex-sx,ey-sy-(1-2*k)*8*Math.PI,14,1,1);for(var tr=1;tr<4;tr++){var kk=Math.max(0,k-tr*.06);VP(lerp(sx,ex,kk),lerp(sy,ey,kk)-Math.sin(kk*Math.PI)*8,J23W[3],.7-tr*.15)}}
+    if(fq>=0&&fq<SRAIN.fly){var k=fq/SRAIN.fly,ax=lerp(sx,ex,k),ay=lerp(sy,ey,k)-Math.sin(k*Math.PI)*8;j23Spr(ax,ay,ex-sx,ey-sy-(1-2*k)*8*Math.PI,1,1,12)}
     if(fq>=SRAIN.fly)j23Hit(ex,ey,fq-SRAIN.fly,.7)}
   var last=d-(SRAIN.shoot+2*SRAIN.gap+4*22+SRAIN.fly);if(d>SRAIN.shoot+SRAIN.fly&&last<200)shakeX=Math.round(Math.sin(d/8)*1.4*U);FXA=fa}
 /* 颶光汲取：浮起 → 風綠、金色光從四周匯聚到身上 */
@@ -2997,7 +3000,7 @@ function spierFx(e,d){if(d<0||d>1600)return;var H=supHome(e),q=j21Mon((e.tg||[])
   j23Hit(tx,ty,fq-50,1.4);if(fq>=50&&fq<200)shakeX=Math.round(Math.sin(fq/8)*2.2*U*(1-(fq-50)/150));FXA=fa}
 /* 追獵本能：追加一支小風箭（接在主傷害之後） */
 function chaseFx(e,d){var H=supHome(e);if(!H||!e.chase)return;e.chase.forEach(function(c){if(c[0]!=='m')return;var q=j21Mon(c[1]);if(!q)return;var t0=(e.hit||300)+260,fq=d-t0,sx=H[0]+10,sy=H[1]-19,tx=q.x,ty=q.gy-q.th*.45;
-  if(fq>=0&&fq<140){var k=fq/140;j23Arrow(lerp(sx,tx,k),lerp(sy,ty,k),tx-sx,ty-sy,10,1,0);for(var tr=1;tr<5;tr++){var kk=Math.max(0,k-tr*.07);VP(lerp(sx,tx,kk),lerp(sy,ty,kk),J23W[3],.7-tr*.13)}}j23Hit(tx,ty,fq-140,.6)})}
+  if(fq>=0&&fq<140){var k=fq/140;j23Spr(lerp(sx,tx,k),lerp(sy,ty,k),tx-sx,ty-sy,.9,1,12)}j23Hit(tx,ty,fq-140,.6)})}
 /* 奧義‧王獵閃光：風靈托起 → 武器聚光成大風球、背後浮出金色符文光球 → 金色細光束＋風色主光束連射 9 次 */
 var KHUNT={rise:500,orb:1100,fire:1300,gap:150,end:3300};
 function khuntAt(e,d){var H=supHome(e);if(!H)return null;var q=d-GODR.cut;if(q<0||q>KHUNT.end)return null;var y=q<KHUNT.rise?ease(q/KHUNT.rise)*28:q<KHUNT.end-500?28+Math.sin(q/260)*1.5:28*(1-ease((q-KHUNT.end+500)/500));return[H[0],H[1]-y,0]}
@@ -3017,9 +3020,9 @@ function khuntFx(e,d){if(d<0||d>GODR.cut+KHUNT.end)return;if(!e._snd&&window.Sfx
     /* 連射 9 次 */
     for(var v=0;v<9;v++){var vq=q-(KHUNT.fire+v*KHUNT.gap);if(vq<0||vq>260)continue;var ba=vq<60?1:Math.max(0,1-(vq-60)/200),gk=Math.min(1,vq/50);
       OB.forEach(function(o,n){if((n+v)%2&&n>3)return;var bend=(hsh(n,v)-.5)*30,mx=lerp(o[0],tx,.5)+bend*.3,my=lerp(o[1],ty,.5)+bend,ex=lerp(o[0],tx,gk),ey=lerp(o[1],ty,gk),k1=Math.min(1,gk*2);
-        bLine(o[0],o[1],lerp(o[0],mx,k1),lerp(o[1],my,k1),J23G[3],ba,1);if(gk>.5){var k2=(gk-.5)*2;bLine(mx,my,lerp(mx,tx,k2),lerp(my,ty,k2),J23G[3],ba,1);bLine(mx,my+1,lerp(mx,tx,k2),lerp(my,ty,k2)+1,J23G[2],ba*.6,1)}VP(ex,ey,'#ffffff',ba)});/* 金色細光束（會彎折） */
+        for(var gw=-1;gw<=1;gw++){var gc=gw?J23G[2]:J23G[4],ga2=ba*(gw?.75:1);bLine(o[0],o[1]+gw,lerp(o[0],mx,k1),lerp(o[1],my,k1)+gw,gc,ga2,1);if(gk>.5){var k2=(gk-.5)*2;bLine(mx,my+gw,lerp(mx,tx,k2),lerp(my,ty,k2)+gw,gc,ga2,1)}}bLine(o[0],o[1]-2,lerp(o[0],mx,k1),lerp(o[1],my,k1)-2,J23G[1],ba*.4,1);glowAt(o[0],o[1],5,'rgba(255,250,220,.9)','rgba(255,200,60,.4)',ba*.8);VP(ex,ey,'#ffffff',ba)});/* 金色細光束（會彎折） */
       var dx=tx-hx,dy=ty-hy,n2=Math.hypot(dx,dy)||1,px=-dy/n2,py=dx/n2,bx=lerp(hx,tx,gk),by=lerp(hy,ty,gk);
-      for(var w=-5;w<=5;w++){var aw=Math.abs(w),root=Math.max(0,5-aw),tw=aw<=1?1:aw<=3?.7:.35;bLine(hx+px*w*1.4,hy+py*w*1.4,bx+px*w*tw*.5,by+py*w*tw*.5,aw<=1?'#ffffff':aw<=3?J23W[3]:J23W[2],ba*(aw===5?.4:aw===4?.65:1),1)}/* 風色主光束：根部粗、像綻放 */
+      for(var w=-9;w<=9;w++){var aw=Math.abs(w),tw=aw<=2?1:aw<=5?.75:.45;bLine(hx+px*w*1.4,hy+py*w*1.4,bx+px*w*tw*.7,by+py*w*tw*.7,aw<=2?'#ffffff':aw<=5?J23W[3]:J23W[2],ba*(aw===9?.4:aw>=7?.65:1),1)}/* 風色主光束：根部粗、像綻放 */
       for(var pt=0;pt<6;pt++){var pa=hsh(pt,v)*6.28;VP(hx+Math.cos(pa)*(6+vq/20),hy+Math.sin(pa)*(6+vq/20),J23W[4],ba*.8)}
       if(vq>=50){j23Hit(tx+(hsh(v,1)-.5)*6,ty+(hsh(1,v)-.5)*6,vq-50,1);if(vq<160)shakeX=Math.round(Math.sin(vq/7)*(v===8?3.2:2)*U*(1-(vq-50)/110))}}
     var fd=q-(KHUNT.fire+8*KHUNT.gap+60);if(fd>=0&&fd<300)bScreen('#eafff6',(1-fd/300)*.16)}
