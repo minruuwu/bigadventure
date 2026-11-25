@@ -213,7 +213,7 @@ select.sel.bad{color:var(--seal);border-color:var(--seal)}
 .chip small{font-size:10px;font-weight:400;color:#d9c79c}.chip.ok small{color:#b6dc9c}.chip:active{transform:translateY(2px)}
 .chip.sel{background:#9a3a2a;box-shadow:0 0 0 2px #e0b84a,inset 0 2px 0 #c8644f,inset 0 -2px 0 #6a2418}.chip.sel small{color:#f2d9b0}
 .chip.cur{box-shadow:0 0 0 2px #e0b84a,inset 0 2px 0 #7a5a30,inset 0 -2px 0 #2a1608}
-.chip.no,.chip.cl{background:#6b5a42;color:#d9c79c;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #8a7656,inset 0 -2px 0 #4a3c2a}.chip.cl{background:#5a5448;color:#a89c84}
+.chip.no,.chip.cl{background:#6b5a42;color:#d9c79c;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #8a7656,inset 0 -2px 0 #4a3c2a}.chip.cl,.chip.one{background:#5a5448;color:#a89c84}.stt.one{background:#444;color:#bbb}
 .chip.sel.no,.chip.sel.cl{box-shadow:0 0 0 2px #e0b84a,inset 0 2px 0 #8a7656,inset 0 -2px 0 #4a3c2a}
 .jgo{display:block;width:100%;margin-top:12px;font:inherit;font-size:15px;font-weight:900;padding:12px 0;color:#f0e2c4;background:#3f6a2c;border:0;cursor:pointer;box-shadow:0 0 0 2px #1d1008,inset 0 2px 0 #7fae5c,inset 0 -2px 0 #254418}
 .bar .jgo{margin:0;flex:1;width:auto}.bar .jt{flex-basis:100%;margin:0}.bar .jt:empty{display:none}.jgo:active{transform:translateY(2px)}.jgo:disabled{background:var(--paper2);color:var(--pink2);box-shadow:0 0 0 2px var(--lo);transform:none;cursor:default}
@@ -630,7 +630,7 @@ function wNum(v){return String(Math.round(v*100)/100)}
 function wStatText(w,lv){var atk=[],au=[];w.stats.forEach(function(e){var pc=/%/.test(e.per),v=(parseFloat(e.per)||0)*lv,t=(WSTAT[e.k]||e.k)+' +'+wNum(v)+(pc?'%':'');(e.k==='p_atk'||e.k==='m_atk'?atk:au).push(t)});return {atk:atk.join('　'),au:au.join('　')}}
 var confirmWeapon=null;
 var editName=false,confirmName=null,draftName='',confirmJob=null;
-var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',upDone=null,confirmRst=false,confirmUp=false,DN=null,confirmDn=false,jobToast='',capTip=false;
+var treeSel=null,jobSel=null,UP={char:0,job:{}},upMsg='',upDone=null,confirmRst=false,confirmJ2=null,confirmUp=false,DN=null,confirmDn=false,jobToast='',capTip=false;
 function treeModel(){var by={},bi={},base=[];JOBORDER.forEach(function(sn){var j=JOB[sn];j.par=[1,2].map(function(n){return j['required_job_'+n]}).filter(Boolean);by[sn]=j;if(!j.par.length){bi[sn]=base.length;base.push(sn)}});
   function dep(sn){var j=by[sn];return j.par.length?dep(j.par[0])+1:1}
   var slot={},pos={};JOBORDER.forEach(function(sn){var j=by[sn],d=dep(sn);j.depth=d;if(d===2){if(j.par.length===1){slot[sn]=3*bi[j.par[0]]}else{var a=bi[j.par[0]],b=bi[j.par[1]];if(a>b){var t=a;a=b;b=t}var df=b-a;slot[sn]=df===1?3*a+1:df===4?3*4+1:df===2?3*a+2:3*b+2}}});
@@ -660,8 +660,11 @@ function ic(id){if(HAS_ICONS&&(DKEYS.indexOf(id)>=0||/^res_/.test(id)))return '<
 function derivedBase(){var sv={};KEYS.forEach(function(x){sv[x]=S.pend[x];S.pend[x]=0});var r=derived();KEYS.forEach(function(x){S.pend[x]=sv[x]});return r}
 function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="dl">'+(d>0?'+':'')+d+'</span>':''}
   var bn=parseFloat(b),nn=parseFloat(n),dd=Math.round((nn-bn)*10)/10;return dd?'<span class="dl">'+(dd>0?'+':'')+dd+'%</span>':''}
-var JST={cur:'目前職業',ok:'可轉職',no:'條件未達成',cl:'未開放'};
-function jobStatus(sn){if(tierOf(sn)===2)return 'cl';if(sn===S.jobSn)return 'cur';return reqMet(sn)?'ok':'no'}
+var JST={cur:'目前職業',ok:'可轉職',no:'條件未達成',cl:'未開放',one:'已選其他二轉'};
+/* 二轉職業：先開放這幾個，其他維持未開放；每人只能選一個二轉（轉過的 jobSeen 裡有別的二轉就不能再轉，重置所有職業後可重選） */
+var OPEN2=['job21','job22','job23'];
+function has2(sn){return S.seen.some(function(x){return tierOf(x)===2&&x!==sn})}
+function jobStatus(sn){if(tierOf(sn)===2){if(OPEN2.indexOf(sn)<0)return 'cl';if(sn===S.jobSn)return 'cur';if(has2(sn))return 'one'}if(sn===S.jobSn)return 'cur';return reqMet(sn)?'ok':'no'}
 function upJobSum(){var s=0;Object.keys(UP.job).forEach(function(k){s+=UP.job[k]});return s}
 function upCost(){var c=charCost(S.lv,S.lv+UP.char);Object.keys(UP.job).forEach(function(k){var l=S.jobLvs[k]|0;c+=jobCost(k,l,l+UP.job[k])});return c}
 function jobInfoHTML(sn){var j=JOB[sn],g=GROWTH[sn]||{},at=ATTR[sn]||{},bl=BONUSL.filter(function(b){return String(at[b[0]]||'').trim()});
@@ -736,9 +739,10 @@ function sheetHTML(k){
     var need=js==='no'?[1,2].map(function(n){var q=jj['required_job_'+n];return q?esc(jobName(q))+' Lv. '+(parseInt(jj['required_job_'+n+'_level'],10)||0):''}).filter(Boolean).join(' + '):'';
     h6+='<div class="stg'+(js==='cl'?' cl':'')+'"><canvas id="jprev" width="48" height="48"></canvas><div class="cl2">未開放</div><div class="inf"><div class="nr">'+jobIcon(sel)+'<div><h3>'+esc(jj.job_name)+star(sel)+'</h3><small>'+esc(jj.job_e_name||'')+'</small></div></div><span class="stt '+js+'">'+JST[js]+'</span>'+(need?'<small class="need">'+need+'</small>':'')+((S.jobLvs[sel]|0)>0?'<small>目前 Lv '+(S.jobLvs[sel]|0)+' / '+JMAX+'</small>':'')+'</div></div>';
     [0,1,2].forEach(function(tr){var list=JOBORDER.filter(function(sn){return tierOf(sn)===tr});if(!list.length)return;
-      h6+='<div class="sec gs">'+['基礎職業','一轉職業','終極職業・未開放'][tr]+'</div><div class="chips">'+list.map(function(sn){var st=jobStatus(sn),lv=S.jobLvs[sn]|0;
-        return '<button type="button" class="chip '+st+(sn===sel?' sel':'')+(sn===S.jobSn?' cur':'')+'" data-a="jsel" data-sn="'+sn+'">'+esc(jobName(sn))+star(sn)+'<small>'+(sn===S.jobSn?'目前':lv>0?'Lv '+lv:st==='cl'?'未開放':st==='ok'?'可轉職':'未達成')+'</small></button>'}).join('')+'</div>'});
+      h6+='<div class="sec gs">'+['基礎職業','一轉職業','終極職業'][tr]+'</div><div class="chips">'+list.map(function(sn){var st=jobStatus(sn),lv=S.jobLvs[sn]|0;
+        return '<button type="button" class="chip '+st+(sn===sel?' sel':'')+(sn===S.jobSn?' cur':'')+'" data-a="jsel" data-sn="'+sn+'">'+esc(jobName(sn))+star(sn)+'<small>'+(sn===S.jobSn?'目前':lv>0?'Lv '+lv:st==='cl'?'未開放':st==='one'?'已選其他':st==='ok'?'可轉職':'未達成')+'</small></button>'}).join('')+'</div>'});
     h6+='<div class="sec gs">職業資訊</div>'+jobInfoHTML(sel);
+    if(confirmJ2===sel)h6+='<div class="cfm" role="alertdialog" aria-modal="true"><div class="box"><p><b class="bold">確定要轉職為「'+esc(jobName(sel))+'」嗎？</b></p><ul style="margin:0 0 6px;padding-left:18px;font-size:13px"><li>每人只能選一個二轉職業，轉職後就不能再轉其他二轉</li><li>之後想換，只能用工會證「重置所有職業」</li><li>轉職後仍然可以切回基礎、一轉職業</li></ul><div class="acts"><button class="b alt" data-a="j2no" type="button">取消</button><button class="b" data-a="j2yes" type="button">確定轉職</button></div></div></div>';
     h6+='<div class="bar"><div class="msgline jt" id="jmsg">'+esc(jobToast)+'</div><button class="jgo" data-a="jgo" type="button" '+(js==='ok'?'':'disabled')+'>'+(js==='cur'?'目前職業':js==='cl'?'未開放':js==='no'?'條件未達成':'轉職為「'+esc(jj.job_name)+'」')+'</button></div>';
     return h6}
   return ''}
@@ -811,7 +815,9 @@ sheet.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if
   else if(a==='pencancel'){editName=false;draftName='';render()}
   else if(a==='renameno'){confirmName=null;render()}
   else if(a==='jsel'){jobSel=b.getAttribute('data-sn');jobToast='';render()}
-  else if(a==='jgo'){var sn=jobSel,idx=parseInt(sn.slice(3),10)-1,f2={job:idx,jobSn:sn},us=usableList(sn),nw=S.weapon,seen2=S.seen.indexOf(sn)>=0?S.seen:S.seen.concat([sn]);if(seen2!==S.seen)f2.jobSeen=seen2;
+  else if(a==='j2no'){confirmJ2=null;render()}
+  else if(a==='jgo'&&tierOf(jobSel)===2&&S.seen.indexOf(jobSel)<0&&confirmJ2!==jobSel){if(jobStatus(jobSel)==='ok'){confirmJ2=jobSel;render()}}/* 第一次轉二轉：先跳確認 */
+  else if(a==='jgo'||a==='j2yes'){if(a==='j2yes')b=document.querySelector('[data-a="jgo"]')||b;confirmJ2=null;var sn=jobSel,idx=parseInt(sn.slice(3),10)-1,f2={job:idx,jobSn:sn},us=usableList(sn),nw=S.weapon,seen2=S.seen.indexOf(sn)>=0?S.seen:S.seen.concat([sn]);if(seen2!==S.seen)f2.jobSeen=seen2;
     if(jobStatus(sn)!=='ok')return;if(us.indexOf(nw)<0){nw=defaultWeaponName(sn)||us[0]||nw;f2.weapon=nw}
     b.disabled=true;persist(f2).then(function(){S.seen=seen2;S.job=idx;S.jobSn=sn;S.weapon=nw;jobToast='已轉職為 '+jobName(sn);render();refresh();pushNavPlayer()},function(er){jobToast=errMsg(er);render()})}
   else if((a==='ucp'||a==='ucm')&&DN){upMsg='降級模式中不能升人物等級，先按「返回升級」。';render()}
