@@ -2969,12 +2969,12 @@ function garrFx(e,d){if(d<0||d>1300)return;var H=supHome(e),q=j21Mon((e.tg||[])[
   if(fq>=0&&fq<700){var ta=fq<GARR.fly?1:Math.max(0,1-(fq-GARR.fly)/560),ek=Math.min(1,fq/GARR.fly);for(var w=-1;w<=1;w++)bLine(sx,sy+w,lerp(sx,tx,ek),lerp(sy,ty,ek)+w,w?J23W[1]:J23W[2],ta*(w?.45:.75),1)}/* 直線殘影 */
   j23Hit(tx,ty,fq-GARR.fly,1.1);if(fq>=GARR.fly&&fq<GARR.fly+110)shakeX=Math.round(Math.sin(fq/9)*1.6*U*(1-(fq-GARR.fly)/110));FXA=fa}
 /* 風靈驟雨：往前一步分出四個風色殘影 → 稍頓 → 五道身影各連射三支風箭，落在敵陣中心 */
-var SRAIN={step:150,shoot:420,gap:85,fly:200},SROFF=[[0,0],[-16,-18],[-16,18],[-32,-9],[-32,9]];
-function srainAt(e,d){var H=supHome(e);if(!H||d<0||d>1500)return null;var k=d<SRAIN.step?ease(d/SRAIN.step):d<1150?1:Math.max(0,1-ease((d-1150)/250));return[H[0]+k*14,H[1],0]}
+var SRAIN={step:150,shoot:420,gap:85,fly:200},SROFF=[[0,0],[-3,-16],[-3,16],[-6,-31],[-6,31]]/* 殘影往自己面向的左右分開（畫面上下） */;
+function srainAt(e,d){var H=supHome(e);if(!H||d<0||d>1500)return null;var k=d<SRAIN.step?ease(d/SRAIN.step):d<1150?1:Math.max(0,1-ease((d-1150)/250));return[H[0]+k*26,H[1],0]}
 function srainFx(e,d){if(d<0||d>1600)return;var H=supHome(e),T=(e.tg||[]).map(j21Mon).filter(Boolean),p=party[e.a];if(!H||!T.length)return;var fa=FXA;FXA=1;var J=srainAt(e,Math.min(d,1499))||[H[0],H[1]],cx=T.reduce(function(s,v){return s+v.x},0)/T.length,cy=T.reduce(function(s,v){return s+v.gy-v.th*.4},0)/T.length;
   var ga=d<SRAIN.step?d/SRAIN.step:d<1100?1:Math.max(0,1-(d-1100)/300);
-  for(var n=1;n<5;n++){var o=SROFF[n],gx=J[0]+o[0]*ga,gy=J[1]+o[1]*ga*.45;godrGhost(p,gx,gy,0,ga*.32,n%2?'#7af0c8':'#3fd6a6')}
-  for(var m=0;m<5;m++)for(var r=0;r<3;r++){var t0=SRAIN.shoot+r*SRAIN.gap+m*22,fq=d-t0,o2=SROFF[m],sx=J[0]+o2[0]+10,sy=J[1]+o2[1]*.5-19,ex=cx+(hsh(m,r)-.5)*14,ey=cy+(hsh(r,m+3)-.5)*10;
+  onGround(function(){for(var n=4;n>=1;n--){var o=SROFF[n],gx=J[0]+o[0]*ga,gy=J[1]+o[1]*ga;godrGhost(p,gx,gy,0,ga*.5,n>2?'#3fd6a6':'#7af0c8')}});/* 殘影畫在角色下面，本人疊在上面 */
+  for(var m=0;m<5;m++)for(var r=0;r<3;r++){var t0=SRAIN.shoot+r*SRAIN.gap+m*22,fq=d-t0,o2=SROFF[m],sx=J[0]+o2[0]+10,sy=J[1]+o2[1]-19,ex=cx+(hsh(m,r)-.5)*14,ey=cy+(hsh(r,m+3)-.5)*10;
     if(fq>=0&&fq<SRAIN.fly){var k=fq/SRAIN.fly,ax=lerp(sx,ex,k),ay=lerp(sy,ey,k)-Math.sin(k*Math.PI)*8;j23Spr(ax,ay,ex-sx,ey-sy-(1-2*k)*8*Math.PI,1,1,12)}
     if(fq>=SRAIN.fly)j23Hit(ex,ey,fq-SRAIN.fly,.7)}
   var last=d-(SRAIN.shoot+2*SRAIN.gap+4*22+SRAIN.fly);if(d>SRAIN.shoot+SRAIN.fly&&last<200)shakeX=Math.round(Math.sin(d/8)*1.4*U);FXA=fa}
