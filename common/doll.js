@@ -112,7 +112,7 @@ var off=mk(N,N),octx=off.getContext('2d');
 function squash(img,d){octx.drawImage(img,0,CUTROW,40,40-CUTROW,PAD,PAD+CUTROW,40,40-CUTROW);if(CUTROW-d>0)octx.drawImage(img,0,0,40,CUTROW-d,PAD,PAD+d,40,CUTROW-d)}
 function frame(s,now){var sk=ix('skin',s.skin),sy2=ix('style',s.style),ey=ix('eyes',s.eyes),of=ix('outfit',s.outfit);if(!A.skins[sk])sk=0;if(!A.hairT[sy2])sy2=0;if(!A.eyes[ey])ey=0;if(!A.outfits[of])of=0;var d=s.breath===false?0:(function(){var u=now/PERIOD;u-=Math.floor(u);return Math.round(u<.5?2*u:2*(1-u))})(),closed=s.closed===true||(now%4000)<130,ol=s.outline!==false;
  octx.clearRect(0,0,N,N);
- octx.fillStyle='rgba(0,0,0,.38)';var sy=PAD;octx.fillRect(PAD+14,sy+34,7,1);octx.fillRect(PAD+12,sy+35,11,1);octx.fillRect(PAD+11,sy+36,13,1);octx.fillRect(PAD+10,sy+37,15,1);octx.fillRect(PAD+12,sy+38,11,1);
+ if(s.shadow!==false){octx.fillStyle='rgba(0,0,0,.38)';var sy=PAD;octx.fillRect(PAD+14,sy+34,7,1);octx.fillRect(PAD+12,sy+35,11,1);octx.fillRect(PAD+11,sy+36,13,1);octx.fillRect(PAD+10,sy+37,15,1);octx.fillRect(PAD+12,sy+38,11,1);} /* shadow:false = 離地時不畫腳下的影子（戰鬥裡跳起、浮空） */
  var w=s.weapon,pc=w&&w.img?pieces(w.img,w.key,w.cut,ol,true):null,sh=s.shield&&s.shield.img?pieces(s.shield.img,s.shield.key,0,ol,false):null;
  if(s.halo&&s.halo.length&&(pc||sh)){var hk=(w?w.key+'|'+w.cut+'|'+w.ox+'|'+w.oy:'')+'|'+(sh?s.shield.key:''),hm=haloMasks(hk,pc&&pc.g,w?w.ox:0,w?w.oy:0,sh&&sh.g);
   for(var L=3;L>=1;L--){var col=s.halo[L-1];if(!col)continue;var ph=Math.sin(now/1000*2*Math.PI/2.6+L*1.1);octx.globalAlpha=Math.max(.2,Math.min(.8,Math.round((.42+.22*ph)*5)/5));

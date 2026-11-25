@@ -244,7 +244,7 @@ html,body,*{touch-action:manipulation}
  <div class="lvov" id="lvov" hidden></div>
  <nav class="tabs" id="tabs" role="tablist" aria-label="主分頁"></nav>
 </div>
-<script src="../common/doll.js?v=13"></script>
+<script src="../common/doll.js?v=14"></script>
 <script src="../common/npc.js?v=1"></script>
 <script src="../common/story.js?v=9"></script>
 <script src="../common/music.js?v=12"></script>
@@ -499,6 +499,7 @@ function tick(now){
     var dfl=0,dk=0,dsx=1;B.ev.forEach(function(e){if(e.side==='m'&&e.tor&&e.tgts&&e.tgts.indexOf(k)>=0)bob+=torLift(t-e.t);if(e.side==='m'&&e.grab&&e.tgts&&e.tgts.indexOf(k)>=0)bob+=grabLift(t-e.t);/* 飛禽襲擊：被抓上半空再摔下來 *//* 颶風術：被捲上半空再掉下來 */if(e.side==='p'&&e.a===k&&e.ldash){var dq=dashAt(e,t-e.t);if(dq){lx=dq[0]-pp[0];bob=pp[1]-dq[1];dfl=dq[2]}}else if(e.side==='p'&&e.a===k&&e.supw){var sq=supAt(e,t-e.t);if(sq){lx=sq[0]-pp[0];bob=pp[1]-sq[1];dfl=sq[2]}}else if(e.side==='p'&&e.a===k&&e.gstk){var gq=gstkAt(e,t-e.t);if(gq){lx=gq[0]-pp[0];bob=pp[1]-gq[1];dfl=gq[2]}}else if(e.side==='p'&&e.a===k&&(e.fless||e.rwhirl||e.brush||e.godr||e.garr||e.srain||e.gabs||e.khunt)){var jq=(e.fless?flessAt:e.rwhirl?rwhirlAt:e.brush?brushAt:e.garr?garrAt:e.srain?srainAt:e.gabs?gabsAt:e.khunt?khuntAt:godrAt)(e,t-e.t);if(jq){lx=jq[0]-pp[0];bob=pp[1]-jq[1];dfl=jq[2]||0;if(jq[3]!=null)dsx=jq[3]}}/* 冠軍勇士：衝鋒、旋風、三連斬、奧義穿梭 */else if(e.side==='p'&&e.a===k&&e.hchg){var hq=hchgAt(e,t-e.t);if(hq){lx=hq[0]-pp[0];bob=pp[1]-hq[1]}}else if(e.side==='p'&&e.a===k&&e.bst){/* 幻獸出手：主人不動 */}else if(e.side==='p'&&e.a===k&&e.tcut){var tq=tcutAt(e,t-e.t);if(tq){lx=tq[0]-pp[0];bob=pp[1]-tq[1];dfl=tq[2];dk=Math.max(dk,tq[3])}}else if(e.side==='p'&&e.a===k&&!e.rbuff&&e.rfx!=='el'){var u=win(t,e.t,420);if(u>=0)lx=Math.sin(u*Math.PI)*(e.far?6:18)}if(e.side==='m'&&e.tgts&&e.tgts.indexOf(k)>=0){var v=win(t,e.t+(e.tor||e.fring||e.wk==='sandstorm'||e.wk==='burrow'||e.wk==='grasp'||e.wk==='souls'||e.wk==='chains'||e.grab||e.dive||e.fsl||e.verd?e.hit:180),160);if(v>=0)fl=1}if(e.side==='m'&&e.spl&&e.spl.indexOf(k)>=0){var v2=win(t,e.t+(e.hit||180)+90,160);if(v2>=0)fl=1}if(e.thr&&e.thr.some(function(q){return q[0]==='p'&&q[1]===k})){var v4=win(t,e.t+(e.hit||180)+140,160);if(v4>=0)fl=1}});
     if(ko&&!p.look.closed){p.look=Object.assign({},p.look,{closed:true,breath:false,halo:[]});p.dr=0}
     var sf=ko?stOf([]):stNowP(k);if(sf.fx.fire&&!p.fireOn)p.fireT=now;p.fireOn=!!sf.fx.fire;var still=sf.fx.shake||sf.fx.frozen||sf.fx.stone;
+    var lift=bob>3;if((p.look.shadow!==false)===lift){p.look=Object.assign({},p.look,{shadow:!lift});p.dr=0}/* 離地：腳下不畫影子 */
     if(!p.dr||now-p.dr>=90){var tn=now+p.ph;if((sf.fx.sleep||still)&&tn%4000<130)tn+=130;/* 睡眠、定身：不眨眼 */Doll.draw(p.f,still||sf.fx.sleep||sf.fx.dcurse?Object.assign({},p.look,still||sf.fx.dcurse?{breath:false}:{},sf.fx.sleep||sf.fx.dcurse?{closed:true}:{}):p.look,tn);/* 睡眠：不畫眼睛圖層＝閉眼 */p.dr=now}
     var x=pp[0]+lx+(sf.fx.shake?Math.sin(now/45+p.ph)*.8:0),y=pp[1]-bob,s=48*U,fall=ko?ease((t-kt)/420):sf.fx.dcurse?1:0;/* 死之詛咒：倒在地上 */
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
@@ -507,7 +508,7 @@ function tick(now){
     if(apdK()>0&&APD.a!==k)p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' brightness('+(1-apdK()).toFixed(3)+')';/* 奧義暗場：其他隊友一起暗 */
     if(B.live&&LV&&LV.hl&&!ko&&LV.hl.some(function(q){return q[0]==='p'&&q[1]===k})){p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' brightness(1.35) drop-shadow(0 0 3px #ffffff)'}
     if(B.live&&LV&&LV.wait&&LV.wait.i===k&&!ko){var fq=Math.round(3+2*Math.sin(now/220));p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 '+fq+'px #ffffff)'}/* 手動戰鬥：輪到的人發白光 */
-    p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
+    var shk=1-Math.min(.45,Math.max(0,bob)/70);p.sh.style.width=(16*shk*U)+'px';p.sh.style.height=(4*shk*U)+'px';p.sh.style.left=((pp[0]+lx-8*shk)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a*(1-Math.min(.4,Math.max(0,bob)/80));/* 地上的影子跟著本人移動，離地越高越小越淡 */
     hpBar(p.hb,B.hpNow&&B.hpNow.p[k],(B.hpNow&&B.hpNow.pm&&B.hpNow.pm[k])||(B.mhpP&&B.mhpP[k]),pp[0]-7,pp[1]+1,14,ko||walk||sw.a<.5);
     if(B.spm)spBar(p,k,pp,ko||walk||sw.a<.5);
     ugBar(p,k,pp,ko||walk||sw.a<.5);
@@ -2930,7 +2931,7 @@ function apocFx(e,d){if(d<0||d>GODR.cut+APOC.end)return;if(!e._snd&&window.Sfx){
     var fadeAll=q<APOC.f?1:Math.max(0,1-(q-APOC.f)/300);
     APD={k:.62*Math.min(1,q/300)*(q<APOC.f+250?1:Math.max(0,1-(q-APOC.f-250)/450)),a:e.a,t:performance.now()};/* 畫面暗下來，白光退掉時一起亮回來 */
     /* A：腳下藍紫色魔法陣 */
-    var aa=Math.min(1,q/250)*fadeAll;j22Circle(H[0],H[1],lerp(6,30,ease(Math.min(1,q/400))),.32,q/400,['#aebcff','#4a5ee8','#ffffff'],aa,12);glowAt(H[0],H[1],26,'rgba(140,165,255,.4)','rgba(40,60,190,.15)',aa*.8);
+    var aa=Math.min(1,q/250)*fadeAll;onGround(function(){j22Circle(H[0],H[1],lerp(6,30,ease(Math.min(1,q/400))),.32,q/400,['#aebcff','#4a5ee8','#ffffff'],aa,12);glowAt(H[0],H[1],26,'rgba(140,165,255,.4)','rgba(40,60,190,.15)',aa*.8)});/* 畫在角色下面 */
     /* B：身前球形魔法陣 */
     if(q>=APOC.b){var sk2=ease(Math.min(1,(q-APOC.b)/900)),SW=pfx.width/U,SH=pfx.height/U;j22Sphere(lerp(H[0]+26,SW*.5,sk2),lerp(H[1]-20,SH*.5,sk2),lerp(4,Math.hypot(SW,SH)*.55,sk2),q,Math.min(1,(q-APOC.b)/200)*fadeAll*(1-sk2*.35))}/* 球形光陣從身前一路擴大到包住整個戰場 */
     /* C：敵陣四角四色魔法陣 → D：升起雲氣精靈 */
@@ -3371,7 +3372,10 @@ function burst(m,mx,gy,mw,mh,t){m.boom=1;var im=m.f;if(!im.naturalWidth)return;v
 /* 奧義暗場：背景和前景蓋一層暗色（z-index 1，在背景之上、角色之下），施法者和敵人不受影響，其他隊友另外調暗；特效畫在 pfx 上也不受影響 */
 var APD={k:0,a:-1,t:0};function apdK(){return performance.now()-APD.t<150?APD.k:0}
 function apdApply(){var k=apdK(),d=$('apd'),g=$('fgl');if(!d){if(k<=0)return;d=document.createElement('div');d.id='apd';d.style.cssText='position:absolute;inset:0;background:#04030c;pointer-events:none;z-index:1;opacity:0';$('bg').after(d)}d.style.opacity=k.toFixed(3);if(g)g.style.filter=k>0?'brightness('+(1-k).toFixed(3)+')':''}
-function drawParts(t){apdApply();var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
+/* 地面特效層（z-index 2）：在背景、暗場之上、所有角色之下；腳下法陣畫在這裡才不會蓋住人 */
+function gLayer(){var c=$('gfx');if(!c){c=document.createElement('canvas');c.id='gfx';c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2';$('bg').after(c)}var W=frame.clientWidth,H=frame.clientHeight;if(c.width!==W||c.height!==H){c.width=W;c.height=H}return c}
+function onGround(fn){var c=gLayer(),p0=pctx;pctx=c.getContext('2d');try{fn()}finally{pctx=p0}}
+function drawParts(t){apdApply();var gc0=$('gfx');if(gc0)gc0.getContext('2d').clearRect(0,0,gc0.width,gc0.height);var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
   PARTS=PARTS.filter(function(q){return t<q.t0+q.life});
   PARTS.forEach(function(q){if(t<q.t0){pctx.globalAlpha=1;pctx.fillStyle=q.c;pctx.fillRect(Math.round(q.x*U),Math.round(q.y*U),Math.max(1,Math.round(q.sz*U)),Math.max(1,Math.round(q.sz*U)));return}
     var a=(t-q.t0)/q.life,s2=(t-q.t0)/1000,x=q.x+q.vx*s2+Math.sin(s2*5+q.ph)*1.2,y=q.y+q.vy*s2-a*a*6;pctx.globalAlpha=Math.max(0,1-a);pctx.fillStyle=q.c;var z=Math.max(1,Math.round(q.sz*U*(1-a*.4)));pctx.fillRect(Math.round(x*U),Math.round(y*U),z,z)});pctx.globalAlpha=1}
