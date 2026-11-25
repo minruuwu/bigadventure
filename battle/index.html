@@ -3042,7 +3042,7 @@ function j23St(f,x,gy,top,lf,t){var by=gy-lf;
   if(f.wbutter){for(var s4=0;s4<6;s4++){var a4=t/(500+s4*40)+s4*1.05,r4=10+(s4%3)*2;j23Fly(x+Math.cos(a4)*r4,(top+by)/2+Math.sin(a4*1.7)*((by-top)*.35),t+s4*50,.9,false)}}/* 風靈榮甲 */
   if(f.prey){var on=((t/260)|0)%2,yy=top-6,a5=on?1:.45;bRing(x,yy,4,'#ff3a3a',a5,1);bLine(x-6,yy,x-2,yy,'#ff5050',a5,1);bLine(x+2,yy,x+6,yy,'#ff5050',a5,1);bLine(x,yy-6,x,yy-2,'#ff5050',a5,1);bLine(x,yy+2,x,yy+6,'#ff5050',a5,1);VP(x,yy,'#ffd0d0',a5)}/* 獵物標記：紅色準星閃爍 */}
 /* == 樞機神使（job24）技能特效 ===============================================
-   法令：極光 aurora、法令：恩澤 gracechain、法令：復生 resurrect、法令：神威 divinemight、法令：破邪 holyspear、聖鏡反照（反應 refl）、奧義‧至聖神蹟 miracle；
+   律令：極光 aurora、律令：恩澤 gracechain、律令：復生 resurrect、律令：神威 divinemight、律令：破邪 holyspear、聖鏡反照（反應 refl）、奧義‧至聖神蹟 miracle；
    狀態：神聖護盾（白金護盾）、聖光（金色小光球，幾層幾顆）、神威（金色氣焰） */
 var J24=['#4a3608','#c8a040','#ffe08a','#fff6d0','#ffffff'];
 /* 白金聖徽：圓環套十字、十字末端外擴、環上繩結點（原創像素版） */
@@ -3059,7 +3059,11 @@ function j24Cast(H,d,t0){var q=d-(t0||0);if(!H||q<0||q>640)return;var k=Math.min
     for(var r=0;r<16;r++){var an=r/16*6.2832+(r%2?.1:0),L0=R*.5,L1=R+(r%2?8:16)*ease(Math.min(1,bq*2.2))+(r%4===0?6:0),c=Math.cos(an),sn=Math.sin(an);bLine(cx+c*L0,cy+sn*L0,cx+c*L1,cy+sn*L1,r%2?J24[3]:'#ffffff',ba*(r%2?.7:.95),1);if(r%2===0)VP(cx+c*(L1+1),cy+sn*(L1+1),J24[4],ba)}}/* 光芒從法印向外綻放 */
   j24Sigil(cx,cy,R,fo,0);if(q<260){var w=q/260;bRing(cx,cy,R+w*30,J24[3],(1-w)*.9,1);bRing(cx,cy,R+w*18,J24[2],(1-w)*.6,1)}}/* 法印：在施法者頭上前方浮現、光芒綻放、向外擴散聖光波紋 */
 function j24Feather(x,y,a,t,s){if(a<=0)return;var sw=Math.sin(t/180+s)*2;bLine(x+sw,y,x+sw+2,y+5,J24[3],a,1);VP(x+sw+1,y+1,'#ffffff',a);VP(x+sw+3,y+3,J24[2],a*.8);VP(x+sw-1,y+2,J24[2],a*.6)}
-/* 法令：極光 */
+/* 飄落的白羽（同至高打擊的羽毛）：底下一層淡金陰影；左右擺盪，擺到哪邊羽毛就斜向哪邊 */
+function j24Fea(x,y,a,k,ph){if(a<=0)return;var o=Math.cos(ph)>0?1:0,fs=(k+o)%2?1:-1;[[1,1],[1+fs,0],[1+2*fs,-1],[1-fs,2],[2,2]].forEach(function(q){VP(x+q[0],y+q[1],'#b07818',a*.7)});feather1(x,y,a,k+o)}
+/* 一根羽毛的飄落軌跡：u = 0~1，往下飄、左右擺、慢慢往一側漂 */
+function j24FeaAt(x0,y0,dist,u,k){var ph=u*(5+hsh(k,9)*3)+k,sw=6+hsh(k,4)*6;return[x0+Math.sin(ph)*sw+(hsh(k,6)-.5)*14*u,y0+dist*u+Math.abs(Math.cos(ph))*-2,ph]}
+/* 律令：極光 */
 var AUR={sig:0,sky:420,fall:700,hit:1150,end:2200};
 function auroraFx(e,d){if(d<0||d>AUR.end)return;var H=supHome(e);if(!H)return;var fa=FXA;FXA=1;var W=pfx.width/U,Hs=pfx.height/U;
   j24Cast(j24H(e,H),d,0);
@@ -3069,10 +3073,10 @@ function auroraFx(e,d){if(d<0||d>AUR.end)return;var H=supHome(e);if(!H)return;va
     rib.forEach(function(b,n){var top=10+n*6,Lmax=Hs*(.34+.1*n)*fl+14;for(var x=-10;x<W+10;x+=1.5){var wav=Math.sin(x/34+d/700+b[2])*9+Math.sin(x/13-d/450+n)*3,fold=Math.pow(.5+.5*Math.sin(x/9+d/260+b[2]*2),3),y0=top+wav,L=Lmax*(.7+.3*Math.sin(x/21+d/500+n));if(fold<.08)continue;
       var cA=ca*b[3]*(.25+.75*fold);bLine(x,y0,x+wav*.15,y0+L*.35,b[0],cA*.85,1);bLine(x+wav*.15,y0+L*.35,x+wav*.3,y0+L,b[1],cA*.42,1)}});/* 白金極光帷幕：一條條會飄動、有皺褶的光帶，從高空法陣垂落 */
     for(var s=0;s<14;s++){var u=((d+s*137)%1400)/1400;VP(hsh(s,3)*W,12+u*Hs*.8,'#ffffff',ca*(1-u)*.9)}}
-  (e.tg||[]).forEach(function(i){var q=j21Mon(i);if(!q)return;var dd=d-AUR.hit;if(dd>=0&&dd<360){glowAt(q.x,q.gy-q.th*.45,18,'rgba(255,252,230,.95)','rgba(255,210,100,.4)',1-dd/360);bRing(q.x,q.gy,4+dd/12,J24[3],1-dd/360,.35)}});
+  (e.tg||[]).forEach(function(i){var q=j21Mon(i);if(!q)return;var dd=d-AUR.hit;j24LHit(i,dd);if(dd>=0&&dd<360){glowAt(q.x,q.gy-q.th*.45,18,'rgba(255,252,230,.95)','rgba(255,210,100,.4)',1-dd/360);bRing(q.x,q.gy,4+dd/12,J24[3],1-dd/360,.35)}});
   (e.hl||[]).forEach(function(k){var P=posOf(k);if(!P)return;var dd=d-AUR.hit-80;if(dd>=0&&dd<500){for(var s2=0;s2<6;s2++){var u2=dd/500;VP(P[0]+(hsh(s2,k)-.5)*14,P[1]-u2*30-hsh(k,s2)*8,s2%2?J24[3]:'#ffffff',1-u2)}}});
   FXA=fa}
-/* 法令：恩澤：法印 → 白金治療鍊依序彈跳 */
+/* 律令：恩澤：法印 → 白金治療鍊依序彈跳 */
 var GCH={t0:420,gap:260,fly:170};/* 每跳一次 260ms，飛 170ms，看得出鍊子跳到誰 */
 function gchainFx(e,d){if(d<0||d>2600)return;var H=supHome(e);if(!H)return;var fa=FXA;FXA=1;j24Cast(j24H(e,H),d,0);
   var seq=(e.bnc||[]).map(function(k){var p=posOf(k);return p?[p[0],p[1]-17]:null});var SH=j24H(e,H),prev=[SH[0],SH[1]-44];
@@ -3080,32 +3084,36 @@ function gchainFx(e,d){if(d<0||d>2600)return;var H=supHome(e);if(!H)return;var f
     var segs=10;for(var g=0;g<segs;g++){var k0=g/segs*k,k1=(g+1)/segs*k,x0=lerp(prev[0],P[0],k0),y0=lerp(prev[1],P[1],k0)-Math.sin(k0*Math.PI)*10,x1=lerp(prev[0],P[0],k1),y1=lerp(prev[1],P[1],k1)-Math.sin(k1*Math.PI)*10;bLine(x0,y0,x1,y1,g%2?J24[3]:J24[4],ca,1);bLine(x0,y0+1,x1,y1+1,J24[1],ca*.5,1);if(g%2===0)bRing((x0+x1)/2,(y0+y1)/2,1.5,J24[2],ca*.8,1)}/* 鍊節 */
     glowAt(ex,ey,5,'rgba(255,252,230,.95)','rgba(255,210,100,.4)',ca);if(dd>=FL&&dd<FL+360){var u=(dd-FL)/360;if(dd<FL+140)glowAt(P[0],P[1]-6,13,'rgba(255,252,230,.9)','rgba(255,210,100,.35)',1-(dd-FL)/140);bRing(P[0],P[1]+15,3+u*10,J24[3],1-u,.35);for(var s=0;s<4;s++)VP(P[0]+(hsh(s,n)-.5)*12,P[1]+10-u*24,'#ffffff',1-u)}
     prev=P});FXA=fa}
-/* 法令：復生：法印 → 聖光落在倒下的隊友身上、飄下金色羽毛 */
+/* 律令：復生：法印 → 聖光落在倒下的隊友身上、飄下金色羽毛 */
 function resFx(e,d){if(d<0||d>1800)return;var H=supHome(e);if(!H)return;var fa=FXA;FXA=1;j24Cast(j24H(e,H),d,0);
   (e.rev||[]).forEach(function(r){var P=r[0]==='p'?posOf(r[1]):null;if(!P)return;var q=d-380;if(q<0)return;var a=q<900?Math.min(1,q/200):Math.max(0,1-(q-900)/500);
     for(var w=-6;w<=6;w++){var aw=Math.abs(w);bLine(P[0]+w,0,P[0]+w*1.3,P[1],aw<=2?'#ffffff':aw<=4?J24[3]:J24[2],a*(aw>4?.35:.6),1)}glowAt(P[0],P[1]-12,20,'rgba(255,252,230,.9)','rgba(255,210,100,.35)',a);
-    for(var s=0;s<12;s++){var u=((q+s*173)%1300)/1300;j24Feather(P[0]+(hsh(s,2)-.5)*28,u*(P[1]+4)-6,a*(1-u*.4),q,s)}});FXA=fa}
-/* 法令：神威：法印 → 每人被金光籠罩 */
+    for(var s=0;s<12;s++){var u=((q+s*173)%1900)/1900,F=j24FeaAt(P[0]+(hsh(s,2)-.5)*26,-6,P[1]+8,u,s);j24Fea(F[0],F[1],a*Math.min(1,u*8)*(u<.8?1:(1-u)/.2),s,F[2])}});FXA=fa}
+/* 律令：神威：法印 → 每人被金光籠罩 */
 function dmightFx(e,d){if(d<0||d>1500)return;var H=supHome(e);if(!H)return;var fa=FXA;FXA=1;j24Cast(j24H(e,H),d,0);
   (e.hl||[]).forEach(function(k,n){var P=posOf(k);if(!P)return;var q=d-400-n*60;if(q<0||q>800)return;var a=q<200?q/200:1-(q-200)/600;
     for(var w=-8;w<=8;w+=2)bLine(P[0]+w,P[1]-46+Math.abs(w),P[0]+w,P[1],Math.abs(w)<4?'#ffffff':J24[3],a*.45,1);glowAt(P[0],P[1]-17,18,'rgba(255,240,180,.85)','rgba(255,180,60,.35)',a);bRing(P[0],P[1],6+q/40,J24[2],a,.35)});FXA=fa}
-/* 法令：破邪：法印 → 高空純白審判聖矛拖著金色光焰落下貫穿 → 一圈圈震波 */
+/* 律令：破邪：法印 → 高空純白審判聖矛拖著金色光焰落下貫穿 → 一圈圈震波 */
 var HSP={app:480,hov:520,fly:110};/* 光矛：法印後在敵人頭上浮現 → 懸停 → 往下刺 */
 function rowF(x0,x1,y,c,a){if(a<=0||x1<x0)return;pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=c;var X0=Math.round(x0*U),Y0=Math.round(y*U);pctx.fillRect(X0,Y0,Math.max(1,Math.round((x1+1)*U)-X0),Math.max(1,Math.round((y+1)*U)-Y0))}
-/* 聖矛（矛尖朝下）：火焰狀金色矛刃、白色芯、金色十字護手、青色寶珠、灰色長柄 */
-function j24Spear(tx,tip,a,t){if(a<=0)return;var BL=26,GD=BL+1,SH=40,x=Math.round(tx);
-  glowAt(x,tip-BL*.5,17,'rgba(255,250,220,.55)','rgba(255,200,60,.22)',a*(.75+.25*Math.sin(t/120)));
-  for(var i=0;i<BL;i++){var u=i/BL,hw=u<.6?Math.pow(u/.6,.8)*4.6:4.6-(u-.6)/.4*3;hw+=Math.sin(i*.9+t/70)*.35*u;var y=tip-i,h=Math.max(0,Math.round(hw));
-    rowF(x-h,x+h,y,'#e89a00',a);if(h>=1)rowF(x-h+1,x+h-1,y,'#ffc21a',a);if(h>=2)rowF(x-Math.max(0,h-2),x+Math.max(0,h-2),y,'#ffe680',a);if(i>=2&&i<BL-1)rowF(x-(h>=3&&i>5&&i<BL-4?1:0),x+(h>=3&&i>5&&i<BL-4?1:0),y,'#ffffff',a)}
-  if(true){var fl=Math.sin(t/55);VP(x+(fl>0?1:-1),tip-BL-1,'#ffe680',a*.8);VP(x,tip-BL,'#ffc21a',a)}/* 矛刃尾端的小火舌 */
-  rowF(x-8,x+8,tip-GD,'#e8a800',a);rowF(x-8,x+8,tip-GD-1,'#ffd84a',a);VP(x-9,tip-GD,'#ffe680',a*.8);VP(x+9,tip-GD,'#ffe680',a*.8);VP(x-9,tip-GD-1,'#ffe680',a*.8);VP(x+9,tip-GD-1,'#ffe680',a*.8);/* 十字護手 */
-  rowF(x-1,x+1,tip-GD+1,'#3fd8f0',a);rowF(x-1,x+1,tip-GD-2,'#3fd8f0',a);rowF(x-2,x+2,tip-GD,'#5ff0ff',a);rowF(x-2,x+2,tip-GD-1,'#5ff0ff',a);VP(x,tip-GD-1,'#ffffff',a);glowAt(x,tip-GD,4,'rgba(160,250,255,.8)','rgba(60,220,255,.25)',a*.8);/* 青色寶珠 */
-  for(var k=0;k<SH;k++){var y2=tip-GD-3-k;VP(x-1,y2,'#e8e8e8',a);VP(x,y2,'#c4c4c4',a);VP(x+1,y2,'#8c8c8c',a)}rowF(x-2,x+2,tip-GD-3-SH,'#d0d0d0',a)}/* 長柄 */
-function hspearFx(e,d){if(d<0||d>2100)return;var H=supHome(e),q=j21Mon((e.tg||[])[0]);if(!H||!q)return;var fa=FXA;FXA=1;j24Cast(j24H(e,H),d,0);var tx=q.x,gy=q.gy,ty=gy-q.th*.45,hy=Math.max(34,gy-q.th-4),T1=HSP.app+HSP.hov,T2=T1+HSP.fly;
+/* 聖矛（矛尖朝下）：全金色 —— 火焰狀矛刃（白芯）、十字護手、金色寶珠、金色長柄；上半段超出畫面沒關係 */
+function j24Spear(tx,tip,a,t){if(a<=0)return;var BL=42,GD=BL+1,SH=64,x=Math.round(tx),G=['#a86a00','#e09a00','#ffc21a','#ffe680','#fff8d8'];
+  glowAt(x,tip-BL*.5,26,'rgba(255,250,220,.6)','rgba(255,200,60,.25)',a*(.75+.25*Math.sin(t/120)));
+  for(var i=0;i<BL;i++){var u=i/BL,hw=u<.6?Math.pow(u/.6,.75)*7.2:7.2-(u-.6)/.4*4.6;hw+=Math.sin(i*.7+t/70)*.5*u;var y=tip-i,h=Math.max(0,Math.round(hw));
+    rowF(x-h,x+h,y,G[0],a);if(h>=1)rowF(x-h+1,x+h-1,y,G[1],a);if(h>=2)rowF(x-h+2,x+h-2,y,G[2],a);if(h>=4)rowF(x-h+3,x+h-3,y,G[3],a);if(i>=2&&i<BL-2){var cw=h>=5&&i>6&&i<BL-6?1:0;rowF(x-cw,x+cw,y,i<4?G[4]:'#ffffff',a)}}
+  for(var fl=0;fl<3;fl++){var fx=x+(fl-1)*2+Math.round(Math.sin(t/55+fl*2)),fh=2+((Math.floor(t/60)+fl)%3);for(var j=0;j<fh;j++)VP(fx,tip-BL-j,j?G[2]:G[3],a*(1-j/(fh+1)))}/* 矛刃尾端的火舌 */
+  var gy0=tip-GD;rowF(x-13,x+13,gy0+1,G[0],a);rowF(x-13,x+13,gy0,G[2],a);rowF(x-13,x+13,gy0-1,G[3],a);rowF(x-12,x+12,gy0-2,G[1],a);rowF(x-15,x-14,gy0-1,G[3],a);rowF(x+14,x+15,gy0-1,G[3],a);/* 十字護手 */
+  for(var r=0;r<=4;r++){var w=4-r;rowF(x-w,x+w,gy0-1-r,G[2],a);rowF(x-w,x+w,gy0-1+r,G[2],a)}rowF(x-1,x+1,gy0-2,G[4],a);rowF(x-2,x+2,gy0-1,'#ffffff',a);rowF(x-1,x+1,gy0,G[4],a);glowAt(x,gy0-1,7,'rgba(255,255,240,.9)','rgba(255,210,80,.35)',a*.9);/* 金色寶珠（菱形） */
+  for(var k=0;k<SH;k++){var y2=gy0-5-k;VP(x-2,y2,G[3],a);VP(x-1,y2,G[2],a);VP(x,y2,G[2],a);VP(x+1,y2,G[1],a);VP(x+2,y2,G[0],a)}}/* 長柄 */
+/* 光屬性命中：光明重擊圖 + 十字閃光 + 光粒（打在敵人身上） */
+function j24LHit(ti,dd){var m=mons[ti],mp=monPos(ti);if(!m||!mp||dd<0||dd>420)return;var si=vimg(SMASH,'light'),sc=Math.min(1.6,m.sc||1),u=dd/420,sz=(30+u*18)*VS*sc,a=u<.15?1:1-(u-.15)/.85,cx=mp[0],cy=mp[1];
+  if(si){pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(cx*U,cy*U);pctx.globalCompositeOperation='lighter';pctx.globalAlpha=a*.45;pctx.drawImage(si,-sz*U*.6,-sz*U*.6,sz*U*1.2,sz*U*1.2);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=a;pctx.drawImage(si,-sz*U/2,-sz*U/2,sz*U,sz*U);pctx.restore();pctx.globalAlpha=1}
+  if(dd<110){for(var q=-7;q<=7;q++){var f=(1-dd/110)*(1-Math.abs(q)/8);VP(cx+q,cy,'#ffffff',f);VP(cx,cy+q,'#ffffff',f)}}pBurst('light',cx,cy,dd,14,VS*sc)}
+function hspearFx(e,d){if(d<0||d>2100)return;var H=supHome(e),q=j21Mon((e.tg||[])[0]);if(!H||!q)return;var fa=FXA;FXA=1;j24Cast(j24H(e,H),d,0);var tx=q.x,gy=q.gy,ty=gy-q.th*.45,hy=Math.max(46,gy-q.th-2),T1=HSP.app+HSP.hov,T2=T1+HSP.fly;
   if(d>=HSP.app&&d<T1){var aq=d-HSP.app,ia=Math.min(1,aq/160),k0=ease(Math.min(1,aq/260));j24Spear(tx,hy-10*(1-k0)+Math.sin(aq/140)*1.2,ia,d);if(aq<220){var u0=aq/220;bRing(tx,hy-10,4+u0*16,J24[3],(1-u0)*.8,1)}for(var m=0;m<6;m++){var mu=((aq+m*90)%540)/540;VP(tx+(hsh(m,4)-.5)*14,hy-6-mu*26,m%2?J24[3]:'#ffffff',ia*(1-mu))}}/* 浮現、懸停，周圍光粒往上飄 */
-  if(d>=T1&&d<T2){var k=Math.pow((d-T1)/HSP.fly,2),tip=lerp(hy,gy-2,k);for(var tr=1;tr<8;tr++){var yy=tip-26-tr*5;rowF(tx-4+tr*.4,tx+4-tr*.4,yy-4,J24[3],(1-tr/8)*.45)}j24Spear(tx,tip,1,d)}/* 往下刺（後方殘光） */
+  if(d>=T1&&d<T2){var k=Math.pow((d-T1)/HSP.fly,2),tip=lerp(hy,gy-2,k);for(var tr=1;tr<8;tr++){var yy=tip-42-tr*6;rowF(tx-6+tr*.6,tx+6-tr*.6,yy-4,J24[3],(1-tr/8)*.45)}j24Spear(tx,tip,1,d)}/* 往下刺（後方殘光） */
   if(d>=T2&&d<T2+320){j24Spear(tx,gy-2,1-(d-T2)/320,d)}/* 插在地上、淡掉 */
-  var hq=d-T2;if(hq>=0&&hq<900){for(var r=0;r<4;r++){var rq=hq-r*110;if(rq<0)continue;var u=rq/600;if(u>1)continue;bRing(tx,gy,4+u*46,r%2?J24[2]:J24[4],(1-u)*.9,.32);bRing(tx,gy,3+u*44,J24[1],(1-u)*.5,.32)}/* 一圈一圈的震波 */
+  var hq=d-T2;j24LHit((e.tg||[])[0],hq);if(hq>=0&&hq<900){for(var r=0;r<4;r++){var rq=hq-r*110;if(rq<0)continue;var u=rq/600;if(u>1)continue;bRing(tx,gy,4+u*46,r%2?J24[2]:J24[4],(1-u)*.9,.32);bRing(tx,gy,3+u*44,J24[1],(1-u)*.5,.32)}/* 一圈一圈的震波 */
     if(hq<260){glowAt(tx,ty,24,'rgba(255,255,245,.95)','rgba(255,210,90,.45)',1-hq/260);for(var w2=-5;w2<=5;w2++)bLine(tx+w2,0,tx+w2,gy,'#ffffff',(1-hq/260)*.35,1)}
     if(hq<160)shakeY=Math.round(Math.sin(hq/7)*2.4*U*(1-hq/160))}FXA=fa}
 /* 聖鏡反照：身前金色鏡面 → 光彈打回攻擊者 */
@@ -3120,7 +3128,7 @@ function miracleFx(e,d){if(d<0||d>GODR.cut+MIR.end)return;if(!e._snd&&window.Sfx
   var fa=FXA;FXA=1;var q=d-GODR.cut,H=supHome(e);
   if(q>=0&&H){var J=mirAt(e,d)||H,W=pfx.width/U,Hs=pfx.height/U,fadeAll=q<MIR.end-500?1:Math.max(0,1-(q-MIR.end+500)/500);APD={k:.6*Math.min(1,q/300)*fadeAll,a:e.a,t:performance.now()};
     /* 1. 升空：全身金光、背後法印旋轉 */
-    var ra=Math.min(1,q/300)*fadeAll;onGround(function(){j24Sigil(J[0]-2,J[1]-20,21,ra*.95,0)});glowAt(J[0],J[1]-17,14,'rgba(255,248,215,.55)','rgba(255,200,80,.2)',ra);/* 法印畫在本人後面 */for(var s=0;s<10;s++){var u=((q+s*90)%700)/700;VP(J[0]+(hsh(s,5)-.5)*18,J[1]-u*40,s%2?J24[3]:'#ffffff',ra*(1-u))}
+    var ra=Math.min(1,q/300)*fadeAll;behindP(e.a,function(){j24Sigil(J[0]-2,J[1]-20,21,ra*.95,0)});glowAt(J[0],J[1]-17,14,'rgba(255,248,215,.55)','rgba(255,200,80,.2)',ra);/* 法印畫在本人後面 */for(var s=0;s<10;s++){var u=((q+s*90)%700)/700;VP(J[0]+(hsh(s,5)-.5)*18,J[1]-u*40,s%2?J24[3]:'#ffffff',ra*(1-u))}
     /* 2. 高空雲層旋轉撕裂 */
     if(q>=MIR.sky){var sa=Math.min(1,(q-MIR.sky)/400)*fadeAll,cx=W*.5,cy=8;for(var r=0;r<5;r++){var R=18+r*14;for(var t=0;t<24;t++){var an=t/24*6.28+q/(900-r*120)*(r%2?1:-1),x=cx+Math.cos(an)*R*1.6,y=cy+Math.sin(an)*R*.3;bLine(x,y,x+Math.cos(an+1.5)*6,y+Math.sin(an+1.5)*1.2,r%2?'#5a5060':'#8a7a80',sa*.5,1)}}
       var tear=Math.min(1,Math.max(0,(q-MIR.sky-300)/400)),TW=tear*70;for(var tx2=-TW;tx2<=TW;tx2+=1){var xn=1-Math.abs(tx2)/(TW+1e-6),th=Math.pow(xn,.7)*7*tear+Math.sin(tx2*1.7)*1.2*xn;bLine(cx+tx2,cy+2-th,cx+tx2,cy+2+th,xn>.6?'#ffffff':J24[3],sa*(.4+.6*xn),1)}}/* 雲層撕開一道發光的裂縫（中間寬、兩端尖） */
@@ -3136,7 +3144,7 @@ function miracleFx(e,d){if(d<0||d>GODR.cut+MIR.end)return;if(!e._snd&&window.Sfx
       for(var y=0;y<=bot;y++){var hw=hwAt(y),fl=Math.sin(y*.45+pq/70)*.6;rowF(gx2-hw-fl,gx2+hw+fl,y,J24[3],pa*.3);rowF(gx2-hw*.66,gx2+hw*.66,y,J24[4],pa*.42);rowF(gx2-hw*.36,gx2+hw*.36,y,'#fff6d8',pa*.45);rowF(gx2-Math.max(1.5,hw*.14),gx2+Math.max(1.5,hw*.14),y,'#ffffff',pa*.8)}
       for(var ry=0;ry<7;ry++){var rk=(ry/6)*2-1,ra2=pa*(.35+.25*Math.sin(pq/90+ry*1.7));bLine(gx2+rk*tw*.8,0,gx2+rk*hwAt(bot)*.85,bot,'#ffffff',ra2*.35,1)}/* 光柱裡往下射的光束線 */
       glowAt(gx2,bot,lerp(10,40,fk),'rgba(255,255,245,.95)','rgba(255,210,100,.45)',pa*Math.min(1,pq/280));if(pq>=280&&pq<600)bScreen('#fffbe8',(1-(pq-280)/320)*.35);
-      for(var f=0;f<44;f++){var tb=f*32,fu=(pq-tb)/1500;if(fu<0||fu>1)continue;var fy=Math.min(bot,-6+fu*(Hs+12)),fx=gx2+(hsh(f,3)*2-1)*hwAt(fy)*.9+Math.sin(fu*7+f)*4;var fA=pa*(fu<.85?1:(1-fu)/.15),fs=f%2?1:-1;[[1,1],[1+fs,0],[1+2*fs,-1],[1-fs,2],[2,2]].forEach(function(o){VP(fx+o[0],fy+o[1],'#b07818',fA*.75)});feather1(fx,fy,fA,f)}}/* 羽毛加一層金色陰影，在白光裡也看得到 *//* 羽毛跟著光柱一起落下、左右晃 */
+      for(var f=0;f<18;f++){var tb=f*40,fu=(pq-tb)/1500;if(fu<0||fu>1)continue;var F=j24FeaAt(gx2+(hsh(f,3)*2-1)*hwAt(Hs*.35)*.8,-6,Hs*.7,fu,f);j24Fea(F[0],F[1],fadeAll*Math.min(1,fu*8)*(fu<.75?1:(1-fu)/.25),f,F[2])}}/* 羽毛隨光柱一起出現，輕輕左右擺盪飄落 *//* 羽毛跟著光柱一起落下、左右晃 */
     (e.hl||[]).forEach(function(k){var P=posOf(k);if(!P)return;var dd=q-MIR.pil-300;if(dd>=0&&dd<600){var u=dd/600;glowAt(P[0],P[1]-17,16,'rgba(255,250,225,.9)','rgba(255,200,80,.35)',1-u)}})}
   godrCutIn(e,d);FXA=fa}
 /* 神威氣焰：照「角色」分頁頭像的光暈做法 —— 人物外框一圈金光，加上外框往上拉的火焰狀光帶（有往上爬的波紋）、肩膀飄起的光粒 */
@@ -3506,8 +3514,10 @@ var APD={k:0,a:-1,t:0};function apdK(){return performance.now()-APD.t<150?APD.k:
 function apdApply(){var k=apdK(),d=$('apd'),g=$('fgl');if(!d){if(k<=0)return;d=document.createElement('div');d.id='apd';d.style.cssText='position:absolute;inset:0;background:#04030c;pointer-events:none;z-index:1;opacity:0';$('bg').after(d)}d.style.opacity=k.toFixed(3);if(g)g.style.filter=k>0?'brightness('+(1-k).toFixed(3)+')':''}
 /* 地面特效層（z-index 2）：在背景、暗場之上、所有角色之下；腳下法陣畫在這裡才不會蓋住人 */
 function gLayer(){var c=$('gfx');if(!c){c=document.createElement('canvas');c.id='gfx';c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2';$('bg').after(c)}var W=frame.clientWidth,H=frame.clientHeight;if(c.width!==W||c.height!==H){c.width=W;c.height=H}return c}
+/* 畫在某個隊友正後方的一層（比他低一層、比站在他後面的人高）：奧義背後的法印 */
+function behindP(k,fn){var p=party[k];if(!p){onGround(fn);return}var c=$('bkfx');if(!c){c=document.createElement('canvas');c.id='bkfx';c.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';frame.appendChild(c)}var W=frame.clientWidth,H=frame.clientHeight;if(c.width!==W||c.height!==H){c.width=W;c.height=H}c.style.zIndex=(parseInt(p.f.style.zIndex,10)||100)-1;var p0=pctx;pctx=c.getContext('2d');try{fn()}finally{pctx=p0}}
 function onGround(fn){var c=gLayer(),p0=pctx;pctx=c.getContext('2d');try{fn()}finally{pctx=p0}}
-function drawParts(t){apdApply();var gc0=$('gfx');if(gc0)gc0.getContext('2d').clearRect(0,0,gc0.width,gc0.height);var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
+function drawParts(t){apdApply();var gc0=$('gfx');if(gc0)gc0.getContext('2d').clearRect(0,0,gc0.width,gc0.height);var bk0=$('bkfx');if(bk0)bk0.getContext('2d').clearRect(0,0,bk0.width,bk0.height);var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
   PARTS=PARTS.filter(function(q){return t<q.t0+q.life});
   PARTS.forEach(function(q){if(t<q.t0){pctx.globalAlpha=1;pctx.fillStyle=q.c;pctx.fillRect(Math.round(q.x*U),Math.round(q.y*U),Math.max(1,Math.round(q.sz*U)),Math.max(1,Math.round(q.sz*U)));return}
     var a=(t-q.t0)/q.life,s2=(t-q.t0)/1000,x=q.x+q.vx*s2+Math.sin(s2*5+q.ph)*1.2,y=q.y+q.vy*s2-a*a*6;pctx.globalAlpha=Math.max(0,1-a);pctx.fillStyle=q.c;var z=Math.max(1,Math.round(q.sz*U*(1-a*.4)));pctx.fillRect(Math.round(x*U),Math.round(y*U),z,z)});pctx.globalAlpha=1}

@@ -798,7 +798,7 @@
       e.sk = sk.id; e.ty = sk.ty; e.txt = u.name + ' 使用「' + sk.n + '」'; if (sk.kind === 'ultimate') { e.ult = 1; e.txt = u.name + ' 發動奧義「' + sk.n + '」'; u.ug = 0 } else if (u.side === 'p') ugAdd(u, 10) /* 奧義值：自己每次行動 +10 */
       if (SPM && u.side === 'p' && sk.id !== 'atk') { u.sp = Math.max(0, (u.sp | 0) - sk.sp); if (sk.cdN > 0) u.cd[sk.id] = sk.cdN + 1; if (sk.sp) e.txt += '（' + sk.sp + ' SP）';
         /* 職業精通：巧手回收（自己 SP +1）、餘韻（隨機一名同伴 SP +1），只算消耗 SP 的技能 */
-        if (u.mst && u.mst.decree_echo && /^法令/.test(sk.n) && RND() < u.mst.decree_echo.ch) { var s8 = u.sp | 0; u.sp = Math.min(SPMAX, s8 + (sk.sp | 0)); delete u.cd[sk.id]; if (u.sp > s8) numAdd(u, u.sp - s8, 'sp'); e.decho = 1; e._spm = (e._spm || []).concat('「' + u.mst.decree_echo.n + '」退還 ' + (sk.sp | 0) + ' SP、不進入冷卻') } /* 法令迴響 */
+        if (u.mst && u.mst.decree_echo && /^律令/.test(sk.n) && RND() < u.mst.decree_echo.ch) { var s8 = u.sp | 0; u.sp = Math.min(SPMAX, s8 + (sk.sp | 0)); delete u.cd[sk.id]; if (u.sp > s8) numAdd(u, u.sp - s8, 'sp'); e.decho = 1; e._spm = (e._spm || []).concat('「' + u.mst.decree_echo.n + '」退還 ' + (sk.sp | 0) + ' SP、不進入冷卻') } /* 律令迴響 */
         if (sk.sp && u.mst) {
           if (u.mst.sp_on_skill && RND() < u.mst.sp_on_skill.ch) { var q0 = u.sp | 0; u.sp = Math.min(SPMAX, q0 + 1); if (u.sp > q0) { numAdd(u, 1, 'sp'); e._spm = (e._spm || []).concat('「' + u.mst.sp_on_skill.n + '」' + u.name + ' SP +1') } }
           if (u.mst.sp_ally_on_skill && RND() < u.mst.sp_ally_on_skill.ch) { var oa = P.filter(function (q) { return q !== u && !q.dead && (q.sp | 0) < SPMAX }); if (oa.length) { var ob = pickOne(oa); ob.sp = (ob.sp | 0) + 1; numAdd(ob, 1, 'sp'); e._spm = (e._spm || []).concat('「' + u.mst.sp_ally_on_skill.n + '」' + ob.name + ' SP +1') } }
@@ -1136,7 +1136,7 @@
           if (useO.length) (e._x = e._x || []).push('消耗' + useO.map(function (n) { return '「' + n + '」' }).join('')); if (newO.length) (e._x = e._x || []).push('獲得' + newO.map(function (n) { return '「' + n + '」' }).join('')); e.orbU = useO; e.orbN = newO }
         huntPost(u, order.filter(function (t) { return perT[t.i + t.side].ok && t.side !== u.side }), preM, anyCrit, e);
         if (hS) { delete u._holy; if (order.some(function (t) { return perT[t.i + t.side].ok })) { removeStatus(u, hS); (e._x = e._x || []).push('用掉聖光 ' + (hS.stk || 1) + ' 層') } } /* 聖光蓄能：打中就全部用掉 */
-        /* 法令：極光：傷害之後替我方全體回血（魔攻 × value，吃治療加成、會爆擊） */
+        /* 律令：極光：傷害之後替我方全體回血（魔攻 × value，吃治療加成、會爆擊） */
         effs.forEach(function (r) { if (r.effect_kind !== 'heal' || r.target !== 'ally_all' || u.dead) return; var hl2 = []; friends(u).forEach(function (f) { var c = RND() < stat(u, 'crit'), v = stat(u, 'matk') * num(r.value) * (1 + u.b.heal) * (c ? 1 + stat(u, 'cdmg') : 1); NC = { c: c }; var g = skHeal(u, f, v, e); addStat(e, u, 'heal', g, sk.n); if (g) hl2.push(f.name + (c ? ' 暴擊！' : ' ') + g) }); if (hl2.length) (e._x = e._x || []).push('恢復 ' + hl2.join('、')); e.hl = friends(u).filter(function (f) { return f.side === 'p' }).map(function (f) { return f.i }) });
         e.tg = order.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i });
         e.tgP = order.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
@@ -1179,7 +1179,7 @@
         e.hp = hpSnap();
       } else if (sk.ty === 'heal') {
         var amtList = [], tot = 0, cal = 0;
-        if (bonus.bounce) { /* 法令：恩澤：治療鍊在我方隨機彈跳，每下補一次、解除最新的一個負面（不能驅散的跳過） */ var bseq = [], bN = num(bonus.bounce.value) || 6, base0 = sk.parts[0] ? sk.parts[0].r : 0.3;
+        if (bonus.bounce) { /* 律令：恩澤：治療鍊在我方隨機彈跳，每下補一次、解除最新的一個負面（不能驅散的跳過） */ var bseq = [], bN = num(bonus.bounce.value) || 6, base0 = sk.parts[0] ? sk.parts[0].r : 0.3;
           for (var bq = 0; bq < bN; bq++) { var al = friends(u).filter(function (x) { return !x.dead && !banished(x) }); if (!al.length) break; var bt = pickOne(al); bseq.push(bt.i); var c0 = RND() < stat(u, 'crit'), v0 = stat(u, 'matk') * base0 * (1 + u.b.heal) * (c0 ? 1 + stat(u, 'cdmg') : 1); NC = { c: c0, h: bq }; cal += healCalc(bt, v0); var g0 = skHeal(u, bt, v0, e); tot += g0; addStat(e, u, 'heal', g0, sk.n);
             var dd = debuffs(bt).filter(function (q) { return !q.swal && !q.banish && !q.rows.some(function (r) { return r.k === 'no_dispel' }) }); var cl = dd.length ? dd[dd.length - 1] : null; if (cl) removeStatus(bt, cl); amtList.push(bt.name + (c0 ? ' 暴擊！' : ' ') + '恢復 ' + g0 + (cl ? '、解除「' + cl.n + '」' : '')) }
           e.bnc = bseq; tg = [] }
