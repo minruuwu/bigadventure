@@ -234,11 +234,12 @@ service cloud.firestore {
       // 2026-11-18 再修:空的切片(例如 nb[0:0]、只有 1 隻時的 nb[1:1])疑似會讓規則出錯而整筆被擋,所以前後段是空的就不比對(孵化完成也是同一個問題)
       // 已學會的技能(順序編號):Lv1 第 0 招、Lv6 第 2 招、Lv12 第 3 招、Lv18 第 1 招
       function bLearn(lv) { return lv >= 18 ? [0, 2, 3, 1] : lv >= 12 ? [0, 2, 3] : lv >= 6 ? [0, 2] : [0]; }
+      // 2026-11-25:成熟招原本寫成 (s - 4) in b.mo[0:k](切片用到函式參數),一般玩家進化被擋,改成逐一比對
       // 第 s 招學會了沒:幼年體照 bLearn;成熟體幼年四招都會,成熟招(4~7)照進化時抽的順序 mo,Lv1/6/12/18 各學一招
       function bOk(b, s) {
         let lv = b.get('lv', 1);
         return ('ev' in b)
-          ? (s in [0, 1, 2, 3] || (s is int && s >= 4 && s <= 7 && (s - 4) in b.mo[0:(lv >= 18 ? 4 : lv >= 12 ? 3 : lv >= 6 ? 2 : 1)]))
+          ? (s in [0, 1, 2, 3] || (s is int && s >= 4 && s <= 7 && ((s - 4) == b.mo[0] || (lv >= 6 && (s - 4) == b.mo[1]) || (lv >= 12 && (s - 4) == b.mo[2]) || (lv >= 18 && (s - 4) == b.mo[3]))))
           : s in bLearn(lv);
       }
       function bSkOk(b) { return b.sk is list && b.sk.size() >= 1 && b.sk.size() <= 2 && bOk(b, b.sk[0]) && (b.sk.size() < 2 || (bOk(b, b.sk[1]) && b.sk[1] != b.sk[0])); }
@@ -288,7 +289,8 @@ service cloud.firestore {
               && nb[i].lv == 1 && nb[i].ev in ['atk','def','sup']
               && nb[i].mo is list && nb[i].mo.size() == 4 && nb[i].mo.hasAll([0, 1, 2, 3])
               && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 30)
-              && (!('sk' in nb[i]) || bSkOk(nb[i]))
+              // 進化後裝備的招:不經過函式,直接寫(Lv1 只會幼年四招＋第一招成熟招)
+              && (!('sk' in nb[i]) || (nb[i].sk is list && nb[i].sk.size() >= 1 && nb[i].sk.size() <= 2 && nb[i].sk.toSet().size() == nb[i].sk.size() && nb[i].sk.hasOnly([0, 1, 2, 3, nb[i].mo[0] + 4])))
               && bEvoMat(ob[i].sp))
             // 放生:拿掉第 i 隻,其他順序不變;同行的編號可以一起改
             || (op.t == 'del' && ak.hasOnly(['beasts','bOp','beastOn'])
