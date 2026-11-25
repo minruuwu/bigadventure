@@ -3045,14 +3045,13 @@ function j23St(f,x,gy,top,lf,t){var by=gy-lf;
    狀態：神聖護盾（白金護盾）、聖光（金色小光球，幾層幾顆）、神威（金色氣焰） */
 var J24=['#4a3608','#c8a040','#ffe08a','#fff6d0','#ffffff'];
 /* 白金聖徽：圓環套十字、十字末端外擴、環上繩結點（原創像素版） */
-function j24Sigil(x,y,R,a,rot,sq){if(a<=0||R<1)return;sq=sq||1;rot=rot||0;
-  bRing(x,y,R,J24[3],a,sq);bRing(x,y,R-1.2,J24[1],a*.8,sq);bRing(x,y,R*.42,J24[2],a*.9,sq);
-  for(var k=0;k<4;k++){var an=rot+k*Math.PI/2,c=Math.cos(an),s=Math.sin(an)*sq,L=R*1.28;
-    for(var w=-1;w<=1;w++){var px=-s*w,py=c*w;bLine(x+c*R*.42+px,y+s*R*.42+py,x+c*L+px,y+s*L+py,w?J24[2]:J24[4],a,1)}
-    var ex=x+c*L,ey=y+s*L,fl=R*.22;bLine(ex-s*fl*1.6,ey+c*fl*1.6,ex+s*fl*1.6,ey-c*fl*1.6,J24[3],a,1);/* 十字末端外擴 */
-    for(var d=0;d<3;d++){var t=.55+d*.22;VP(x+c*R*t-s*2,y+s*R*t+c*2,J24[4],a);VP(x+c*R*t+s*2,y+s*R*t-c*2,J24[1],a*.8)}/* 繩結紋 */
-    var a2=an+Math.PI/4;VP(x+Math.cos(a2)*R,y+Math.sin(a2)*R*sq,'#ffffff',a)}
-  glowAt(x,y,R*.6,'rgba(255,250,225,.9)','rgba(255,200,80,.35)',a*.7)}
+function j24Sigil(x,y,R,a,rot,sq){if(a<=0||R<1)return;sq=sq||1;var pul=.8+.2*Math.sin(performance.now()/260);a*=pul;/* 白金聖徽：三葉結（三個尖瓣交織＋一個圓），不旋轉、只會發光 */
+  var P=function(px,py){return[x+px,y+py*sq]},seg=function(pts,c,al){for(var k=0;k<pts.length-1;k++){var A=P(pts[k][0],pts[k][1]),B=P(pts[k+1][0],pts[k+1][1]);bLine(A[0],A[1],B[0],B[1],c,al,1);bLine(A[0]+.5,A[1]+.5,B[0]+.5,B[1]+.5,c,al*.6,1)}};
+  glowAt(x,y,R*1.1,'rgba(255,250,225,.55)','rgba(255,200,80,.25)',a*.8);
+  for(var k=0;k<3;k++){var an=-Math.PI/2+k*2*Math.PI/3,ux=Math.cos(an),uy=Math.sin(an),vx=-uy,vy=ux,P1=[-ux*R*.42,-uy*R*.42],P2=[ux*R,uy*R],D=R*1.42,rho=D*.62,h=Math.sqrt(Math.max(0,rho*rho-D*D/4)),mx=(P1[0]+P2[0])/2,my=(P1[1]+P2[1])/2;
+    [1,-1].forEach(function(sd){var cx=mx+vx*h*sd,cy=my+vy*h*sd,a1=Math.atan2(P1[1]-cy,P1[0]-cx),a2=Math.atan2(P2[1]-cy,P2[0]-cx),da=a2-a1;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;var pts=[];for(var n=0;n<=16;n++){var t=a1+da*n/16;pts.push([cx+Math.cos(t)*rho,cy+Math.sin(t)*rho])}seg(pts,J24[1],a*.7);seg(pts.map(function(q){return[q[0]*.97,q[1]*.97]}),J24[3],a)})}
+  var cp=[];for(var n2=0;n2<=36;n2++){var t2=n2/36*6.283;cp.push([Math.cos(t2)*R*.6,Math.sin(t2)*R*.6])}seg(cp,J24[3],a);
+  for(var k2=0;k2<3;k2++){var an2=-Math.PI/2+k2*2*Math.PI/3,T=P(Math.cos(an2)*R,Math.sin(an2)*R);VP(T[0],T[1],'#ffffff',a)}}
 function j24Cast(H,d,t0){var q=d-(t0||0);if(q<0||q>520)return;var k=Math.min(1,q/180),fo=q<380?1:1-(q-380)/140,R=lerp(3,9,ease(k));j24Sigil(H[0],H[1]-44,R,fo,q/600);if(q<240){var w=q/240;bRing(H[0],H[1]-44,R+w*30,J24[3],(1-w)*.9,1);bRing(H[0],H[1]-44,R+w*18,J24[2],(1-w)*.6,1)}}/* 法印：頭上浮現、向外擴散聖光波紋 */
 function j24Feather(x,y,a,t,s){if(a<=0)return;var sw=Math.sin(t/180+s)*2;bLine(x+sw,y,x+sw+2,y+5,J24[3],a,1);VP(x+sw+1,y+1,'#ffffff',a);VP(x+sw+3,y+3,J24[2],a*.8);VP(x+sw-1,y+2,J24[2],a*.6)}
 /* 法令：極光 */
@@ -3107,7 +3106,7 @@ function miracleFx(e,d){if(d<0||d>GODR.cut+MIR.end)return;if(!e._snd&&window.Sfx
   var fa=FXA;FXA=1;var q=d-GODR.cut,H=supHome(e);
   if(q>=0&&H){var J=mirAt(e,d)||H,W=pfx.width/U,Hs=pfx.height/U,fadeAll=q<MIR.end-500?1:Math.max(0,1-(q-MIR.end+500)/500);APD={k:.6*Math.min(1,q/300)*fadeAll,a:e.a,t:performance.now()};
     /* 1. 升空：全身金光、背後法印旋轉 */
-    var ra=Math.min(1,q/300)*fadeAll;onGround(function(){j24Sigil(J[0]-2,J[1]-22,15,ra*.95,q/700)});glowAt(J[0],J[1]-17,14,'rgba(255,248,215,.55)','rgba(255,200,80,.2)',ra);/* 法印畫在本人後面 */for(var s=0;s<10;s++){var u=((q+s*90)%700)/700;VP(J[0]+(hsh(s,5)-.5)*18,J[1]-u*40,s%2?J24[3]:'#ffffff',ra*(1-u))}
+    var ra=Math.min(1,q/300)*fadeAll;onGround(function(){j24Sigil(J[0]-2,J[1]-20,21,ra*.95,0)});glowAt(J[0],J[1]-17,14,'rgba(255,248,215,.55)','rgba(255,200,80,.2)',ra);/* 法印畫在本人後面 */for(var s=0;s<10;s++){var u=((q+s*90)%700)/700;VP(J[0]+(hsh(s,5)-.5)*18,J[1]-u*40,s%2?J24[3]:'#ffffff',ra*(1-u))}
     /* 2. 高空雲層旋轉撕裂 */
     if(q>=MIR.sky){var sa=Math.min(1,(q-MIR.sky)/400)*fadeAll,cx=W*.5,cy=8;for(var r=0;r<5;r++){var R=18+r*14;for(var t=0;t<24;t++){var an=t/24*6.28+q/(900-r*120)*(r%2?1:-1),x=cx+Math.cos(an)*R*1.6,y=cy+Math.sin(an)*R*.3;bLine(x,y,x+Math.cos(an+1.5)*6,y+Math.sin(an+1.5)*1.2,r%2?'#5a5060':'#8a7a80',sa*.5,1)}}
       var tear=Math.min(1,Math.max(0,(q-MIR.sky-300)/400)),TW=tear*70;for(var tx2=-TW;tx2<=TW;tx2+=1){var xn=1-Math.abs(tx2)/(TW+1e-6),th=Math.pow(xn,.7)*7*tear+Math.sin(tx2*1.7)*1.2*xn;bLine(cx+tx2,cy+2-th,cx+tx2,cy+2+th,xn>.6?'#ffffff':J24[3],sa*(.4+.6*xn),1)}}/* 雲層撕開一道發光的裂縫（中間寬、兩端尖） */
