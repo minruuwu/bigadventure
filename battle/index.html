@@ -497,6 +497,7 @@ function tick(now){
     p.f.style.width=s+'px';p.f.style.height=s+'px';p.f.style.left=((x-24)*U)+'px';p.f.style.top=((y-40)*U)+'px';p.f.style.zIndex=Math.round(pp[1]);
     var sw=swAt(k,t);p.f.style.transformOrigin='50% '+(40/48*100)+'%';p.f.style.transform=(dfl?'scaleX(-1) ':'')+(dsx!==1?'scaleX('+dsx.toFixed(2)+') ':'')+(fall?'rotate('+(-90*fall)+'deg)':'')+(sw.s<1?' scale('+sw.s+')':'')||'none';
     p.f.style.opacity=sw.a*(sf.fx.ban?.5:1)*(bstGoldRealm(k)?.6:1)*(sf.fx.stealth?.6:1);p.f.style.filter=bstAuraF(k,ko,t,bstGoldRealm(k)&&!ko?'sepia(1) saturate(2.6) hue-rotate(-8deg) brightness(1.4)'/* 星儀異象：全身金色 */:dk>0&&!ko?'brightness('+(1-dk*.94).toFixed(3)+') saturate('+(1-dk).toFixed(3)+')':fl?'brightness(2.4) saturate(.4)':ko?'grayscale(1) brightness(.9)':((stFilter(sf.fx,p.fireT&&now-p.fireT<260)+' '+castGlow('p',k,t)).trim()||'none'));
+    if(apdK()>0&&APD.a!==k)p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' brightness('+(1-apdK()).toFixed(3)+')';/* 奧義暗場：其他隊友一起暗 */
     if(B.live&&LV&&LV.hl&&!ko&&LV.hl.some(function(q){return q[0]==='p'&&q[1]===k})){p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' brightness(1.35) drop-shadow(0 0 3px #ffffff)'}
     if(B.live&&LV&&LV.wait&&LV.wait.i===k&&!ko){var fq=Math.round(3+2*Math.sin(now/220));p.f.style.filter=(p.f.style.filter==='none'?'':p.f.style.filter)+' drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 '+fq+'px #ffffff)'}/* 手動戰鬥：輪到的人發白光 */
     p.sh.style.width=(16*U)+'px';p.sh.style.height=(4*U)+'px';p.sh.style.left=((pp[0]-8)*U)+'px';p.sh.style.top=((pp[1]-1.5)*U)+'px';p.sh.style.opacity=(1-fall)*sw.a;
@@ -2918,6 +2919,7 @@ function apocFx(e,d){if(d<0||d>GODR.cut+APOC.end)return;if(!e._snd&&window.Sfx){
   var fa=FXA;FXA=1;var q=d-GODR.cut,H=supHome(e),T=(e.tg||[]).map(j21Mon).filter(Boolean);
   if(q>=0&&H&&T.length){var cx=T.reduce(function(s,v){return s+v.x},0)/T.length,cgy=T.reduce(function(s,v){return s+v.gy},0)/T.length,cy=cgy-16,minX=Math.min.apply(null,T.map(function(v){return v.x-v.tw/2})),maxX=Math.max.apply(null,T.map(function(v){return v.x+v.tw/2}));
     var fadeAll=q<APOC.f?1:Math.max(0,1-(q-APOC.f)/300);
+    APD={k:.62*Math.min(1,q/300)*(q<APOC.f+250?1:Math.max(0,1-(q-APOC.f-250)/450)),a:e.a,t:performance.now()};/* 畫面暗下來，白光退掉時一起亮回來 */
     /* A：腳下藍紫色魔法陣 */
     var aa=Math.min(1,q/250)*fadeAll;j22Circle(H[0],H[1],lerp(6,30,ease(Math.min(1,q/400))),.32,q/400,['#aebcff','#4a5ee8','#ffffff'],aa,12);glowAt(H[0],H[1],26,'rgba(140,165,255,.4)','rgba(40,60,190,.15)',aa*.8);
     /* B：身前球形魔法陣 */
@@ -3270,7 +3272,10 @@ var FXA=1,UNDA=.6;(function(){var dsc=Object.getOwnPropertyDescriptor(CanvasRend
 function burst(m,mx,gy,mw,mh,t){m.boom=1;var im=m.f;if(!im.naturalWidth)return;var w=im.naturalWidth,h=im.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');x.drawImage(im,0,0);var d=x.getImageData(0,0,w,h).data,st=w>30?2:1,uw=mw/U/w,uh=mh/U/h;
   for(var py=0;py<h;py+=st)for(var px=0;px<w;px+=st){var k=(py*w+px)*4;if(d[k+3]<40)continue;
     PARTS.push({x:mx-mw/U/2+px*uw,y:gy-mh/U+py*uh,sz:st*uw,c:'rgb('+Math.min(255,d[k]+60)+','+Math.min(255,d[k+1]+60)+','+Math.min(255,d[k+2]+60)+')',t0:t+(h-py)/h*260*Math.random()+Math.random()*120,life:520+Math.random()*560,vy:-(10+Math.random()*16),vx:(Math.random()-.5)*6,ph:Math.random()*6})}}
-function drawParts(t){var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
+/* 奧義暗場：背景和前景蓋一層暗色（z-index 1，在背景之上、角色之下），施法者和敵人不受影響，其他隊友另外調暗；特效畫在 pfx 上也不受影響 */
+var APD={k:0,a:-1,t:0};function apdK(){return performance.now()-APD.t<150?APD.k:0}
+function apdApply(){var k=apdK(),d=$('apd'),g=$('fgl');if(!d){if(k<=0)return;d=document.createElement('div');d.id='apd';d.style.cssText='position:absolute;inset:0;background:#04030c;pointer-events:none;z-index:1;opacity:0';$('bg').after(d)}d.style.opacity=k.toFixed(3);if(g)g.style.filter=k>0?'brightness('+(1-k).toFixed(3)+')':''}
+function drawParts(t){apdApply();var W=frame.clientWidth,H=frame.clientHeight;if(pfx.width!==W||pfx.height!==H){pfx.width=W;pfx.height=H}pctx.clearRect(0,0,W,H);if(!PARTS.length)return;
   PARTS=PARTS.filter(function(q){return t<q.t0+q.life});
   PARTS.forEach(function(q){if(t<q.t0){pctx.globalAlpha=1;pctx.fillStyle=q.c;pctx.fillRect(Math.round(q.x*U),Math.round(q.y*U),Math.max(1,Math.round(q.sz*U)),Math.max(1,Math.round(q.sz*U)));return}
     var a=(t-q.t0)/q.life,s2=(t-q.t0)/1000,x=q.x+q.vx*s2+Math.sin(s2*5+q.ph)*1.2,y=q.y+q.vy*s2-a*a*6;pctx.globalAlpha=Math.max(0,1-a);pctx.fillStyle=q.c;var z=Math.max(1,Math.round(q.sz*U*(1-a*.4)));pctx.fillRect(Math.round(x*U),Math.round(y*U),z,z)});pctx.globalAlpha=1}
