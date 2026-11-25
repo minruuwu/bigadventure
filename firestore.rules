@@ -299,7 +299,7 @@ service cloud.firestore {
           );
       }
       function bEvoMat(sp) {
-        let c = {'fire':'red','ice':'blue','bolt':'yellow','wind':'teal','leaf':'green','sun':'gold','moon':'purple'}[sp];
+        let c = sp == 'fire' ? 'red' : sp == 'ice' ? 'blue' : sp == 'bolt' ? 'yellow' : sp == 'wind' ? 'teal' : sp == 'leaf' ? 'green' : sp == 'sun' ? 'gold' : 'purple';  // 不用「map[參數]」查表,保險起見改成逐一比對
         let om = resource.data.get('beastMat', {});
         let nm = request.resource.data.get('beastMat', {});
         return nm.diff(om).affectedKeys().hasOnly(['crystal_' + c, 'ore_' + c, 'orb_' + c])
