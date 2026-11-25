@@ -282,17 +282,22 @@ service cloud.firestore {
             || (op.t == 'free' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && (i == 0 || 0 >= ob.size() || nb[0] == ob[0]) && (i == 1 || 1 >= ob.size() || nb[1] == ob[1]) && (i == 2 || 2 >= ob.size() || nb[2] == ob[2]) && (i == 3 || 3 >= ob.size() || nb[3] == ob[3]) && (i == 4 || 4 >= ob.size() || nb[4] == ob[4]) && (i == 5 || 5 >= ob.size() || nb[5] == ob[5]))
               && !('fr' in ob[i]) && nb[i].diff(ob[i]).affectedKeys().hasOnly(['st','fr']) && nb[i].fr == 1
               && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 15))
-            // 進化:幼年體 Lv20 → 成熟體 Lv1,型別 ev、成熟招學習順序 mo(0~3 的排列),送 3 格屬性(上限 30),可以順便換裝備技能;
+            // 進化:幼年體 Lv20 → 成熟體 Lv1,型別 ev、成熟招學習順序 mo(0~3 的排列),可以順便換裝備技能;屬性這次不動(送的 3 格改由下面的 evst 另外存)
+            // (2026-11-25:進化跟送屬性拆成兩筆存檔。單獨測每一項都通過、合在玩家資料上卻被擋,疑似超過每次 1000 個運算式的上限)
             // 扣這隻幻獸顏色的結晶、礦石、寶珠各 100 個
             || (op.t == 'evo' && ak.hasOnly(['beasts','beastMat','bOp']) && (nb.size() == ob.size() && (i == 0 || 0 >= ob.size() || nb[0] == ob[0]) && (i == 1 || 1 >= ob.size() || nb[1] == ob[1]) && (i == 2 || 2 >= ob.size() || nb[2] == ob[2]) && (i == 3 || 3 >= ob.size() || nb[3] == ob[3]) && (i == 4 || 4 >= ob.size() || nb[4] == ob[4]) && (i == 5 || 5 >= ob.size() || nb[5] == ob[5]))
               && !('ev' in ob[i]) && ob[i].get('lv', 1) == 20
-              && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','ev','mo','st','sk'])
+              && nb[i].diff(ob[i]).affectedKeys().hasOnly(['lv','ev','mo','sk'])
               && nb[i].lv == 1 && nb[i].ev in ['atk','def','sup']
               && nb[i].mo is list && nb[i].mo.size() == 4 && nb[i].mo.hasAll([0, 1, 2, 3])
-              && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 30)
               // 進化後裝備的招:不經過函式,直接寫(Lv1 只會幼年四招＋第一招成熟招)
               && (!('sk' in nb[i]) || (nb[i].sk is list && nb[i].sk.size() >= 1 && nb[i].sk.size() <= 2 && nb[i].sk.toSet().size() == nb[i].sk.size() && nb[i].sk.hasOnly([0, 1, 2, 3, nb[i].mo[0] + 4])))
               && bEvoMat(ob[i].sp))
+            // 進化送的 3 格屬性(上限 30):已進化、還沒領過(沒有 ef)才能領一次
+            || (op.t == 'evst' && ak.hasOnly(['beasts','bOp']) && (nb.size() == ob.size() && (i == 0 || 0 >= ob.size() || nb[0] == ob[0]) && (i == 1 || 1 >= ob.size() || nb[1] == ob[1]) && (i == 2 || 2 >= ob.size() || nb[2] == ob[2]) && (i == 3 || 3 >= ob.size() || nb[3] == ob[3]) && (i == 4 || 4 >= ob.size() || nb[4] == ob[4]) && (i == 5 || 5 >= ob.size() || nb[5] == ob[5]))
+              && ('ev' in ob[i]) && !('ef' in ob[i])
+              && nb[i].diff(ob[i]).affectedKeys().hasOnly(['st','ef']) && nb[i].ef == 1
+              && bStOk(ob[i].get('st', {}), nb[i].get('st', {}), 30))
             // 放生:拿掉第 i 隻,其他順序不變;同行的編號可以一起改
             || (op.t == 'del' && ak.hasOnly(['beasts','bOp','beastOn'])
               && nb.size() == ob.size() - 1 && (0 >= nb.size() || nb[0] == ob[0 < i ? 0 : 1]) && (1 >= nb.size() || nb[1] == ob[1 < i ? 1 : 2]) && (2 >= nb.size() || nb[2] == ob[2 < i ? 2 : 3]) && (3 >= nb.size() || nb[3] == ob[3 < i ? 3 : 4]) && (4 >= nb.size() || nb[4] == ob[4 < i ? 4 : 5])
