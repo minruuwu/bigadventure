@@ -662,7 +662,7 @@ function diffStr(b,n){if(typeof n==='number'){var d=n-b;return d?'<span class="d
   var bn=parseFloat(b),nn=parseFloat(n),dd=Math.round((nn-bn)*10)/10;return dd?'<span class="dl">'+(dd>0?'+':'')+dd+'%</span>':''}
 var JST={cur:'目前職業',ok:'可轉職',no:'條件未達成',cl:'未開放',one:'已選其他二轉'};
 /* 二轉職業：先開放這幾個，其他維持未開放；每人只能選一個二轉（轉過的 jobSeen 裡有別的二轉就不能再轉，重置所有職業後可重選） */
-var OPEN2=['job21','job22','job23','job24'];
+var OPEN2=['job21','job22','job23','job24','job25'];
 function has2(sn){return S.seen.some(function(x){return tierOf(x)===2&&x!==sn})}
 function jobStatus(sn){if(tierOf(sn)===2){if(OPEN2.indexOf(sn)<0)return 'cl';if(sn===S.jobSn)return 'cur';if(has2(sn))return 'one'}if(sn===S.jobSn)return 'cur';return reqMet(sn)?'ok':'no'}
 function upJobSum(){var s=0;Object.keys(UP.job).forEach(function(k){s+=UP.job[k]});return s}
