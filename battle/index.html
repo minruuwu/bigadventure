@@ -2796,6 +2796,7 @@ function godrCutIn(e,d){var p=party[e.a];if(!p||d<0||d>=GODR.cut)return;var C=UL
     var tg=pctx.createLinearGradient(0,-fs,0,0);tg.addColorStop(0,'#ffffff');tg.addColorStop(.45,C[3]);tg.addColorStop(1,C[2]);pctx.fillStyle=tg;pctx.fillText(txt,0,0);pctx.restore();
     if(d>=545&&d<760){var fz=1-(d-545)/215;bScreen('#ffffff',fz*.25*fo)}}}
 function godrFx(e,d){if(d<0||d>3700)return;if(!e._snd&&window.Sfx){e._snd=1;try{Sfx.init(BASE);Sfx.play('ult',{force:VFXT})}catch(err){}}var fa=FXA;FXA=1;var p=party[e.a],H=supHome(e),C=ULTC[e.ujob]||ULTC.job21;if(!H||!p){FXA=fa;return}
+  if(d>=GODR.cut)APD={k:.62*Math.min(1,(d-GODR.cut)/300)*(d<3250?1:Math.max(0,1-(d-3250)/400)),a:e.a,t:performance.now()};/* 奧義暗場：施法者、敵人、特效以外都暗下來 */
   /* 蓄力：全身金紅光、光粒往上飄、腳下金環 */
   if(d>=GODR.cut-100&&d<GODR.hit){var ga=Math.min(1,(d-GODR.cut+100)/250);glowAt(H[0],H[1]-17,24,'rgba(255,220,150,.85)','rgba(220,60,20,.35)',ga);for(var k=0;k<16;k++){var u=((d+k*67)%460)/460;VP(H[0]+(hsh(k,3)-.5)*20,H[1]-u*42,k%3?'#ffb040':'#fff4c8',ga*(1-u))}bRing(H[0],H[1],4+((d%380)/380)*13,'#ffb040',ga*.8,.3)}
   /* 8 下：殘影＋金紅劍氣 */
