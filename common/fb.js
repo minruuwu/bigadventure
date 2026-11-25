@@ -308,7 +308,12 @@ const FB = {
     const o = (OB[i] && OB[i].mapValue && OB[i].mapValue.fields) || {}, n = NB[i] || {};
     Object.keys(Object.assign({}, o, n)).forEach(k => { const a = jv(o[k]), b = n[k] === undefined ? undefined : lv(n[k]); if (a !== b) why.push(k + ' ' + (a === undefined ? '無' : a) + '→' + (b === undefined ? '無' : b)); });
     if (f.beastMat) { const M = (F.beastMat && F.beastMat.mapValue && F.beastMat.mapValue.fields) || {}; Object.keys(Object.assign({}, M, f.beastMat)).forEach(k => { const a = jv(M[k]), b = f.beastMat[k] === undefined ? undefined : lv(f.beastMat[k]); if (a !== b) why.push(k + ' ' + a + '→' + b); }); }
-    why.push('bOp ' + jv(F.bOp) + '→' + lv(op)); return why; },
+    why.push('bOp ' + jv(F.bOp) + '→' + lv(op));
+    if (op.t === 'evo') { try { const p = await FB.myFresh(), ob = (p.beasts || [])[i] || {}, nb = NB[i] || {}, COL = { fire: 'red', ice: 'blue', bolt: 'yellow', wind: 'teal', leaf: 'green', sun: 'gold', moon: 'purple' };
+        const base = { ob, nb, om: p.beastMat || {}, nm: f.beastMat || {}, c: COL[ob.sp] || 'purple' }, out = [];
+        for (const t of ['ok', 'st', 'diff', 'base', 'sk', 'mat', 'all']) { try { await tmo(setDoc(doc(db, 'ruledbg', u.uid), Object.assign({ t }, base)), 8000); out.push(t + '✓'); } catch (e3) { out.push(t + '✗'); } }
+        why.push('診斷 ' + out.join(' ')); } catch (e4) { why.push('診斷失敗'); } }
+    return why; },
   // 孵化送的一次屬性：還沒領過（沒有 fr）的幻獸，9 項裡平均隨機加 3 格（同一項可重複，滿 15 格的不會抽到）；回傳 [加了哪幾項的 key]
   async beastFree() { const got = []; await FB.beastEdit(p => { const L = (p.beasts || []).slice(), i = L.findIndex(b => b && !b.fr && !b.ev); if (i < 0) return null;
       const K = ['atk','dmg','crit','red','hp','res','eva','cdmg','ores'], st = Object.assign({}, L[i].st || {});

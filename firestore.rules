@@ -671,6 +671,33 @@ match /chat/{id} {
     && (resource == null || resource.data.at <= request.time - duration.value(60, 's'));
   allow delete: if false;
 }
+    // 規則診斷(2026-11-25):一般玩家進化一直被擋,把進化的每一項檢查拆開來測。
+    // 玩家只能寫自己的 ruledbg/{uid},內容不影響遊戲;找到原因後可以刪掉這段。
+    match /ruledbg/{uid} {
+        function bSt(os, ns, k, cap) { return ns.get(k, 0) is int && ns.get(k, 0) >= os.get(k, 0) && ns.get(k, 0) <= cap; }
+        function bStOk(os, ns, cap) {
+          return ns is map && ns.keys().hasOnly(['atk','dmg','crit','red','hp','res','eva','cdmg','ores'])
+            && bSt(os, ns, 'atk', cap) && bSt(os, ns, 'dmg', cap) && bSt(os, ns, 'crit', cap) && bSt(os, ns, 'red', cap) && bSt(os, ns, 'hp', cap)
+            && bSt(os, ns, 'res', cap) && bSt(os, ns, 'eva', cap) && bSt(os, ns, 'cdmg', cap) && bSt(os, ns, 'ores', cap)
+            && ns.get('atk', 0) + ns.get('dmg', 0) + ns.get('crit', 0) + ns.get('red', 0) + ns.get('hp', 0) + ns.get('res', 0) + ns.get('eva', 0) + ns.get('cdmg', 0) + ns.get('ores', 0)
+             - os.get('atk', 0) - os.get('dmg', 0) - os.get('crit', 0) - os.get('red', 0) - os.get('hp', 0) - os.get('res', 0) - os.get('eva', 0) - os.get('cdmg', 0) - os.get('ores', 0) == 3;
+        }
+        function matOk(d) {
+          return d.nm.diff(d.om).affectedKeys().hasOnly(['crystal_' + d.c, 'ore_' + d.c, 'orb_' + d.c])
+            && d.nm.get('crystal_' + d.c, 0) == d.om.get('crystal_' + d.c, 0) - 100 && d.nm.get('ore_' + d.c, 0) == d.om.get('ore_' + d.c, 0) - 100 && d.nm.get('orb_' + d.c, 0) == d.om.get('orb_' + d.c, 0) - 100;
+        }
+        function dbgOk(d) {
+          return d.t == 'st' ? bStOk(d.ob.get('st', {}), d.nb.get('st', {}), 30)
+            : d.t == 'diff' ? d.nb.diff(d.ob).affectedKeys().hasOnly(['lv','ev','mo','st','sk'])
+            : d.t == 'base' ? (!('ev' in d.ob) && d.ob.get('lv', 1) == 20 && d.nb.lv == 1 && d.nb.ev in ['atk','def','sup'] && d.nb.mo is list && d.nb.mo.size() == 4 && d.nb.mo.hasAll([0, 1, 2, 3]))
+            : d.t == 'sk' ? (d.nb.sk is list && d.nb.sk.size() >= 1 && d.nb.sk.size() <= 2 && d.nb.sk.toSet().size() == d.nb.sk.size() && d.nb.sk.hasOnly([0, 1, 2, 3, d.nb.mo[0] + 4]))
+            : d.t == 'mat' ? matOk(d)
+            : d.t == 'all' ? (bStOk(d.ob.get('st', {}), d.nb.get('st', {}), 30) && d.nb.diff(d.ob).affectedKeys().hasOnly(['lv','ev','mo','st','sk']) && d.nb.sk.hasOnly([0, 1, 2, 3, d.nb.mo[0] + 4]) && matOk(d))
+            : d.t == 'ok' ? true
+            : false;
+        }
+        allow create, update: if request.auth != null && request.auth.uid == uid && dbgOk(request.resource.data);
+    }
     match /names/{nameKey} {
       allow get: if request.auth != null;
       allow create: if request.auth != null
