@@ -47,13 +47,19 @@ service cloud.firestore {
 
 
       // 工會證:人物與職業共用一個經驗池。升到 L+1 級要 30*(L+1) 經驗(要改曲線時,下面的 15* 要一起改)
-      // 從 a 升到 b 的總花費 = 15*(b*(b+1) - a*(a+1))。規則有 1000 次運算的上限,所以只列 job01~job20(終極職業開放時再補),職業升級一次只能升一個職業
+      // 從 a 升到 b 的總花費 = 15*(b*(b+1) - a*(a+1))。職業升級一次只能升一個職業。二轉職業(job21~job35)另有曲線,見 jY
       function jOld(id) { return resource.data.get('jobLv', {}).get(id, 0); }
       function jNew(id) { return request.resource.data.get('jobLv', {}).get(id, 0); }
       function jR(x) { return 15 * x * (x + 1); }
-      function jSumNew() { return jNew('job01') + jNew('job02') + jNew('job03') + jNew('job04') + jNew('job05') + jNew('job06') + jNew('job07') + jNew('job08') + jNew('job09') + jNew('job10') + jNew('job11') + jNew('job12') + jNew('job13') + jNew('job14') + jNew('job15') + jNew('job16') + jNew('job17') + jNew('job18') + jNew('job19') + jNew('job20'); }
+      function jSumNew() { return jNew('job01') + jNew('job02') + jNew('job03') + jNew('job04') + jNew('job05') + jNew('job06') + jNew('job07') + jNew('job08') + jNew('job09') + jNew('job10') + jNew('job11') + jNew('job12') + jNew('job13') + jNew('job14') + jNew('job15') + jNew('job16') + jNew('job17') + jNew('job18') + jNew('job19') + jNew('job20')
+        + jNew('job21') + jNew('job22') + jNew('job23') + jNew('job24') + jNew('job25') + jNew('job26') + jNew('job27') + jNew('job28') + jNew('job29') + jNew('job30') + jNew('job31') + jNew('job32') + jNew('job33') + jNew('job34') + jNew('job35'); }
       // 一轉職業(job06~job20)升級花費是基礎職業的 3 倍
       function jM(id) { return id in ['job01','job02','job03','job04','job05'] ? 1 : 3; }
+      // 二轉職業(2026-11):每人只能選一個(轉職過的清單 jobSeen 裡最多一個),Lv1→2 要 25,000、之後每級 +4%(角色頁取整到十位)。
+      // 規則沒有次方,jY = 從 0 級升到 L 級的累計經驗(6 次多項式近似,任兩級之間的差跟實際花費最多差 17 經驗),升級、退還都留 30 的誤差空間
+      function jT2(id) { return id is string && id.size() == 5 && id >= 'job21' && id <= 'job35'; }
+      function jY(L) { return L <= 0 ? 0 : (((((8.23496784692e-06 * L + 5.15426855404e-05) * L + 0.0743472541113) * L + 5.76502875406) * L + 464.684602607) * L + 23561.9517712) * L + 6.21298971566; }
+      function jYSum() { return jY(jOld('job21')) + jY(jOld('job22')) + jY(jOld('job23')) + jY(jOld('job24')) + jY(jOld('job25')) + jY(jOld('job26')) + jY(jOld('job27')) + jY(jOld('job28')) + jY(jOld('job29')) + jY(jOld('job30')) + jY(jOld('job31')) + jY(jOld('job32')) + jY(jOld('job33')) + jY(jOld('job34')) + jY(jOld('job35')); }
       // 一轉職業 2026-11 新曲線:30 級以後每級複利 +8%(角色頁取整到十位)。規則沒有次方,改用多項式近似「30 級以後多付的累計經驗」,
       // k = 等級-30(1~20),這條式子一定比實際多付的多一點點(多 0~7 經驗),只用在退還上限(重置、降級)
       function jX(L) { let k = L - 30; return L <= 30 ? 0 : ((((0.005688 * k + 0.032036) * k + 6.262528) * k + 106.023405) * k + 117.604562) * k - 6.140867; }
@@ -432,7 +438,10 @@ service cloud.firestore {
           // 轉職:曾經轉過的職業清單(jobSeen),一次最多多一個,而且就是這次轉去的職業
           && (!('jobSeen' in ak)
           || (request.resource.data.jobSeen is list && request.resource.data.jobSeen.size() <= 35
-          && request.resource.data.jobSeen.toSet().difference(resource.data.get('jobSeen', []).toSet()).hasOnly([request.resource.data.jobSn])))
+          && request.resource.data.jobSeen.toSet().difference(resource.data.get('jobSeen', []).toSet()).hasOnly([request.resource.data.jobSn])
+          && request.resource.data.jobSeen.toSet().intersection(['job21','job22','job23','job24','job25','job26','job27','job28','job29','job30','job31','job32','job33','job34','job35'].toSet()).size() <= 1))
+          // 二轉職業:轉過去時一定要記進 jobSeen(這樣「每人只能選一個二轉」才擋得住)
+          && (!('jobSn' in ak) || !jT2(request.resource.data.jobSn) || request.resource.data.jobSn in request.resource.data.get('jobSeen', []))
           // 配點:不能是負數,總和不能超過等級給的點數
           && (!('alloc' in ak)
           || (request.resource.data.alloc.str >= 0 && request.resource.data.alloc.int >= 0
@@ -514,7 +523,8 @@ service cloud.firestore {
         // 工會證升級(職業):一轉職業花費 ×3;一次只升一個職業(jobUp 寫明是哪一個);等級只能增加、最高 50;職業總和 <= 人物等級的 2 倍;經驗池要付得起
         || (
           ak.hasOnly(['exp','jobLv','jobUp'])
-          && request.resource.data.jobUp in ['job01','job02','job03','job04','job05','job06','job07','job08','job09','job10','job11','job12','job13','job14','job15','job16','job17','job18','job19','job20']
+          && (request.resource.data.jobUp in ['job01','job02','job03','job04','job05','job06','job07','job08','job09','job10','job11','job12','job13','job14','job15','job16','job17','job18','job19','job20']
+          || (jT2(request.resource.data.jobUp) && request.resource.data.jobUp in resource.data.get('jobSeen', [])))
           && request.resource.data.get('jobLv', {}).diff(resource.data.get('jobLv', {})).affectedKeys().hasOnly([request.resource.data.jobUp])
           && jNew(request.resource.data.jobUp) is int
           && jNew(request.resource.data.jobUp) >= jOld(request.resource.data.jobUp)
@@ -523,12 +533,13 @@ service cloud.firestore {
           && request.resource.data.exp >= 0
           && jSumNew() <= 2 * resource.data.get('lv', 1)
           && resource.data.get('exp', 0) - request.resource.data.exp
-          >= jM(request.resource.data.jobUp) * (jR(jNew(request.resource.data.jobUp)) - jR(jOld(request.resource.data.jobUp)))
+          >= (jT2(request.resource.data.jobUp) ? jY(jNew(request.resource.data.jobUp)) - jY(jOld(request.resource.data.jobUp)) - 30
+             : jM(request.resource.data.jobUp) * (jR(jNew(request.resource.data.jobUp)) - jR(jOld(request.resource.data.jobUp))))
         )
         // 工會證單一職業降級(2026-11):只降一個職業(jobDown 寫明是哪一個),等級只能減少、不低於 0;退還的經驗不能超過那幾級的花費(一轉職業含 30 級以後新曲線多付的部分)
         || (
           ak.hasOnly(['exp','jobLv','jobDown'])
-          && request.resource.data.jobDown in ['job01','job02','job03','job04','job05','job06','job07','job08','job09','job10','job11','job12','job13','job14','job15','job16','job17','job18','job19','job20']
+          && (request.resource.data.jobDown in ['job01','job02','job03','job04','job05','job06','job07','job08','job09','job10','job11','job12','job13','job14','job15','job16','job17','job18','job19','job20'] || jT2(request.resource.data.jobDown))
           && request.resource.data.get('jobLv', {}).diff(resource.data.get('jobLv', {})).affectedKeys().hasOnly([request.resource.data.jobDown])
           && jNew(request.resource.data.jobDown) is int
           && jNew(request.resource.data.jobDown) >= 0
@@ -536,8 +547,9 @@ service cloud.firestore {
           && request.resource.data.exp is int
           && request.resource.data.exp >= resource.data.get('exp', 0)
           && request.resource.data.exp - resource.data.get('exp', 0)
-          <= jM(request.resource.data.jobDown) * (jR(jOld(request.resource.data.jobDown)) - jR(jNew(request.resource.data.jobDown)))
-             + (jM(request.resource.data.jobDown) == 3 ? jX(jOld(request.resource.data.jobDown)) - jX(jNew(request.resource.data.jobDown)) : 0)
+          <= (jT2(request.resource.data.jobDown) ? jY(jOld(request.resource.data.jobDown)) - jY(jNew(request.resource.data.jobDown)) + 30
+             : jM(request.resource.data.jobDown) * (jR(jOld(request.resource.data.jobDown)) - jR(jNew(request.resource.data.jobDown)))
+             + (jM(request.resource.data.jobDown) == 3 ? jX(jOld(request.resource.data.jobDown)) - jX(jNew(request.resource.data.jobDown)) : 0))
         )
         // 工會證重置所有職業:職業等級全部歸零、職業轉回戰士,經驗池最多退還已花職業經驗的全部（目前不扣懲罰；一轉職業照新曲線）
         || (
@@ -548,7 +560,7 @@ service cloud.firestore {
           && request.resource.data.jobSn == 'job01'
           && request.resource.data.exp is int
           && request.resource.data.exp >= resource.data.get('exp', 0)
-          && request.resource.data.exp - resource.data.get('exp', 0) <= jRefSum()
+          && request.resource.data.exp - resource.data.get('exp', 0) <= jRefSum() + jYSum() + 30
         )
         // 技能書:技能配置(戰鬥 4 格、反應 1 格、被動 4 格;技能 id 是字串,普通攻擊是 'atk',空格是 '';extra = 額外技能組的職業 id 清單,最多 2 組(舊資料是單一字串,也接受))
         || (
