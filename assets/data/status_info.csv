@@ -453,3 +453,12 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 風靈榮甲,buff,p_reduce_rate,0.15,,,,物理、魔法減傷 +15%、閃避率 +10%
 風靈榮甲,buff,m_reduce_rate,0.15,,,,
 風靈榮甲,buff,eva_rate,0.1,,,,
+神聖護盾,buff,shield,0,,,,吸收傷害的白金色護盾（過量治療轉化，最多最大生命 35%）；不可驅散
+神聖護盾,buff,no_dispel,,,,,
+聖光,buff,light_amp,0.08,,,,每層光屬性傷害 +8%（最多 5 層），下一次光屬性攻擊打中時全部用掉；不可驅散
+聖光,buff,no_dispel,,,,,
+神威,buff,p_damage_rate,0.2,,,,增傷 +20%、減傷 +10%；第一次受到致命傷害時留 1 滴血
+神威,buff,m_damage_rate,0.2,,,,
+神威,buff,p_reduce_rate,0.1,,,,
+神威,buff,m_reduce_rate,0.1,,,,
+神威,buff,undying1,,,,,
