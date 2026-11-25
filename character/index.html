@@ -467,7 +467,7 @@ var skTab='cfg',skDraft=null,skPick=null,skFlt='all',skJob=null,skMsg='';
 function skDirty(){return JSON.stringify(skDraft)!==JSON.stringify(skValid(S.skills))}
 function skEl(sk){var e=sk&&sk.e;return e&&SKEL[e]?'<img class="ske" alt="'+SKEL[e]+'" title="'+SKEL[e]+'" src="../assets/icons/stats/res_'+e+'.png?v=5" onerror="this.remove()">':''}
 /* 戰鬥技能右上角：「冷卻 N」＋ SP 藍色格子 */
-function skCost(sk){if(!sk||(sk.k!=='combat'&&sk.k!=='ultimate')||sk.id==='atk')return '';var q='';for(var i=0;i<sk.spN;i++)q+='<i></i>';return '<span class="skc">'+(sk.cdN?'冷卻'+sk.cdN:'')+(sk.spN?'<span class="sq">'+q+'</span>':'')+'</span>'}
+function skCost(sk){if(!sk||(sk.k!=='combat'&&sk.k!=='ultimate')||sk.id==='atk')return '';if(sk.k==='ultimate')return '<span class="skc">奧義值 100</span>';/* 奧義：集滿奧義值才能放，不吃 SP、沒有冷卻 */var q='';for(var i=0;i<sk.spN;i++)q+='<i></i>';return '<span class="skc">'+(sk.cdN?'冷卻'+sk.cdN:'')+(sk.spN?'<span class="sq">'+q+'</span>':'')+'</span>'}
 function skSlot(no,id,attr){var sk=id?skGet(id):null;return '<button class="sks" type="button" '+attr+'><span class="no">'+no+'</span>'+skIcon(sk)+'<span class="nm3">'+(sk?esc(sk.n)+skEl(sk)+skCost(sk):'（空）')+'<small>'+(sk?esc(skDesc(sk)):'點一下選擇技能')+'</small></span></button>'}
 function skPicker(){var g=skPick.g,k={c:'combat',r:'reaction',p:'passive'}[g],D=skDraft,used=g==='c'?D.combat:g==='p'?D.passive:[D.reaction],here=g==='c'?D.combat[skPick.i]:g==='p'?D.passive[skPick.i]:D.reaction;
   var CJ=[S.jobSn].concat(D.extra||[]);

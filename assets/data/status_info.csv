@@ -430,3 +430,26 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 深層凍結,buff,no_dispel,,,,,第一次因受傷生命低於 50% 時解除，全體敵人凍結 2 回合（王 1 回合）；不可驅散
 雷電詛咒,debuff,lightning_res_rate,-0.3,,,,雷電抗性 −30%
 疾風詛咒,debuff,wind_res_rate,-0.3,,,,疾風抗性 −30%
+風勢,buff,wind_ign,0.1,,,,每層：無視目標風屬性抗性 10%（最多抵到 0%）、速度 +1、物理攻擊力 +2%；每層各自計時
+風勢,buff,speed,1,,,,
+風勢,buff,p_atk_rate,0.02,,,,
+風勢,buff,each,,,,,
+獵物標記,debuff,prey,0.15,,,,受到標記者的攻擊傷害 +15%、被標記者命中率 +10%
+颶光,buff,p_damage_rate,0.1,,,,全屬性抗性 +10%、物理增傷 +10%、每回合恢復 5% 最大生命
+颶光,buff,fire_res_rate,0.1,,,,
+颶光,buff,frost_res_rate,0.1,,,,
+颶光,buff,lightning_res_rate,0.1,,,,
+颶光,buff,wind_res_rate,0.1,,,,
+颶光,buff,nature_res_rate,0.1,,,,
+颶光,buff,light_res_rate,0.1,,,,
+颶光,buff,dark_res_rate,0.1,,,,
+颶光,buff,hot,0.05,mhp,,,
+風纏,debuff,eva_rate,-0.2,,,,閃避率 −20%、命中率 −10%
+風纏,debuff,hit_rate,-0.1,,,,
+縛風,debuff,wind_res_rate,-0.3,,,,風屬性抗性 −30%、閃避率 −20%、命中率 −20%（王不受命中下降影響）；不可驅散
+縛風,debuff,eva_rate,-0.2,,,,
+縛風,debuff,hit_rate,-0.2,not_boss,,,
+縛風,debuff,no_dispel,,,,,
+風靈榮甲,buff,p_reduce_rate,0.15,,,,物理、魔法減傷 +15%、閃避率 +10%
+風靈榮甲,buff,m_reduce_rate,0.15,,,,
+風靈榮甲,buff,eva_rate,0.1,,,,
