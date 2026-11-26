@@ -1744,8 +1744,10 @@ var SKYC={meteor:{n:8,span:620,fd:420,dx:-62,dy:-96,h:['#fff3c0','#ffb040'],tr:[
    每顆砸中：光芒往四周炸開＋一圈圈藍金色光環在地面擴散；最後一顆落下後，一個巨大的半圓光罩擴大籠罩戰場，畫面一閃 */
 var COMC={core:'#fff6d6',hot:'#ffc65a',rim:'#f5d66a',in:'#d9b8ff',mid:'#9a66e8',out:'#5a2fa8',edge:'#2e1866'};window.COMC0=COMC;
 var COMC_GOLD={core:'#ffffff',hot:'#fff3b0',rim:'#ffe08a',in:'#fff6d0',mid:'#ffd76a',out:'#e8b830',edge:'#a8801a',g0:'rgba(255,240,180,.6)',g1:'rgba(255,200,80,.25)'};/* 晨曦星雨：金白色流星 */
-function glowAt(x,y,r,c0,c1,a){/* 柔和光暈（加亮疊上去） */if(a<=0)return;var g=pctx.createRadialGradient(x*U,y*U,0,x*U,y*U,r*U);g.addColorStop(0,c0);g.addColorStop(.45,c1);g.addColorStop(1,'rgba(0,0,0,0)');
-  pctx.save();pctx.globalCompositeOperation='lighter';pctx.globalAlpha=Math.min(1,a);pctx.fillStyle=g;pctx.fillRect((x-r)*U,(y-r)*U,2*r*U,2*r*U);pctx.restore()}
+var GLOWC={},GLOWN=0;/* 光暈圖快取：同一組顏色只畫一次漸層，之後縮放貼上（省掉每次重新產生漸層） */
+function glowSpr(c0,c1){var k=c0+'|'+c1,g=GLOWC[k];if(g)return g;if(GLOWN>400){GLOWC={};GLOWN=0}var S=128,c=document.createElement('canvas');c.width=c.height=S;var x=c.getContext('2d'),gr=x.createRadialGradient(S/2,S/2,0,S/2,S/2,S/2);gr.addColorStop(0,c0);gr.addColorStop(.45,c1);gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,S,S);GLOWC[k]=c;GLOWN++;return c}
+function glowAt(x,y,r,c0,c1,a){/* 柔和光暈（加亮疊上去） */if(a<=0||r<=0)return;var sp=glowSpr(c0,c1);
+  pctx.save();pctx.globalCompositeOperation='lighter';pctx.globalAlpha=Math.min(1,a);pctx.imageSmoothingEnabled=true;pctx.drawImage(sp,(x-r)*U,(y-r)*U,2*r*U,2*r*U);pctx.restore()}
 function cometPx(hx,hy,vx,vy,R,L,a,k,PAL){/* vx,vy = 飛行方向（單位向量）；R = 頭半徑；L = 尾長；PAL 換顏色（預設星界降儀的紫金） */var COMC=PAL||window.COMC0;
   for(var q=0;q<5;q++){var f=q/5;glowAt(hx-vx*L*f,hy-vy*L*f,(R*2.6)*(1-f*.6),COMC.g0||'rgba(200,150,255,.55)',COMC.g1||'rgba(120,60,220,.22)',a*(1-f)*.8)}/* 沿尾巴的紫色光暈 */
   glowAt(hx,hy,R*3.4,'rgba(255,240,190,.9)','rgba(245,200,90,.35)',a);/* 頭的金色光暈 */
@@ -2100,12 +2102,16 @@ function bvn(x,y){var X=Math.floor(x),Y=Math.floor(y),fx=x-X,fy=y-Y,sx=fx*fx*(3-
 function bfbm(x,y){return bvn(x,y)*.6+bvn(x*2.1+5,y*2.1+3)*.4}
 var BIRI=[[172,206,255],[200,188,255],[255,196,228],[186,246,214]];/* 霞彩：淡藍、淡紫、淡粉紅、淡綠 */
 function bmix(a,b,k){return[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k]}
-function bstFog(cx,hx,by,s,t,pal,amp){var P_=pal||BIRI,A_=amp==null?1:amp;var RX=Math.round(s),RY=Math.round(s*1.05),cy0=by-s*.5,tt=t/1000*.45;
-  for(var y=-RY;y<=RY;y++)for(var x=-RX;x<=RX;x++){var e=(x*x)/(RX*RX)+(y*y)/(RY*RY);if(e>1)continue;var px=Math.round(hx)+x,py=Math.round(cy0)+y;
-    var v=bfbm(px*.2+Math.sin(tt*.7)*1.5,py*.17-tt*1.1)*.6+bfbm(px*.37-tt*.8,py*.34-tt*1.7)*.4;v=(v-.28)*(1-e*e)*2.1*.8;if(v<=.08)continue;
-    var h=bvn(px*.07+tt*.25,py*.07-tt*.15),c=h<.22?bmix(P_[0],P_[3],(.22-h)/.22):h<.5?bmix(P_[0],P_[1],(h-.22)/.28):h<.74?P_[1]:bmix(P_[1],P_[2],Math.min(1,(h-.74)/.16));
-    c=bmix(c,[248,250,255],Math.min(1,Math.max(0,(v-.45)/.5)));if(v<.2&&((x+y+(t>>8))&1))continue;
-    cx.globalAlpha=Math.min(.6,v*.75)*A_;cx.fillStyle='rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')';cx.fillRect(px*U,py*U,Math.ceil(U),Math.ceil(U))}cx.globalAlpha=1}
+var FOGC={};/* 霧氣圖快取：每 66ms 重算一次雜訊圖，中間的幀直接貼上；雜訊座標改成相對於霧的中心（看起來一樣，但跟著幻獸移動） */
+function bstFog(cx,hx,by,s,t,pal,amp){var P_=pal||BIRI,A_=amp==null?1:amp;var RX=Math.round(s),RY=Math.round(s*1.05),cy0=by-s*.5,tt=t/1000*.45,AB=A_>1?Math.round(A_*10)/10:1,key=RX+'|'+(P_.id||(P_.id=Math.random().toString(36).slice(2)))+'|'+AB,F=FOGC[key];if(!F&&Object.keys(FOGC).length>80)FOGC={};/* 透明度 ≤1 的部分改成貼圖時再乘上去，快取才不會一直變 */
+  if(!F){F=FOGC[key]={c:document.createElement('canvas'),t:-1e9};F.c.width=2*RX+1;F.c.height=2*RY+1}
+  if(Math.abs(t-F.t)>66){F.t=t;var g=F.c.getContext('2d'),img=g.createImageData(2*RX+1,2*RY+1),D=img.data,OX=37,OY=53;
+    for(var y=-RY;y<=RY;y++)for(var x=-RX;x<=RX;x++){var e=(x*x)/(RX*RX)+(y*y)/(RY*RY);if(e>1)continue;var px=OX+x,py=OY+y;
+      var v=bfbm(px*.2+Math.sin(tt*.7)*1.5,py*.17-tt*1.1)*.6+bfbm(px*.37-tt*.8,py*.34-tt*1.7)*.4;v=(v-.28)*(1-e*e)*2.1*.8;if(v<=.08)continue;
+      var h=bvn(px*.07+tt*.25,py*.07-tt*.15),c=h<.22?bmix(P_[0],P_[3],(.22-h)/.22):h<.5?bmix(P_[0],P_[1],(h-.22)/.28):h<.74?P_[1]:bmix(P_[1],P_[2],Math.min(1,(h-.74)/.16));
+      c=bmix(c,[248,250,255],Math.min(1,Math.max(0,(v-.45)/.5)));if(v<.2&&((x+y+(t>>8))&1))continue;var k=((y+RY)*(2*RX+1)+(x+RX))*4;D[k]=c[0];D[k+1]=c[1];D[k+2]=c[2];D[k+3]=Math.round(Math.min(.6,v*.75)*AB*255)}
+    g.putImageData(img,0,0)}
+  if(A_<=0)return;var sm=cx.imageSmoothingEnabled,ga=cx.globalAlpha;cx.imageSmoothingEnabled=false;cx.globalAlpha=A_<1?A_:1;cx.drawImage(F.c,(Math.round(hx)-RX)*U,(Math.round(cy0)-RY)*U,(2*RX+1)*U,(2*RY+1)*U);cx.imageSmoothingEnabled=sm;cx.globalAlpha=ga}
 /* 幻獸目前位置：平常浮在主人左後方；暗蛇閃擊、寒霜咬時整隻衝出去 */
 function bstPos(k,p,t){var hx=p.sx+BSX,hy=p.gy-BSY-Math.round(Math.sin((t+(p.ph||0))/600)*2),a=BSA,pw=0,flip=0,hid=1,dk=0;
   (B&&B.ev||[]).forEach(function(e){if(!e.bst||e.side!=='p'||e.a!==k)return;var d=t-e.t,sk=bstSkill(e);if(d<0||d>1800||!sk)return;
@@ -3266,17 +3272,19 @@ function dmBuild(p){var f=p.f,W=f.width,Hd=f.height,EX=DMA.EX,Hg=Hd+EX,SM=DMA.SM
     var tp=Math.min(1,(y+.5)/(Hg*.3));f0[y*W+x]=a0;f1[y*W+x]=a1*tp*tp*(3-2*tp)}
   return{W:W,Hg:Hg,f0:f0,f1:f1}}
 function hsh1(n){var s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)}
-function dmAura(p,now){if(!p.f||!p.f.width)return;var a=p.dmA;if(!a||now-a.t>150){a=p.dmA=dmBuild(p);a.t=now;a.c=a.c||document.createElement('canvas')}
-  var W=a.W,Hg=a.Hg,c=a.c;if(c.width!==W||c.height!==Hg){c.width=W;c.height=Hg}
+function dmAura(p,now){if(!p.f||!p.f.width)return;var a=p.dmA;if(!a||now-a.t>450){var oc=a&&a.c;a=p.dmA=dmBuild(p);a.t=now;a.c=oc||document.createElement('canvas');a.rt=0}/* 身形輪廓每 0.45 秒重算一次 */
+  var W=a.W,Hg=a.Hg,c=a.c;if(c.width!==W||c.height!==Hg){c.width=W;c.height=Hg;a.rt=0}
+  if(now-(a.rt||0)<40){dmDraw(p,a);return}a.rt=now;/* 光暈畫面每秒更新約 25 次，中間的幀直接貼上一張 */
   var x=c.getContext('2d'),img=x.createImageData(W,Hg),d=img.data,t=now/1000,e=.5+.5*Math.sin(t*2*Math.PI/2.4-Math.PI/2),pulse=.7+.3*e,cx,cy;
   for(cy=0;cy<Hg;cy++)for(cx=0;cx<W;cx++){var i=cy*W+cx,F0=a.f0[i],F1=a.f1[i];if(F0<=0&&F1<=0)continue;
     var ph=hsh1(cx)*2.4+hsh1(cx+31)*.8*Math.sin(cy*.3),w=.5+.5*Math.sin(cy*.5+t*6+ph);
     var I=Math.min(1,(F0*.9+F1*(.2+.8*w)*1.2)*pulse*1.35),v=I*5,lv=Math.floor(v)+((v-Math.floor(v))>(DMA.HB4[(cy&3)*4+(cx&3)]+.5)/16?1:0);if(lv<=0)continue;if(lv>5)lv=5;var k=i*4;
     if(lv>=4){d[k]=255;d[k+1]=238;d[k+2]=180}else{d[k]=255;d[k+1]=186;d[k+2]=88}d[k+3]=DMA.AL[lv]}
   var y0=DMA.EX+16,y1=4;for(var q=0;q<10;q++){var per=1.6+(q%3)*.6,u=((t+hsh1(q)*per)/per)%1,gx=Math.round(W/2+(hsh1(q+9)*2-1)*9),gy=Math.round(y0-u*(y0-y1));if(gx<0||gx>=W||gy<0||gy>=Hg)continue;var kk=(gy*W+gx)*4;d[kk]=255;d[kk+1]=246;d[kk+2]=210;d[kk+3]=Math.round(240*(1-u))}/* 往上飄的光粒 */
-  x.putImageData(img,0,0);var X=p.dX-W/2,Y=p.dY-40-DMA.EX;pctx.save();pctx.globalAlpha=parseFloat(p.f.style.opacity)||1;pctx.imageSmoothingEnabled=false;
+  x.putImageData(img,0,0);dmDraw(p,a)}
+function dmDraw(p,a){var W=a.W,c=a.c,X=p.dX-W/2,Y=p.dY-40-DMA.EX;pctx.save();pctx.globalAlpha=parseFloat(p.f.style.opacity)||1;pctx.imageSmoothingEnabled=false;
   if(p.dFl){pctx.translate((p.dX)*U,0);pctx.scale(-1,1);pctx.translate(-(p.dX)*U,0)}
-  pctx.drawImage(c,Math.round(X*U),Math.round(Y*U),W*U,Hg*U);pctx.restore()}
+  pctx.drawImage(c,Math.round(X*U),Math.round(Y*U),W*U,a.Hg*U);pctx.restore()}
 /* 狀態特效 */
 function j24St(f,x,gy,top,lf,t){var by=gy-lf,cy=(top+by)/2;
   if(f.gshield){var ph=.75+.25*Math.sin(t/260);bRing(x,cy,15,J24[3],.55*ph,1.25);bRing(x,cy,13,J24[4],.25*ph,1.25);for(var s=0;s<3;s++){var an=t/500+s*2.1;VP(x+Math.cos(an)*15,cy+Math.sin(an)*15*1.25,'#ffffff',.8)}}/* 神聖護盾 */
