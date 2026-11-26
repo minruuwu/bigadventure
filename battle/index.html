@@ -2771,6 +2771,7 @@ function brushFx(e,d){if(d<0||d>1500)return;var fa=FXA;FXA=1;var S=brushPts(e);i
       VP(x,yy-2,'#3a0208',a*.55);VP(x,yy-1,'#a8101e',a*.9);VP(x,yy,tip?'#ffd8d0':'#ff3040',a);VP(x,yy+1,'#c0101e',a*.9);VP(x,yy+2,'#4a0410',a*.6);if(hsh(x,n+2)>.78)VP(x,yy+3+Math.floor(hsh(n,x)*3),'#7a0818',a*.7)}
     if(d<t1)glowAt(hx,lerp(ya,yb,(hx-A[0])/((Bp[0]-A[0])||1)),8,'rgba(255,80,80,.6)','rgba(140,0,20,.25)',.8)});
   /* 打中：血色斬擊圖＋血花 */
+  [240,470,700].forEach(function(t0,n){bloodBloom(q.x+(hsh(n,3)-.5)*6,hy+2,d-t0-30,n*7+1,VS*(n===2?1.25:1))});/* 每刀一朵血花 */
   var si=vimg(SLASH,'blood');[[240,-.6],[470,.7],[700,-.35]].forEach(function(hv,n){var dd=d-hv[0];if(dd<0||dd>460)return;var sz=(q.th*.75+18)*VS,r1=dd/90,r2=(dd-90)/260;
     if(si){pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(q.x*U,hy*U);pctx.rotate(hv[1]);if(n===1)pctx.scale(-1,1);
       if(r1<=1){pctx.beginPath();pctx.rect(-sz*U/2-4,-sz*U/2-4,sz*U+8,(sz*U+8)*r1);pctx.clip();pctx.globalCompositeOperation='lighter';pctx.globalAlpha=.5;pctx.drawImage(si,-sz*U*.6,-sz*U*.6,sz*U*1.2,sz*U*1.2);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=1;pctx.drawImage(si,-sz*U/2,-sz*U/2,sz*U,sz*U)}
@@ -2778,6 +2779,15 @@ function brushFx(e,d){if(d<0||d>1500)return;var fa=FXA;FXA=1;var S=brushPts(e);i
     pBurst('blood',q.x,hy,dd,12,VS);if(dd<140){shakeX=Math.round(Math.sin(dd/10)*2*U*(1-dd/140))}});
   FXA=fa}
 
+/* 血花：幾道彎曲的血柱往上噴開、血塊往外飛再落下 */
+function bloodBloom(cx,cy,dd,sd,sc){if(dd<0||dd>760)return;var fo=dd<320?1:1-(dd-320)/440,g=Math.min(1,dd/170),dr=Math.max(0,dd-200)/560;
+  for(var t=0;t<10;t++){var a0=-1.57+(hsh(t,sd)-.5)*3.1,len=(18+hsh(sd,t)*26)*sc*(t%3===0?1.45:1),curl=(hsh(t+3,sd)-.5)*2.6,m=Math.round(len*g),x=cx,y=cy,W0=(2+hsh(t,sd+5)*1.6)*sc;
+    for(var i=0;i<m;i++){var f=i/len,an=a0+curl*f*f;x+=Math.cos(an);y+=Math.sin(an)+dr*f*1.2;var w=W0*(1-f)*(1-dr*.4),wm=Math.ceil(w);for(var k=-wm;k<=wm;k++){var r=Math.abs(k)/Math.max(.6,w);if(r>1.05)continue;VP(x-Math.sin(an)*k,y+Math.cos(an)*k,r<.35?(k<0?'#ff4a58':'#d81a30'):r<.75?'#a80c20':'#4a0410',fo)}}
+    if(g>=1){var dt=(dd-170)/1000,bx=x+Math.cos(a0+curl)*dt*40,by=y+Math.sin(a0+curl)*dt*40+dt*dt*260;VP(bx,by,'#c8102a',fo);VP(bx+1,by,'#7a0818',fo);VP(bx,by+1,'#7a0818',fo)}}/* 彎曲往外噴的血柱，尖端甩出血珠 */
+  var cr=(2+g*3)*sc*(1-dr*.6);for(var yy=-Math.ceil(cr);yy<=Math.ceil(cr);yy++){var hw=Math.sqrt(Math.max(0,cr*cr-yy*yy))*(.75+hsh(yy,sd)*.4);if(hw>.4){rowF(cx-hw,cx+hw,cy+yy,'#5a0612',fo);rowF(cx-hw*.6,cx+hw*.5,cy+yy,'#a80c20',fo)}}/* 中間的血團 */
+  for(var b=0;b<22;b++){var an2=hsh(b,sd+9)*6.283,v=(30+hsh(sd,b+9)*70)*sc,tt=dd/1000,bx2=cx+Math.cos(an2)*v*tt,by2=cy+Math.sin(an2)*v*tt*.8-26*sc*tt+tt*tt*220,sz=hsh(b,2)>.7?2:1;for(var q2=0;q2<sz;q2++)for(var q3=0;q3<sz;q3++)VP(bx2+q2,by2+q3,b%3?'#c8102a':'#6a0814',fo)}}/* 四散的血塊 */
+/* 狂神降世：每一刀閃現血色一字／十字斬痕 */
+function bloodMark(x,y,n,dd,big){if(dd<0||dd>320)return;var fo=dd<150?1:1-(dd-150)/170,L=(44+hsh(n,12)*12)*big,an=hsh(n,11)*3.14,cr=['#fff4f0','#ff2a3a','#c0101e','#6a0410','#2a0006'];j26Slash(x,y,an,L,4.6*big,Math.min(1,dd/40),fo,cr,.03);if(n%3!==1||big>1)j26Slash(x,y,an+1.5+(hsh(n,13)-.5)*.4,L*.9,4.2*big,Math.min(1,Math.max(0,dd-35)/45),fo,cr,.04)}
 /* == 奧義‧狂神降世 =====
    0～1500 奧義特寫：畫面變暗 → 一條斜斜閃爍的光帶（中間有流光）→ 人物上半身（含武器）從光帶下方閃出、放大 → 大字「奧義‧技能名」→ 淡出
    1500～1800 全身金紅光蓄力 → 1800 起 8 下：每 170 毫秒瞬間穿梭到一個敵人身邊砍一道金紅劍氣（榮耀打擊的光斬改金紅色），身後拖金紅殘影
@@ -2824,7 +2834,7 @@ function godrFx(e,d){if(d<0||d>3700)return;if(!e._snd&&window.Sfx){e._snd=1;try{
       if(si){pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(hx*U,hy*U);pctx.rotate(rot);if(r1<=1){pctx.beginPath();pctx.rect(-sz*U/2-4,-sz*U/2-4,sz*U+8,(sz*U+8)*r1);pctx.clip();pctx.globalCompositeOperation='lighter';pctx.globalAlpha=.55;pctx.drawImage(si,-sz*U*.6,-sz*U*.6,sz*U*1.2,sz*U*1.2);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=1;pctx.drawImage(si,-sz*U/2,-sz*U/2,sz*U,sz*U)}
         else if(r2<=1){var s2=sz*(1+.2*r2);pctx.globalCompositeOperation='lighter';pctx.globalAlpha=(1-r2)*.5;pctx.drawImage(si,-s2*U*.6,-s2*U*.6,s2*U*1.2,s2*U*1.2);pctx.globalCompositeOperation='source-over';pctx.globalAlpha=1-r2;pctx.drawImage(si,-s2*U/2,-s2*U/2,s2*U,s2*U)}pctx.restore();pctx.globalAlpha=1}
       if(sm&&dd>=40&&dd<300){var u3=(dd-40)/260;j21Img(sm,hx+(hsh(n,4)-.5)*10,hy+(hsh(4,n)-.5)*q.th*.4,(20+u3*14)*VS*big,hsh(n,7)*3,u3<.15?1:1-(u3-.15)/.85,true)}
-      if(dd<70)glowAt(hx,hy,16*big,'rgba(255,250,220,.9)','rgba(255,150,40,.4)',1-dd/70);
+      if(dd<70)glowAt(hx,hy,16*big,'rgba(255,250,220,.9)','rgba(255,150,40,.4)',1-dd/70);bloodMark(hx+(hsh(n,14)-.5)*8,hy+(hsh(14,n)-.5)*8,n,dd-20,big);if(n===GODR.n-1&&dd>=20&&dd<200)bScreen('#b00010',(1-(dd-20)/180)*.22);
       if(dd<120){shakeX=Math.round(Math.sin(dd/9)*(n===GODR.n-1?3.4:1.6)*U*(1-dd/120))}}
     var fd=d-(GODR.hit+(GODR.n-1)*GODR.gap);if(fd>=0&&fd<260)bScreen('#fff2c0',(1-fd/260)*.35)}
   godrCutIn(e,d);/* 特寫畫在最上層 */
@@ -3029,9 +3039,10 @@ function khuntFx(e,d){if(d<0||d>GODR.cut+KHUNT.end)return;if(!e._snd&&window.Sfx
     var OB=khuntOrbs(J);OB.forEach(function(o,n){var oa=Math.min(1,(q-500-n*90)/250)*fadeAll;if(oa<=0)return;var r=3+(n%2);glowAt(o[0],o[1],r*1.8,'rgba(235,255,248,.95)','rgba(60,220,170,.45)',oa);bRing(o[0],o[1],r+3,J23W[3],oa*.9,1);bRing(o[0],o[1],r+5,J23W[2],oa*.6,1);for(var t=0;t<8;t++){var at=t/8*6.28+q/700*(n%2?1:-1);VP(o[0]+Math.cos(at)*(r+4),o[1]+Math.sin(at)*(r+4),J23W[4],oa)}});
     /* 連射 9 次 */
     for(var v=0;v<9;v++){var vq=q-(KHUNT.fire+v*KHUNT.gap);if(vq<0||vq>260)continue;var ba=vq<60?1:Math.max(0,1-(vq-60)/200),gk=Math.min(1,vq/50);
-      OB.forEach(function(o,n){var aq=vq-n*14;if(aq<0)return;var tq=Math.min(1,aq/170),sg=hsh(n,v)<.5?-1:1,dx0=tx-o[0],dy0=ty-o[1],L0=Math.hypot(dx0,dy0)||1,an0=Math.atan2(dy0,dx0)+sg*(.5+hsh(v,n)*.4),bx0=o[0]+Math.cos(an0)*L0*.42,by0=o[1]+Math.sin(an0)*L0*.42,l1=Math.hypot(bx0-o[0],by0-o[1]),l2=Math.hypot(tx-bx0,ty-by0),dist=tq*(l1+l2),ax,ay,adx,ady;
+      var OBv=khuntOrbs(khuntAt(e,GODR.cut+KHUNT.fire+v*KHUNT.gap)||J),fall=q<KHUNT.end-500?1:Math.max(0,1-(q-KHUNT.end+500)/120);/* 起點固定在射出那一刻；人開始落下就收掉 */
+      OBv.forEach(function(o,n){var aq=vq-n*14;if(aq<0)return;var tq=Math.min(1,aq/170),sg=hsh(n,v)<.5?-1:1,dx0=tx-o[0],dy0=ty-o[1],L0=Math.hypot(dx0,dy0)||1,an0=Math.atan2(dy0,dx0)+sg*(.5+hsh(v,n)*.4),bx0=o[0]+Math.cos(an0)*L0*.42,by0=o[1]+Math.sin(an0)*L0*.42,l1=Math.hypot(bx0-o[0],by0-o[1]),l2=Math.hypot(tx-bx0,ty-by0),dist=tq*(l1+l2),ax,ay,adx,ady;
           if(dist<=l1){var f1=dist/l1;ax=lerp(o[0],bx0,f1);ay=lerp(o[1],by0,f1);adx=bx0-o[0];ady=by0-o[1]}else{var f2=(dist-l1)/l2;ax=lerp(bx0,tx,f2);ay=lerp(by0,ty,f2);adx=tx-bx0;ady=ty-by0}
-          var fa2=aq<170?1:Math.max(0,1-(aq-170)/220);/* 風色氣勁：走過的直線＋轉角，留一條漸淡的風痕 */
+          var fa2=(aq<170?1:Math.max(0,1-(aq-170)/220))*fall;/* 風色氣勁：走過的直線＋轉角，留一條漸淡的風痕 */
           var seg=function(x0,y0,x1,y1){for(var w=-1;w<=1;w++){var nx=-(y1-y0),ny=x1-x0,nl=Math.hypot(nx,ny)||1;bLine(x0+nx/nl*w,y0+ny/nl*w,x1+nx/nl*w,y1+ny/nl*w,w?J23W[2]:J23W[4],fa2*(w?.55:.85),1)}};
           if(dist<=l1)seg(o[0],o[1],ax,ay);else{seg(o[0],o[1],bx0,by0);seg(bx0,by0,ax,ay);glowAt(bx0,by0,4,'rgba(235,255,248,.9)','rgba(60,220,170,.35)',fa2*.8)}
           for(var sp=0;sp<4;sp++){var sk=Math.max(0,dist-sp*9-hsh(sp,n)*6),px2,py2;if(sk<=l1){px2=lerp(o[0],bx0,sk/l1);py2=lerp(o[1],by0,sk/l1)}else{px2=lerp(bx0,tx,(sk-l1)/l2);py2=lerp(by0,ty,(sk-l1)/l2)}VP(px2+(hsh(sp,v)-.5)*5,py2+(hsh(v,sp)-.5)*5,J23W[3],fa2*.8)}
