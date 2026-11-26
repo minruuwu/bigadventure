@@ -469,3 +469,7 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 天球秘儀,buff,orb_red,0.5,,,,受到敵人攻擊的傷害 −50%，每次攻擊碎一層（共 4 層）；護盾還在時免疫新的負面狀態；不可驅散
 天球秘儀,buff,debuff_block,,,,,
 天球秘儀,buff,no_dispel,,,,,
+武器賦能,buff,p_atk_rate,0.15,,,,武器纏繞藍紫符文：物理、魔法攻擊力各 +15%
+武器賦能,buff,m_atk_rate,0.15,,,,
+秘法壁壘,buff,shield,0,,,,金藍六角護盾：由自己的魔法傷害轉成（最多最大生命 30%），每回合開始減少最大生命 15%；所有護盾裡最後才被扣
+秘法壁壘,buff,no_dispel,,,,,
