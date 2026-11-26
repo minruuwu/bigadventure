@@ -668,7 +668,7 @@ skill542,創生：天球秘儀,use_if,天球秘儀,,,,lacks_status,,,,,,,
 skill543,創生：黃金造物,reaction,,self,,,gold_clone,0.5,,,,damaged,0.2,
 skill544,鍊成：秘銀光刃,status,易傷,enemy_all,2,1,,,,,,,,
 skill545,轉化：等價交換,passive,,,,,eq_exchange,0.05,,,,,,
-skill547,質量崩解,bonus,,,,,dmg_per_debuff,0.1,,,,,,max0.6
+skill547,超限：質量崩解,bonus,,,,,dmg_per_debuff,0.1,,,,,,max0.6
 skill081,龍炎刃,bonus,,,,,split_parts,,,,,,,
 skill082,冰冽斬,bonus,,,,,split_parts,,,,,,,
 skill083,疾風牙,bonus,,,,,split_parts,,,,,,,

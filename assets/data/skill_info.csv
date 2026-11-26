@@ -657,7 +657,7 @@ skill543,創生：黃金造物,job25,16,reaction,,,reaction,,,,,,,,,受到敵人
 skill544,鍊成：秘銀光刃,job25,20,combat,enemy_all,,damage,,,m,,1.3,,,,身旁排出一列紫藍色秘銀光劍來回斬擊敵陣；敵方全體無屬性魔法傷害，並必定附加「易傷」2 回合,mithril,,,0,diamond,2,3,2,,,,,,,
 skill545,轉化：等價交換,job25,25,passive,,,passive,,,,,,,,,每消耗 1 SP，獲得一層「等價交換」4 回合：魔法攻擊力 +5%（每層各自計時、不限層數）,,,,,,,,,,,,,,,
 skill546,鍊成：乙太雷暴,job25,30,combat,enemy_all,,damage,,,m,lightning,2.2,,,,展開磁暴鍊成陣，人造落雷轟擊陣內所有敵人；敵方全體雷屬性魔法傷害,aetherstorm,,,0,diamond,2,4,3,,,,,,,
-skill547,質量崩解,job25,35,ultimate,enemy_single,boss_debuff,damage,,,m,,3.2,,,,奧義：造出巨大黑洞吸入敵人身上的負面狀態後爆炸；目標每有一個負面狀態傷害 +10%（最多 +60%）。優先打王，沒有王就打負面狀態最多的敵人,collapse,,,1,single,,,,,,,,,,
+skill547,超限：質量崩解,job25,35,ultimate,enemy_single,boss_debuff,damage,,,m,,3.2,,,,奧義：造出巨大黑洞吸入敵人身上的負面狀態後爆炸；目標每有一個負面狀態傷害 +10%（最多 +60%）。優先打王，沒有王就打負面狀態最多的敵人,collapse,,,1,single,,,,,,,,,,
 skill548,冰狼牙,job26,1,combat,enemy_single,random,damage,,,p,,1.8,m,frost,1.8,躍到敵人上方，與四根冰柱一起落下斬擊；物理、冰魔法各跳一個數字，並疊一層「奧術充能」,icefang,,,4,single,,3,1,,,,,,,
 skill549,秘法壁壘,job26,5,passive,,,passive,,,,,,,,,自己造成的魔法傷害有 20% 轉成「秘法壁壘」護盾（最多最大生命 30%）；自己每回合開始時壁壘減少最大生命 15%,,,,,,,,,,,,,,,
 skill550,翔炎山,job26,7,combat,enemy_single,random,damage,,,p,,1.9,m,fire,1.9,揮出上升的火焰龍捲把敵人捲起再摔落；物理、火魔法各跳一個數字，並疊一層「奧術充能」,flamespire,,,4,single,,3,1,,,,,,,
