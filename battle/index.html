@@ -3280,7 +3280,7 @@ function mumyoFx(e,d){if(d<0||d>MUMYO.end)return;var T=supTgt(e),q=j21Mon((e.tg|
   if(d>=MUMYO.hit&&d<MUMYO.hit+140){bScreen('#ffffff',(1-(d-MUMYO.hit)/140)*.55);shakeX=Math.round(Math.sin(d/6)*2.2*U)}/* 閃光 */
   FXA=fa}
 /* 金龍：黑色剪影那種線條，改成金色；先畫在小畫布上（朝右），用的時候旋轉 */
-var HDRI=[1,2,3].map(function(n){var im=new Image();im.src='../assets/vfx/hdragon'+n+'.png?v=1';return im}),HDRM=[[136,66],[139,129],[138,128]],HDRS=.6;/* 金龍三張圖（他畫的），HDRM = 龍口在圖上的位置 */
+var HDRI=[1,2,3].map(function(n){var im=new Image();im.src='../assets/vfx/hdragon'+n+'.png?v=1';return im}),HDRM=[[146,80],[148,136],[138,128]],HDRS=1;/* 金龍三張圖（他畫的），HDRM = 龍口在圖上的位置 */
 var DRGC=null,DRGM=[80,46];/* DRGM = 施法者在小畫布上的位置（龍口下方） */
 function dragonSpr(){if(DRGC)return DRGC;var W=120,H=150,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d'),OL='#6a3c04',GD='#ffc430',LT='#fff2a0';
   var rnd=(function(){var q=7;return function(){q=(q*9301+49297)%233280;return q/233280}})();
