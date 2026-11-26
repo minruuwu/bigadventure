@@ -668,3 +668,5 @@ skill554,連葉斷,job26,20,combat,enemy_all,,damage,,,p,,1.2,m,nature,1.2,連�
 skill555,奧術爆裂,job26,25,passive,,,passive,,,,,,,,,每打出 4 次攻擊（技能、普攻、回擊都算），行動後隱身突入敵陣引爆奧術光環：敵方全體物理 130%＋魔法 130%,,,,,,,,,,,,,,,
 skill556,獄門劍,job26,30,combat,enemy_all,,damage,,,p,,1.2,m,dark,1.2,背後燃起紫黑火焰，連劈三道巨大的黑暗斬擊；每有一層奧術充能傷害 +10%，施放後消耗全部充能,hellgate,,,0,diamond,2,4,2,,,,,,,
 skill557,滅閃光,job26,35,ultimate,enemy_single,boss_high,damage,,,p,,3.2,m,light,3.2,奧義：先獲得 3 層奧術充能；光焰爆炸後化為金光連斬四刀，共 5 段（60%×4＋80%，每段物理、光魔法各跳一個數字），完全無視物理與魔法減傷,metsu,,,1,single,,,,,,,,,,
+skill558,不動無明劍,job27,1,combat,enemy_single,random,damage,,,p,dark,2.2,,,,瞬身到敵人面前，一刀紫色劍光將敵人斬開；30% 機率「目盲」2 回合，並刻上一道「劍痕」,mumyo,,,4,single,,3,1,,,,,,,
+skill560,聖龍烈霸斬,job27,7,combat,enemy_all,,damage,,,p,light,1.3,,,,躍起後與金色龍形劍氣一同俯衝斬向敵陣；敵方全體光屬性物理傷害，30% 機率「暈眩」1 回合（首領無效），每個敵人各刻上一道「劍痕」,holydragon,,,0,diamond,2,4,2,,,,,,,

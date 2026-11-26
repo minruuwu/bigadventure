@@ -700,3 +700,5 @@ skill556,獄門劍,use_if,,,,,min_enemies,2,,,,,,
 skill557,滅閃光,bonus,,,,,seg_split,0.6|0.6|0.6|0.6|0.8,,,,,,
 skill557,滅閃光,bonus,,,,,red_pierce,9,,,,,,
 skill557,滅閃光,bonus,,,,,arc_pre,3,,,,,,
+skill558,不動無明劍,status,目盲,enemy_single,2,0.3,,,,,,,,
+skill560,聖龍烈霸斬,status,暈眩,enemy_all,1,0.3,,,,,,,,not_boss
