@@ -3280,6 +3280,7 @@ function mumyoFx(e,d){if(d<0||d>MUMYO.end)return;var T=supTgt(e),q=j21Mon((e.tg|
   if(d>=MUMYO.hit&&d<MUMYO.hit+140){bScreen('#ffffff',(1-(d-MUMYO.hit)/140)*.55);shakeX=Math.round(Math.sin(d/6)*2.2*U)}/* 閃光 */
   FXA=fa}
 /* 金龍：黑色剪影那種線條，改成金色；先畫在小畫布上（朝右），用的時候旋轉 */
+var HDRI=[1,2,3].map(function(n){var im=new Image();im.src='../assets/vfx/hdragon'+n+'.png?v=1';return im}),HDRM=[[136,66],[139,129],[138,128]],HDRS=.6;/* 金龍三張圖（他畫的），HDRM = 龍口在圖上的位置 */
 var DRGC=null,DRGM=[80,46];/* DRGM = 施法者在小畫布上的位置（龍口下方） */
 function dragonSpr(){if(DRGC)return DRGC;var W=120,H=150,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d'),OL='#6a3c04',GD='#ffc430',LT='#fff2a0';
   var rnd=(function(){var q=7;return function(){q=(q*9301+49297)%233280;return q/233280}})();
@@ -3320,7 +3321,9 @@ function hdragAt(e,d){var S=hdragPts(e);if(!S||d<0||d>HDRG.end)return null;var H
 function hdragFx(e,d){if(d<0||d>HDRG.end)return;var S=hdragPts(e);if(!S)return;var fa=FXA;FXA=1;var A=S.A,Lp=S.L,C=S.C,ang=Math.atan2(Lp[1]-A[1],Lp[0]-A[0]),spr=dragonSpr();
   /* 金龍：停頓時在身後浮現 → 跟著一起俯衝，穿過敵陣後散掉 */
   if(d>=HDRG.jump-60&&d<HDRG.land+260){var fi=Math.min(1,(d-HDRG.jump+60)/300),P=hdragAt(e,Math.min(d,HDRG.land))||A,ex2=d>HDRG.land?(d-HDRG.land)/260*30:0,mx=P[0]+6+Math.cos(ang)*ex2,my=P[1]-17+Math.sin(ang)*ex2,fo=d<HDRG.land?fi:Math.max(0,1-(d-HDRG.land)/260),tilt=d<HDRG.dash?Math.sin(d/160)*.03:ang*.45,sc=.74;
-    behindP(e.a,function(){pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(mx*U,my*U);pctx.rotate(tilt);pctx.globalAlpha=fo;pctx.shadowColor='#ffd860';pctx.shadowBlur=10*U;pctx.drawImage(spr,-DRGM[0]*sc*U,-DRGM[1]*sc*U,120*sc*U,150*sc*U);pctx.shadowBlur=0;pctx.restore();pctx.globalAlpha=1});/* 龍立在身後，施法者在龍口 */
+    var ph=[[1,0,HDRG.dash-170],[3,HDRG.dash-170,HDRG.dash],[2,HDRG.dash,1e9]],fl=.62+.14*Math.sin(d/55)+.08*Math.sin(d/23);/* 若隱若現 */
+    behindP(e.a,function(){ph.forEach(function(q){var im=HDRI[q[0]-1];if(!im.complete||!im.naturalWidth)return;var a=d<q[1]-80||d>q[2]+80?0:d<q[1]?1-(q[1]-d)/80:d>q[2]?1-(d-q[2])/80:1;if(q[0]===1&&d<q[2])a=1;if(q[0]===2&&d>=q[1])a=1;if(a<=0)return;
+      var M=HDRM[q[0]-1],sc=HDRS;pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(mx*U,my*U);pctx.rotate(q[0]===2?0:tilt);pctx.globalAlpha=fo*a*fl;pctx.drawImage(im,-M[0]*sc*U,-M[1]*sc*U,164*sc*U,164*sc*U);pctx.globalCompositeOperation='lighter';pctx.globalAlpha=fo*a*fl*.25;pctx.drawImage(im,-M[0]*sc*U,-M[1]*sc*U,164*sc*U,164*sc*U);pctx.restore();pctx.globalAlpha=1})});/* 他畫的金龍：跳起停頓時是立姿（1）→ 要往下衝前盤起（3）→ 俯衝（2）；施法者在龍口，半透明閃爍、外圈金色光暈 */
     if(d>=HDRG.dash)for(var tr=1;tr<7;tr++){var kt=Math.max(0,Math.pow((Math.min(d,HDRG.land)-HDRG.dash)/(HDRG.land-HDRG.dash),1.6)-tr*.06),tx=lerp(A[0],Lp[0],kt),ty=lerp(A[1],Lp[1],kt)-17;for(var w=-3;w<=3;w++)VP(tx-Math.sin(ang)*w,ty+Math.cos(ang)*w,w%2?'#ffd860':'#fff4c8',fo*(1-tr/7)*.7)}}/* 俯衝時拖出金光殘影 */
   if(d>=0&&d<HDRG.land+300){var P0=hdragAt(e,d);if(P0){var ga=Math.min(1,d/200)*(d<HDRG.land?1:1-(d-HDRG.land)/300),cx0=P0[0],cy0=P0[1]-17;glowAt(cx0,cy0,20,'rgba(255,236,170,.75)','rgba(255,170,40,.3)',ga);
     for(var r6=0;r6<2;r6++)for(var q6=0;q6<26;q6++){var an6=q6/26*6.283+d/(r6?260:-340),R6=12+r6*3,X6=Math.cos(an6)*R6,Y6=Math.sin(an6)*R6*.45,tl6=r6?.5:-.5;VP(cx0+X6,cy0+Y6+X6*tl6*.4,q6%4?'#ffd860':'#fffbe0',ga*(Math.sin(an6)>0?1:.45))}
