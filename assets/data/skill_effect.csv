@@ -64,8 +64,8 @@ skill067,元素吸收,reaction,,self,,,absorb,,,,,hit_any,0.1,fire;frost;wind;li
 skill068,燕返箭,reaction,,attacker,,,counter,2,p_atk,,p,hit_any,0.1,
 skill069,懲罰箴言,reaction,懲戒,attacker,2,,apply_status,,,,,hit_any,0.1,
 skill070,透析原理,reaction,,self,,,block,,,,,hit_any,0.08,
-skill071,魔刃回擊,reaction,,attacker,,,counter,0.7,p_atk,,p,hit_any,0.2,
-skill071,魔刃回擊,reaction,,attacker,,,counter,0.7,m_atk,,m,hit_any,0.2,
+skill071,魔刃回擊,reaction,,attacker,,,counter,0.7,p_atk,,p,hit_any,0.2,split
+skill071,魔刃回擊,reaction,,attacker,,,counter,0.7,m_atk,,m,hit_any,0.2,split
 skill072,聖禦,reaction,,self,,,reduce,0.5,,,,hit_any,0.15,
 skill073,劍反擊,reaction,,self,,,block,,,,,hit_p,0.1,
 skill073,劍反擊,reaction,,attacker,,,counter,1,p_atk,,p,hit_p,0.1,
