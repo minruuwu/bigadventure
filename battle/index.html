@@ -2814,7 +2814,7 @@ function godrCutIn(e,d){var p=party[e.a];if(!p||d<0||d>=GODR.cut)return;var C=UL
     pctx.restore()}
   /* 大字：奧義‧技能名 */
   if(d>=430){var k=Math.min(1,(d-430)/130),sc=lerp(2.3,1,ease(k)),ta=fo*Math.min(1,k*1.5),shk=d>560&&d<700?Math.sin(d/9)*2*(1-(d-560)/140):0,txt='奧義‧'+(e.ultN||''),fs=Math.round(13.5*u),tx=(W-4)*u,ty=(yA(W-30)+8)*u;
-    pctx.save();pctx.globalAlpha=ta;pctx.translate(tx+shk*u,ty);pctx.scale(sc,sc);pctx.font='900 '+fs+'px "PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';pctx.textAlign='right';pctx.textBaseline='alphabetic';pctx.lineJoin='round';
+    pctx.save();pctx.globalAlpha=ta;pctx.translate(tx+shk*u,ty);pctx.scale(sc,sc);pctx.font='900 '+fs+'px "PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';pctx.textAlign='right';var mw=pctx.measureText(txt).width,fit=Math.min(1,(W-8)*u/Math.max(1,mw));pctx.scale(fit,fit);/* 名稱太長就自動縮小，整串留在畫面內 */pctx.textBaseline='alphabetic';pctx.lineJoin='round';
     pctx.lineWidth=Math.max(2,3.2*u);pctx.strokeStyle='#2a0200';pctx.shadowColor=C[2];pctx.shadowBlur=7*u;pctx.strokeText(txt,0,0);pctx.shadowBlur=0;
     var tg=pctx.createLinearGradient(0,-fs,0,0);tg.addColorStop(0,'#ffffff');tg.addColorStop(.45,C[3]);tg.addColorStop(1,C[2]);pctx.fillStyle=tg;pctx.fillText(txt,0,0);pctx.restore();
     if(d>=545&&d<760){var fz=1-(d-545)/215;bScreen('#ffffff',fz*.25*fo)}}}
