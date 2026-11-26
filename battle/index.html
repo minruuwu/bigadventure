@@ -3325,12 +3325,13 @@ function hdragFx(e,d){if(d<0||d>HDRG.end)return;var S=hdragPts(e);if(!S)return;v
   if(d>=0&&d<HDRG.land+300){var P0=hdragAt(e,d);if(P0){var ga=Math.min(1,d/200)*(d<HDRG.land?1:1-(d-HDRG.land)/300),cx0=P0[0],cy0=P0[1]-17;glowAt(cx0,cy0,20,'rgba(255,236,170,.75)','rgba(255,170,40,.3)',ga);
     for(var r6=0;r6<2;r6++)for(var q6=0;q6<26;q6++){var an6=q6/26*6.283+d/(r6?260:-340),R6=12+r6*3,X6=Math.cos(an6)*R6,Y6=Math.sin(an6)*R6*.45,tl6=r6?.5:-.5;VP(cx0+X6,cy0+Y6+X6*tl6*.4,q6%4?'#ffd860':'#fffbe0',ga*(Math.sin(an6)>0?1:.45))}
     for(var s6=0;s6<12;s6++){var u6=((d+s6*83)%520)/520;VP(cx0+(hsh(s6,8)-.5)*22,cy0+14-u6*36,s6%3?'#ffd060':'#ffffff',ga*(1-u6))}}}/* 施法者身上金光縈繞：兩圈斜環反向轉、光粒往上飄 */
-  /* 落地：金色半圓光罩 */
-  if(d>=HDRG.land&&d<HDRG.land+700){var dl=d-HDRG.land,g=ease(Math.min(1,dl/220)),fo2=dl<450?1:1-(dl-450)/250,R=(C[2]+30)*g,gy=Lp[1]+2,cx2=C[0];
-    for(var y=Math.round(gy-R*.85);y<=gy;y++){var vy=(gy-y)/(R*.85||1),hw2=R*Math.sqrt(Math.max(0,1-vy*vy));if(hw2<.5)continue;rowF(cx2-hw2,cx2+hw2,y,'#ffc838',fo2*.85);rowF(cx2-hw2*.82,cx2+hw2*.82,y,'#ffe890',fo2*.9);rowF(cx2-hw2*.55,cx2+hw2*.55,y,'#fffbe0',fo2*.95);rowF(cx2-hw2,cx2-hw2+1.5,y,'#ff9a10',fo2);rowF(cx2+hw2-1.5,cx2+hw2,y,'#ff9a10',fo2)}/* 實心金光罩 */
-    if(dl>=180){var ur=Math.min(1,(dl-180)/220),fr=dl<480?1:Math.max(0,1-(dl-480)/220),Wd=pfx.width/U;pctx.save();pctx.globalAlpha=fr;for(var n=0;n<18;n++){var an=Math.PI+(n+.5)/18*Math.PI,x0=cx2+Math.cos(an)*R*.95,y0=gy+Math.sin(an)*R*.85*.95,len=(Wd*1.3)*ur,ex=x0+Math.cos(an)*len,ey=y0+Math.sin(an)*len,px=-Math.sin(an),py=Math.cos(an),w0=.5,w1=2.6+hsh(n,4)*1.6;
-      pctx.fillStyle=n%2?'#ffd860':'#fff4c8';pctx.beginPath();pctx.moveTo((x0+px*w0)*U,(y0+py*w0)*U);pctx.lineTo((ex+px*w1)*U,(ey+py*w1)*U);pctx.lineTo((ex-px*w1)*U,(ey-py*w1)*U);pctx.lineTo((x0-px*w0)*U,(y0-py*w0)*U);pctx.closePath();pctx.fill()}pctx.restore();pctx.globalAlpha=1}/* 光束越往外越寬，射出畫面 */
-    if(dl<120)shakeY=Math.round(Math.sin(dl/6)*2.6*U*(1-dl/120))}
+  /* 落地：敵陣上連續爆出好幾團爆炸：圓形火球核心 + 往外綻放的金色光刺，顏色各不同 */
+  if(d>=HDRG.land&&d<HDRG.land+900){var dl=d-HDRG.land,gy=Lp[1],cx2=C[0],RR=C[2]+18,PAL=[['#ffffff','#fff2a0','#ffc030','#ff7a10'],['#fffbe0','#ffd860','#ff9a20','#e04a08'],['#ffffff','#ffe8c0','#ff8a40','#d02a10'],['#ffffff','#fff8d0','#ffe070','#e8a010']];
+    for(var b=0;b<9;b++){var t0=b*55+(hsh(b,2)*40|0),db=dl-t0;if(db<0||db>420)continue;var ub=db/420,bx=cx2+(hsh(b,5)-.5)*RR*2,by=gy-6-hsh(b,6)*34,sz=(b===0?1.5:.8+hsh(b,7)*.6),pl=PAL[b%4],g=ease(Math.min(1,db/90)),fo=ub<.45?1:1-(ub-.45)/.55;
+      var R0=(4+g*4.5)*sz*(1-ub*.35);[[1,3,.9],[.8,2,1],[.58,1,1],[.34,0,1]].forEach(function(L){var r=R0*L[0];for(var yy=-Math.ceil(r);yy<=Math.ceil(r);yy++){var hw=Math.sqrt(Math.max(0,r*r-yy*yy));if(hw>.4)rowF(bx-hw,bx+hw,by+yy,pl[L[1]],fo*L[2])}});/* 圓形核心：外橘紅 → 金 → 白 */
+      var ns=10+(b%3)*2;for(var k=0;k<ns;k++){var an=k/ns*6.283+hsh(b,k)*.5,ln=(10+hsh(k,b)*16)*sz*Math.min(1,db/120)*(k%2?1:1.5),r0=R0*.6;j26Spike(bx+Math.cos(an)*r0,by+Math.sin(an)*r0,bx+Math.cos(an)*(r0+ln),by+Math.sin(an)*(r0+ln),k%2?1.4:2,[pl[0],pl[1],pl[2]],fo)}/* 金色光刺往外綻放，長短交錯 */
+      if(db<70)glowAt(bx,by,R0*2.2,'rgba(255,250,220,.9)','rgba(255,150,40,.4)',1-db/70)}
+    if(dl<140)shakeY=Math.round(Math.sin(dl/6)*2.6*U*(1-dl/140))}
   if(d>=HDRG.hit&&d<HDRG.hit+160){bScreen('#fff4c8',(1-(d-HDRG.hit)/160)*.55);shakeX=Math.round(Math.sin(d/6)*2*U)}FXA=fa}
 /* 劍痕：敵人身上的紅金刀痕（測試頁用 VT.scar，正式戰鬥之後接引擎） */
 function scarState(i,t){if(VFXT){var L=(VT.scarL&&VT.scarL[i])||[],n=0;L.forEach(function(q){if(q.t<=t)n=q.n});return n}return B&&B.hpNow&&B.hpNow.scar?B.hpNow.scar[i]|0:0}
