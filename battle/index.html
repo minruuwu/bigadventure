@@ -3314,23 +3314,25 @@ function dragonSpr(){if(DRGC)return DRGC;var W=120,H=150,c=document.createElemen
   return DRGC=c}
 function hdragPts(e){var H=supHome(e),C=monCen(e.tg);if(!H||!C)return null;var A=[H[0]+14,H[1]-46];return{H:H,A:A,B:[A[0]+(HDRM[2][0]-HDRM[0][0])*HDRS,A[1]+(HDRM[2][1]-HDRM[0][1])*HDRS],L:[C[0]-6,C[1]],C:C}}/* B = 盤龍的龍口位置（盤龍跟立姿龍中心相同） */
 function hdragT(d){return Math.pow(Math.max(0,Math.min(1,(d-HDRG.move)/(HDRG.land-HDRG.move))),1.4)}
-function hdragPath(S,t){var A=S.A,B=S.B,L=S.L,Q=[2*B[0]-(A[0]+L[0])/2,2*B[1]-(A[1]+L[1])/2],u=1-t;return[u*u*A[0]+2*u*t*Q[0]+t*t*L[0],u*u*A[1]+2*u*t*Q[1]+t*t*L[1]]}/* 二次曲線，t=.5 時正好經過盤龍龍頭 */
+function hdragPath(S,t){return[lerp(S.A[0],S.L[0],t),lerp(S.A[1],S.L[1],t)]}/* 人一直用同樣角度直線俯衝 */
+function hdragCoil(S,d){var M=hdragPath(S,hdragT(HDRG.dash)),k=d<HDRG.move?0:ease(Math.min(1,(d-HDRG.move)/(HDRG.dash-HDRG.move)));return[lerp(S.B[0],M[0],k),lerp(S.B[1],M[1],k)]}/* 盤龍的龍頭慢慢往人的路線靠，兩者在 dash 時會合 */
 function hdragAt(e,d){var S=hdragPts(e);if(!S||d<0||d>HDRG.end)return null;var H=S.H,A=S.A,Bp=S.B,Lp=S.L;
   if(d<HDRG.jump){var k=ease(d/HDRG.jump);return[lerp(H[0],A[0],k),lerp(H[1],A[1],k)-Math.sin(k*Math.PI)*6]}
   if(d<HDRG.move)return[A[0],A[1]+Math.sin((d-HDRG.jump)/70)*.6];
-  if(d<HDRG.land)return hdragPath(S,hdragT(d));/* 一路衝下去：途中經過盤龍的龍頭 */
+  if(d<HDRG.land)return hdragPath(S,hdragT(d));
   if(d<HDRG.end-380)return[Lp[0],Lp[1]];var k3=ease((d-HDRG.end+380)/380);return[lerp(Lp[0],H[0],k3),lerp(Lp[1],H[1],k3)-Math.sin(k3*Math.PI)*18]}
-function hdragFx(e,d){if(d<0||d>HDRG.end)return;var S=hdragPts(e);if(!S)return;var fa=FXA;FXA=1;var A=S.A,Bp=S.B,Lp=S.L,C=S.C,ang=Math.atan2(Lp[1]-Bp[1],Lp[0]-Bp[0]);
+function hdragFx(e,d){if(d<0||d>HDRG.end)return;var S=hdragPts(e);if(!S)return;var fa=FXA;FXA=1;var A=S.A,Bp=S.B,Lp=S.L,C=S.C,ang=Math.atan2(Lp[1]-A[1],Lp[0]-A[0]);
   /* 金龍：停頓時在身後浮現 → 跟著一起俯衝，穿過敵陣後散掉 */
   if(d>=0&&d<HDRG.land+260){var fi=Math.min(1,d/260),P=hdragAt(e,Math.min(d,HDRG.land))||A,ex2=d>HDRG.land?(d-HDRG.land)/260*30:0,mx=P[0]+6+Math.cos(ang)*ex2,my=P[1]-17+Math.sin(ang)*ex2,fo=d<HDRG.land?fi:Math.max(0,1-(d-HDRG.land)/260),tilt=d<HDRG.dash?Math.sin(d/160)*.03:ang*.45,sc=.74;
     var ph=[[1,0,HDRG.coil],[3,HDRG.coil,HDRG.dash],[2,HDRG.dash,1e9]],fl=.62+.14*Math.sin(d/55)+.08*Math.sin(d/23);/* 若隱若現 */
     behindP(e.a,function(){ph.forEach(function(q){var im=HDRI[q[0]-1];if(!im.complete||!im.naturalWidth)return;var a=d<q[1]-80||d>q[2]+80?0:d<q[1]?1-(q[1]-d)/80:d>q[2]?1-(d-q[2])/80:1;if(q[0]===1&&d<q[2])a=1;if(q[0]===2&&d>=q[1])a=1;if(a<=0)return;
-      var M=HDRM[q[0]-1],sc=HDRS,ax=q[0]===3?Bp[0]+6:mx,ay=q[0]===3?Bp[1]-17:my;pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(ax*U,ay*U);pctx.rotate(q[0]===2?0:tilt);pctx.globalAlpha=fo*a*fl;pctx.drawImage(im,-M[0]*sc*U,-M[1]*sc*U,164*sc*U,164*sc*U);pctx.globalCompositeOperation='lighter';pctx.globalAlpha=fo*a*fl*.25;pctx.drawImage(im,-M[0]*sc*U,-M[1]*sc*U,164*sc*U,164*sc*U);pctx.restore();pctx.globalAlpha=1})});/* 他畫的金龍：跳起停頓時是立姿（1）→ 要往下衝前盤起（3）→ 俯衝（2）；施法者在龍口，半透明閃爍、外圈金色光暈 */
+      var M=HDRM[q[0]-1],sc=HDRS,CM=hdragCoil(S,Math.min(d,HDRG.dash)),ax=q[0]===3?CM[0]+6:mx,ay=q[0]===3?CM[1]-17:my;pctx.save();pctx.imageSmoothingEnabled=false;pctx.translate(ax*U,ay*U);pctx.rotate(q[0]===2?0:tilt);pctx.globalAlpha=fo*a*fl;pctx.drawImage(im,-M[0]*sc*U,-M[1]*sc*U,164*sc*U,164*sc*U);pctx.globalCompositeOperation='lighter';pctx.globalAlpha=fo*a*fl*.25;pctx.drawImage(im,-M[0]*sc*U,-M[1]*sc*U,164*sc*U,164*sc*U);pctx.restore();pctx.globalAlpha=1})});/* 他畫的金龍：跳起停頓時是立姿（1）→ 要往下衝前盤起（3）→ 俯衝（2）；施法者在龍口，半透明閃爍、外圈金色光暈 */
     if(d>=HDRG.move){var tn=hdragT(Math.min(d,HDRG.land)),tf=d<HDRG.land?1:Math.max(0,1-(d-HDRG.land)/260);
       [[-6,2.6,0],[8,1.6,0],[-16,1.6,0],[14,2,.5],[24,1.3,.5]].forEach(function(o,n){var t0=o[2];if(tn<=t0+.02)return;var M=24,pts=[];for(var k=0;k<=M;k++){var t=t0+(tn-t0)*k/M,Pq=hdragPath(S,t),Pn=hdragPath(S,Math.min(1,t+.01)),tx=Pn[0]-Pq[0],ty=Pn[1]-Pq[1],tl=Math.hypot(tx,ty)||1;pts.push([Pq[0]-ty/tl*o[0]+(n===0?6:0),Pq[1]-17+tx/tl*o[0]])}
         for(var k2=0;k2<M;k2++){var w=o[1]*(k2+1)/M,a=pts[k2],b=pts[k2+1],sl=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/(sl||1),ny=(b[0]-a[0])/(sl||1),st=Math.max(1,Math.ceil(sl));for(var q=0;q<st;q++){var x=lerp(a[0],b[0],q/st),y=lerp(a[1],b[1],q/st);for(var ww=-w;ww<=w;ww+=.7){var r=Math.abs(ww)/Math.max(.6,w);VP(x+nx*ww,y+ny*ww,r<.35?'#ffffff':r<.7?'#ffe070':'#d88a10',tf*(n===0?1:.85))}}}})}}/* 俯衝時從武器前方、龍尾、兩旁氣焰尾端拖出幾條金色劍氣，讓龍看起來更長 */
   if(d>=HDRG.jump&&d<HDRG.land+250)APD={k:.5*Math.min(1,(d-HDRG.jump)/180)*(d<HDRG.land?1:1-(d-HDRG.land)/250),a:e.a,t:performance.now()};/* 停頓時四周變暗 */
   if(d>=HDRG.coil-120&&d<HDRG.coil+260){var Pw=hdragAt(e,d);if(Pw){var uw=(d-HDRG.coil+120)/380,Rw=4+ease(Math.min(1,uw*1.6))*26,aw=uw<.4?1:1-(uw-.4)/.6;behindP(e.a,function(){glowAt(Pw[0],Pw[1]-17,Rw*1.1,'rgba(255,255,255,.85)','rgba(255,230,160,.35)',aw*.8);for(var rr=0;rr<5;rr++)bRing(Pw[0],Pw[1]-17,Rw-rr*.7,rr===2||rr===1?'#ffffff':'#fff0c0',aw*(rr===4?.6:1),1)})}}/* 背後一圈白光 → 換成盤龍 */
+  if(d>=HDRG.coil-40&&d<HDRG.coil+200)bScreen('#ffffff',d<HDRG.coil?(d-HDRG.coil+40)/40*.9:.9*(1-(d-HDRG.coil)/200));/* 全畫面一閃，蓋住換圖 */
   if(d>=0&&d<HDRG.land+300){var P0=hdragAt(e,d);if(P0){var ga=Math.min(1,d/200)*(d<HDRG.land?1:1-(d-HDRG.land)/300),cx0=P0[0],cy0=P0[1]-17;glowAt(cx0,cy0,20,'rgba(255,236,170,.75)','rgba(255,170,40,.3)',ga);
     for(var r6=0;r6<2;r6++)for(var q6=0;q6<26;q6++){var an6=q6/26*6.283+d/(r6?260:-340),R6=12+r6*3,X6=Math.cos(an6)*R6,Y6=Math.sin(an6)*R6*.45,tl6=r6?.5:-.5;VP(cx0+X6,cy0+Y6+X6*tl6*.4,q6%4?'#ffd860':'#fffbe0',ga*(Math.sin(an6)>0?1:.45))}
     for(var s6=0;s6<12;s6++){var u6=((d+s6*83)%520)/520;VP(cx0+(hsh(s6,8)-.5)*22,cy0+14-u6*36,s6%3?'#ffd060':'#ffffff',ga*(1-u6))}}}/* 施法者身上金光縈繞：兩圈斜環反向轉、光粒往上飄 */
