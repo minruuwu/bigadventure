@@ -3264,13 +3264,13 @@ function metsuFx(e,d){if(d<0||d>GODR.cut+METSU.end)return;if(!e._snd&&window.Sfx
    不動無明劍 mumyo：暗場 → 瞬身到敵人面前 → 停頓 → 紫色一刀 → 敵人沿刀痕上下錯開 → 停頓 → 閃光、合回去
    聖龍烈霸斬 holydragon：跳起停頓、身後浮現金龍 → 跟金龍一起斜斜俯衝穿過敵陣 → 落地爆出金色半圓光罩 → 光束往外射、閃光
    劍痕：敵人身上 1～3 道紅金色刀痕；疊滿 3 道爆發（scarB） */
-var MUMYO={tp:160,cut:620,sep:700,hit:1000,join:1060,end:1600},MUANG=-.5,HDRG={jump:300,coil:600,move:630,dash:630,land:900,hit:1150,end:1900};/* 盤龍拿掉：閃光當轉場，直接換俯衝龍、人立刻衝下去 *//* 升起 → 停頓變暗、背後白光圈 → 換盤龍（中心不動）→ 人拖著劍氣移到盤龍的龍頭 → 換俯衝龍一起往下 */
+var MUMYO={tp:160,cut:620,sep:920,hit:1100,join:1180,end:1700}/* 砍完停約 0.25 秒才錯開滑落 */,MUANG=-.5,HDRG={jump:300,coil:600,move:630,dash:630,land:900,hit:1150,end:1900};/* 盤龍拿掉：閃光當轉場，直接換俯衝龍、人立刻衝下去 *//* 升起 → 停頓變暗、背後白光圈 → 換盤龍（中心不動）→ 人拖著劍氣移到盤龍的龍頭 → 換俯衝龍一起往下 */
 function mumyoAt(e,d){var H=supHome(e),T=supTgt(e);if(!H||!T||d<0||d>MUMYO.end)return null;var bx=T[0]-32;
   if(d<MUMYO.tp)return[H[0],H[1],0,null,1-d/MUMYO.tp];if(d<MUMYO.tp+100)return[bx,T[1],0,null,(d-MUMYO.tp)/100];
   if(d<MUMYO.cut)return[bx,T[1],0,null,1];if(d<MUMYO.cut+80)return[bx+ease((d-MUMYO.cut)/80)*6,T[1],0,null,1];if(d<MUMYO.end-300)return[bx+6,T[1],0,null,1];
   var k=(d-MUMYO.end+300)/300;return k<.5?[bx+6,T[1],0,null,1-k*2]:[H[0],H[1],0,null,(k-.5)*2]}/* 瞬身：淡出 → 在敵人面前淡入；砍完一樣瞬身回去 */
 /* 敵人被切開：回傳上下兩塊的錯開距離（0 = 沒切開） */
-function mumyoSplit(e,d,i,dead){if(d<MUMYO.sep||d>MUMYO.join+160)return 0;if(d<MUMYO.sep+110)return ease((d-MUMYO.sep)/110)*7;if(d<MUMYO.join)return 7;var k=(d-MUMYO.join)/160;return dead?7+k*12:7*(1-ease(k))}
+function mumyoSplit(e,d,i,dead){if(d<MUMYO.sep||d>MUMYO.join+160)return 0;if(d<MUMYO.sep+150)return Math.pow((d-MUMYO.sep)/150,2)*7;/* 先慢後快，像往下掉 */if(d<MUMYO.join)return 7;var k=(d-MUMYO.join)/160;return dead?7+k*12:7*(1-ease(k))}
 function mumyoFx(e,d){if(d<0||d>MUMYO.end)return;var T=supTgt(e),q=j21Mon((e.tg||[])[0]);if(!T||!q)return;var fa=FXA;FXA=1;var cy=q.gy-q.th*.5,dx=Math.cos(MUANG),dy=Math.sin(MUANG),L=q.tw+44;
   if(d<MUMYO.join+200)APD={k:.48*Math.min(1,d/200)*(d<MUMYO.join?1:1-(d-MUMYO.join)/200),a:e.a,t:performance.now()};/* 自己和目標以外暗下來 */
   if(d>=MUMYO.tp+60&&d<MUMYO.cut){var g=(d-MUMYO.tp-60)/(MUMYO.cut-MUMYO.tp-60),P=mumyoAt(e,d);if(P){for(var s2=0;s2<8;s2++){var u=((d+s2*70)%400)/400,an=hsh(s2,3)*6.283;VP(P[0]+8+Math.cos(an)*(10-u*9),P[1]-16+Math.sin(an)*(10-u*9),s2%2?'#c890ff':'#ffffff',g*u)}}}/* 停頓：紫光往刀上收 */
