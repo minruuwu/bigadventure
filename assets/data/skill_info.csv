@@ -671,3 +671,4 @@ skill557,滅閃光,job26,35,ultimate,enemy_single,boss_high,damage,,,p,,3.2,m,li
 skill558,不動無明劍,job27,1,combat,enemy_single,random,damage,,,p,dark,2.2,,,,瞬身到敵人面前，一刀紫色劍光將敵人斬開；30% 機率「目盲」2 回合，並刻上一道「劍痕」,mumyo,,,4,single,,3,1,,,,,,,
 skill560,聖龍烈霸斬,job27,7,combat,enemy_all,,damage,,,p,light,1.3,,,,躍起後與金色龍形劍氣一同俯衝斬向敵陣；敵方全體光屬性物理傷害，30% 機率「暈眩」1 回合（首領無效），每個敵人各刻上一道「劍痕」,holydragon,,,0,diamond,2,4,2,,,,,,,
 skill562,雷貫千鳥流,job27,13,combat,enemy_single,random,damage,,,p,lightning,2,,,,武器凝聚金藍雷球，突刺、回刺後躍起俯衝；主目標雷屬性物理傷害，雷電再沿地面竄向其他敵人造成 0.1 倍傷害，所有被擊中的敵人各刻上一道「劍痕」,chidori,,,4,single,,4,1,,,,,,,
+skill564,明心鏡止水,job27,20,combat,self,,heal,,,,,,,,,心如明鏡止水：驅散自身 2 個負面狀態並獲得 3SP；前方生出水分身擋下下一次攻擊，被打散時再獲得 1SP（到下回合開始未被攻擊則消失）,mirrorwater,,,0,single,,4,2,,,,,,,
