@@ -1289,8 +1289,8 @@
         });
         /* 劍聖：命中的敵人各刻一道劍痕（擴散打到的也算）；無我天地滅：引爆全場自己的劍痕（有就視為 3 道） */
         if (bonus.scar) { var scT = order.filter(function (t) { return !t.dead && perT[t.i + t.side].ok && t.side !== u.side }); (e.spl || []).forEach(function (q) { var t = (q[0] === 'm' ? M : P)[q[1]]; if (t && scT.indexOf(t) < 0) scT.push(t) }); scT.forEach(function (t) { scarAdd(u, t) }) }
-        if (bonus.scar_detonate_all) { var dO = [], dT = []; foes(u).forEach(function (t) { if (t.dead || t.hp <= 0 || banished(t) || scarN(t, u) <= 0) return; scarOf(t, u).n = 0; /* 無我天地滅：同一招裡直接引爆（數字跟著演出的引爆時間跳，h = 段數） */
-            var x = dmgOnce(u, t, [{ d: 'p', e: '', r: 1.5 }], D.SK.scar_burst, { sure: true, noReact: true }); if (x.void) return; NC = { el: '', dt: 'p', c: x.crit, h: H }; var rl = x.amt ? hurt(t, x.amt, u) : 0;
+        if (bonus.scar_detonate_all) { var dO = [], dT = []; e.scar0 = M.map(scarTot); /* 引爆前的劍痕數（畫面在引爆前照這個畫） */ foes(u).forEach(function (t) { if (t.dead || t.hp <= 0 || banished(t) || scarN(t, u) <= 0) return; scarOf(t, u).n = 0; /* 無我天地滅：同一招裡直接引爆（數字跟著演出的引爆時間跳，h = 段數） */
+            var x = dmgOnce(u, t, [{ d: 'p', e: '', r: 1.5 }], D.SK.scar_burst, { sure: true, noReact: true }); if (x.void) return; NC = { el: '', dt: 'p', c: x.crit, h: tg.indexOf(t) >= 0 ? H : H + 1 }; var rl = x.amt ? hurt(t, x.amt, u) : 0; /* 目標先炸（h = 段數），其他敵人等演出完再炸（h = 段數 + 1） */
             addStat(e, u, 'dmg', rl, '劍痕爆發'); addStat(e, t, 'taken', rl, u.name + ' 劍痕爆發'); dO.push(t.name + (x.crit ? ' 暴擊！' : ' ') + rl); if (t.side === 'm') dT.push(t.i); down(t); checkDeath(t, e) });
           if (dO.length) { e.scd = dT; (e._x = e._x || []).push('劍痕全數引爆 → ' + dO.join('、')); var ms9 = u.mst && u.mst.scar_soul; if (ms9 && ms9.st && !u.dead) applyStatus(u, u, ms9.st, ms9.turns || 2, 1, e) } }
         /* 霜刃術：攻擊時每個被打中的目標各擲一次凍結 */
