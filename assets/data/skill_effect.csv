@@ -702,3 +702,5 @@ skill557,滅閃光,bonus,,,,,red_pierce,9,,,,,,
 skill557,滅閃光,bonus,,,,,arc_pre,3,,,,,,
 skill558,不動無明劍,status,目盲,enemy_single,2,0.3,,,,,,,,
 skill560,聖龍烈霸斬,status,暈眩,enemy_all,1,0.3,,,,,,,,not_boss
+skill566,無我天地滅,bonus,,,,,seg_split,0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|0.25|1,,,,,,
+skill566,無我天地滅,bonus,,,,,scar_detonate_all,1,,,,,,

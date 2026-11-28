@@ -673,3 +673,4 @@ skill560,聖龍烈霸斬,job27,7,combat,enemy_all,,damage,,,p,light,1.3,,,,躍�
 skill562,雷貫千鳥流,job27,13,combat,enemy_single,random,damage,,,p,lightning,2,,,,武器凝聚金藍雷球，突刺、回刺後躍起俯衝；主目標雷屬性物理傷害，雷電再沿地面竄向其他敵人造成 0.1 倍傷害，所有被擊中的敵人各刻上一道「劍痕」,chidori,,,4,single,,4,1,,,,,,,
 skill564,明心鏡止水,job27,20,combat,self,,heal,,,,,,,,,心如明鏡止水：驅散自身 2 個負面狀態並獲得 3SP；前方生出水分身擋下下一次攻擊，被打散時再獲得 1SP（到下回合開始未被攻擊則消失）,mirrorwater,,,0,single,,4,2,,,,,,,
 skill565,白虎凶牙噬,job27,30,combat,enemy_single,random,damage,,,p,,2.8,,,,背後浮現白虎，連斬刻出「凶」字後炸裂；單體無屬性物理傷害並刻上一道「劍痕」；目標生命低於 50% 時，暴擊傷害額外 +200%,whitetiger,,,4,single,,4,2,,,,,,,
+skill566,無我天地滅,job27,35,ultimate,enemy_single,boss_high,damage,,,p,,4.5,,,,奧義：腳下金紅光芒綻放後連斬 14 下（每下 25%），躍至高空俯衝下劈（100%），共 15 段無屬性物理傷害、每段獨立判定暴擊；最後引爆全場敵人身上的「劍痕」（不論幾道都視為 3 道）,mugen,15,,1,single,,,,,,,,,,
