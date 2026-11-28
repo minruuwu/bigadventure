@@ -1130,7 +1130,7 @@
           if (sk.rand4) { hEl = pickOne(EL4); hP = sk.parts.map(function (q) { return { d: q.d, e: q.e === 'rand4' ? hEl : q.e, r: q.r } }) } else hEl = (hP.filter(function (q) { return EL4.indexOf(q.e) >= 0 })[0] || {}).e || '';
  /* 出手途中被反擊打倒（變成骨堆）就不再繼續打 */
           var list = each ? (function () { var c = pool(); return c.length ? [pickOne(c)] : [] })() : tg.filter(function (x) { return !x.dead && downed.indexOf(x) < 0 });
-          if (!each && !list.length && downed.length && single) { var c2 = pool(); if (c2.length) { tg = [pickOne(c2)]; list = tg; rt = true } } /* 單體：原本的目標倒下了，剩下的段數打別人 */
+          /* 單體：原本的目標倒下了，剩下的段數不改打別人，直接停（演出照樣演完） */
           if (!list.length) break;
           e.hel.push(hEl); hP.forEach(function (q) { if (EL4.indexOf(q.e) >= 0) elSeen[q.e] = 1 }); /* 真的有打出去的段才算出現過（目標全倒就不算） */
           list.forEach(function (t0) {

@@ -253,7 +253,7 @@ html,body,*{touch-action:manipulation}
 <script src="../common/aura.js?v=8"></script>
 <script src="../common/wall.js?v=1"></script>
 <script src="../common/nav.js?v=30"></script>
-<script src="engine.js?v=90"></script>
+<script src="engine.js?v=91"></script>
 <script src="../common/skilldesc.js?v=4"></script>
 <script src="tactics.js?v=19"></script>
 <script>
@@ -4530,7 +4530,7 @@ function mkMapper(ms,M){var RSTEP=760,pkl={},psw={},mko={},ev=[],STEP=1000,mp={e
     if(e.wt){o.gs=e.side;o.ga=e.a;o.cast='#5ec8ff';o.castLen=700;o.idle=1}/* 待機恢復 SP：身上亮藍光 */
       if(e.kind!=='round')t+=e.soulR?1500:e.tf?(e.tf[3]==='bone'?BONELEN:e.tf[3]==='rise'?RISELEN:TFLEN):e.rk?RSTEP:e.rfx?(RDUR[e.rfx]||800):(e.tick||e.idle)?650:STEP;if(e.rvr&&e.rvr.length)t+=1400;/* 先祖之鄉、神恩：先倒下，等這一招演完再金光復活，多留一點時間 */
       if(e.kind!=='round'&&!e.soulR&&o.hit>=600)t=Math.max(t,o.t+o.hit+500);/* 大招：下一行至少等到打中後 0.5 秒，血條、倒下才不會被下一招搶先 */
-      if(o.ujob&&o.ultN!=null&&!o.kod){var lastH=o.hts&&o.hts.length?Math.max.apply(null,o.hts):o.hit+((o.hits||1)-1)*(o.hg||0);o.kod=lastH+150}/* 奧義：敵人在中途就被打死也照樣演完，最後一段打完才倒下 */
+      if(!o.kod&&(o.ujob&&o.ultN!=null||o.tg&&o.tg.length===1&&((o.hits||1)>1||o.hts))){var lastH=o.hts&&o.hts.length?Math.max.apply(null,o.hts):o.hit+((o.hits||1)-1)*(o.hg||0);o.kod=lastH+150}/* 奧義、單體多段技能：敵人在中途就被打死也照樣演完，最後一段打完才倒下 */
       var KOD=o.kod||(o.hit>=600?o.hit+80:260);/* 倒下時間跟著招式真正打中的時間走（大招蓄力久，不會動畫還沒打到人就先倒） */(e.dead||[]).forEach(function(i){if(mko[i]==null)mko[i]=o.t+KOD});
       (e.summon||[]).forEach(function(i){if(ms[i])ms[i].at=o.t+500});
       if(e.tf&&e.tf[3]){var BM0=ms[e.tf[0]];if(BM0)(BM0.tfs=BM0.tfs||[]).push({t0:o.t,t:o.t+(e.tf[3]==='bone'?BONESW:(e.tf[3]==='blood'||e.tf[3]==='demon')?BLDSW:RISESW),k:e.tf[1],n:e.tf[2],sty:e.tf[3],au:(e.tf[3]==='blood'||e.tf[3]==='demon')?(e.tf[4]||[]):[]});o.tfB=[e.tf[0],e.tf[3]]}/* 骨兵：散成骨堆／重組回骨兵（可以重複很多次） */
