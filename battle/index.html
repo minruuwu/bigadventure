@@ -3437,7 +3437,7 @@ function wtigFx(e,d){if(d<0||d>WTIG.end)return;var T=supTgt(e),H=supHome(e);if(!
    腳下金紅光芒綻放、全場變黑 → 14 下來回連斬（藍綠殘影、雙圓面＋金光線＋霞光）→ 逆時針微傾往上跳、敵人往下沉到消失 → 最高點藍色光圓綻放、停頓
    → 放大＋順時針轉往下劈（逐格藍綠殘影）→ 切回原視角劈在敵人左方、綠色大爆發 → 畫面從中心變全白 → 全場劍痕引爆 → 退回 */
 var MUGH=0,MUG={step:420,s0:500,gap:140,n:14,jump:2460,top:2860,dive:3460,land:3820,wfull:4300,wend:4800,scar:4550,ret:5000,end:5600}/* 最高點停久一點 */,
-  MUGO=[[-22,0],[22,-14],[-18,-28],[20,4],[-6,-36],[24,-22],[-24,-10],[8,-34],[-20,4],[22,-30],[-14,-20],[18,0],[-24,-32],[14,-12]];
+  MUGO=[[-22,0],[22,-14],[-18,-28],[20,4],[-6,-36],[24,-22],[-24,-10],[8,-34],[-20,4],[22,-30],[-14,-20],[18,0],[22,-26],[-14,0]];/* 第 14 下回到敵人左方，方便直直往上跳 */
 function mugHit(i){return MUG.s0+i*MUG.gap+70}
 function mugApex(T){return[T[0]-14,Math.max(20,T[1]-82)]}
 function mugSpr(p,x,y,sc,rot,a,fl,flt){if(!p||!p.f||a<=0)return;pctx.save();pctx.imageSmoothingEnabled=false;pctx.globalAlpha=Math.min(1,a);pctx.translate(x*U,(y-16)*U);pctx.rotate(rot);pctx.scale(fl?-sc:sc,sc);if(flt){try{pctx.filter=flt}catch(err){}}pctx.drawImage(p.f,-24*U,-24*U,48*U,48*U);pctx.restore();pctx.filter='none';pctx.globalAlpha=1}
