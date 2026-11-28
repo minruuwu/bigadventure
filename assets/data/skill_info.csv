@@ -637,7 +637,7 @@ skill523,風纏箭,job23,16,reaction,,,reaction,,,,,,,,,被物理攻擊時 20% �
 skill524,縛風之誓,job23,20,combat,enemy_all,,damage,,,p,wind,0.5,,,,敵陣捲起黑棕色沙塵旋風；附加「縛風」3 回合（風抗 −30%、閃避率 −20%、命中率 −20%，王不受命中下降；不可驅散）,bindwind,,,0,diamond,2,4,2,,,,,,,
 skill525,風靈榮甲,job23,25,passive,,,passive,,,,,,,,,被敵人攻擊受到傷害時 25% 機率，獲得「風靈榮甲」3 回合：物理、魔法減傷 +15%、閃避率 +10%,,,,,,,,,,,,,,,
 skill526,翔風貫星箭,job23,30,combat,enemy_single,random,damage,,,p,wind,2.8,,,,凝聚青色風箭直線貫穿目標；無視目標的物理減傷,starpierce,,,4,single,,3,2,,,,,,,
-skill527,王獵閃光,job23,35,ultimate,enemy_single,boss_high,damage,,,p,wind,0.4,,,,奧義：風與金色光束連射同一個目標 9 次（優先打王，沒有王就打生命最多的）,kinghunt,9,,1,single,,,,,,,,,,
+skill527,王獵天嵐,job23,35,ultimate,enemy_single,boss_high,damage,,,p,wind,0.4,,,,奧義：風與金色光束連射同一個目標 9 次（優先打王，沒有王就打生命最多的）,kinghunt,9,,1,single,,,,,,,,,,
 skill528,律令：極光,job24,1,combat,enemy_all,,damage,,,m,light,1.2,,,,聖徽擴散聖光波紋，高空法陣垂下白金極光帷幕；敵方全體光屬性魔法傷害，並恢復我方全體魔法攻擊力 40% 的生命,aurora,,,0,diamond,2,4,2,,,,,,,
 skill529,過量恩典,job24,5,passive,,,passive,,,,,,,,,自己的主動技能治療溢出的部分，100% 轉成「神聖護盾」3 回合（可累加，最多目標最大生命 35%；不可驅散；持續回血、吸血不算）,,,,,,,,,,,,,,,
 skill530,律令：恩澤,job24,7,combat,ally_all,,heal,,,m,,0.3,,,,白金治療鍊在我方隨機彈跳 6 下，每下恢復魔法攻擊力 30% 生命，並解除最新的一個負面狀態,gracechain,,,0,diamond,2,2,1,,,,,,,
