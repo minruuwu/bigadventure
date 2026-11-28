@@ -473,3 +473,6 @@ status_name,polarity,effect,value,base,element,dmg_type,status_desc
 武器賦能,buff,m_atk_rate,0.15,,,,
 秘法壁壘,buff,shield,0,,,,金藍六角護盾：由自己的魔法傷害轉成（最多最大生命 30%），每回合開始減少最大生命 15%；所有護盾裡最後才被扣
 秘法壁壘,buff,no_dispel,,,,,
+劍魂,buff,crit_damage_rate,0.5,,,,暴擊傷害 +50%（劍痕爆發時獲得，再觸發刷新回合）
+明鏡止水,buff,wclone,,,,,水分身擋下下一次敵人的攻擊（傷害與負面狀態）；被打散時 SP +1，到下次行動開始還沒被打就消失
+明鏡止水,buff,no_dispel,,,,,

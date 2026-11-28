@@ -109,7 +109,7 @@
       if (e.condition && /^weapon/.test(e.condition) && e.condition !== ws) return;
       var v = num(e.value);
       if (/^status:/.test(e.condition || '')) { cpas.push({ id: id, k: e.effect, v: v, sts: e.condition.slice(7).split('|').map(function (x) { return x.trim() }).filter(Boolean) }); return } /* 怒戰英豪：condition = status:怒意|戰意，身上有其中一個才算（同一招只算一次） */
-      if (e.trigger || ['revive_self', 'forge_bonus', 'exp_bonus', 'apply_status', 'elem_orb', 'deep_freeze', 'sp_elem', 'crit_wind', 'prey_mark', 'over_grace', 'holy_stack', 'sp_support', 'red_refine', 'eq_exchange', 'arc_barrier', 'wpn_infuse', 'arc_burst'].indexOf(e.effect) >= 0) { special.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type, tg: e.target }); return }
+      if (e.trigger || ['revive_self', 'forge_bonus', 'exp_bonus', 'apply_status', 'elem_orb', 'deep_freeze', 'sp_elem', 'crit_wind', 'prey_mark', 'over_grace', 'holy_stack', 'sp_support', 'red_refine', 'eq_exchange', 'arc_barrier', 'wpn_infuse', 'arc_burst', 'lushan', 'st_immune'].indexOf(e.effect) >= 0) { special.push({ id: id, k: e.effect, v: v, ch: num(e.trigger_chance) || 1, tr: e.trigger, st: e.status_name, turns: e.turns, cond: e.condition, el: e.element, dt: e.dmg_type, tg: e.target }); return }
       self[e.effect] = (self[e.effect] || 0) + v;
       if (e.target === 'ally_all') aura.push({ id: id, k: e.effect, v: v });
       else if (['lifesteal', 'extra_dmg', 'heal_echo', 'auto_cleanse'].indexOf(e.effect) >= 0) special.push({ id: id, k: e.effect, v: v, el: e.element, dt: e.dmg_type });
@@ -307,10 +307,10 @@
     function numAdd(u, v, k, o) { var e = ev[ev.length - 1]; if (!e || !u) return; var n = { s: u.side, i: u.i, v: Math.round(v || 0), k: k }; if (o) Object.keys(o).forEach(function (q) { if (o[q] != null && o[q] !== '' && o[q] !== false) n[q] = o[q] }); (e.nums = e.nums || []).push(n) }
     function numHit(d, amt, left) { var c = NC || {}, el = c.el || '', w = 0; if (el) { var r = resOf(d, el); w = r < 0 ? 1 : r >= 0.5 ? -1 : 0 }
       if (amt - left > 0) numAdd(d, amt - left, 'shd', { h: c.h });
-      if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h, bx: NC && !c.tr && banishedOnly(d) ? 1 : 0 }) }
+      if (left > 0 || amt <= 0) numAdd(d, left, c.tr || !NC ? 't' : 'd', { el: el, dt: c.dt, c: c.c, w: w, h: c.h, spl: c.spl ? 1 : 0, bx: NC && !c.tr && banishedOnly(d) ? 1 : 0 }) }
     /* 血量快照，順便記每個人身上生效中的狀態名稱（sp／sm；元素詛咒記成「名稱|屬性」），畫面用來顯示狀態特效 */
     function stNames(u) { return u.dead ? [] : u.st.filter(function (s) { return !s.paused }).map(function (s) { return s.randEl ? s.n + '|' + s.randEl : s.n === '聖光' ? '聖光|' + (s.stk || 1) : s.n }).concat(u.arc ? ['奧術充能|' + u.arc] : []) } /* 奧術充能不是狀態，顯示時補上 */
-    function hpSnap() { P.forEach(mhpSync); return { pm: P.map(function (u) { return u.b.mhp }), ob: P.map(function (u) { var o = obsOf(u); return o ? o.obs : null }), p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null, hbp: P.map(hbN), hbm: M.map(hbN), ug: P.map(function (u) { return u.ult ? u.ug | 0 : -1 }), pz: P.map(function (u) { return u.prism && !u.dead ? [Math.max(0, Math.round(u.prism.hp)), u.prism.mhp] : 0 }), gc: P.map(function (u) { return u.clone && !u.dead ? [Math.max(0, Math.round(u.clone.hp)), u.clone.mhp] : 0 }), arc: P.map(function (u) { return u.arc | 0 }), ab: P.map(function (u) { return u.special && u.special.some(function (x) { return x.k === 'arc_burst' }) ? (u._abN | 0) : -1 }), orb: P.map(function (u) { var q = u.dead ? null : u.st.filter(function (x) { return x.orb && !x.paused })[0]; return q ? q.orb.n : 0 }) } }
+    function hpSnap() { P.forEach(mhpSync); return { pm: P.map(function (u) { return u.b.mhp }), ob: P.map(function (u) { var o = obsOf(u); return o ? o.obs : null }), p: P.map(function (u) { return Math.max(0, Math.round(u.hp)) }), m: M.map(function (u) { return Math.max(0, Math.round(u.hp)) }), mm: M.map(function (u) { return u.b.mhp }), sp: P.map(stNames), sm: M.map(stNames), pp: SPM ? P.map(function (u) { return u.sp | 0 }) : null, hbp: P.map(hbN), hbm: M.map(hbN), ug: P.map(function (u) { return u.ult ? u.ug | 0 : -1 }), pz: P.map(function (u) { return u.prism && !u.dead ? [Math.max(0, Math.round(u.prism.hp)), u.prism.mhp] : 0 }), gc: P.map(function (u) { return u.clone && !u.dead ? [Math.max(0, Math.round(u.clone.hp)), u.clone.mhp] : 0 }), arc: P.map(function (u) { return u.arc | 0 }), ab: P.map(function (u) { return u.special && u.special.some(function (x) { return x.k === 'arc_burst' }) ? (u._abN | 0) : -1 }), orb: P.map(function (u) { var q = u.dead ? null : u.st.filter(function (x) { return x.orb && !x.paused })[0]; return q ? q.orb.n : 0 }), scar: M.map(scarTot) } }
     function hbN(u) { return u.dead ? 0 : u.st.reduce(function (a, s) { return a + (!s.paused && s.hb > 0 ? s.hb : 0) }, 0) } /* 聖堂守勢剩幾面盾（畫面用） */
     function addStat(e, u, kind, v, sk) { if (u.side !== 'p' || !v) return; (e.st = e.st || []).push([u.i, kind, Math.round(v), sk]) }
 
@@ -323,6 +323,7 @@
       if (s0bn(tgt, def)) return false; /* 放逐中上不了新狀態 */
       if (banished(tgt) && def.rows.some(function (r) { return r.k === 'banish' })) return false; /* 已經在裂隙裡：不能再放逐一次（避免重放刷新回合、一直關住） */
       if (swl && (tgt.side !== 'p' || P.some(function (x) { return !x.dead && x.st.some(function (q) { return q.swal && q.src === src }) }))) return false;
+      if (def.pol === 'debuff' && src && src.side !== tgt.side && tgt.special) { var imS = tgt.special.filter(function (x) { if (x.k !== 'st_immune') return false; var L = String(x.cond || '').split('|'); return L.indexOf(name) >= 0 || def.rows.some(function (r) { return L.indexOf(r.k) >= 0 }) })[0]; if (imS) { if (e) e.txt += '，' + tgt.name + ' 的「' + (D.SK[imS.id] ? D.SK[imS.id].n : '劍心通明') + '」免疫了「' + name + '」'; return false } } /* 劍心通明：免疫魅惑、恐懼、混亂、睡眠、目盲 */
       var ctl = def.rows.some(function (r) { return CONTROL[r.k] }), nob = def.rows.some(function (r) { return NOBOSS[r.k] });
       if (tgt.boss && nob) return false;
       /* 秘術護罩（debuff_block）：持續期間擋下敵人施加的新負面狀態 */
@@ -423,7 +424,7 @@
       var cr = stat(a, 'crit') + (sk.cr || 0) + (o.extraCrit || 0) + sv(d, 'crit_taken_rate');
       var sureCrit = o.sureCrit || has(a, 'sure_crit_next');
       r.crit = sureCrit || RND() < cr;
-      var cm = r.crit ? 1 + stat(a, 'cdmg') + (sk.cd || 0) : 1, tot = 0, byEl = {};
+      var cm = r.crit ? 1 + stat(a, 'cdmg') + (sk.cd || 0) + (o.cdAdd || 0) /* 白虎凶牙噬：低血量目標的暴擊傷害 */ : 1, tot = 0, byEl = {};
       parts.forEach(function (x) {
         var atk = x.d === 'm' ? stat(a, 'matk') : stat(a, 'patk'), inc = x.d === 'm' ? stat(a, 'mdmg') : stat(a, 'pdmg'), red = x.d === 'm' ? stat(d, 'mred') : stat(d, 'pred');
         if (o.redPierce && red > 0) red = Math.max(0, red - o.redPierce); /* 無視減傷（爆炎轟 20%、裂空俯衝全部）：只扣掉正的減傷 */
@@ -517,7 +518,7 @@
       t.hp += real; if (real > 0) numAdd(t, real, 'h', { ls: NC && NC.ls, h: NC && NC.h }); if (real > 0 && src !== t && t.hp >= t.b.mhp * 0.8 && t.st.some(function (s) { return s.dcurse })) t.st = t.st.filter(function (s) { return !s.dcurse }); /* 死之詛咒：被別人補血、補到 80% 以上才解除（自己身上的回復被動不算） */ return real;
     }
     /* 技能使用條件（skill_effect 的 use_if）：hp_below = 生命比例低於 value 才能用、hp_above = 高於 value 才能用、not_full = 場上活著的怪少於 value 隻才能用（呼喚同伴滿了改普攻） */
-    function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'arc_min' ? (u.arc | 0) >= (v || 1) : r.effect === 'min_enemies' ? foes(u).filter(function (x) { return !x.dead && !banished(x) }).length >= (v || 2) : r.effect === 'prism_need' ? (!u.prism || u.prism.hp < u.prism.mhp * (v || 0.5)) : r.effect === 'has_other' ? friends(u).some(function (x) { return x !== u && !x.dead }) : r.effect === 'lacks_status' ? !u.st.some(function (q) { return q.n === r.status_name }) /* 身上已經有這個狀態就不放（自燃） */ : r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : r.effect === 'ally_below' ? (u.side === 'm' ? M : P).some(function (m) { return !m.dead && m.hp / Math.max(1, m.b.mhp) < v }) /* 有同伴（含自己）生命低於 v 才放（天使史萊姆的群體治療） */ : true }) }
+    function useOk(u, id) { return (D.EFF[id] || []).every(function (r) { if (r.effect_kind !== 'use_if') return true; var v = num(r.value), h = u.hp / Math.max(1, u.b.mhp); return r.effect === 'arc_min' ? (u.arc | 0) >= (v || 1) : r.effect === 'debuff_or_sp' ? debuffs(u).some(function (q) { return !q.swal && !q.banish }) || (u.sp | 0) < (v || 2) /* 明心鏡止水：身上有負面狀態或 SP 不夠才放 */ : r.effect === 'min_enemies' ? foes(u).filter(function (x) { return !x.dead && !banished(x) }).length >= (v || 2) : r.effect === 'prism_need' ? (!u.prism || u.prism.hp < u.prism.mhp * (v || 0.5)) : r.effect === 'has_other' ? friends(u).some(function (x) { return x !== u && !x.dead }) : r.effect === 'lacks_status' ? !u.st.some(function (q) { return q.n === r.status_name }) /* 身上已經有這個狀態就不放（自燃） */ : r.effect === 'hp_below' ? h < v : r.effect === 'hp_above' ? h > v : r.effect === 'not_full' ? M.filter(function (m) { return !m.dead }).length < (v || 5) : r.effect === 'ally_below' ? (u.side === 'm' ? M : P).some(function (m) { return !m.dead && m.hp / Math.max(1, m.b.mhp) < v }) /* 有同伴（含自己）生命低於 v 才放（天使史萊姆的群體治療） */ : true }) }
     function morph(u, mid) { morphUnit(u, mid, D); if (u.cycle && u.cycle.length) u.cy = Math.floor(RND() * u.cycle.length) /* 重生後從隨機一招開始 */ }
     /* 永冬誓言（被動 summon_hp）：生命第一次掉到 value 比例以下時，召喚 condition 那隻怪上場（每場一次） */
     /* 叫一隻怪上場（跟召喚者同樣的生命／攻擊倍率），回傳新的怪 */
@@ -589,6 +590,7 @@
       var rows = (D.EFF[d.reaction] || []).filter(function (e) { return e.effect_kind === 'reaction' });
       if (!rows.length) return null;
       var tr = rows[0].trigger, ok = tr === 'hit_any' || tr === 'damaged' || (tr === 'hit_p' && isP) || (tr === 'hit_m' && isM);
+      if (ok && rows.some(function (r) { return r.effect === 'zanshin' })) { if (a.side === d.side || d._zsA === ACTN) return null; d._zsA = ACTN } /* 劍殘心：只有敵人的攻擊才觸發；同一個敵人的一次行動（範圍、多段）只判定一次 */
       if (!ok || RND() >= (num(rows[0].trigger_chance) || 0)) return null;
       var out = { name: D.SK[d.reaction].n, post: [] };
       rows.forEach(function (r) {
@@ -677,6 +679,7 @@
     }
     function reactLine(d, a, re) {
       if (d.dead) return;
+      var zs = re.post.filter(function (r) { return r.effect === 'zanshin' })[0]; if (zs) { zanshinLine(d, re, zs); return }
       var ctr = re.post.filter(function (r) { return r.effect === 'counter' }), canCtr = ctr.length && !a.dead && (!hooks.counter || hooks.counter(d, a));
       var sts = re.post.filter(function (r) { return r.effect === 'apply_status' && r.target === 'attacker' }), hl = re.post.filter(function (r) { return r.effect === 'heal' });
       var def = re.block || re.reduce || re.absorb;
@@ -712,6 +715,7 @@
         if (u.dead || banished(u) || ctrl(u, 'deathcurse') || ctrl(u, 'stun') || ctrl(u, 'sleep') || ctrl(u, 'petrify')) { ex.txt = u.name + ' 無法行動'; ex.idle = 1; ex.hp = hpSnap(); endAct(u, null); return false }
         u._e = ex; return true;
       }
+      if (u.st.some(function (q) { return q.rows.some(function (r) { return r.k === 'wclone' }) })) u.st = u.st.filter(function (q) { return !q.rows.some(function (r) { return r.k === 'wclone' }) }); /* 明鏡止水：到下次行動開始還沒被打就散掉（不給 SP） */
       if (!u.dead && !u.undead && u.special && u.special.some(function (x) { return x.k === 'scorch' })) scorchTick(u);
       if (!u.dead && !u.undead) selfBurn(u);
       if (u.st.some(function (q) { return q.rows.some(function (r) { return r.k === 'until_act' }) })) u.st = u.st.filter(function (q) { return !q.rows.some(function (r) { return r.k === 'until_act' }) }); /* 星儀異象：到下次行動前為止 */
@@ -776,7 +780,7 @@
     }
     /* 出手。forced = {sk: 技能 id, tg: [目標]} 時照指定的打（戰棋）；沒給就照技能循環自己選（自動戰鬥） */
     function finish(u, forced) {
-      var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u;
+      var e = u._e || line({ side: u.side, a: u.i, txt: '' }); delete u._e; nowAct = u; ACTN++;
       var charmed = ctrl(u, 'charm'), confused = ctrl(u, 'confuse'), sk = null, tg = [];
       if (forced) {
         sk = D.SK[ctrl(u, 'seal') ? 'atk' : forced.sk] || D.SK.atk;
@@ -822,6 +826,7 @@
       afterSkill(u, sk, tg, e, false);
       flushRel(e);
       if (!e.hp) e.hp = hpSnap();
+      wclFlush(); scarFlush();
       /* 光速連攜（幻獸）：這次攻擊後再重複一次同樣的動作（不耗 SP） */
       if (sk.ty === 'damage' && !u.dead && foes(u).length) { var rpS = u.st.filter(function (q) { return !q.paused && q.rows.some(function (r) { return r.k === 'repeat_next' }) })[0];
         if (rpS) { removeStatus(u, rpS); var t2 = tg.filter(function (x) { return !x.dead && !(x.side !== u.side && airborne(x)) }); if (!t2.length) t2 = pickTargets(u, sk, false, false);
@@ -900,6 +905,31 @@
       var rr = ab.v || 1.3; D.SK.arc_burst.parts = [{ d: 'p', e: '', r: rr }, { d: 'm', e: '', r: rr }];
       var e = line({ side: 'p', a: u.i, abst: 1, sk: 'arc_burst', ty: 'damage', txt: u.name + ' 的「奧術爆裂」' }); var na = nowAct; nowAct = null;
       doSkill(u, D.SK.arc_burst, tg, e); delete e._rq; delete e._th; delete e._rn; delete e._bc; delete e._pz; flushSt(e); flushRel(e); e.hp = hpSnap(); nowAct = na; flushBoom() }
+    /* ===== 劍聖 ===== */
+    /* 劍痕：每個劍聖各算各的，4 回合（再刻刷新）、不能驅散；湊滿 3 道 → 這次行動結算完後爆發（物攻 150% 無屬性物理、可暴擊、不吃廬山），歸零 */
+    var ACTN = 0, SCARQ = [], WCQ = [];
+    if (!D.SK.scar_burst) { D.SK.scar_burst = { id: 'scar_burst', n: '劍痕爆發', t: 'enemy_all', p: '', ty: 'damage', kind: 'summon', parts: [{ d: 'p', e: '', r: 1.5 }], hits: 1, sp: 0, cdN: 0 }; D.EFF.scar_burst = [] }
+    function scarOf(t, u) { return t && t.scars ? t.scars.filter(function (q) { return q.src === u })[0] : null }
+    function scarN(t, u) { var q = scarOf(t, u); return q ? q.n : 0 }
+    function scarTot(t) { return t.dead ? 0 : (t.scars || []).reduce(function (a, q) { return a + q.n }, 0) }
+    function scarAdd(u, t) { if (!u || u.side !== 'p' || !t || t.dead || t.hp <= 0 || t.side === u.side) return; t.scars = t.scars || []; var q = scarOf(t, u); if (!q) { q = { src: u, n: 0, turns: 4 }; t.scars.push(q) } q.turns = 4; if (q.n >= 3) return; q.n++; if (q.n >= 3) SCARQ.push({ u: u, t: t }) }
+    function scarForce(u, t) { t.scars = t.scars || []; var q = scarOf(t, u); if (!q) { q = { src: u, n: 0, turns: 4 }; t.scars.push(q) } var was = q.n >= 3; q.n = 3; q.turns = 4; if (!was) SCARQ.push({ u: u, t: t }) }
+    function scarFlush() { var by = []; SCARQ.forEach(function (x) { var g = by.filter(function (z) { return z.u === x.u })[0]; if (!g) { g = { u: x.u, t: [] }; by.push(g) } if (g.t.indexOf(x.t) < 0) g.t.push(x.t) }); SCARQ = [];
+      by.forEach(function (g) { var u = g.u, L = g.t.filter(function (t) { var q = scarOf(t, u); if (q) q.n = 0; return !t.dead && t.hp > 0 && !banished(t) }); if (u.dead || !L.length) return;
+        var r = line({ side: 'p', a: u.i, scarB: 1, sk: 'scar_burst', ty: 'damage', tg: L.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }), txt: '' }), out = [];
+        L.forEach(function (t) { var x = dmgOnce(u, t, [{ d: 'p', e: '', r: 1.5 }], D.SK.scar_burst, { sure: true, noReact: true }); if (x.void) { out.push(t.name + ' 無效'); return } NC = { el: '', dt: 'p', c: x.crit }; var rl = x.amt ? hurt(t, x.amt, u) : 0; out.push(t.name + (x.crit ? ' 暴擊！' : ' ') + rl); addStat(r, u, 'dmg', rl, '劍痕爆發'); addStat(r, t, 'taken', rl, u.name + ' 劍痕爆發'); checkDeath(t, r) });
+        r.txt = u.name + ' 刻下的「劍痕」爆發：' + out.join('、') + ' 傷害';
+        var ms = u.mst && u.mst.scar_soul; if (ms && ms.st && !u.dead && applyStatus(u, u, ms.st, ms.turns || 2, 1, null)) { r.txt += '；「' + ms.n + '」' + u.name + ' 獲得「' + ms.st + '」'; r.soul = 1 } /* 職業精通：劍痕爆發 → 劍魂 */
+        flushSt(r); flushRel(r); r.hp = hpSnap() }); flushBoom() }
+    /* 明鏡止水的水分身擋下攻擊：敵人整招結束後散開，SP +1 */
+    function wclFlush() { var L = WCQ; WCQ = []; L.forEach(function (t, n) { if (L.indexOf(t) !== n || t.dead) return; var r = line({ side: t.side, a: t.i, wcl: 1, ty: 'buff', txt: t.name + ' 的水分身擋下攻擊後散開' }); if (SPM && t.side === 'p') { var s0 = t.sp | 0; t.sp = Math.min(SPMAX, s0 + 1); if (t.sp > s0) { numAdd(t, 1, 'sp'); r.txt += '，SP +1' } } r.hp = hpSnap() }) }
+    /* 劍殘心：殘影掠過整排敵人，每人一刀（物攻 × value 無屬性物理、可暴擊、吃廬山）並各刻一道劍痕 */
+    function zanshinLine(d, re, zs) { var L = foes(d).filter(function (t) { return !t.dead && !banished(t) && !airborne(t) }); if (!L.length) return;
+      var r = line({ side: d.side, a: d.i, rk: 'zans', zans: 1, rname: re.name, ty: 'damage', tg: L.filter(function (t) { return t.side === 'm' }).map(function (t) { return t.i }), txt: '' }), out = [], v = num(zs.value) || 0.2;
+      L.forEach(function (t) { var mult = 1; if (d.special) d.special.forEach(function (s9) { if (s9.k === 'lushan') mult += scarN(t, d) * s9.v }); var x = dmgOnce(d, t, [{ d: 'p', e: '', r: v }], { cr: 0, cd: 0 }, { noReact: true, mult: mult });
+        if (x.miss) { numAdd(t, 0, 'miss'); out.push(t.name + ' 閃開'); return } if (x.void) { out.push(t.name + ' 無效'); return }
+        NC = { el: '', dt: 'p', c: x.crit }; var rl = x.amt ? hurt(t, x.amt, d) : 0; out.push(t.name + (x.crit ? ' 暴擊！' : ' ') + rl); addStat(r, d, 'dmg', rl, re.name); addStat(r, t, 'taken', rl, d.name + ' ' + re.name); checkDeath(t, r); scarAdd(d, t) });
+      r.txt = d.name + ' 發動「' + re.name + '」：' + out.join('、') + ' 傷害'; flushRel(r); r.hp = hpSnap(); scarFlush() }
     /* ===== 創生導師 ===== */
     var ORBS = [], goldQ = [];
     /* 天球秘儀：被敵人打中（傷害 > 0）就記一下；每次行動結束時，這次有被打到就碎一層，碎完全隊的天球一起消失 */
@@ -1083,6 +1113,7 @@
       });
       if (sk && sk.ty === 'damage') u.st.forEach(function (s) { if (s.rows.some(function (r) { return r.k === 'sure_crit_next' })) s.turns = 0 });
       u.st = u.st.filter(function (s) { return s.banish || s.swal || s.paused || s.turns === 'attack' || s.turns > 0 }); mhpSync(u);
+      if (u.scars && !X) { u.scars.forEach(function (q) { q.turns-- }); u.scars = u.scars.filter(function (q) { return q.turns > 0 && q.n > 0 }) } /* 劍痕：持有者每行動一次扣一回合 */
       nowAct = null;
       if (u.side === 'm' && !u.dead) digest(u);
     }
@@ -1137,6 +1168,8 @@
             var t = t0, pr = single ? (hooks.protector ? hooks.protector(t0, u) : protectorFor(t0, u)) : null; if (pr) t = pr;
             if (!perT[t.i + t.side]) { perT[t.i + t.side] = { t: t, hs: [], nm: t.name }; order.push(t) }
             hitList.push(t);
+            /* 明鏡止水：水分身擋下這一下（多段只擋第一段）；這一招的負面狀態也不會上到這個人身上 */
+            if (t.side !== u.side && !t.dead) { var wcS = t.st.filter(function (q) { return !q.paused && q.rows.some(function (r) { return r.k === 'wclone' }) })[0]; if (wcS) { removeStatus(t, wcS); perT[t.i + t.side].hs.push('擋下'); numAdd(t, 0, 'block', { h: h }); (e._wcb = e._wcb || []).push(t); WCQ.push(t); return } }
             var mult = 1, xc = 0, sc = false;
             if (bonus.dmg_per_debuff) mult += Math.min(debuffs(t).length * num(bonus.dmg_per_debuff.value), num(String(bonus.dmg_per_debuff.condition || '').replace('max', '')) || 9);
             if (bonus.arc_use && u.arc) mult += u.arc * num(bonus.arc_use.value); /* 天照霸 +0.15 倍／層（兩段各算 → 相對 2 倍是 +7.5%）、獄門劍 +10%／層 */
@@ -1146,9 +1179,10 @@
             if (bonus.sure_crit_low_hp && t.hp / t.b.mhp < (num(bonus.sure_crit_low_hp.value) || 0.3)) sc = true;
             if (u.mst && u.mst.dmg_vs_debuffed && debuffs(t).length) mult += u.mst.dmg_vs_debuffed.v; /* 審判之眼 */
             var pvT = u.side === 'p' ? preyV(t, u) : 0; mult += pvT; /* 獵物標記 +15% */
+            if (u.special) u.special.forEach(function (s9) { if (s9.k === 'lushan') mult += scarN(t, u) * s9.v }); /* 廬山一劍痕：目標身上自己的劍痕每道 +8%（打之前算） */
             if (bonus.wind_stack_dmg) mult += Math.min(windN(u) * num(bonus.wind_stack_dmg.value), num(bonus.wind_stack_dmg.condition) || 9) / ((sk.parts[0] || {}).r || 1); /* 風靈驟雨：每層風勢倍率 +0.1 */
             if (u.mst && u.mst.dmg_vs_low && t.hp / t.b.mhp < (u.mst.dmg_vs_low.v2 || 0.4)) mult += u.mst.dmg_vs_low.v; /* 致命要害 */
-            var x = dmgOnce(u, t, hP, sk, { mult: mult, extraCrit: xc, sureCrit: sc, resPierce: bonus.res_pierce ? num(bonus.res_pierce.value) : 0, redPierce: bonus.red_pierce ? num(bonus.red_pierce.value) : 0, resIgnore: !!bonus.res_ignore, hitAdd: pvT ? 0.1 : 0 }); /* res_pierce：計算時視為目標屬性抗性少 value（極光女神之寬恕） */
+            var x = dmgOnce(u, t, hP, sk, { mult: mult, extraCrit: xc, sureCrit: sc, resPierce: bonus.res_pierce ? num(bonus.res_pierce.value) : 0, redPierce: bonus.red_pierce ? num(bonus.red_pierce.value) : 0, resIgnore: !!bonus.res_ignore, hitAdd: pvT ? 0.1 : 0, cdAdd: bonus.cd_low_hp && t.hp / t.b.mhp < (num(bonus.cd_low_hp.condition) || 0.5) ? num(bonus.cd_low_hp.value) : 0 }); /* res_pierce：計算時視為目標屬性抗性少 value（極光女神之寬恕） */
             var rec = perT[t.i + t.side];
             if (x.void) { rec.hs.push('無效'); numAdd(t, 0, 'void', { h: h }); return }
             if (x.miss) { rec.hs.push('閃開'); numAdd(t, 0, 'miss', { h: h }); return }
@@ -1251,8 +1285,11 @@
           var sn = r.status_name; if (u.owner && /^phys:/.test(r.condition || '') && !u.hiM) sn = String(r.condition).slice(5); /* 幻獸：物攻較高時換成物理版的狀態（森羅角擊的猛毒） */
           if (r.target === 'self') { var su = u.owner || u; applyStatus(su, su, sn, r.turns, r.apply_chance, e) }/* 幻獸的招：加在主人身上 */
           else if (r.target === 'ally_all') friends(u).forEach(function (f) { applyStatus(u, f, sn, r.turns, r.apply_chance, e) }); /* 傷害技順便替自己全隊上增益（神聖輝煌） */
-          else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side && !(r.condition === 'not_boss' && t.boss)) applyStatus(u, t, sn, r.condition === 'boss_half' && t.boss ? Math.max(1, Math.floor((parseInt(r.turns, 10) || 1) / 2)) : r.turns, r.apply_chance, e) }); /* boss_half：對王回合減半（冰川尖刺） */
+          else order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side && !(e._wcb && e._wcb.indexOf(t) >= 0) && !(r.condition === 'not_boss' && t.boss)) applyStatus(u, t, sn, r.condition === 'boss_half' && t.boss ? Math.max(1, Math.floor((parseInt(r.turns, 10) || 1) / 2)) : r.turns, r.apply_chance, e) }); /* boss_half：對王回合減半（冰川尖刺） */
         });
+        /* 劍聖：命中的敵人各刻一道劍痕（擴散打到的也算）；無我天地滅：引爆全場自己的劍痕（有就視為 3 道） */
+        if (bonus.scar) { var scT = order.filter(function (t) { return !t.dead && perT[t.i + t.side].ok && t.side !== u.side }); (e.spl || []).forEach(function (q) { var t = (q[0] === 'm' ? M : P)[q[1]]; if (t && scT.indexOf(t) < 0) scT.push(t) }); scT.forEach(function (t) { scarAdd(u, t) }) }
+        if (bonus.scar_detonate_all) foes(u).forEach(function (t) { if (!t.dead && scarN(t, u) > 0) scarForce(u, t) });
         /* 霜刃術：攻擊時每個被打中的目標各擲一次凍結 */
         var fzv = sv(u, 'freeze_on_hit'); if (fzv > 0) order.forEach(function (t) { if (!t.dead && perT[t.i + t.side].ok && t.side !== u.side) applyStatus(u, t, '凍結', 1, fzv, e) });
         /* 驅散敵人的增益（翠光破邪全部、晨曦星雨 1 個） */
@@ -1290,7 +1327,7 @@
         if (bonus.revive_all) (u.side === 'p' ? P : M).forEach(function (t) { if (!t.dead || t.summoned) return; t.dead = false; t.undead = null; revive(t, num(bonus.revive_all.value) || 0.35, sk.n, null); e.txt += '，' + t.name + ' 復活了（' + t.hp + ' 生命）'; (e.rev = e.rev || []).push([t.side, t.i]); u._didHeal = 1 }); /* 至聖神蹟：倒下的隊友全部復活 */
         effs.forEach(function (r) {
           if (r.effect_kind === 'status') tg.forEach(function (t) { applyStatus(u, t, r.status_name, r.turns, r.apply_chance, e) });
-          if (r.effect_kind === 'cleanse') tg.forEach(function (t) { var d = debuffs(t).filter(function (q) { return !q.swal && !q.banish && !q.rows.some(function (x) { return x.k === 'no_dispel' }) }); d.forEach(function (s) { removeStatus(t, s) }); if (d.length) e.txt += '，清除 ' + t.name + ' 的 ' + d.map(function (s) { return '「' + s.n + '」' }).join('') });
+          if (r.effect_kind === 'cleanse') tg.forEach(function (t) { var d = debuffs(t).filter(function (q) { return !q.swal && !q.banish && !q.rows.some(function (x) { return x.k === 'no_dispel' }) }).slice(-(num(r.value) || 99)) /* value = 最多幾個（最新的先）；空白 = 全部 */; d.forEach(function (s) { removeStatus(t, s) }); if (d.length) e.txt += '，清除 ' + t.name + ' 的 ' + d.map(function (s) { return '「' + s.n + '」' }).join('') });
         });
       } else {
         e.hl = tg.filter(function (t) { return t.side === 'p' }).map(function (t) { return t.i });
